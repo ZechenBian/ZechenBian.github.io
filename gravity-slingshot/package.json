@@ -1,0 +1,11 @@
+{
+  "name": "gravity-slingshot",
+  "version": "2.0.0",
+  "description": "引力弹弓 · Gravity Slingshot — a browser puzzle game about orbital mechanics",
+  "private": true,
+  "scripts": {
+    "solve": "node src/solve.js",
+    "build": "node build.js"
+  },
+  "license": "MIT"
+}

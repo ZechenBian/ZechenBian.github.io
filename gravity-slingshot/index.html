@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="zh-CN" id="root">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>引力弹弓 · Gravity Slingshot</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#0a0e1c; --panel:#121831; --line:#243055; --ink:#e6ebf7; --dim:#8b95b5;
+  --amber:#f5b64a; --teal:#5fd3c4; --coral:#ff6f7d; --violet:#b48bff;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:'Rajdhani',system-ui,-apple-system,sans-serif; font-size:16px;
+  display:flex; flex-direction:column; gap:8px;
+  padding-inline:16px; padding-block:10px; overflow:hidden;
+}
+.mono{font-family:'IBM Plex Mono',ui-monospace,monospace; font-variant-numeric:tabular-nums}
+.hud{display:flex; align-items:center; gap:12px; flex-wrap:wrap; min-height:34px}
+.hud .level{font-weight:700; font-size:22px; letter-spacing:.02em; white-space:nowrap}
+.hud .level small{color:var(--dim); font-weight:600; font-size:13px; margin-left:8px; letter-spacing:.12em; text-transform:uppercase}
+.stars{display:flex; gap:4px}
+.stars i{width:14px;height:14px; border-radius:50%; border:1.5px solid var(--amber); display:block; opacity:.45}
+.stars i.on{background:var(--amber); opacity:1; box-shadow:0 0 8px var(--amber)}
+.best{color:var(--dim); font-size:13px; letter-spacing:.04em; white-space:nowrap}
+.best b{color:var(--teal); font-weight:600}
+.tele{margin-left:auto; display:flex; gap:10px; font-size:12px; color:var(--dim); align-items:center}
+.tele b{color:var(--ink); font-weight:500}
+.fuel{display:flex; align-items:center; gap:6px}
+.fuel .bar{width:70px; height:8px; border:1px solid var(--line); border-radius:2px; overflow:hidden; background:var(--panel)}
+.fuel .bar i{display:block; height:100%; background:var(--teal); width:100%; transition:width .15s}
+.btn{
+  font:inherit; font-weight:600; font-size:14px; letter-spacing:.06em;
+  color:var(--ink); background:var(--panel); border:1px solid var(--line);
+  border-radius:4px; padding:6px 12px; cursor:pointer; white-space:nowrap;
+}
+.btn:hover{border-color:var(--dim)}
+.btn:focus-visible{outline:2px solid var(--amber); outline-offset:2px}
+.btn.primary{background:var(--amber); color:#1a1200; border-color:var(--amber)}
+.btn.on{border-color:var(--teal); color:var(--teal)}
+.btn.icon{padding:6px 9px}
+.stage{flex:1; min-height:0; display:flex; align-items:center; justify-content:center; position:relative}
+canvas{display:block; max-width:100%; max-height:100%; touch-action:none; border:1px solid var(--line); border-radius:6px; background:#070a16}
+.foot{display:flex; align-items:center; gap:14px; flex-wrap:wrap; min-height:30px}
+.hint{color:var(--dim); font-size:15px; font-weight:500; flex:1; min-width:200px}
+.hint.bad{color:var(--coral)}
+.hint.good{color:var(--teal)}
+.levels{display:flex; gap:4px; flex-wrap:wrap}
+.levels button{
+  width:26px;height:26px; border-radius:50%; border:1px solid var(--line); background:transparent;
+  color:var(--dim); font:inherit; font-size:12px; font-weight:700; cursor:pointer; padding:0;
+}
+.levels button.done{border-color:var(--teal); color:var(--teal)}
+.levels button.gold{border-color:var(--amber); color:var(--amber)}
+.levels button.cur{background:var(--ink); color:var(--bg); border-color:var(--ink)}
+.levels button:disabled{opacity:.35; cursor:default}
+.overlay{
+  position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  background:rgba(7,10,22,.62); backdrop-filter:blur(3px); border-radius:6px;
+}
+.card{
+  background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:22px 28px;
+  display:flex; flex-direction:column; gap:12px; align-items:center; max-width:min(92%,520px); text-align:center;
+}
+.card h2{margin:0; font-size:28px; font-weight:700; text-wrap:balance}
+.card p{margin:0; color:var(--dim); font-size:12px}
+.card .stars i{width:22px;height:22px}
+.row{display:flex; gap:10px; flex-wrap:wrap; justify-content:center}
+.settings{position:absolute; top:10px; right:10px; width:min(360px,calc(100% - 20px)); background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:14px 16px; display:flex; flex-direction:column; gap:12px; z-index:5}
+.settings h3{margin:0; font-size:16px; letter-spacing:.1em; text-transform:uppercase; color:var(--dim)}
+.opt{display:flex; align-items:center; justify-content:space-between; gap:10px; font-size:15px}
+.opt .seg{display:flex; flex:none; border:1px solid var(--line); border-radius:4px; overflow:hidden}
+.opt .seg button{font:inherit; font-size:13px; font-weight:600; padding:4px 10px; background:transparent; color:var(--dim); border:0; cursor:pointer}
+.opt .seg button.on{background:var(--ink); color:var(--bg)}
+.opt .seg button:focus-visible{outline:2px solid var(--amber); outline-offset:-2px}
+.settings .note{font-size:12px; color:var(--dim); line-height:1.4}
+.settings table{width:100%; border-collapse:collapse; font-size:12px; color:var(--dim)}
+.settings td{padding:2px 0} .settings td:last-child{text-align:right; color:var(--ink)}
+@media (max-width:1180px){ .best{display:none} }
+@media (max-width:760px){ .tele{display:none} .hud .level{font-size:18px} }
+@media (prefers-reduced-motion: reduce){ *{animation:none!important; transition:none!important} }
+</style>
+</head>
+<body>
+
+<div class="hud">
+  <div class="level" id="lvName">— <small id="lvIdx"></small></div>
+  <div class="stars" id="lvStars"></div>
+  <div class="best" id="lvBest"></div>
+  <div class="tele mono">
+    <span>v <b id="tV">0.0</b></span>
+    <span>m <b id="tM">1.00</b></span>
+    <span class="fuel"><span data-i18n="fuel">燃料</span> <span class="bar"><i id="tFuel"></i></span></span>
+    <span><span data-i18n="launches">发射</span> <b id="tN">0</b></span>
+    <span><span data-i18n="burns">点火</span> <b id="tB">0</b></span>
+  </div>
+  <button class="btn" id="btnFast" data-i18n="fast" data-i18n-title="fastT">快进 ×3</button>
+  <button class="btn" id="btnReset" data-i18n="reset" data-i18n-title="resetT">重置</button>
+  <button class="btn icon" id="btnLang" title="中文 / English">EN</button>
+  <button class="btn icon" id="btnSet" data-i18n-title="settings" aria-label="设置">⚙</button>
+</div>
+
+<div class="stage" id="stage">
+  <canvas id="cv" width="1000" height="600"></canvas>
+  <div class="settings" id="settings" hidden>
+    <h3 data-i18n="settings">设置</h3>
+    <div class="opt"><span data-i18n="optAst">随机小行星</span><span class="seg" data-key="ast"><button data-v="0" data-i18n="none">无</button><button data-v="6" data-i18n="few">少</button><button data-v="14" data-i18n="many">多</button></span></div>
+    <div class="opt"><span data-i18n="optPred">预测线长度</span><span class="seg" data-key="pred"><button data-v="70" data-i18n="short">短</button><button data-v="160" data-i18n="mid">中</button><button data-v="320" data-i18n="long">长</button></span></div>
+    <div class="opt"><span data-i18n="optSlow">点火时慢动作</span><span class="seg" data-key="slow"><button data-v="1" data-i18n="on">开</button><button data-v="0" data-i18n="off">关</button></span></div>
+    <div class="opt"><span data-i18n="optTrail">轨迹尾迹</span><span class="seg" data-key="trail"><button data-v="1" data-i18n="on">开</button><button data-v="0" data-i18n="off">关</button></span></div>
+    <div class="opt"><span data-i18n="optSound">音效</span><span class="seg" data-key="sound"><button data-v="1" data-i18n="on">开</button><button data-v="0" data-i18n="off">关</button></span></div>
+    <div class="note" data-i18n="astNote">随机小行星每次重置重新生成，开着它时的成绩不计入最佳记录。</div>
+    <table id="statTable"></table>
+    <div class="row"><button class="btn" id="btnClear" data-i18n="clear">清除全部记录</button><button class="btn primary" id="btnCloseSet" data-i18n="close">关闭</button></div>
+  </div>
+</div>
+
+<div class="foot">
+  <div class="hint" id="hint"></div>
+  <div class="levels" id="lvList"></div>
+</div>
+
+<script>
+// 共享物理模块：游戏和关卡求解器都用这一份代码
+const PH=(function(){
+const W=1000,H=600,DT=0.25,SUB=4,MAXT=1400;
+const VE=6,M0=1;               // 喷气速度 / 探测器干质量（火箭方程用）
+const AST_M=220,AST_R=5;       // 小行星质量（被行星吸积时加到行星上）/ 半径
+const K=0.05,MAXDRAG=180;      // 发射拖拽 → 速度
+const KT=0.02,MAXDV=3;         // 点火拖拽 → Δv
+const STAR_R=20;
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function orbitPos(o,t){const a=o.phase+t*2*Math.PI/o.period;return[o.cx+o.R*Math.cos(a),o.cy+o.R*Math.sin(a)];}
+function ppos(p,t){return p.orbit?orbitPos(p.orbit,t):[p.x,p.y];}
+function tpos(L,t){return L.target.orbit?orbitPos(L.target.orbit,t):[L.target.x,L.target.y];}
+// 行星质量随时间变化：脉冲、蒸发、吸积
+function pmass(p,t,extra){let m=p.m;if(p.pulse)m*=1+p.pulse.amp*Math.sin(2*Math.PI*t/p.pulse.period+(p.pulse.phase||0));if(p.decay)m*=Math.exp(-t/p.decay);return m+(extra||0);}
+// 视觉/碰撞半径随质量变化（体积 ∝ 质量）
+function prad(p,m){const f=Math.cbrt(Math.max(.15,Math.abs(m)/Math.abs(p.m)));return p.r*Math.max(.55,Math.min(1.6,f));}
+function makeWorld(L,seed){
+  const w={t:0,extra:L.planets.map(()=>0),ast:[]};
+  const rnd=mulberry32(seed||1);
+  for(const b of (L.belts||[])){
+    const p=L.planets[b.around];const[px,py]=ppos(p,0);
+    for(let i=0;i<b.n;i++){
+      const r=b.rmin+(b.rmax-b.rmin)*rnd(),a=rnd()*Math.PI*2;
+      const v=Math.sqrt(Math.abs(p.m)/r)*(b.vf||1)*(0.95+0.1*rnd())*(b.dir||1);
+      w.ast.push({x:px+r*Math.cos(a),y:py+r*Math.sin(a),vx:-v*Math.sin(a),vy:v*Math.cos(a),alive:true,rot:rnd()*6,drag:(b.drag||0)*(.25+1.5*rnd())});
+    }
+  }
+  return w;
+}
+function addRandomAsteroids(w,L,n,seed){
+  const rnd=mulberry32(seed);let k=0,tries=0;
+  while(k<n&&tries<600){tries++;const x=rnd()*W,y=rnd()*H;
+    if(Math.hypot(x-L.launch[0],y-L.launch[1])<140)continue;
+    let ok=true;for(const p of L.planets){const[px,py]=ppos(p,0);if(Math.hypot(px-x,py-y)<p.r+50)ok=false;}
+    const[tx,ty]=tpos(L,0);if(Math.hypot(tx-x,ty-y)<L.target.r+50)ok=false;
+    if(!ok)continue;
+    let best=null,bd=1e9;for(const p of L.planets){if(p.m<=0)continue;const[px,py]=ppos(p,0);const d=Math.hypot(px-x,py-y);if(d<bd){bd=d;best=[px,py,p.m];}}
+    let vx,vy;
+    if(best){const[px,py,m]=best;const a=Math.atan2(y-py,x-px);const v=Math.sqrt(m/bd)*(.85+.3*rnd())*(rnd()<.5?1:-1);vx=-v*Math.sin(a);vy=v*Math.cos(a);}
+    else{const a=rnd()*Math.PI*2,sp=.3+rnd()*1.1;vx=sp*Math.cos(a);vy=sp*Math.sin(a);}
+    w.ast.push({x,y,vx,vy,alive:true,random:true,rot:rnd()*6,drag:0});k++;}
+}
+function accel(L,w,x,y,t){let ax=0,ay=0;for(let i=0;i<L.planets.length;i++){const p=L.planets[i];const[px,py]=ppos(p,t);const m=pmass(p,t,w.extra[i]);const dx=px-x,dy=py-y;const r2=dx*dx+dy*dy;const r=Math.sqrt(r2);const f=m/(r2*r);ax+=f*dx;ay+=f*dy;}return[ax,ay];}
+// 世界前进一个 DT；probe 可为 null。返回探测器事件：null | 'crash' | 'win' | 'lost' | 'timeout'
+function step(L,w,probe){
+  const t=w.t;
+  for(const a of w.ast){if(!a.alive)continue;const[ax,ay]=accel(L,w,a.x,a.y,t);a.vx+=ax*DT;a.vy+=ay*DT;if(a.drag){const f=1-a.drag*DT;a.vx*=f;a.vy*=f;}a.x+=a.vx*DT;a.y+=a.vy*DT;}
+  if(probe){const[ax,ay]=accel(L,w,probe.x,probe.y,t);probe.vx+=ax*DT;probe.vy+=ay*DT;probe.x+=probe.vx*DT;probe.y+=probe.vy*DT;}
+  w.t=t+DT;const t2=w.t;let ev=null;
+  for(let i=0;i<L.planets.length;i++){const p=L.planets[i];const[px,py]=ppos(p,t2);const rr=prad(p,pmass(p,t2,w.extra[i]));
+    for(const a of w.ast){if(a.alive&&Math.hypot(px-a.x,py-a.y)<rr+AST_R){a.alive=false;if(p.accrete){w.extra[i]+=AST_M;if(w.flash)w.flash.push({x:a.x,y:a.y,t:t2});}}}
+    if(probe&&!ev&&Math.hypot(px-probe.x,py-probe.y)<rr+4)ev='crash';}
+  for(const a of w.ast){if(a.alive&&(a.x<-300||a.x>W+300||a.y<-300||a.y>H+300))a.alive=false;}
+  if(probe&&!ev){for(const a of w.ast){if(a.alive&&Math.hypot(a.x-probe.x,a.y-probe.y)<AST_R+5){ev='crash';break;}}}
+  if(probe&&!ev){const[tx,ty]=tpos(L,t2);
+    if(Math.hypot(tx-probe.x,ty-probe.y)<L.target.r)ev='win';
+    else if(probe.x<-150||probe.x>W+150||probe.y<-150||probe.y>H+150)ev='lost';
+    else if(t2-probe.t0>MAXT)ev='timeout';}
+  return ev;
+}
+// 火箭方程：Δv = VE·ln(m0/m1)。燃料越少质量越小，同样的 Δv 消耗的燃料更少
+function maxDv(probe){return Math.min(MAXDV,Math.max(0,VE*Math.log(probe.m/M0)));}
+function burn(probe,dvx,dvy){const dv=Math.hypot(dvx,dvy);if(dv<1e-9)return 0;const d=Math.min(dv,maxDv(probe));probe.vx+=dvx/dv*d;probe.vy+=dvy/dv*d;probe.m*=Math.exp(-d/VE);return d;}
+function cloneWorld(w){return{t:w.t,extra:w.extra.slice(),ast:w.ast.map(a=>({x:a.x,y:a.y,vx:a.vx,vy:a.vy,alive:a.alive}))};}
+function newProbe(L,w,vx,vy){return{x:L.launch[0],y:L.launch[1],vx,vy,t0:w.t,m:M0+(L.fuel||0)};}
+function dragVel(sx,sy,x,y){let dx=sx-x,dy=sy-y;const len=Math.hypot(dx,dy);const c=Math.min(len,MAXDRAG);if(len>0){dx*=c/len;dy*=c/len;}return{vx:dx*K,vy:dy*K,v:c*K,len:c};}
+return{W,H,DT,SUB,MAXT,VE,M0,K,MAXDRAG,KT,MAXDV,AST_R,STAR_R,mulberry32,ppos,tpos,pmass,prad,makeWorld,addRandomAsteroids,step,burn,maxDv,cloneWorld,newProbe,dragVel};
+})();
+
+</script>
+<script>
+'use strict';
+const LEVELS=[{"name":{"zh":"热身","en":"Warm-up"},"hint":{"zh":"按住探测器往后拉，松手发射。虚线是预测轨迹。","en":"Press on the probe, pull back, release to launch. The dotted line predicts the path."},"fuel":0,"launch":[130,300],"target":{"x":870,"y":300,"r":42},"planets":[],"stars":[[377,309],[589,316]]},{"name":{"zh":"绕行","en":"Flyby"},"hint":{"zh":"行星会把探测器拉弯。别撞上去。","en":"The planet bends your path. Don't hit it."},"fuel":0,"launch":[130,470],"target":{"x":870,"y":130,"r":40},"planets":[{"x":500,"y":300,"m":9000,"r":40,"c":"teal"}],"stars":[[710,452],[576,542]]},{"name":{"zh":"回旋镖","en":"Boomerang"},"hint":{"zh":"目标在你身后。绕着行星甩一圈回来。","en":"The target is behind you. Whip around the planet and come back."},"fuel":0,"launch":[140,330],"target":{"x":140,"y":110,"r":38},"planets":[{"x":600,"y":300,"m":13000,"r":45,"c":"amber"}],"stars":[[435,437],[456,87]]},{"name":{"zh":"点火","en":"Ignition"},"hint":{"zh":"飞行中按住屏幕拖动可以点火微调，燃料有限。质量越轻，同样燃料给的 Δv 越多（火箭方程）。","en":"While in flight, press and drag anywhere to fire the engine. Fuel is limited. A lighter ship gets more Δv from the same fuel (rocket equation)."},"fuel":0.5,"launch":[130,520],"target":{"x":870,"y":90,"r":38},"planets":[{"x":350,"y":220,"m":7000,"r":34,"c":"teal"},{"x":650,"y":380,"m":7000,"r":34,"c":"teal"}],"stars":[[261,108],[154,63],[654,197]]},{"name":{"zh":"卫星","en":"Moon"},"hint":{"zh":"月亮在动。飞偏了随时可以从发射台再拉一次，不用等它落地。","en":"The moon is moving. Missed? Pull again from the launch pad any time; no need to wait."},"fuel":0.3,"launch":[130,300],"target":{"x":870,"y":300,"r":36},"planets":[{"x":500,"y":300,"m":10000,"r":42,"c":"amber"},{"x":0,"y":0,"m":1800,"r":14,"c":"dim","orbit":{"cx":500,"cy":300,"R":140,"period":260,"phase":0}}],"stars":[[241,506],[717,528]]},{"name":{"zh":"反引力","en":"Repulsor"},"hint":{"zh":"紫色的那颗会把你推开。","en":"The purple one pushes you away."},"fuel":0.3,"launch":[130,480],"target":{"x":870,"y":470,"r":38},"planets":[{"x":500,"y":300,"m":-3500,"r":30,"c":"violet"},{"x":700,"y":200,"m":6000,"r":32,"c":"teal"}],"stars":[[376,440],[568,447]]},{"name":{"zh":"走廊","en":"Corridor"},"hint":{"zh":"三颗行星交错排列。走一条蛇形路。","en":"Three planets staggered. Snake through."},"fuel":0.3,"launch":[130,300],"target":{"x":870,"y":300,"r":34},"planets":[{"x":300,"y":120,"m":6000,"r":30,"c":"teal"},{"x":500,"y":480,"m":6000,"r":30,"c":"teal"},{"x":700,"y":120,"m":6000,"r":30,"c":"teal"}],"stars":[[557,443],[340,387],[375,510]]},{"name":{"zh":"引力井","en":"Gravity Well"},"hint":{"zh":"目标紧贴着一颗巨行星。靠近，但别陷进去。","en":"The target hugs a giant planet. Get close, but don't fall in."},"fuel":0.3,"launch":[130,540],"target":{"x":500,"y":150,"r":26},"planets":[{"x":500,"y":300,"m":22000,"r":60,"c":"coral"}],"stars":[[482,553],[590,437]]},{"name":{"zh":"小行星带","en":"Asteroid Belt"},"hint":{"zh":"行星周围有一圈小行星在公转，撞上就完。看准缝隙。","en":"A ring of asteroids orbits the planet. One touch and you're done. Find the gap."},"fuel":0.5,"seed":11,"launch":[130,300],"target":{"x":880,"y":120,"r":36},"planets":[{"x":520,"y":300,"m":9000,"r":36,"c":"teal"}],"belts":[{"around":0,"n":14,"rmin":95,"rmax":200,"dir":1}],"stars":[[387,514],[722,449]]},{"name":{"zh":"脉冲星","en":"Pulsar"},"hint":{"zh":"这颗星的质量在周期性涨落，引力也跟着变。同一发射角度，不同时刻结果不同。","en":"This star's mass rises and falls periodically, and so does its gravity. Same angle, different moment, different result."},"fuel":0.3,"launch":[130,300],"target":{"x":870,"y":300,"r":36},"planets":[{"x":500,"y":300,"m":10000,"r":40,"c":"coral","pulse":{"amp":0.6,"period":240}}],"stars":[[201,81],[666,54]]},{"name":{"zh":"蒸发","en":"Evaporating"},"hint":{"zh":"这颗星正在蒸发，质量指数衰减，弹弓越来越弱。回旋路线要趁早。","en":"This star is evaporating: its mass decays exponentially, and the slingshot gets weaker. Go early."},"fuel":0.3,"launch":[140,330],"target":{"x":150,"y":110,"r":36},"planets":[{"x":560,"y":300,"m":16000,"r":48,"c":"amber","decay":700}],"stars":[[334,463],[541,149]]},{"name":{"zh":"吸积","en":"Accretion"},"hint":{"zh":"气体阻力让小行星一颗颗螺旋坠入行星，每次撞击行星都变重、引力变强。同一发射，早晚结果不同。","en":"Gas drag makes asteroids spiral into the planet one by one. Each impact makes it heavier and its gravity stronger. Same launch, different time, different outcome."},"fuel":0.4,"seed":5,"launch":[130,470],"target":{"x":870,"y":130,"r":38},"planets":[{"x":500,"y":300,"m":7000,"r":32,"c":"teal","accrete":true}],"belts":[{"around":0,"n":20,"rmin":60,"rmax":230,"dir":-1,"drag":0.001}],"stars":[[720,466],[584,557]]},{"name":{"zh":"移动目标","en":"Moving Target"},"hint":{"zh":"目标绕着行星公转。算好相位，或者用点火补一脚。","en":"The target orbits the planet. Time the phase, or fix it with a burn."},"fuel":0.4,"launch":[130,300],"target":{"x":0,"y":0,"r":32,"orbit":{"cx":600,"cy":300,"R":170,"period":300,"phase":0}},"planets":[{"x":600,"y":300,"m":9000,"r":36,"c":"amber"}],"stars":[[252,127],[468,540]]},{"name":{"zh":"双月","en":"Two Moons"},"hint":{"zh":"两颗月亮相位相反。","en":"Two moons, opposite phases."},"fuel":0.4,"launch":[130,520],"target":{"x":870,"y":150,"r":34},"planets":[{"x":500,"y":300,"m":11000,"r":42,"c":"teal"},{"x":0,"y":0,"m":1500,"r":12,"c":"dim","orbit":{"cx":500,"cy":300,"R":120,"period":220,"phase":0}},{"x":0,"y":0,"m":1500,"r":12,"c":"dim","orbit":{"cx":500,"cy":300,"R":200,"period":380,"phase":3.141592653589793}}],"stars":[[150,198],[259,66],[106,344]]},{"name":{"zh":"终局","en":"Finale"},"hint":{"zh":"反引力、脉冲、小行星带。全用上。","en":"Repulsor, pulsar, asteroid belt. All of it."},"fuel":0.6,"seed":23,"launch":[130,300],"target":{"x":880,"y":520,"r":36},"planets":[{"x":330,"y":140,"m":-2500,"r":28,"c":"violet"},{"x":620,"y":300,"m":9000,"r":38,"c":"coral","pulse":{"amp":0.3,"period":300}}],"belts":[{"around":1,"n":8,"rmin":100,"rmax":175,"dir":-1}],"stars":[[303,479],[411,550],[219,400]]}];
+const {W,H,DT,SUB,MAXT,M0,K,MAXDRAG,KT,STAR_R,AST_R}=PH;
+const COL={teal:'#5fd3c4',amber:'#f5b64a',coral:'#ff6f7d',violet:'#b48bff',dim:'#8b95b5'};
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+const $=id=>document.getElementById(id);
+
+// ---------- 持久化：记录 + 设置 ----------
+function load(k,d){try{const v=JSON.parse(localStorage.getItem(k));return v&&typeof v==='object'?v:d;}catch(e){return d;}}
+function save(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+let records=load('gs2-records',{});          // {li:{wins,launches,bestLaunches,bestStars,bestFuel}}
+let S=Object.assign({ast:0,pred:160,slow:1,trail:1,sound:1},load('gs2-settings',{}));
+function rec(i){return records[i]||(records[i]={wins:0,launches:0,bestLaunches:null,bestStars:0,bestFuel:null});}
+function unlockedUpTo(){let n=0;while(n<LEVELS.length-1&&(records[n]||{}).wins>0)n++;return n;}
+
+
+// ---------- 双语 ----------
+const I18N={
+ zh:{fuel:'燃料',launches:'发射',burns:'点火',fast:'快进 ×3',fastT:'快进 (空格)',reset:'重置',resetT:'重置世界 (R)',settings:'设置',
+  optAst:'随机小行星',none:'无',few:'少',many:'多',optPred:'预测线长度',short:'短',mid:'中',long:'长',optSlow:'点火时慢动作',optTrail:'轨迹尾迹',optSound:'音效',on:'开',off:'关',
+  astNote:'随机小行星每次重置重新生成，开着它时的成绩不计入最佳记录。',clear:'清除全部记录',close:'关闭',
+  levelIdx:(i,n)=>`第 ${i} 关 / ${n}`,best:(r,n)=>`最佳 ${r.bestLaunches} 次发射 · ★${r.bestStars}/${n} · 通关 ${r.wins} 次`,notYet:l=>`未通关 · 已发射 ${l} 次`,
+  flying:'飞行中…',flyingFuel:'飞行中。按住屏幕拖动可点火。',relaunch:'重新发射。',noFuel:'燃料用完了。',burn:(d,m)=>`点火 Δv=${d} · 质量 ${m}`,
+  crash:'撞上了。直接再拉一次。',lost:'飘向深空了。再试一次。',timeout:'被引力捕获，探测器失联。直接再拉一次，不用等。',done:'任务完成。',cleared:'记录已清除。',
+  arrive:n=>`抵达 · ${n}`,run:(l,b,f)=>`本轮 ${l} 次发射 · 点火 ${b} 次 · 剩余燃料 ${f}%`,bestLine:(r,n)=>`最佳：${r.bestLaunches} 次发射 · ★${r.bestStars}/${n}`,unranked:'（开启随机小行星，不计入最佳）',
+  retryStars:'再来，集齐星星',again:'再玩一次',next:'下一关 ⏎',allDone:'全部通关 · 回到第 1 关',
+  totStars:'总星数',goldLv:'集满星星的关卡',totLaunch:'累计发射',target:'TARGET',relaunchLbl:'再发射',slow:'SLOW MOTION'},
+ en:{fuel:'fuel',launches:'launches',burns:'burns',fast:'Fast ×3',fastT:'Fast forward (Space)',reset:'Reset',resetT:'Reset world (R)',settings:'Settings',
+  optAst:'Random asteroids',none:'None',few:'Few',many:'Many',optPred:'Prediction length',short:'Short',mid:'Mid',long:'Long',optSlow:'Slow-mo while burning',optTrail:'Trail',optSound:'Sound',on:'On',off:'Off',
+  astNote:'Random asteroids are regenerated on every reset. Runs with them on are not counted toward best records.',clear:'Clear all records',close:'Close',
+  levelIdx:(i,n)=>`Level ${i} / ${n}`,best:(r,n)=>`Best ${r.bestLaunches} launches · ★${r.bestStars}/${n} · cleared ${r.wins}×`,notYet:l=>`Not cleared · ${l} launches`,
+  flying:'In flight…',flyingFuel:'In flight. Press and drag to burn.',relaunch:'Relaunched.',noFuel:'Out of fuel.',burn:(d,m)=>`Burn Δv=${d} · mass ${m}`,
+  crash:'Crashed. Just pull again.',lost:'Lost to deep space. Try again.',timeout:'Captured by gravity, contact lost. Just pull again, no need to wait.',done:'Mission complete.',cleared:'Records cleared.',
+  arrive:n=>`Arrived · ${n}`,run:(l,b,f)=>`This run: ${l} launches · ${b} burns · ${f}% fuel left`,bestLine:(r,n)=>`Best: ${r.bestLaunches} launches · ★${r.bestStars}/${n}`,unranked:'(random asteroids on, not ranked)',
+  retryStars:'Again, get all stars',again:'Play again',next:'Next level ⏎',allDone:'All cleared · back to level 1',
+  totStars:'Total stars',goldLv:'Levels with all stars',totLaunch:'Total launches',target:'TARGET',relaunchLbl:'relaunch',slow:'SLOW MOTION'}
+};
+let lang=(()=>{try{const v=localStorage.getItem('gs2-lang');if(v==='zh'||v==='en')return v;}catch(e){}return /^zh/i.test(navigator.language||'')?'zh':'en';})();
+function T(k,...a){const v=I18N[lang][k];return typeof v==='function'?v(...a):v;}
+function applyLang(){
+  document.documentElement.lang=lang==='zh'?'zh-CN':'en';
+  document.querySelectorAll('[data-i18n]').forEach(el=>{el.textContent=T(el.dataset.i18n);});
+  document.querySelectorAll('[data-i18n-title]').forEach(el=>{el.title=T(el.dataset.i18nTitle);});
+  $('btnLang').textContent=lang==='zh'?'EN':'中';
+  if(L){$('lvName').firstChild.textContent=L.name[lang]+' ';$('lvIdx').textContent=T('levelIdx',li+1,LEVELS.length);renderBest();renderList();renderSettings();
+    if(state==='aim'&&!probe&&!overlay)setHint(L.hint[lang],'');}
+}
+$('btnLang').addEventListener('click',()=>{lang=lang==='zh'?'en':'zh';try{localStorage.setItem('gs2-lang',lang);}catch(e){}applyLang();});
+
+// ---------- 状态 ----------
+let li=Math.min(unlockedUpTo(),LEVELS.length-1);
+let L,world,probe=null,state='aim',drag=null,tdrag=null,trail=[],collected=[];
+let runLaunches=0,runBurns=0,fast=false,shake=0,particles=[],overlay=null,slowAcc=0;
+
+function newWorld(){
+  world=PH.makeWorld(L,L.seed||1);world.flash=[];
+  if(S.ast>0)PH.addRandomAsteroids(world,L,S.ast,(Date.now()&0xffff)+li*97);
+}
+function loadLevel(i){
+  li=i;L=LEVELS[i];probe=null;state='aim';drag=null;tdrag=null;trail=[];particles=[];
+  collected=L.stars.map(()=>false);runLaunches=0;runBurns=0;fast=false;shake=0;
+  newWorld();closeOverlay();
+  $('lvName').firstChild.textContent=L.name[lang]+' ';
+  $('lvIdx').textContent=T('levelIdx',i+1,LEVELS.length);
+  setHint(L.hint[lang],'');renderStars();renderList();renderBest();updateTele();$('btnFast').classList.remove('on');
+}
+function resetWorld(){ // R：世界回到初始状态（小行星、质量、时间），本轮发射计数清零
+  closeOverlay();probe=null;trail=[];state='aim';drag=null;tdrag=null;particles=[];
+  collected=L.stars.map(()=>false);runLaunches=0;runBurns=0;newWorld();
+  renderStars();setHint(L.hint[lang],'');fast=false;$('btnFast').classList.remove('on');updateTele();
+}
+function abortProbe(msg,cls){ // 丢弃当前探测器，世界继续运行，可立刻再发射
+  probe=null;trail=[];state='aim';tdrag=null;collected=L.stars.map(()=>false);renderStars();
+  if(msg)setHint(msg,cls||'');updateTele();
+}
+function closeOverlay(){if(overlay){overlay.remove();overlay=null;}}
+function setHint(t,cls){const h=$('hint');h.textContent=t;h.className='hint '+(cls||'');}
+function renderStars(){const el=$('lvStars');el.innerHTML='';L.stars.forEach((s,i)=>{const d=document.createElement('i');if(collected[i])d.classList.add('on');el.appendChild(d);});}
+function renderBest(){const r=rec(li);$('lvBest').textContent=r.wins?T('best',r,L.stars.length):T('notYet',r.launches);}
+function renderList(){
+  const el=$('lvList');el.innerHTML='';const u=unlockedUpTo();
+  LEVELS.forEach((lv,i)=>{const b=document.createElement('button');b.textContent=i+1;b.title=lv.name[lang];const r=records[i];
+    if(r&&r.wins>0)b.classList.add(r.bestStars>=lv.stars.length?'gold':'done');
+    if(i===li)b.classList.add('cur');b.disabled=i>u;b.addEventListener('click',()=>loadLevel(i));el.appendChild(b);});
+}
+function updateTele(){
+  const v=probe?Math.hypot(probe.vx,probe.vy):(drag?PH.dragVel(drag.sx,drag.sy,drag.x,drag.y).v:0);
+  const m=probe?probe.m:M0+(L.fuel||0);
+  $('tV').textContent=v.toFixed(2);$('tM').textContent=m.toFixed(2);
+  $('tFuel').style.width=(L.fuel?100*Math.max(0,m-M0)/L.fuel:0)+'%';
+  $('tN').textContent=runLaunches;$('tB').textContent=runBurns;
+}
+
+// ---------- 预测 ----------
+function preview(p0,burnV){
+  const w=PH.cloneWorld(world);const p={x:p0.x,y:p0.y,vx:p0.vx,vy:p0.vy,t0:p0.t0,m:p0.m};
+  if(burnV)PH.burn(p,burnV[0],burnV[1]);
+  const pts=[];let ev=null;
+  for(let i=0;i<S.pred&&!ev;i++){for(let k=0;k<SUB&&!ev;k++)ev=PH.step(L,w,p);pts.push([p.x,p.y]);}
+  return{pts,ev};
+}
+
+// ---------- 输入 ----------
+function toWorld(e){const r=cv.getBoundingClientRect();return[(e.clientX-r.left)*W/r.width,(e.clientY-r.top)*H/r.height];}
+cv.addEventListener('pointerdown',e=>{
+  if(overlay)return;const[x,y]=toWorld(e);cv.setPointerCapture(e.pointerId);
+  const nearPad=Math.hypot(x-L.launch[0],y-L.launch[1])<70;
+  if(state==='fly'&&!nearPad){ // 点火拖拽
+    if(PH.maxDv(probe)<=0){setHint(T('noFuel'),'bad');return;}
+    tdrag={sx:x,sy:y,x,y};return;}
+  if(state==='fly'&&nearPad)abortProbe(T('relaunch'),'');
+  drag={sx:L.launch[0],sy:L.launch[1],x,y};
+  if(!nearPad){drag.sx=x;drag.sy=y;}
+});
+cv.addEventListener('pointermove',e=>{const[x,y]=toWorld(e);if(drag){drag.x=x;drag.y=y;updateTele();}if(tdrag){tdrag.x=x;tdrag.y=y;}});
+cv.addEventListener('pointerup',e=>{
+  if(tdrag&&probe){const dv=burnVec(tdrag);tdrag=null;const d=PH.burn(probe,dv[0],dv[1]);
+    if(d>0.02){runBurns++;beep(600+d*120,.08,'square');setHint(T('burn',d.toFixed(2),probe.m.toFixed(2)),'');}updateTele();return;}
+  if(!drag)return;const d=PH.dragVel(drag.sx,drag.sy,drag.x,drag.y);drag=null;
+  if(d.len<12)return;
+  probe=PH.newProbe(L,world,d.vx,d.vy);trail=[];state='fly';runLaunches++;rec(li).launches++;save('gs2-records',records);
+  collected=L.stars.map(()=>false);renderStars();renderBest();setHint(L.fuel?T('flyingFuel'):T('flying'),'');
+  beep(440,.05);updateTele();
+});
+cv.addEventListener('pointercancel',()=>{drag=null;tdrag=null;});
+function burnVec(td){const dx=(td.x-td.sx)*KT,dy=(td.y-td.sy)*KT;const d=Math.hypot(dx,dy),mx=PH.maxDv(probe);if(d>mx&&d>0)return[dx*mx/d,dy*mx/d];return[dx,dy];}
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='BUTTON'&&e.key!=='Escape')return;
+  if(e.key==='r'||e.key==='R')resetWorld();
+  if(e.key===' '){e.preventDefault();toggleFast();}
+  if(e.key==='Escape'){drag=null;tdrag=null;$('settings').hidden=true;}
+  if(e.key==='Enter'&&overlay&&overlay.querySelector('.primary'))overlay.querySelector('.primary').click();
+});
+$('btnReset').addEventListener('click',resetWorld);
+$('btnFast').addEventListener('click',toggleFast);
+function toggleFast(){fast=!fast;$('btnFast').classList.toggle('on',fast);}
+
+// ---------- 设置面板 ----------
+$('btnSet').addEventListener('click',()=>{$('settings').hidden=!$('settings').hidden;renderSettings();});
+$('btnCloseSet').addEventListener('click',()=>{$('settings').hidden=true;});
+$('btnClear').addEventListener('click',()=>{records={};save('gs2-records',records);renderList();renderBest();renderSettings();setHint(T('cleared'),'');});
+document.querySelectorAll('.seg').forEach(seg=>seg.addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;const k=seg.dataset.key;S[k]=+b.dataset.v;save('gs2-settings',S);renderSettings();
+  if(k==='ast')resetWorld();
+}));
+function renderSettings(){
+  document.querySelectorAll('.seg').forEach(seg=>{const k=seg.dataset.key;seg.querySelectorAll('button').forEach(b=>b.classList.toggle('on',+b.dataset.v===S[k]));});
+  let tot=0,gold=0,launches=0;LEVELS.forEach((lv,i)=>{const r=records[i];if(r){tot+=r.bestStars;if(r.wins&&r.bestStars>=lv.stars.length)gold++;launches+=r.launches;}});
+  const all=LEVELS.reduce((a,l)=>a+l.stars.length,0);
+  $('statTable').innerHTML=`<tr><td>${T('totStars')}</td><td>${tot} / ${all}</td></tr><tr><td>${T('goldLv')}</td><td>${gold} / ${LEVELS.length}</td></tr><tr><td>${T('totLaunch')}</td><td>${launches}</td></tr>`;
+}
+
+// ---------- 音效 ----------
+let AC=null;
+function beep(f,dur,type='sine'){if(!S.sound)return;try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.value=f;g.gain.value=.07;g.gain.exponentialRampToValueAtTime(.0001,AC.currentTime+dur);o.connect(g).connect(AC.destination);o.start();o.stop(AC.currentTime+dur);}catch(e){}}
+
+// ---------- 结束处理 ----------
+function finish(ev){
+  if(ev==='win'){
+    state='done';fast=false;$('btnFast').classList.remove('on');
+    const n=collected.filter(Boolean).length,r=rec(li);const fuelLeft=L.fuel?Math.max(0,probe.m-M0)/L.fuel:1;
+    r.wins++;
+    const ranked=S.ast===0;
+    if(ranked){r.bestLaunches=r.bestLaunches===null?runLaunches:Math.min(r.bestLaunches,runLaunches);r.bestStars=Math.max(r.bestStars,n);r.bestFuel=r.bestFuel===null?fuelLeft:Math.max(r.bestFuel,fuelLeft);}
+    save('gs2-records',records);renderList();renderBest();
+    beep(660,.12);setTimeout(()=>beep(990,.2),110);
+    const sub=T('run',runLaunches,runBurns,Math.round(fuelLeft*100))+'<br>'+(ranked?T('bestLine',r,L.stars.length):T('unranked'));
+    showOverlay(T('arrive',L.name[lang]),sub,n);setHint(T('done'),'good');
+  }else if(ev==='crash'){
+    shake=14;for(let i=0;i<40;i++)particles.push({x:probe.x,y:probe.y,vx:(Math.random()-.5)*6,vy:(Math.random()-.5)*6,l:1});
+    beep(110,.3,'sawtooth');abortProbe(T('crash'),'bad');
+  }else if(ev==='lost'){beep(220,.25,'triangle');abortProbe(T('lost'),'bad');}
+  else{beep(160,.3,'triangle');abortProbe(T('timeout'),'bad');}
+}
+function showOverlay(title,sub,n){
+  overlay=document.createElement('div');overlay.className='overlay';
+  const stars=L.stars.map((s,i)=>`<i class="${i<n?'on':''}"></i>`).join('');const last=li>=LEVELS.length-1;
+  overlay.innerHTML=`<div class="card"><h2>${title}</h2><div class="stars">${stars}</div><p class="mono">${sub}</p>
+    <div class="row"><button class="btn" id="oRetry">${n<L.stars.length?T('retryStars'):T('again')}</button>
+    <button class="btn primary" id="oNext">${last?T('allDone'):T('next')}</button></div></div>`;
+  $('stage').appendChild(overlay);
+  overlay.querySelector('#oRetry').addEventListener('click',resetWorld);
+  overlay.querySelector('#oNext').addEventListener('click',()=>loadLevel(last?0:li+1));
+}
+
+// ---------- 绘制 ----------
+const starfield=[];{let seed=7;const rnd=()=>{seed=(seed*16807)%2147483647;return seed/2147483647;};for(let i=0;i<220;i++)starfield.push([rnd()*W,rnd()*H,rnd()*1.4+.3,rnd()]);}
+function drawPath(pts,ev,color){
+  pts.forEach(([x,y],i)=>{ctx.globalAlpha=Math.max(.05,.9-i/pts.length*.85);ctx.fillStyle=color;ctx.beginPath();ctx.arc(x,y,2.2,0,Math.PI*2);ctx.fill();});ctx.globalAlpha=1;
+  if(!pts.length)return;const[ex,ey]=pts[pts.length-1];ctx.lineWidth=2;
+  if(ev==='crash'){ctx.strokeStyle=COL.coral;ctx.beginPath();ctx.moveTo(ex-7,ey-7);ctx.lineTo(ex+7,ey+7);ctx.moveTo(ex+7,ey-7);ctx.lineTo(ex-7,ey+7);ctx.stroke();}
+  else if(ev==='win'){ctx.strokeStyle=COL.teal;ctx.beginPath();ctx.arc(ex,ey,9,0,Math.PI*2);ctx.stroke();}
+  else if(ev==='lost'){ctx.strokeStyle=COL.coral;ctx.beginPath();ctx.arc(ex,ey,6,0,Math.PI*2);ctx.stroke();}
+}
+function draw(){
+  const t=world.t;
+  ctx.setTransform(1,0,0,1,0,0);
+  if(shake>0){ctx.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake);shake*=.85;if(shake<.5)shake=0;}
+  ctx.fillStyle='#070a16';ctx.fillRect(-20,-20,W+40,H+40);
+  for(const[x,y,r,p]of starfield){ctx.globalAlpha=.35+.45*Math.abs(Math.sin(t/60+p*6));ctx.fillStyle='#e6ebf7';ctx.fillRect(x,y,r,r);}ctx.globalAlpha=1;
+  // 行星
+  L.planets.forEach((p,i)=>{
+    const[px,py]=PH.ppos(p,t);const c=COL[p.c]||COL.teal;const m=PH.pmass(p,t,world.extra[i]);const rr=PH.prad(p,m);const rep=m<0;
+    if(p.orbit){ctx.strokeStyle='rgba(139,149,181,.25)';ctx.setLineDash([3,6]);ctx.beginPath();ctx.arc(p.orbit.cx,p.orbit.cy,p.orbit.R,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);}
+    const R=Math.sqrt(Math.abs(m))*1.1;const g=ctx.createRadialGradient(px,py,rr,px,py,R);g.addColorStop(0,c+'33');g.addColorStop(1,c+'00');
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(px,py,R,0,Math.PI*2);ctx.fill();
+    const b=ctx.createRadialGradient(px-rr*.35,py-rr*.35,rr*.1,px,py,rr);b.addColorStop(0,'#ffffff');b.addColorStop(.25,c);b.addColorStop(1,'#0a0e1c');
+    ctx.fillStyle=b;ctx.beginPath();ctx.arc(px,py,rr,0,Math.PI*2);ctx.fill();
+    if(rep){ctx.strokeStyle=c;ctx.lineWidth=1.5;for(let k=0;k<3;k++){ctx.globalAlpha=.5-k*.15;ctx.beginPath();ctx.arc(px,py,rr+8+((t*1.2+k*10)%30),0,Math.PI*2);ctx.stroke();}ctx.globalAlpha=1;}
+    if(p.pulse||p.decay||world.extra[i]>0){ctx.fillStyle=c;ctx.globalAlpha=.8;ctx.font='500 11px "IBM Plex Mono",monospace';ctx.textAlign='center';ctx.fillText('M='+Math.round(Math.abs(m)),px,py+rr+16);ctx.globalAlpha=1;}
+  });
+  // 吸积闪光
+  world.flash=world.flash.filter(f=>t-f.t<12);for(const f of world.flash){const a=1-(t-f.t)/12;ctx.globalAlpha=a;ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.beginPath();ctx.arc(f.x,f.y,4+(1-a)*18,0,Math.PI*2);ctx.stroke();}ctx.globalAlpha=1;
+  // 小行星
+  for(const a of world.ast){if(!a.alive)continue;ctx.save();ctx.translate(a.x,a.y);ctx.rotate((a.rot||0)+t/30);ctx.fillStyle=a.random?'#a89d8a':'#8b95b5';ctx.beginPath();ctx.moveTo(6,0);ctx.lineTo(2,5);ctx.lineTo(-4,4);ctx.lineTo(-6,-1);ctx.lineTo(-2,-5);ctx.lineTo(4,-4);ctx.closePath();ctx.fill();ctx.restore();}
+  // 星星
+  L.stars.forEach(([sx,sy],i)=>{if(collected[i])return;const pulse=1+.15*Math.sin(t/8+i);
+    ctx.save();ctx.translate(sx,sy);ctx.rotate(t/40);ctx.scale(pulse,pulse);ctx.fillStyle=COL.amber;ctx.shadowColor=COL.amber;ctx.shadowBlur=12;
+    ctx.beginPath();for(let k=0;k<8;k++){const r=k%2?4:10,a=k*Math.PI/4;ctx.lineTo(r*Math.cos(a),r*Math.sin(a));}ctx.closePath();ctx.fill();ctx.restore();});
+  // 目标
+  {const[tx,ty]=PH.tpos(L,t);const tr=L.target.r;const pulse=.6+.4*Math.sin(t/10);
+    if(L.target.orbit){const o=L.target.orbit;ctx.strokeStyle='rgba(95,211,196,.25)';ctx.setLineDash([3,6]);ctx.beginPath();ctx.arc(o.cx,o.cy,o.R,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);}
+    ctx.strokeStyle=COL.teal;ctx.lineWidth=2;ctx.globalAlpha=.9;ctx.beginPath();ctx.arc(tx,ty,tr,0,Math.PI*2);ctx.stroke();
+    ctx.globalAlpha=.25*pulse;ctx.fillStyle=COL.teal;ctx.beginPath();ctx.arc(tx,ty,tr,0,Math.PI*2);ctx.fill();
+    ctx.globalAlpha=.7;ctx.setLineDash([4,6]);ctx.beginPath();ctx.arc(tx,ty,tr+8+4*pulse,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=1;
+    ctx.fillStyle=COL.teal;ctx.font='600 12px Rajdhani, sans-serif';ctx.textAlign='center';ctx.fillText(T('target'),tx,ty+tr+24);}
+  // 发射台
+  {const[lx,ly]=L.launch;ctx.strokeStyle='rgba(139,149,181,.5)';ctx.lineWidth=1;ctx.beginPath();ctx.arc(lx,ly,22,0,Math.PI*2);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(lx-30,ly);ctx.lineTo(lx-24,ly);ctx.moveTo(lx+24,ly);ctx.lineTo(lx+30,ly);ctx.moveTo(lx,ly-30);ctx.lineTo(lx,ly-24);ctx.moveTo(lx,ly+24);ctx.lineTo(lx,ly+30);ctx.stroke();
+    if(state==='fly'){ctx.fillStyle='rgba(139,149,181,.7)';ctx.font='600 11px Rajdhani, sans-serif';ctx.textAlign='center';ctx.fillText(T('relaunchLbl'),lx,ly+44);}}
+  // 发射拖拽 + 预测
+  if(drag){
+    const d=PH.dragVel(drag.sx,drag.sy,drag.x,drag.y);const[lx,ly]=L.launch;
+    ctx.strokeStyle=COL.amber;ctx.lineWidth=2;ctx.globalAlpha=.8;ctx.beginPath();ctx.moveTo(lx,ly);ctx.lineTo(lx-d.vx/K,ly-d.vy/K);ctx.stroke();ctx.globalAlpha=1;
+    const pv=preview(PH.newProbe(L,world,d.vx,d.vy));drawPath(pv.pts,pv.ev,COL.amber);
+    ctx.strokeStyle=COL.amber;ctx.lineWidth=3;ctx.globalAlpha=.5;ctx.beginPath();ctx.arc(lx,ly,34,-Math.PI/2,-Math.PI/2+Math.PI*2*d.len/MAXDRAG);ctx.stroke();ctx.globalAlpha=1;
+  }
+  // 点火拖拽 + 预测
+  if(tdrag&&probe){
+    const dv=burnVec(tdrag);const mx=PH.maxDv(probe);const d=Math.hypot(dv[0],dv[1]);
+    ctx.strokeStyle=COL.violet;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(probe.x,probe.y);ctx.lineTo(probe.x+dv[0]/KT*.6,probe.y+dv[1]/KT*.6);ctx.stroke();
+    const pv=preview(probe,dv);drawPath(pv.pts,pv.ev,COL.violet);
+    ctx.fillStyle=COL.violet;ctx.font='500 11px "IBM Plex Mono",monospace';ctx.textAlign='left';ctx.fillText(`Δv ${d.toFixed(2)} / ${mx.toFixed(2)}`,probe.x+14,probe.y-14);
+  }else if(state==='fly'&&probe&&S.pred){ // 飞行中的自由预测（短）
+    const w=PH.cloneWorld(world);const p={x:probe.x,y:probe.y,vx:probe.vx,vy:probe.vy,t0:probe.t0,m:probe.m};let ev=null;
+    ctx.strokeStyle='rgba(245,182,74,.35)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(p.x,p.y);
+    for(let i=0;i<40&&!ev;i++){for(let k=0;k<SUB&&!ev;k++)ev=PH.step(L,w,p);ctx.lineTo(p.x,p.y);}ctx.stroke();
+  }
+  // 尾迹
+  if(S.trail&&trail.length>1){ctx.strokeStyle=COL.amber;ctx.lineWidth=1.5;ctx.beginPath();trail.forEach(([x,y],i)=>{i?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.globalAlpha=.55;ctx.stroke();ctx.globalAlpha=1;}
+  // 探测器
+  {let x,y,a;if(probe){x=probe.x;y=probe.y;a=Math.atan2(probe.vy,probe.vx);}else{x=L.launch[0];y=L.launch[1];const d=drag?PH.dragVel(drag.sx,drag.sy,drag.x,drag.y):null;a=d?Math.atan2(d.vy,d.vx):0;}
+    const sc=probe?.85+.15*(probe.m-M0)/Math.max(.01,L.fuel||1):1; // 燃料越多机身越"胖"
+    ctx.save();ctx.translate(x,y);ctx.rotate(a);ctx.scale(sc,sc);ctx.fillStyle=COL.amber;ctx.shadowColor=COL.amber;ctx.shadowBlur=10;
+    ctx.beginPath();ctx.moveTo(11,0);ctx.lineTo(-7,6);ctx.lineTo(-4,0);ctx.lineTo(-7,-6);ctx.closePath();ctx.fill();
+    if(probe&&state==='fly'){ctx.fillStyle='#fff';ctx.globalAlpha=.6;ctx.beginPath();ctx.moveTo(-6,0);ctx.lineTo(-14-Math.random()*6,2);ctx.lineTo(-14-Math.random()*6,-2);ctx.closePath();ctx.fill();}
+    ctx.restore();}
+  particles.forEach(p=>{ctx.globalAlpha=p.l;ctx.fillStyle=COL.coral;ctx.fillRect(p.x,p.y,3,3);});ctx.globalAlpha=1;
+  if(probe){const m=60;if(probe.x<m||probe.x>W-m||probe.y<m||probe.y>H-m){ctx.strokeStyle=COL.coral;ctx.globalAlpha=.35;ctx.lineWidth=4;ctx.strokeRect(2,2,W-4,H-4);ctx.globalAlpha=1;}}
+  // 计时条（超时前警告）
+  if(probe){const f=(world.t-probe.t0)/MAXT;if(f>.6){ctx.fillStyle=f>.85?COL.coral:COL.dim;ctx.globalAlpha=.6;ctx.fillRect(0,H-3,W*(1-f),3);ctx.globalAlpha=1;}}
+  if(tdrag&&S.slow){ctx.fillStyle='rgba(180,139,255,.8)';ctx.font='600 12px Rajdhani, sans-serif';ctx.textAlign='right';ctx.fillText(T('slow'),W-12,H-10);}
+}
+
+// ---------- 主循环 ----------
+let last=performance.now(),acc=0;
+function tick(){
+  for(let s=0;s<SUB;s++){
+    const ev=PH.step(L,world,state==='fly'?probe:null);
+    if(state==='fly'&&probe){
+      L.stars.forEach(([sx,sy],i)=>{if(!collected[i]&&Math.hypot(sx-probe.x,sy-probe.y)<STAR_R){collected[i]=true;renderStars();beep(880+i*120,.1,'triangle');}});
+      if(ev){finish(ev);return;}
+    }
+  }
+  if(state==='fly'&&probe){trail.push([probe.x,probe.y]);if(trail.length>700)trail.shift();}
+  particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.l-=.03;});particles=particles.filter(p=>p.l>0);
+}
+function loop(now){
+  const dtms=Math.min(50,now-last);last=now;acc+=dtms;
+  const slow=tdrag&&S.slow;const speed=fast?3:1;
+  while(acc>=1000/60){acc-=1000/60;
+    if(slow){slowAcc+=.15;if(slowAcc>=1){slowAcc-=1;tick();}}
+    else for(let k=0;k<speed;k++)tick();
+    if(state==='fly')updateTele();}
+  draw();requestAnimationFrame(loop);
+}
+applyLang();renderSettings();loadLevel(li);requestAnimationFrame(loop);
+</script>
+</body>
+</html>
