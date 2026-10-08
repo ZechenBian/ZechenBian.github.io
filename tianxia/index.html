@@ -884,6 +884,30 @@ button.danger { border-color: var(--bad); color: var(--bad); }
 .thsecinfo { font-size: 12.5px; padding: 6px 8px; margin: 0 0 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--paper2); }
 .thsecinfo .muted { font-size: 12px; margin-top: 2px; }
 
+/* 网页版：设置里的“AI 推演接口”与开局画面上的接入状态 */
+.aiopts { grid-template-columns: minmax(0, 1fr); }
+.aibox .aix { font-size: 12px; line-height: 1.55; margin: 2px 0 6px; }
+.aibox .aif { display: flex; flex-direction: column; gap: 3px; margin: 9px 0; font-size: 12px; color: var(--muted); }
+.aibox .aif input, .aibox .aif select { padding: 6px 8px; border: 1px solid var(--line2); border-radius: var(--r); background: var(--paper); color: var(--ink); font-size: 13.5px; min-width: 0; max-width: 100%; }
+.aibox .aif a { color: var(--accent); }
+.aibox .airow { display: flex; gap: 6px; align-items: center; }
+.aibox .airow input, .aibox .airow select { flex: 1; }
+.aibox .airow button { flex: none; white-space: nowrap; }
+.aibox details { margin: 8px 0 2px; border-top: 1px dashed var(--line2); padding-top: 6px; }
+.aibox summary { cursor: pointer; font-size: 12.5px; color: var(--muted); }
+.aibox .chk { color: var(--ink); }
+.aibtns { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+.aimsg { font-size: 12.5px; line-height: 1.55; margin: 8px 0 0; min-height: 1.3em; word-break: break-word; }
+.aimsg.ok { color: var(--good); } .aimsg.err { color: var(--bad); } .aimsg.warn { color: var(--warn); }
+.aimsg small { display: block; margin-top: 2px; font-size: 11.5px; }
+.aistart { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 10px; font-size: 13px; }
+.aistart .on { color: var(--good); font-weight: 600; }
+.aihelp { font-size: 13px; line-height: 1.6; }
+.aihelp ol { padding-left: 1.4em; margin: 6px 0 10px; }
+.aihelp li { margin: 4px 0; }
+.aihelp code { font-family: var(--f-mono); font-size: 12px; background: var(--accent-soft); padding: 0 4px; border-radius: 3px; word-break: break-all; }
+.aihelp textarea { width: 100%; height: 180px; font-family: var(--f-mono); font-size: 11.5px; }
+
 </style>
 </head>
 <body>
@@ -1074,7 +1098,7 @@ const TXMQ = (() => {
  *   · 房间：在场信息是每 15 秒刷新的保留消息，45 秒没有刷新就算离开；事件是普通消息，按编号去重。
  *   · 身份：本机随机编号（localStorage），昵称由玩家在开局画面填写，写在 <命名空间>/u/<编号>。
  *   · 私人数据（data/users/…，与国家智能体的谈判记录）只存本机。
- * 没有 Claude 推演（sample 返回 null，游戏改用规则引擎）；导出存档直接下载文件。
+ * 推演层的 sample 由 02_ai.js 提供（玩家在设置里接入 ChatGPT、DeepSeek、豆包等，自带密钥；没接入时返回 null，游戏用规则引擎）；导出存档直接下载文件。
  * 地址参数：broker=ws://…（逗号分隔，覆盖默认中继，测试用）、ns=命名空间、u=/n= 测试用的编号与昵称、g=对局编号（邀请链接）。
  */
 (() => {
@@ -1392,7 +1416,8 @@ const TXMQ = (() => {
       if (n === 'room') return room;
       if (n === 'user') return user;
       if (n === 'downloads') return downloads;
-      return null; // 没有 Claude（sample 等）
+      if (n === 'sample') return window.TXAI ? window.TXAI.sample() : null; // 玩家自带密钥的 AI 推演（没接入时为 null）
+      return null;
     },
   });
   window.__txWeb = {
@@ -1403,6 +1428,364 @@ const TXMQ = (() => {
     onStatus(fn) { st.cbs.push(fn); setTimeout(() => fn(upList().length, conns.length), 0); },
     _docs: docs, _subs: subs,
   };
+})();
+
+/* ===================== 网页版 · AI 推演接口（玩家自带 API 密钥） =====================
+ * 在 claude.ai 里，推演层（src/llm.js）经页面运行时的 sample 能力调用 Claude。放到普通网站上时没有这个能力，这里提供同样接口的替代品：
+ *   window.claude.use('sample') → TXAI.sample()：sample.json(input, {modelTier, signal, onText}) 返回解析好的 JSON 对象，出错时抛出 {code, message, detail}。
+ * 玩家在“设置 → AI 推演接口”里选服务商、填自己的 API 密钥：ChatGPT（OpenAI）、DeepSeek、豆包（火山方舟）、通义千问、Kimi、智谱 GLM、
+ * Gemini、Claude（Anthropic API）、OpenRouter、硅基流动、Ollama（本机），或任何兼容 OpenAI Chat Completions 的接口。
+ *   · 密钥只存在本机浏览器（localStorage 'tianxia.ai'），请求从浏览器直接发给所选服务商；填了转发代理时经代理转发。
+ *     不经过联机中继，也不会发给其他玩家。接口地址与代理地址必须是 http(s):// 开头、而且不能指向本网站（免得把密钥发给本站）。
+ *   · 有的服务商不允许网页直接调用（浏览器的跨域限制 CORS），要经转发代理：tianxia/ai-proxy.mjs（Cloudflare Worker 或本机 Node）。
+ *     代理地址的用法：<代理>/<完整接口地址>，例如 https://ai-proxy.xxx.workers.dev/https://api.deepseek.com/chat/completions
+ *   · 先请求 JSON 模式、关闭深度思考（更快）；服务商报错点名不认这些参数（HTTP 400）时去掉重试，重试成功后才记住“这个模型不支持”。
+ *     回复里的代码块、<think> 段与前后多余文字都能容忍。
+ *   · 同时最多 3 个请求，其余排队；429 / 5xx / 流中途断开时退避后重试；单次请求最长 4 分钟。
+ *   · 错误里服务商的原话（detail）只在本机的设置面板里显示，不写进 errText（errText 会进入战报与聊天记录，联机时会同步给其他玩家）。
+ * 模型名称变化很快（2026 年 10 月的默认值见 PRE），设置里的“获取模型列表”会向服务商查询当前可用的模型。
+ */
+window.TXAI = (() => {
+  'use strict';
+  const LSK = 'tianxia.ai';
+  const NOTHINK = { thinking: { type: 'disabled' } };
+  // n 名称 [中, 英]；b 界面文字里代替“Claude”的简称；base 接口地址；model 默认模型；models 候选；key 申请密钥的网址；fast 快速推演用的模型；
+  // cors 1 = 可以从网页直接调用，0 = 不行（要转发代理），缺省 = 不确定；fastBody 关闭深度思考的请求参数；maxTok 默认最大输出；kind 'anthropic' = Claude 原生接口
+  const PRE = [
+    { id: 'openai', n: ['ChatGPT（OpenAI）', 'ChatGPT (OpenAI)'], b: ['ChatGPT', 'ChatGPT'], base: 'https://api.openai.com/v1', model: 'gpt-4.1-mini', models: ['gpt-4.1-mini', 'gpt-4.1', 'gpt-5.5', 'gpt-5.2', 'gpt-4o-mini'], key: 'https://platform.openai.com/api-keys', cors: 1 },
+    { id: 'deepseek', n: ['DeepSeek（深度求索）', 'DeepSeek'], b: ['DeepSeek', 'DeepSeek'], base: 'https://api.deepseek.com', model: 'deepseek-flash', models: ['deepseek-flash', 'deepseek-v4-pro'], key: 'https://platform.deepseek.com/api_keys', cors: 0, fastBody: NOTHINK },
+    { id: 'doubao', n: ['豆包（火山方舟）', 'Doubao (Volcengine Ark)'], b: ['豆包', 'Doubao'], base: 'https://ark.cn-beijing.volces.com/api/v3', model: 'doubao-seed-2-1-lite-260915', models: ['doubao-seed-2-1-lite-260915', 'doubao-seed-2-1-pro-260915', 'doubao-seed-2-1-turbo-260628', 'doubao-seed-evolving'], key: 'https://console.volcengine.com/ark/region:ark+cn-beijing/apiKey', fastBody: NOTHINK, maxTok: 8192 },
+    { id: 'qwen', n: ['通义千问（阿里云百炼）', 'Qwen (Alibaba Cloud)'], b: ['通义千问', 'Qwen'], base: 'https://dashscope.aliyuncs.com/compatible-mode/v1', model: 'qwen3.6-plus', models: ['qwen3.6-plus', 'qwen3.5-flash', 'qwen3-max'], key: 'https://bailian.console.aliyun.com/?apiKey=1', fastBody: { enable_thinking: false } },
+    { id: 'kimi', n: ['Kimi（月之暗面）', 'Kimi (Moonshot AI)'], b: ['Kimi', 'Kimi'], base: 'https://api.moonshot.cn/v1', model: 'kimi-k2.6', models: ['kimi-k2.6', 'kimi-k3'], key: 'https://platform.moonshot.cn/console/api-keys', fastBody: NOTHINK },
+    { id: 'glm', n: ['智谱 GLM', 'Zhipu GLM'], b: ['智谱', 'GLM'], base: 'https://open.bigmodel.cn/api/paas/v4', model: 'glm-4.7-flash', models: ['glm-4.7-flash', 'glm-4.7', 'glm-5'], key: 'https://bigmodel.cn/usercenter/proj-mgmt/apikeys', fastBody: NOTHINK, maxTok: 8192 },
+    { id: 'gemini', n: ['Gemini（Google）', 'Gemini (Google)'], b: ['Gemini', 'Gemini'], base: 'https://generativelanguage.googleapis.com/v1beta/openai', model: 'gemini-3.1-flash-lite', models: ['gemini-3.1-flash-lite', 'gemini-3-flash-preview', 'gemini-3.1-pro-preview'], key: 'https://aistudio.google.com/apikey', cors: 1 },
+    { id: 'claude', kind: 'anthropic', n: ['Claude（Anthropic API）', 'Claude (Anthropic API)'], b: ['Claude', 'Claude'], base: 'https://api.anthropic.com/v1', model: 'claude-sonnet-5-5', models: ['claude-sonnet-5-5', 'claude-haiku-4-5-20251001', 'claude-opus-5-5'], fast: 'claude-haiku-4-5-20251001', key: 'https://console.anthropic.com/settings/keys', cors: 1, maxTok: 8192 },
+    { id: 'openrouter', n: ['OpenRouter（多家模型，含 DeepSeek）', 'OpenRouter (many models, incl. DeepSeek)'], b: ['OpenRouter', 'OpenRouter'], base: 'https://openrouter.ai/api/v1', model: 'openai/gpt-4.1-mini', models: ['openai/gpt-4.1-mini', 'deepseek/deepseek-chat'], key: 'https://openrouter.ai/keys', cors: 1 },
+    { id: 'siliconflow', n: ['硅基流动 SiliconFlow', 'SiliconFlow'], b: ['硅基流动', 'SiliconFlow'], base: 'https://api.siliconflow.cn/v1', model: 'deepseek-ai/DeepSeek-V3', models: ['deepseek-ai/DeepSeek-V3'], key: 'https://cloud.siliconflow.cn/account/ak' },
+    { id: 'ollama', n: ['Ollama（本机模型）', 'Ollama (local models)'], b: ['Ollama', 'Ollama'], base: 'http://localhost:11434/v1', model: 'qwen3:8b', models: ['qwen3:8b', 'qwen2.5:7b', 'llama3.1:8b'], noKey: 1, cors: 1 },
+    { id: 'custom', n: ['其他（OpenAI 兼容接口）', 'Other (OpenAI-compatible API)'], b: ['AI', 'AI'], base: '', model: '', models: [] },
+  ];
+  const byId = id => PRE.find(p => p.id === id) || null;
+  const clone = o => JSON.parse(JSON.stringify(o));
+  const trimUrl = s => String(s || '').trim().replace(/\/+$/, '');
+  // 本机与局域网地址（Ollama、LM Studio 等）：不经过转发代理（云端的代理连不到这些地址），也可以不填密钥
+  const LOCAL = /^(https?:\/\/)?(localhost|127\.\d+\.\d+\.\d+|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+|\[::1\]|0\.0\.0\.0|[^/:?#\s]+\.local)(:\d+)?(\/|$)/i;
+  const isLocal = u => LOCAL.test(String(u || '').trim());
+  // 规范网址：补上 https://（本机与局域网补 http://）；接口地址去掉误贴的 /chat/completions 等；其他协议、坏网址返回空串
+  function normUrl(s, isBase) {
+    s = trimUrl(s); if (!s || s[0] === '/') return ''; // 相对路径会指向本网站
+    if (!/^https?:\/\//i.test(s)) {
+      if (/^[a-z][a-z0-9+.-]*:/i.test(s) && !/^[^/:]+:\d+(\/|$)/.test(s)) return ''; // javascript:、ftp:// 等
+      s = (isLocal(s) ? 'http://' : 'https://') + s.replace(/^\/+/, '');
+    }
+    if (isBase) s = trimUrl(s.replace(/\/(chat\/completions|completions|messages)$/i, ''));
+    try { const u = new URL(s); if (!/^https?:$/.test(u.protocol) || !u.hostname || u.username || u.password) return ''; } catch (e) { return ''; }
+    return s;
+  }
+  const sameSite = u => { try { return new URL(u).origin === location.origin; } catch (e) { return true; } };
+  const ZW = /[\s\u{200b}-\u{200d}\u{2060}\u{feff}]/gu; // 复制密钥时常夹带的空白与零宽字符
+
+  /* ---------- 设置（只存在本机） ---------- */
+  function load() {
+    try {
+      const o = JSON.parse(localStorage.getItem(LSK) || 'null');
+      if (o && typeof o === 'object') return { p: byId(o.p) ? o.p : '', by: o.by && typeof o.by === 'object' ? o.by : {}, proxy: typeof o.proxy === 'string' ? o.proxy : '' };
+    } catch (e) { }
+    return { p: '', by: {}, proxy: '' };
+  }
+  let CFG = load();
+  const subs = [];
+  const fire = () => { for (const f of subs) try { f(); } catch (e) { } };
+  const CAP = {}; // 服务商+模型 → 已知不支持的参数（本次打开页面内有效；改设置时清空）
+  function save(c) {
+    CFG = { p: byId(c && c.p) ? c.p : '', by: clone((c && c.by) || {}), proxy: trimUrl(c && c.proxy) };
+    try { localStorage.setItem(LSK, JSON.stringify(CFG)); } catch (e) { }
+    for (const k of Object.keys(CAP)) delete CAP[k];
+    fire();
+  }
+  try { window.addEventListener('storage', e => { if (e.key === LSK) { CFG = load(); fire(); } }); } catch (e) { } // 另一个标签页改了设置
+  // 合并预设与玩家填写的值；baseBad / proxyBad / keyBad 标出填错的地方
+  function conf(c, pid) {
+    c = c || CFG; pid = pid || c.p; const P = byId(pid); if (!P) return null;
+    const u = (c.by && c.by[pid]) || {};
+    const rawBase = trimUrl(u.base) || P.base || '', base = normUrl(rawBase, true), rawProxy = trimUrl(c.proxy), proxy = normUrl(rawProxy, false);
+    const key = String(u.key || '').replace(ZW, '');
+    return { id: pid, P, kind: P.kind || 'openai', key, keyBad: !!key && !/^[\x21-\x7e]+$/.test(key),
+      model: String(u.model || '').trim() || P.model || '', fast: String(u.fast || '').trim() || P.fast || '',
+      base: base && !sameSite(base) ? base : '', baseBad: !!rawBase && (!base || sameSite(base)),
+      proxy: proxy && !sameSite(proxy) ? proxy : '', proxyBad: !!rawProxy && (!proxy || sameSite(proxy)),
+      think: !!u.think, maxTok: Math.max(0, Math.round(+u.maxTok || 0)) || P.maxTok || 0 };
+  }
+  const usable = k => !!(k && k.base && k.model && !k.keyBad && !k.proxyBad && (k.key || k.P.noKey || isLocal(k.base)));
+  const viaProxy = k => !!(k.proxy && !isLocal(k.base));
+  const url = (k, path) => (viaProxy(k) ? k.proxy + '/' : '') + k.base + path;
+  function headers(k, json) {
+    const h = {}; if (json) h['Content-Type'] = 'application/json';
+    if (k.kind === 'anthropic') { if (k.key) h['x-api-key'] = k.key; h['anthropic-version'] = '2023-06-01'; h['anthropic-dangerous-direct-browser-access'] = 'true'; }
+    else if (k.key) h.Authorization = 'Bearer ' + k.key;
+    if (k.id === 'openrouter') { h['HTTP-Referer'] = location.origin + location.pathname; h['X-Title'] = 'Tianxia'; }
+    return h;
+  }
+
+  /* ---------- 错误 ---------- */
+  const clean = s => String(s || '').replace(/[<>\u{0}-\u{8}\u{b}\u{c}\u{e}-\u{1f}]/gu, ' ').replace(/\s+/g, ' ').trim();
+  // message 只放错误代码：errText 对不认识的代码会显示 message，而 errText 的结果会进入战报、聊天记录（联机时同步给其他玩家）
+  function mkErr(code, detail, extra) { const e = { code, message: code }; if (detail) e.detail = clean(detail).slice(0, 240); return Object.assign(e, extra || {}); }
+  const abortErr = () => Object.assign(new Error('aborted'), { name: 'AbortError' });
+  async function httpErr(res) {
+    let txt = ''; try { txt = await res.text(); } catch (e) { }
+    let j = null; try { j = JSON.parse(txt); } catch (e) { }
+    if (Array.isArray(j)) j = j[0]; // Gemini 兼容接口的错误是数组
+    const er = j && typeof j === 'object' ? (j.error !== undefined ? j.error : j.Error !== undefined ? j.Error : j) : null;
+    let m = er ? (typeof er === 'string' ? er : er.message || er.msg || er.Message || j.message || j.msg || '') : '';
+    const ec = er && typeof er === 'object' ? String(er.code || er.type || er.Code || er.status || '') : '';
+    if (!m) m = txt.replace(/<[^>]+>/g, ' ');
+    m = clean(m).slice(0, 300);
+    const s = res.status, all = m + ' ' + ec, proxy = res.headers.get('x-tianxia-proxy') === '1';
+    const code = proxy ? 'proxy_refused' // 转发代理自己拒绝（网站或服务商不在允许名单里）
+      : /content.{0,12}(risk|filter|policy)|data_inspection|inappropriate|sensitive.?content|high.?risk|flagged|moderation|prohibited|blocked due to|敏感|违规|不安全|审核/i.test(all) ? 'refused'
+      : s === 402 || /insufficient[_ ]?(balance|quota|funds|credit)|exceeded your current quota|quota.?exceeded|余额|欠费|arrearage|overdue|billing/i.test(all) ? 'quota'
+      : s === 401 || s === 403 || (s < 500 && /api[_ -]?key|API_KEY_INVALID|unauthori[sz]ed|authenticat|invalid.?token/i.test(all)) ? 'not_granted'
+      : s === 429 ? 'rate_limited'
+      : /context.?length|maximum context|too many tokens|prompt is too long|input.{0,20}too long|超出.{0,6}长度/i.test(all) ? 'prompt_too_large'
+      : /model/i.test(all) && (s === 404 || /not.?(exist|found)|does not exist|invalid model|unknown model|not.?activated|NotOpen|未开通|不存在|no access/i.test(all)) ? 'bad_model'
+      : s === 404 || s === 405 ? 'bad_url'
+      : s === 400 || s === 422 ? 'invalid_request'
+      : s === 408 || s === 504 ? 'timeout' : 'upstream_error';
+    const ra = +(res.headers.get('retry-after') || 0);
+    return mkErr(code, 'HTTP ' + s + (m ? ' · ' + m : ''), { status: s, raw: m, retryAfter: ra > 0 ? Math.min(20000, Math.max(1000, ra * 1000)) : 0 });
+  }
+
+  /* ---------- 请求 ---------- */
+  const SYS = 'You are the simulation engine of a grand-strategy wargame. Follow the instructions in the user messages exactly. Reply with one valid JSON object and nothing else: no Markdown, no code fences, no text before or after it.';
+  // 输入（字符串或 [{role, content}]）→ 交替的 user/assistant 消息（有的接口不接受连续两条同角色消息）
+  function msgs(input) {
+    const a = typeof input === 'string' ? [{ role: 'user', content: input }] : Array.isArray(input) ? input : [{ role: 'user', content: String(input) }];
+    const out = [];
+    for (const x of a) {
+      if (!x) continue;
+      const role = x.role === 'assistant' ? 'assistant' : 'user', content = typeof x.content === 'string' ? x.content : JSON.stringify(x.content);
+      const l = out[out.length - 1]; if (l && l.role === role) l.content += '\n\n' + content; else out.push({ role, content });
+    }
+    if (!out.length || out[0].role !== 'user') out.unshift({ role: 'user', content: '(begin)' });
+    return out;
+  }
+  async function post(k, path, body, sig) {
+    let res;
+    try { res = await fetch(url(k, path), { method: 'POST', headers: headers(k, true), body: JSON.stringify(body), signal: sig, credentials: 'omit', referrerPolicy: 'no-referrer' }); }
+    catch (e) { if (e && e.name === 'AbortError') throw e; throw mkErr('network', String((e && e.message) || e), { proxy: viaProxy(k) }); } // 跨域被拦、网络不通、代理连不上都在这里
+    if (!res.ok) throw await httpErr(res);
+    return res;
+  }
+  // SSE 解析（OpenAI 兼容格式与 Anthropic 格式）；逐行喂入
+  function sse(anth, onText) {
+    let text = '', fin = null, err = null;
+    return {
+      line(l) {
+        if (!l.startsWith('data:')) return; // 注释（: keep-alive）与 event: 行
+        const d = l.slice(5).trim(); if (!d || d === '[DONE]') return;
+        let o; try { o = JSON.parse(d); } catch (e) { return; }
+        if (o.error || o.type === 'error') { const er = o.error || {}; err = mkErr(/overload|rate/i.test(String(er.type || er.code || '')) ? 'rate_limited' : 'upstream_error', String(er.message || er.type || 'stream error'), { retry: true }); return; }
+        let dt = '';
+        if (anth) {
+          if (o.type === 'content_block_delta' && o.delta && o.delta.type === 'text_delta') dt = o.delta.text || '';
+          else if (o.type === 'message_delta' && o.delta && o.delta.stop_reason) fin = o.delta.stop_reason === 'max_tokens' ? 'length' : o.delta.stop_reason;
+        } else {
+          const c = o.choices && o.choices[0];
+          if (c) { const dl = c.delta || c.message || {}; if (typeof dl.content === 'string') dt = dl.content; if (c.finish_reason) fin = c.finish_reason; }
+        }
+        if (dt) { text += dt; if (onText) try { onText({ text, delta: dt }); } catch (e) { } }
+      },
+      get err() { return err; },
+      res: () => ({ text, fin, stream: true }),
+    };
+  }
+  async function readStream(res, anth, onText) {
+    const p = sse(anth, onText), rd = res.body.getReader(), dec = new TextDecoder();
+    let buf = '', done = false;
+    try {
+      for (;;) {
+        const r = await rd.read(); if (r.done) { done = true; break; }
+        buf += dec.decode(r.value, { stream: true });
+        let i; while ((i = buf.indexOf('\n')) >= 0) { p.line(buf.slice(0, i).replace(/\r$/, '')); buf = buf.slice(i + 1); if (p.err) throw p.err; }
+      }
+      buf += dec.decode(); if (buf.trim()) p.line(buf.trim());
+      if (p.err) throw p.err;
+    } catch (e) {
+      if (e && (e.name === 'AbortError' || e.code)) throw e;
+      throw mkErr('upstream_error', 'stream interrupted: ' + String((e && e.message) || e), { retry: true });
+    } finally { if (!done) try { rd.cancel().catch(() => { }); } catch (e) { } }
+    return p.res();
+  }
+  // 发一次请求。f：json = JSON 模式，extra = 关闭深度思考的参数，mt = 最大输出，stream = 流式
+  async function once(k, model, m, f, sig, onText) {
+    const anth = k.kind === 'anthropic';
+    let body;
+    if (anth) body = { model, max_tokens: (f.mt && k.maxTok) || 8192, system: SYS, messages: m };
+    else {
+      body = { model, messages: [{ role: 'system', content: SYS }].concat(m) };
+      if (f.json) body.response_format = { type: 'json_object' };
+      if (f.extra && k.P.fastBody) Object.assign(body, clone(k.P.fastBody));
+      if (f.mt && k.maxTok) body.max_tokens = k.maxTok;
+    }
+    if (f.stream) body.stream = true;
+    const res = await post(k, anth ? '/messages' : '/chat/completions', body, sig);
+    const ct = res.headers.get('content-type') || '';
+    if (res.body && /event-stream/i.test(ct)) return readStream(res, anth, onText);
+    const txt = await res.text();
+    if (/^\s*(data|event):/.test(txt)) { const p = sse(anth, onText); for (const l of txt.split('\n')) { p.line(l.replace(/\r$/, '')); if (p.err) throw p.err; } return p.res(); } // 流式回复但标错了类型
+    let j; try { j = JSON.parse(txt); } catch (e) { throw mkErr('upstream_error', 'not JSON: ' + txt.slice(0, 160)); }
+    if (j && j.error && !j.choices && !j.content) { const er = j.error; throw mkErr('upstream_error', String((er && (er.message || er.msg)) || er)); }
+    if (anth) return { text: (j.content || []).filter(b => b && b.type === 'text').map(b => b.text).join(''), fin: j.stop_reason === 'max_tokens' ? 'length' : j.stop_reason };
+    const c = j.choices && j.choices[0];
+    let t = c && c.message ? c.message.content : c && c.text;
+    if (Array.isArray(t)) t = t.map(x => (typeof x === 'string' ? x : (x && x.text) || '')).join('');
+    if (t && onText) try { onText({ text: String(t), delta: String(t) }); } catch (e) { }
+    return { text: String(t || ''), fin: c && c.finish_reason };
+  }
+  const wait = (ms, sig) => new Promise((ok, no) => {
+    if (sig && sig.aborted) { no(abortErr()); return; }
+    const t = setTimeout(ok, ms);
+    if (sig) sig.addEventListener('abort', () => { clearTimeout(t); no(abortErr()); }, { once: true });
+  });
+  async function call(k, model, input, o) {
+    const m = msgs(input), ck = k.id + '|' + k.base + '|' + model, cap = CAP[ck] || (CAP[ck] = {});
+    const f = { json: k.kind !== 'anthropic' && cap.json !== false, extra: !!(k.P.fastBody && !k.think) && cap.extra !== false, mt: !!k.maxTok && cap.mt !== false, stream: !!o.onText && cap.stream !== false };
+    const dropped = []; let retries = 0, blind = false;
+    for (let n = 0; n < 8; n++) {
+      let r;
+      try { r = await once(k, model, m, f, o.sig, o.onText); }
+      catch (e) {
+        if (!e || e.name === 'AbortError') throw e;
+        if ((e.status === 400 || e.status === 422) && e.code === 'invalid_request') { // 参数不被接受：报错点名哪个就去掉哪个；没点名就把可选参数都去掉试一次
+          const t = String(e.raw || '');
+          const named = f.json && /response_format|json/i.test(t) ? 'json' : f.extra && /thinking|reasoning/i.test(t) ? 'extra'
+            : f.mt && /max_tokens|max_completion_tokens|maximum.{0,20}tokens|tokens.{0,20}(range|exceed|large)/i.test(t) ? 'mt' : f.stream && /\bstream/i.test(t) ? 'stream' : null;
+          if (named) { f[named] = false; dropped.push(named); continue; }
+          if (!blind && (f.json || f.extra || f.mt)) { blind = true; for (const x of ['json', 'extra', 'mt']) if (f[x]) { f[x] = false; dropped.push(x); } continue; }
+        }
+        if (retries < 2 && (e.retry || e.code === 'rate_limited' || (e.code === 'upstream_error' && e.status >= 500))) { retries++; await wait(e.retryAfter || (retries === 1 ? 2500 : 7000), o.sig); continue; }
+        throw e;
+      }
+      if (r.stream && r.fin == null && !parseJSON(r.text) && retries < 2) { retries++; continue; } // 流没收到结束标记就断了：重试
+      for (const x of dropped) cap[x] = false; // 去掉之后成功了：记住这个模型不支持
+      return r;
+    }
+    throw mkErr('invalid_request');
+  }
+
+  /* ---------- 解析 JSON（容忍代码块、<think> 段和前后多余文字） ---------- */
+  function balanced(s, i) {
+    let d = 0, q = false, es = false;
+    for (let p = i; p < s.length; p++) {
+      const c = s[p];
+      if (q) { if (es) es = false; else if (c === '\\') es = true; else if (c === '"') q = false; continue; }
+      if (c === '"') q = true; else if (c === '{' || c === '[') d++; else if (c === '}' || c === ']') { d--; if (!d) return p; }
+    }
+    return -1;
+  }
+  function parseJSON(t) {
+    let s = String(t || '').replace(/<(think|thinking|reasoning|reflection)>[\s\S]*?<\/\1>/gi, '');
+    const cm = [...s.matchAll(/<\/(think|thinking|reasoning|reflection)>/gi)].pop(); if (cm) s = s.slice(cm.index + cm[0].length); // 开头的标签被截掉了
+    s = s.trim();
+    const obj = o => (o && typeof o === 'object' && !Array.isArray(o) ? o : Array.isArray(o) && o.length === 1 && o[0] && typeof o[0] === 'object' && !Array.isArray(o[0]) ? o[0] : null);
+    const tp = x => { try { return obj(JSON.parse(x)); } catch (e) { return null; } };
+    const fix = x => x.replace(/,\s*([}\]])/g, '$1');
+    let o = tp(s); if (o) return o;
+    try { if (Array.isArray(JSON.parse(s))) return null; } catch (e) { } // 整段是多个元素的数组：不猜
+    for (const fm of [...s.matchAll(/```[a-zA-Z]*\s*([\s\S]*?)```/g)].reverse()) { const x = fm[1].trim(); if ((o = tp(x) || tp(fix(x)))) return o; } // 最后一个代码块最可能是答案
+    let tries = 0; // 依次从每个 { 开始找配平的对象（前面的说明文字里也可能有花括号）
+    for (let i = s.indexOf('{'); i >= 0 && tries < 200; i = s.indexOf('{', i + 1), tries++) {
+      const j = balanced(s, i); if (j < 0) continue;
+      const seg = s.slice(i, j + 1); if ((o = tp(seg) || tp(fix(seg)))) return o;
+    }
+    const i0 = s.indexOf('{'), k = s.lastIndexOf('}');
+    if (i0 >= 0 && k > i0 && (o = tp(s.slice(i0, k + 1)) || tp(fix(s.slice(i0, k + 1))))) return o;
+    return null;
+  }
+
+  /* ---------- 并发上限 ---------- */
+  const MAXC = 3; let active = 0; const queue = [];
+  function slot(sig) {
+    if (sig && sig.aborted) return Promise.reject(mkErr('cancelled'));
+    if (active < MAXC) { active++; return Promise.resolve(); }
+    return new Promise((ok, no) => {
+      const w = { go: () => { if (sig) sig.removeEventListener('abort', ab); ok(); } };
+      const ab = () => { const i = queue.indexOf(w); if (i >= 0) queue.splice(i, 1); no(mkErr('cancelled')); };
+      if (sig) sig.addEventListener('abort', ab, { once: true });
+      queue.push(w);
+    });
+  }
+  function free() { const w = queue.shift(); if (w) w.go(); else active = Math.max(0, active - 1); }
+
+  /* ---------- 对外：与 claude.ai 的 sample 同形 ---------- */
+  const TIMEOUT = 240000;
+  async function run(input, o, wantJson) {
+    o = o || {};
+    const k = conf(); if (!usable(k)) throw mkErr('unavailable');
+    const model = o.modelTier === 'quick' && k.fast ? k.fast : k.model;
+    const ext = o.signal;
+    await slot(ext);
+    const ctl = new AbortController(); let tmo = false;
+    const onAb = () => ctl.abort();
+    if (ext) { if (ext.aborted) ctl.abort(); else ext.addEventListener('abort', onAb, { once: true }); }
+    const tm = setTimeout(() => { tmo = true; ctl.abort(); }, o.timeout || TIMEOUT);
+    try {
+      const r = await call(k, model, input, { sig: ctl.signal, onText: o.onText });
+      if (!wantJson) return r.text;
+      const obj = parseJSON(r.text);
+      if (!obj) throw mkErr(/content_filter|refusal|safety/i.test(String(r.fin || '')) ? 'refused' : r.fin === 'length' ? 'too_long' : 'invalid_json', r.text ? '…' + r.text.slice(-140) : 'empty reply', { text: r.text });
+      return obj;
+    } catch (e) {
+      const err = ctl.signal.aborted ? mkErr(tmo ? 'timeout' : 'cancelled') : e;
+      if (err && err.code !== 'cancelled') try { console.warn('[AI]', k.id, model, err.code, err.detail || ''); } catch (x) { } // 详情只记在本机控制台
+      throw err;
+    } finally { clearTimeout(tm); if (ext) ext.removeEventListener('abort', onAb); free(); }
+  }
+  function sample() {
+    if (!usable(conf())) return null;
+    const s = async (input, o) => ({ text: await run(input, o, false), truncated: false });
+    s.json = (input, o) => run(input, o, true);
+    s.limits = async () => ({ images: false, maxPromptBytes: 1 << 20 });
+    return s;
+  }
+  async function timed(fn, ms) {
+    const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), ms);
+    try { return await fn(ctl.signal); }
+    catch (e) { if (ctl.signal.aborted) throw mkErr('timeout'); throw e; }
+    finally { clearTimeout(t); }
+  }
+  // 设置里填得对不对：返回错误代码或空串
+  function problem(k) {
+    if (!k) return 'no_provider';
+    return k.baseBad ? 'bad_base' : !k.base ? 'no_base' : !k.model ? 'no_model' : k.keyBad ? 'bad_key' : k.proxyBad ? 'bad_proxy' : !k.key && !k.P.noKey && !isLocal(k.base) ? 'no_key' : '';
+  }
+  // 测试连接（用设置面板里尚未保存的草稿）
+  async function test(c) {
+    const k = conf(c || CFG), bad = problem(k); if (bad) throw mkErr(bad);
+    const t0 = Date.now();
+    const r = await timed(sig => call(k, k.model, 'Connection test. Reply with exactly this JSON object: {"ok":true}', { sig }), 90000);
+    return { ms: Date.now() - t0, json: !!parseJSON(r.text), text: String(r.text || '').slice(0, 200), model: k.model };
+  }
+  // 向服务商查询可用模型（GET /models），去掉嵌入、语音、绘图等非对话模型
+  async function models(c) {
+    const k = conf(c || CFG), bad = problem(k); if (bad && bad !== 'no_model') throw mkErr(bad);
+    const res = await timed(async sig => {
+      let r; try { r = await fetch(url(k, '/models'), { headers: headers(k, false), signal: sig, credentials: 'omit', referrerPolicy: 'no-referrer' }); }
+      catch (e) { if (e && e.name === 'AbortError') throw e; throw mkErr('network', String((e && e.message) || e), { proxy: viaProxy(k) }); }
+      if (!r.ok) throw await httpErr(r);
+      return r.json();
+    }, 30000);
+    const arr = Array.isArray(res) ? res : (res && (res.data || res.models)) || [];
+    const ids = arr.map(x => (typeof x === 'string' ? x : x && (x.id || x.name || x.model))).filter(x => typeof x === 'string' && x).map(s => s.replace(/^models\//, '').slice(0, 120));
+    return [...new Set(ids)].filter(s => !/embed|whisper|tts|dall-e|moderation|rerank|transcri|realtime|audio|speech|image|imagen|veo|sora|ocr|bge-|aqa/i.test(s)).sort();
+  }
+  function label(c) { const k = conf(c || CFG); return usable(k) ? { zh: k.P.b[0], en: k.P.b[1] } : null; }
+
+  return Object.freeze({
+    PRE, preset: byId, get cfg() { return clone(CFG); }, save, conf, usable, problem, ready: () => usable(conf()), isLocal, viaProxy,
+    sample, test, models, label, onChange: f => subs.push(f), parseJSON, _cap: CAP,
+  });
 })();
 
 </script>
@@ -4011,29 +4394,119 @@ I18N.add({
   'th.op.nl_plan': ['参谋部方案：{lab}约 {d} 天，最难一段战力比 {r}', 'Staff plan: {lab} ~{d} days, hardest step odds {r}'], 'th.op.nl_fol': ['另调 {n} 个步兵师跟进', 'plus {n} infantry divisions following up'],
 });
 
-/* 网页版（GitHub Pages 等普通网站）：联网经公共中继服务器，没有 Claude；覆盖联机版里与 claude.ai 有关的文字 */
+/* 网页版（GitHub Pages 等普通网站）：联网经公共中继服务器；AI 推演由玩家自带密钥接入（src/web/02_ai.js）。覆盖联机版里与 claude.ai 有关的文字。
+ * 界面文字里的“Claude”会在运行时换成所选服务商的名字（没有接入时是“AI”），见 src/web/ui/04x_ai.js。 */
 I18N.add({
   'mp.intro': ['1939 年试玩版：真人玩家联网同场对弈，其余每个国家都由智能体自动控制。可以与任何国家谈判、提条件，也可以给其他玩家发私信和正式提议。', 'A 1939 trial: human players share one world online, and every other country is run by its own agent. Negotiate with any country, set conditions, and message other players or send them formal proposals.'],
-  'mp.f2': ['<b>国家智能体</b>：每个非玩家国家由本地规则智能体控制，在“通讯”页可以与它们谈判，谈成即签署生效', '<b>Country agents</b>: every non-player country is run by a local-rule agent; negotiate with them on the Comms tab and sign deals that take effect at once'],
-  'mp.f3': ['<b>一句话命令</b>：用一句话下达战时政策与设定变更（如“发行战争公债”“军费提高到 20%”），确认后立即生效并同步', '<b>One-line orders</b>: issue war policies and settings changes in one sentence (e.g. “issue war bonds”, “raise defence spending to 20%”), applied and synced on confirmation'],
+  'mp.f2': ['<b>国家智能体</b>：每个非玩家国家由智能体控制，在“通讯”页可以与它们谈判，谈成即签署生效。默认用本地规则；接入 ChatGPT、DeepSeek、豆包等 AI 后，可以改由 AI 扮演，用自然语言讨价还价', '<b>Country agents</b>: every non-player country is run by an agent you can negotiate with on the Comms tab; signed deals take effect at once. Local rules by default; connect ChatGPT, DeepSeek, Doubao or another AI and the AI can play them, bargaining in plain language'],
+  'mp.f3': ['<b>一句话命令</b>：用一句话下达命令，确认后立即生效并同步。接入 AI 后可以下达任意命令，由 AI 换算成各国数据的变化；没有接入时只识别战时政策与设定变更（如“发行战争公债”“军费提高到 20%”）', '<b>One-line orders</b>: give an order in one sentence, applied and synced on confirmation. With an AI connected, any order is turned into changes to every affected country; without one, only war policies and settings changes are recognized (e.g. “issue war bonds”, “raise defence spending to 20%”)'],
   'mp.net_no': ['连不上联机中继服务器：请检查网络后刷新页面（有的校园网、公司网络会拦截）。热座与单机不受影响。', 'Cannot reach the online relays: check your connection and reload (some campus or office networks block them). Hot-seat and solo play still work.'],
   'mp.share_hint': ['邀请朋友：把本页面的网址发给他们，打开后进入“联网对战”就能看到这局；也可以发下面的邀请链接，点开直接进入。', 'Invite friends: send them this page\'s address and they will find this game under “Online”; or send the invite link below, which opens this game directly.'],
-  'mp.share_x': ['把网址发给朋友，各自在自己的设备上打开即可。对局数据经公共中继服务器转发，没有加密，私信里不要写隐私信息。', 'Send friends the address and everyone opens it on their own device. Game data travels through public relay servers unencrypted, so keep private details out of messages.'],
-  'mp.cfg_sum': ['代价倍率：{a}。AI 战时经济：{b}；倒计时：{d}', 'Cost multipliers: {a}. AI war economy: {b}; timer: {d}'],
+  'mp.share_x': ['把网址发给朋友，各自在自己的设备上打开即可。对局数据经公共中继服务器转发，没有加密，私信里不要写隐私信息。AI 密钥只保存在各自的浏览器里，不会发给其他玩家：与 AI 智能体的对话用发起者自己的密钥，世界推演用房主的密钥。', 'Send friends the address and everyone opens it on their own device. Game data travels through public relay servers unencrypted, so keep private details out of messages. AI keys stay in each player\'s own browser and are never sent to other players: chats with AI agents use the speaker\'s key, and the world simulation uses the host\'s.'],
   'mp.e.nowrite': ['写入失败：联机中继暂时不可用，请稍后重试。', 'Could not save: the online relays are unavailable right now. Try again shortly.'],
-  'mp.h.agents_x': ['在“通讯”页可以直接与任一国家的智能体谈判：本地规则智能体即时按该国利益评估你的条件，谈成后点“签署”立即生效。和真人玩家可以发私信，也可以发正式提议，对方接受即生效。', 'On the Comms tab you can negotiate with any country\'s agent: the local-rule agent judges your terms instantly by national interest, and a signed deal takes effect at once. Human players can be messaged or sent formal proposals that bind once accepted.'],
-  'mp.h.cmd_x': ['在底部输入一句话的命令，例如“发行战争公债”“军费提高到 20%”，先预览变化，确认后立即生效并同步。网页版没有接入 Claude，只识别战时政策与设定变更。', 'Type a one-line order at the bottom, e.g. “issue war bonds” or “raise defence spending to 20%”; preview the change and confirm to apply and sync it. This web version has no Claude, so only war policies and settings changes are recognized.'],
-  'mp.h.limits_x': ['目前只开放 1939 年；对局数据经公共中继服务器转发，没有端到端加密；同一时刻只有房主的结算结果有效；房主关掉页面后，其他入座的玩家一两分钟后自动接任。', '1939 only for now; game data travels through public relays without end-to-end encryption; only the host\'s resolution counts; if the host closes the page, another seated player takes over within a couple of minutes.'],
-  'mp.cmd_nollm': ['只识别政策与设定', 'Policies and settings only'],
-  'mp.cmd_nollm_x': ['网页版没有接入 Claude：一句话命令只能识别战时政策与设定变更（如“发行战争公债”“军费提高到 20%”）。', 'This web version has no Claude: one-line orders only recognize war policies and settings changes (e.g. “issue war bonds”, “raise defence spending to 20%”).'],
-  'mp.lobby_x': ['每位玩家选一个国家入座；空着的国家由本地规则智能体控制。房主点击“开始对局”后进入第一回合。', 'Each player takes a country; empty countries are run by local-rule agents. The host clicks “Start game” to begin the first turn.'],
-  'mp.cmd_ph': ['用一句话下达战时政策或设定变更，例：“发行战争公债”“军费提高到 20%”', 'Give a war-policy or settings order in one sentence, e.g. “issue war bonds”, “raise defence spending to 20%”'],
+  'mp.h.agents_x': ['在“通讯”页可以直接与任一国家的智能体谈判：本地规则智能体即时按该国利益评估你的条件；AI 智能体（接入 AI 后，房主可以把国家交给它）会用自然语言讨价还价，有个性与记忆。谈成后点“签署”立即生效。和真人玩家可以发私信，也可以发正式提议，对方接受即生效。', 'On the Comms tab you can negotiate with any country\'s agent: local-rule agents judge your terms instantly by national interest; AI agents (the host can assign countries to them once an AI is connected) bargain in plain language with their own personality and memory. Signed deals take effect at once. Human players can be messaged or sent formal proposals that bind once accepted.'],
+  'mp.h.cmd_x': ['在底部输入一句话的命令，先预览“修改前 → 修改后”，确认后立即生效并同步。接入 AI 后可以下达任意命令，AI 会换算成本国的投入与收益以及其他国家的连锁反应；没有接入时只识别战时政策与设定变更，例如“发行战争公债”“军费提高到 20%”。', 'Type a one-line order at the bottom and preview the before → after changes; confirm to apply and sync them. With an AI connected, any order is turned into your costs and gains and the ripple effects on other countries; without one, only war policies and settings changes are recognized, e.g. “issue war bonds” or “raise defence spending to 20%”.'],
+  'mp.h.limits_x': ['目前只开放 1939 年；对局数据经公共中继服务器转发，没有端到端加密；同一时刻只有房主的结算结果有效；房主关掉页面后，其他入座的玩家一两分钟后自动接任。AI 推演按用量由服务商向密钥的主人收费。', '1939 only for now; game data travels through public relays without end-to-end encryption; only the host\'s resolution counts; if the host closes the page, another seated player takes over within a couple of minutes. AI usage is billed by the provider to whoever owns the key.'],
+  'mp.cmd_nollm': ['没有接入 AI：只识别政策与设定', 'No AI connected: policies and settings only'],
+  'mp.cmd_nollm_x': ['一句话命令要由 AI 换算成各国数据的变化。现在没有接入 AI，只能识别战时政策与设定变更（如“发行战争公债”“军费提高到 20%”）。可以在“设置 → AI 推演接口”里接入 ChatGPT、DeepSeek、豆包等。', 'One-line orders are turned into changes to every country by an AI. No AI is connected, so only war policies and settings changes are recognized (e.g. “issue war bonds”, “raise defence spending to 20%”). Connect ChatGPT, DeepSeek, Doubao or another AI under Settings → AI connection.'],
+  'mp.lobby_x': ['每位玩家选一个国家入座；空着的国家由智能体控制（房主接入 AI 后，可以逐国选择本地规则或 AI 智能体）。房主点击“开始对局”后进入第一回合。', 'Each player takes a country; empty countries are run by agents (once the host connects an AI, each one can be set to local rules or an AI agent). The host clicks “Start game” to begin the first turn.'],
   'mp.web.nick': ['联网昵称', 'Online name'], 'mp.web.nick_ph': ['给自己起个名字', 'Pick a name'],
   'mp.web.relay': ['（联机中继已连接 {n}/{m}）', ' (relays connected: {n}/{m})'],
   'mp.web.invite': ['复制邀请链接', 'Copy invite link'], 'mp.web.copied': ['邀请链接已复制：朋友点开就能直接进入这局', 'Invite link copied: friends who open it go straight to this game'],
   'mp.web.link': ['邀请链接（复制后发给朋友）', 'Invite link (copy and send to friends)'],
-  'mp.web.note': ['网页版：联网经公共中继服务器转发，无需登录；没有 Claude，国家智能体与推演都用本地规则；不含精细战区。', 'Web version: online play goes through public relay servers with no sign-in; there is no Claude, so country agents and the simulation use local rules; the fine-grained theatre maps are not included.'],
+  'mp.web.note': ['网页版：联网经公共中继服务器转发，无需登录；推演默认用本地规则，可以接入 ChatGPT、DeepSeek、豆包等 AI（用你自己的 API 密钥）；不含精细战区。', 'Web version: online play goes through public relay servers with no sign-in; the simulation uses local rules unless you connect ChatGPT, DeepSeek, Doubao or another AI with your own API key; the fine-grained theatre maps are not included.'],
+  // 推演引擎的状态与出错提示（“Claude”会换成服务商的名字）
+  'u.es.off': ['没有接入 AI 或暂时不可用，将使用规则 AI。可以在下面的“AI 推演接口”里接入。', 'No AI connected or unavailable right now; the rule AI will be used. Connect one under “AI connection” below. '],
+  'llm.err.not_granted': ['Claude 拒绝了 API 密钥（无效、过期，或没有使用这个模型的权限），已改用规则 AI。请在“设置 → AI 推演接口”里检查。', 'Claude rejected the API key (invalid, expired or without access to this model), so the rule AI is used. Check Settings → AI connection.'],
+  'llm.err.quota': ['Claude 账户余额不足或额度已用完。', 'The Claude account is out of credit or over its quota.'],
+  'llm.err.rate_limited': ['Claude 的请求太频繁或达到用量上限，请稍后再试。', 'Too many requests to Claude or a usage limit was hit; try again later.'],
+  'llm.err.bad_model': ['模型名称不对，或者账号还没开通这个模型。请在“设置 → AI 推演接口”里检查。', 'Unknown model, or the account has no access to it. Check Settings → AI connection.'],
+  'llm.err.invalid_request': ['Claude 拒绝了这次请求（在“设置 → AI 推演接口”里点“测试连接”可以看到原因）。', 'Claude rejected the request (“Test connection” under Settings → AI connection shows why).'],
+  'llm.err.upstream_error': ['Claude 服务出错或连接中断，请重试。', 'Claude had a server error or the connection dropped; please retry.'],
+  'llm.err.bad_url': ['Claude 的接口地址不对（服务商返回“找不到”）。请在“设置 → AI 推演接口”里检查。', 'The Claude API base URL looks wrong (the provider answered “not found”). Check Settings → AI connection.'],
+  'llm.err.proxy_refused': ['转发代理拒绝了请求（本网站或服务商不在代理的允许名单里）。请在“设置 → AI 推演接口”里检查。', 'The relay proxy refused the request (this site or the provider is not on its allow list). Check Settings → AI connection.'],
+  'llm.err.refused': ['Claude 的内容审核拦下了这次请求，请换一种表述，或者换一个模型。', 'Claude\'s content filter blocked this request; rephrase it or try another model.'],
+  'llm.err.network': ['连不上 Claude：网络不通，或者该服务不允许网页直接调用（需要转发代理，见“设置 → AI 推演接口”）。', 'Cannot reach Claude: the network is down, or the service blocks calls from web pages (a relay proxy is needed; see Settings → AI connection).'],
+  'llm.err.timeout': ['Claude 长时间没有回复，这次推演已放弃。', 'Claude took too long to reply, so this simulation step was dropped.'],
+  'llm.err.too_long': ['Claude 的回复太长被截断了，可以在“设置 → AI 推演接口 → 高级设置”里调大最大输出。', 'Claude\'s reply was cut off; raise the max output under Settings → AI connection → Advanced.'],
+  'llm.err.unavailable': ['没有接入 AI 推演（可以在“设置 → AI 推演接口”里接入）。', 'No AI is connected (set one up under Settings → AI connection).'],
+  // 设置里的“AI 推演接口”
+  'ai.h': ['AI 推演接口', 'AI connection'],
+  'ai.x': ['接入 ChatGPT、DeepSeek、豆包等 AI 后，各国反应、年度战略、危机应对、自由指令和外交谈判都由 AI 实时推演；不接入时用本地规则。使用你自己的 API 密钥，由服务商按用量收费。密钥只保存在本机浏览器，直接发给所选服务商（或你填写的转发代理），不经过联机中继，也不会发给其他玩家。', 'Connect ChatGPT, DeepSeek, Doubao or another AI to have reactions, yearly strategies, crises, free orders and negotiations simulated live; without one, local rules are used. You use your own API key and the provider bills you for usage. The key stays in this browser and is sent only to the provider you pick (or the relay proxy you set), never to the online relays or to other players.'],
+  'ai.prov': ['服务商', 'Provider'], 'ai.none': ['不接入（使用本地规则）', 'None (local rules)'],
+  'ai.key': ['API 密钥', 'API key'], 'ai.getkey': ['去申请', 'get a key'], 'ai.key_ph': ['粘贴你的 API 密钥', 'Paste your API key'],
+  'ai.show': ['显示', 'Show'], 'ai.hide': ['隐藏', 'Hide'],
+  'ai.model': ['模型', 'Model'], 'ai.model_ph': ['模型名称', 'Model name'],
+  'ai.list': ['获取模型列表', 'Fetch models'], 'ai.pick': ['从 {n} 个可用模型中选择…', 'Pick one of {n} available models…'],
+  'ai.listing': ['正在获取模型列表……', 'Fetching models…'], 'ai.listed': ['找到 {n} 个模型，可以在模型下方的列表里选择。', 'Found {n} models; pick one from the list under the model field.'], 'ai.list_none': ['服务商没有返回可用的对话模型，请直接填写模型名称。', 'The provider returned no chat models; type the model name instead.'],
+  'ai.list_unsupported': ['这个服务商不提供模型列表，请直接填写模型名称（可以在服务商的控制台或文档里查到）。', 'This provider has no model list; type the model name (see the provider\'s console or docs).'],
+  'ai.adv': ['高级设置', 'Advanced'],
+  'ai.base': ['接口地址', 'API base URL'], 'ai.base_ph': ['到 /v1 为止，如 https://example.com/v1', 'Up to /v1, e.g. https://example.com/v1'],
+  'ai.fast': ['快速模型（可选）', 'Fast model (optional)'], 'ai.fast_ph': ['推演深度选“快速”时使用；留空 = 同上', 'Used when depth is Quick; blank = same as above'],
+  'ai.maxtok': ['最大输出 tokens（可选）', 'Max output tokens (optional)'], 'ai.maxtok_ph': ['留空 = 服务商默认', 'Blank = provider default'],
+  'ai.think': ['允许深度思考（推理更充分，但更慢、更贵）', 'Allow deep thinking (better reasoning, but slower and pricier)'],
+  'ai.proxy': ['转发代理（可选）', 'Relay proxy (optional)'], 'ai.proxy_ph': ['如 https://ai-proxy.你的名字.workers.dev', 'e.g. https://ai-proxy.yourname.workers.dev'],
+  'ai.proxy_x': ['服务商不允许网页直接调用时（如 DeepSeek），请求经你自己的代理转发。所有服务商共用这个代理；本机地址（Ollama 等）不经过代理。', 'When a provider blocks calls from web pages (DeepSeek, for one), requests go through your own proxy. It is shared by all providers; local addresses (Ollama etc.) skip it.'],
+  'ai.proxy_how': ['怎么搭建', 'how to set one up'],
+  'ai.test': ['测试连接', 'Test connection'], 'ai.save': ['保存并启用', 'Save and enable'], 'ai.save_off': ['保存', 'Save'], 'ai.clear': ['清除所有密钥', 'Forget all keys'],
+  'ai.testing': ['正在测试连接……', 'Testing the connection…'],
+  'ai.ok': ['✓ 连接成功：{m}，用时 {s} 秒。', '✓ Connected: {m} replied in {s} s.'],
+  'ai.ok_nojson': ['连上了，但 {m} 没有按要求回复 JSON，推演时可能出错，建议换一个模型。', 'Connected, but {m} did not reply with JSON as asked; simulations may fail, so consider another model.'],
+  'ai.saved': ['已接入 {x}，推演改用 AI。', 'Connected to {x}; simulations now use the AI.'], 'ai.saved_off': ['已改用本地规则推演。', 'Switched to local-rule simulation.'],
+  'ai.cleared': ['已从本机删除所有 AI 密钥，推演改用本地规则。', 'All AI keys were removed from this browser; simulations use local rules.'],
+  'ai.priv': ['在公用电脑上用完后，请点“清除所有密钥”。', 'On a shared computer, click “Forget all keys” when you are done.'],
+  'ai.cors_ok': ['可以从网页直接调用。', 'Works directly from web pages.'],
+  'ai.cors_no': ['{x} 一般不允许网页直接调用，需要在“高级设置”里填写转发代理。', '{x} usually blocks calls from web pages, so a relay proxy is needed (see Advanced).'],
+  'ai.cors_unk': ['如果测试连接时提示被浏览器拦截，请在“高级设置”里填写转发代理。', 'If the connection test says the browser blocked the call, set a relay proxy under Advanced.'],
+  'ai.note.deepseek': ['不想搭代理的话，也可以用 OpenRouter 或硅基流动调用 DeepSeek 的模型。', 'To skip the proxy, you can also reach DeepSeek models through OpenRouter or SiliconFlow.'],
+  'ai.note.doubao': ['先在火山方舟控制台的“开通管理”里开通要用的模型；模型可以填 Model ID（如 doubao-seed-…）或推理接入点 ID（ep-…）。', 'First enable the model in the Ark console; the model can be a Model ID (doubao-seed-…) or an endpoint ID (ep-…).'],
+  'ai.note.qwen': ['国际站账号请在“高级设置”里把接口地址改为 https://dashscope-intl.aliyuncs.com/compatible-mode/v1。', 'For international accounts, set the base URL under Advanced to https://dashscope-intl.aliyuncs.com/compatible-mode/v1.'],
+  'ai.note.kimi': ['国际站（platform.moonshot.ai）的密钥请把接口地址改为 https://api.moonshot.ai/v1。', 'Keys from platform.moonshot.ai need the base URL https://api.moonshot.ai/v1.'],
+  'ai.note.glm': ['glm-4.7-flash 可以免费调用。', 'glm-4.7-flash is free to use.'],
+  'ai.note.gemini': ['可以在 Google AI Studio 免费申请密钥（有用量限制）。', 'Google AI Studio keys come with a free tier (rate-limited).'],
+  'ai.note.openrouter': ['一个密钥可以调用多家的模型（DeepSeek、GPT、Claude、Gemini 等），不用搭代理也能用 DeepSeek。', 'One key reaches many models (DeepSeek, GPT, Claude, Gemini and more), a way to use DeepSeek without a proxy.'],
+  'ai.note.ollama': ['在本机运行 Ollama，把环境变量 OLLAMA_ORIGINS 设为 {o} 后重启 Ollama；浏览器可能会询问是否允许本网站访问本机，选允许。', 'Run Ollama on this computer with the environment variable OLLAMA_ORIGINS set to {o}, then restart it; if the browser asks whether this site may reach your computer, allow it.'],
+  'ai.note.custom': ['任何兼容 OpenAI Chat Completions 的接口（如 LM Studio、vLLM、各类中转服务）：填接口地址（到 /v1 为止）、密钥和模型名称。', 'Any API compatible with OpenAI Chat Completions (LM Studio, vLLM, gateways): enter the base URL (up to /v1), the key and the model.'],
+  'ai.e.network': ['浏览器连不上 {x}：可能是网络不通，或者 {x} 不允许网页直接调用（浏览器的跨域限制）。请在“高级设置”里填写转发代理，或者改用可以从网页直接调用的服务（ChatGPT、Claude、Gemini、OpenRouter）。', 'The browser cannot reach {x}: the network may be down, or {x} blocks calls from web pages (the browser\'s cross-origin rules). Set a relay proxy under Advanced, or use a provider that works from web pages (ChatGPT, Claude, Gemini, OpenRouter).'],
+  'ai.e.network_ok': ['浏览器连不上 {x}：请检查网络（有的网络会拦截 AI 服务），或者在“高级设置”里填写转发代理。', 'The browser cannot reach {x}: check your network (some networks block AI services), or set a relay proxy under Advanced.'],
+  'ai.e.network_proxy': ['连不上转发代理 {x}：请检查代理地址，并确认代理已经部署、允许本网站使用。', 'Cannot reach the relay proxy {x}: check the address and make sure the proxy is deployed and allows this site.'],
+  'ai.e.not_granted': ['密钥被拒绝：无效、过期，或者没有使用这个模型的权限（如果用了转发代理，也可能是代理拒绝了本网站）。', 'The key was rejected: invalid, expired or without access to this model (with a proxy, the proxy may also have refused this site).'],
+  'ai.e.quota': ['账户余额不足或额度已用完。', 'The account is out of credit or over its quota.'],
+  'ai.e.rate_limited': ['请求太频繁，请稍后再试。', 'Too many requests; try again shortly.'],
+  'ai.e.bad_model': ['模型名称不对，或者账号还没开通这个模型（可以点“获取模型列表”看看有哪些）。', 'Unknown model, or the account has no access to it (try “Fetch models”).'],
+  'ai.e.invalid_request': ['服务商拒绝了这次请求。', 'The provider rejected the request.'],
+  'ai.e.upstream_error': ['服务商出错，请稍后再试。', 'The provider had an error; try again later.'],
+  'ai.e.timeout': ['等待超时：服务商长时间没有回复。', 'Timed out: the provider did not reply.'],
+  'ai.e.no_key': ['请先填写 API 密钥。', 'Enter an API key first.'],
+  'ai.e.no_model': ['请填写模型名称。', 'Enter a model name.'], 'ai.e.no_base': ['请填写接口地址。', 'Enter the API base URL.'], 'ai.e.no_provider': ['请先选择服务商。', 'Pick a provider first.'],
+  'ai.e.bad_base': ['接口地址的格式不对：应该是 https:// 开头的网址（本机服务用 http://），而且不能是本网站的地址。', 'The API base URL is not valid: it should start with https:// (http:// for local services) and must not point to this site.'],
+  'ai.e.bad_proxy': ['转发代理地址的格式不对：应该是 https:// 开头的网址（本机代理用 http://127.0.0.1:端口），而且不能是本网站的地址。', 'The relay proxy address is not valid: it should start with https:// (http://127.0.0.1:port for a local proxy) and must not point to this site.'],
+  'ai.e.bad_key': ['密钥里有不该有的字符（比如全角字母、中文或标点），请从服务商的控制台重新复制。', 'The key contains characters that do not belong (full-width letters, Chinese characters or punctuation); copy it again from the provider\'s console.'],
+  'ai.e.bad_url': ['服务商返回“找不到”：接口地址多半不对（应该到 /v1 这一级为止，不要包含 /chat/completions）。', 'The provider answered “not found”: the base URL is probably wrong (it should end at /v1, without /chat/completions).'],
+  'ai.e.refused': ['服务商的内容审核拦下了这次请求（二战题材有时会触发）。换一个模型或服务商试试。', 'The provider\'s content filter blocked the request (wartime topics sometimes trigger it). Try another model or provider.'],
+  'ai.e.proxy_refused': ['转发代理拒绝了请求：本网站或这个服务商不在代理的允许名单里（ALLOW_ORIGINS / ALLOW_HOSTS）。', 'The relay proxy refused the request: this site or this provider is not on its allow list (ALLOW_ORIGINS / ALLOW_HOSTS).'],
+  'ai.e.prompt_too_large': ['局势信息超过了这个模型的上下文长度，换一个上下文更长的模型。', 'The situation brief exceeds this model\'s context length; pick a model with a longer context.'],
+  'ai.e.too_long': ['回复太长被截断了，可以在“高级设置”里调大最大输出。', 'The reply was cut off; raise the max output under Advanced.'],
+  'ai.e.invalid_json': ['连上了，但模型没有按要求回复 JSON，换一个模型试试。', 'Connected, but the model did not reply with JSON as asked; try another model.'],
+  // 转发代理的搭建说明
+  'ai.ph.h': ['搭建转发代理', 'Set up a relay proxy'],
+  'ai.ph.x': ['有的 AI 服务（如 DeepSeek）不允许网页直接调用。转发代理是一个很小的程序：把请求原样转给 AI 服务商，再加上允许网页读取回复的响应头。它不记录、不保存任何内容，只转发到常见的 AI 服务商。密钥会经过代理，所以请用你自己部署的代理。', 'Some AI services (DeepSeek, for one) block calls from web pages. A relay proxy is a tiny program that passes requests unchanged to the AI provider and adds the response headers that let the page read the reply. It logs and stores nothing, and only forwards to well-known AI providers. Your key passes through it, so use a proxy you deployed yourself.'],
+  'ai.ph.cf': ['<b>方法一：Cloudflare Worker（免费，约 3 分钟）</b><ol><li>登录 Cloudflare 控制台（dash.cloudflare.com，可以免费注册），进入“Workers 和 Pages”→“创建”→“Worker”，起个名字（如 ai-proxy）后点“部署”。</li><li>点“编辑代码”，删掉原有内容，粘贴代理代码（点下面的“复制代理代码”），再点“部署”。</li><li>把 Worker 的地址（形如 https://ai-proxy.你的名字.workers.dev）填到“转发代理”，保存后点“测试连接”。</li></ol>', '<b>Option 1: a Cloudflare Worker (free, about 3 minutes)</b><ol><li>Sign in to the Cloudflare dashboard (dash.cloudflare.com; signing up is free), open Workers &amp; Pages → Create → Worker, give it a name (e.g. ai-proxy) and click Deploy.</li><li>Click Edit code, delete what is there, paste the proxy code (use “Copy proxy code” below) and click Deploy.</li><li>Put the Worker\'s address (like https://ai-proxy.yourname.workers.dev) into “Relay proxy”, save, and click “Test connection”.</li></ol>'],
+  'ai.ph.cn': ['在中国大陆，workers.dev 域名可能打不开：可以给 Worker 绑定自己的域名，或者用方法二。', 'In mainland China workers.dev may be unreachable: bind your own domain to the Worker, or use option 2.'],
+  'ai.ph.node': ['<b>方法二：在自己的电脑上运行</b>（需要 Node.js 18 或更新版本）<ol><li>点下面的“下载 ai-proxy.mjs”。</li><li>在文件所在的文件夹里运行 <code>node ai-proxy.mjs</code>，窗口不要关。</li><li>“转发代理”填 <code>http://127.0.0.1:8787</code>。浏览器询问是否允许本网站访问本机时，选允许。</li></ol>', '<b>Option 2: run it on your own computer</b> (needs Node.js 18 or newer)<ol><li>Click “Download ai-proxy.mjs” below.</li><li>In that folder, run <code>node ai-proxy.mjs</code> and leave the window open.</li><li>Set “Relay proxy” to <code>http://127.0.0.1:8787</code>. If the browser asks whether this site may reach your computer, allow it.</li></ol>'],
+  'ai.ph.copy': ['复制代理代码', 'Copy proxy code'], 'ai.ph.dl': ['下载 ai-proxy.mjs', 'Download ai-proxy.mjs'], 'ai.ph.more': ['详细说明', 'Full instructions'],
+  'ai.ph.copied': ['代理代码已复制，粘贴到 Worker 的代码编辑器里。', 'Proxy code copied; paste it into the Worker\'s code editor.'],
+  'ai.ph.manual': ['浏览器不让自动复制，请手动全选下面的代码后复制：', 'The browser blocked automatic copying; select all of the code below and copy it:'],
+  'ai.ph.nocode': ['取不到代理代码，请打开“详细说明”从 GitHub 下载。', 'Could not load the proxy code; open “Full instructions” to get it from GitHub.'],
+  // 开局画面
+  'ai.start_off': ['AI 推演：没有接入（使用本地规则）', 'AI simulation: not connected (local rules)'],
+  'ai.start_on': ['AI 推演：{x}', 'AI simulation: {x}'], 'ai.start_err': ['（上次调用失败，暂时改用规则；点“更改”检查）', '(the last call failed, so rules are used for now; click Change to check)'],
+  'ai.connect': ['接入 ChatGPT / DeepSeek / 豆包…', 'Connect ChatGPT / DeepSeek / Doubao…'], 'ai.change': ['更改', 'Change'],
 });
+/* 只在没有接入 AI 时使用的说法（接入后换回联机版原文），由 src/web/ui/04x_ai.js 按推演层的状态切换 */
+window.TX_WEB_NOAI = {
+  'mp.cmd_ph': ['用一句话下达战时政策或设定变更，例：“发行战争公债”“军费提高到 20%”（接入 AI 后可以下达任意命令）', 'Give a war-policy or settings order in one sentence, e.g. “issue war bonds”, “raise defence spending to 20%” (connect an AI for free-form orders)'],
+};
 
 </script>
 <script>
@@ -14233,7 +14706,7 @@ async function refreshPlans() {
 function linesHTML(arr) { return `<div class="lines">${arr.map(a => `<div class="${a.tone || 'info'}">${esc(TX(a.msg))}</div>`).join('')}</div>`; }
 function showReport(R) {
   const e = R.econ;
-  const eng = { claude: T('u.eng_claude'), skipped: T('u.eng_skipped'), error: T('u.eng_error', { x: { raw: R.llmErr || '' } }), none: T('u.eng_none'), rules: T('u.eng_rules') }[R.llmNote] || T('u.eng_rules');
+  const eng = { claude: T('u.eng_claude'), skipped: T('u.eng_skipped'), error: T('u.eng_error', { x: { raw: esc(R.llmErr || '') } }), none: T('u.eng_none'), rules: T('u.eng_rules') }[R.llmNote] || T('u.eng_rules');
   let h = `<h1>${T('u.brief', { x: { raw: I18N.date(R.y, R.q) } })}</h1><p class="sub">${T('u.engine_is', { x: { raw: eng } })}</p>`;
   if (e) {
     const fd = k => delta(e.fac[0][k], e.fac[1][k], v => v.toFixed(0));
@@ -14587,14 +15060,16 @@ async function mpLLMReactions(R) {
   const handled = new Set();
   for (const H of S.humans.slice()) {
     if (S.mp.agents && S.mp.agents[H] === 'ext') continue;
+    const RH = (S._RH && S._RH[H]) || R; // 这个席位的战报：记下推演引擎（战报上显示“推演引擎：…”）
     const cands = W.withSeat(S, H, () => W.reactionCandidates(S, 8)).filter(c => !handled.has(c.id));
-    if (!cands.length) continue;
+    if (!cands.length) { RH.llmNote = 'none'; continue; }
     busy(1, T('u.llm_wait', { x: { raw: cands.map(c => NAME(c.id)).join(sep()) } }));
     try {
       const data = await W.withSeat(S, H, () => LLM.reactions(S, cands, { tier: UI.tier }));
-      const h = W.withSeat(S, H, () => W.applyLLMReactions(S, (S._RH && S._RH[H]) || R, data));
+      const h = W.withSeat(S, H, () => W.applyLLMReactions(S, RH, data));
       for (const x of h) handled.add(x);
-    } catch (e) { console.warn('llm reactions', H, e); }
+      RH.llmNote = 'claude';
+    } catch (e) { console.warn('llm reactions', H, e); RH.llmNote = e && e.code === 'cancelled' ? 'skipped' : 'error'; RH.llmErr = LLM.errText(e); }
   }
   return handled;
 }
@@ -14869,10 +15344,11 @@ async function mpResume(gid) {
   await mpOpenGame(gid); closeModal(); mpLobbyOrPlay();
 }
 const mpNetStat = () => (MPS.netOk ? `<span class="good">${T('mp.net_ok')}${mpRelayTxt()}</span>` : MPS.netOk === false ? `<span class="bad">${T('mp.net_no')}</span>` : T('mp.net_wait'));
+const mpNoAI = () => !!window.TX_WEB && !LLM.available(); // 网页版没有接入 AI 推演时，不提供 AI 智能体与 AI 推演反应的选项
 const mpRelayTxt = () => { const w = window.TX_WEB && window.__txWeb; if (!w) return ''; const r = w.relays(); return T('mp.web.relay', { n: r.filter(x => x.up).length, m: r.length }); };
 /* 网页版：联网昵称（写在中继上，别的玩家在席位表里看到） */
-function mpWebNickHTML() { const w = window.TX_WEB && window.__txWeb; if (!w) return ''; return `<label class="mpfield mpnick"><span>${T('mp.web.nick')}</span><input id="mpNick" maxlength="20" placeholder="${esc(T('mp.web.nick_ph'))}" value="${esc(w.name())}"></label><p class="muted" style="font-size:12px;margin:4px 0 0">${T('mp.web.note')}</p>`; }
-function mpWebNickBind() { const ni = $('#mpNick'); if (!ni || !window.__txWeb) return; ni.onchange = () => { const v = window.__txWeb.setName(ni.value); ni.value = v; MPS.meName = v; if (MPS.uid) MPS.names[MPS.uid] = { id: MPS.uid, name: v }; }; }
+function mpWebNickHTML() { const w = window.TX_WEB && window.__txWeb; if (!w) return ''; return `<label class="mpfield mpnick"><span>${T('mp.web.nick')}</span><input id="mpNick" maxlength="20" placeholder="${esc(T('mp.web.nick_ph'))}" value="${esc(w.name())}"></label>${typeof aiStartHTML === 'function' ? aiStartHTML() : ''}<p class="muted" style="font-size:12px;margin:4px 0 0">${T('mp.web.note')}</p>`; }
+function mpWebNickBind() { if (typeof aiStartBind === 'function') aiStartBind(); const ni = $('#mpNick'); if (!ni || !window.__txWeb) return; ni.onchange = () => { const v = window.__txWeb.setName(ni.value); ni.value = v; MPS.meName = v; if (MPS.uid) MPS.names[MPS.uid] = { id: MPS.uid, name: v }; }; }
 function mpShowStart() {
   mpUnsubAll(); MPS.on = false; MPS.view = 'start';
   const card = (k, ico, extra) => `<button class="mpmode" data-mpgo="${k}"><b>${ico} ${T('mp.m.' + k)}</b><small>${T('mp.m.' + k + '_x')}</small>${extra || ''}</button>`;
@@ -14936,7 +15412,7 @@ function mpCfgForm(c) {
     <div class="opt"><h4>${T('mp.cfg.costs')}</h4><p class="muted" style="font-size:12px;margin:0 0 6px">${T('mp.cfg.costs_x')}</p>${['infl', 'stab', 'resist', 'rep', 'interest', 'gain'].map(k => sl(k, c.we[k])).join('')}</div>
     <div class="opt"><h4>${T('mp.cfg.ai')}</h4>
       <label class="chk"><input type="checkbox" id="mpWeAI" ${c.weAI ? 'checked' : ''}> ${T('mp.cfg.weai')}</label>
-      ${window.TX_WEB ? '' : `<label class="chk"><input type="checkbox" id="mpLLMW" ${c.llmWorld ? 'checked' : ''}> ${T('mp.cfg.llmw')}</label>
+      ${mpNoAI() ? '' : `<label class="chk"><input type="checkbox" id="mpLLMW" ${c.llmWorld ? 'checked' : ''}> ${T('mp.cfg.llmw')}</label>
       <div class="radio" style="margin-top:6px">${['rule', 'claude'].map(v => `<label><input type="radio" name="mpAgDef" value="${v}" ${c.agentDef === v ? 'checked' : ''}><span>${T('mp.ag.' + v)}<small>${T('mp.ag.' + v + '_x')}</small></span></label>`).join('')}</div>`}
       <h4 style="margin-top:10px">${T('mp.cfg.timer')}</h4><select id="mpTimer">${[0, 180, 300, 600].map(v => `<option value="${v}" ${c.turnSec === v ? 'selected' : ''}>${v ? T('mp.min', { n: v / 60 }) : T('mp.notimer')}</option>`).join('')}</select>
       ${W.TH_ON ? `<h4 style="margin-top:10px">${T('th.cfg.t')}</h4><label class="chk"><input type="checkbox" id="mpTh" ${c.th !== false ? 'checked' : ''}> ${T('th.cfg.on')}</label><p class="muted" style="font-size:11.5px;margin:2px 0 4px">${T('th.cfg.x')}</p><select id="mpThSec">${TH_SECS.map(v => `<option value="${v}" ${(c.thSec ?? 90) === v ? 'selected' : ''}>${v ? T('th.cfg.sec', { n: v }) : T('th.cfg.nopause')}</option>`).join('')}</select> <select id="mpThPz">${['ev', 'all'].map(v => `<option value="${v}" ${(c.thPz || 'ev') === v ? 'selected' : ''}>${T('th.cfg.pz_' + v)}</option>`).join('')}</select>` : ''}
@@ -14983,7 +15459,7 @@ function mpRenderLobby(force) {
   const m = MPS.meta, seats = m.seats || {}, list = mpPlayable(!(m.cfg && m.cfg.th === false)), mine = mpSeatOf(MPS.uid), host = m.host === MPS.uid;
   const row = r => {
     const u = seats[r.id], ag = mpAg((m.agents || {})[r.id]);
-    const agSel = window.TX_WEB ? `<span class="muted mpwho">${T('mp.ag.' + ag)}</span>` : `<select data-mpag="${r.id}" title="${esc(T('mp.cfg.ai'))}">${['rule', 'claude', 'ext'].map(v => `<option value="${v}" ${ag === v ? 'selected' : ''}>${T('mp.ag.' + v)}</option>`).join('')}</select>`; // 网页版只有本地规则智能体
+    const agSel = mpNoAI() ? `<span class="muted mpwho">${T('mp.ag.' + ag)}</span>` : `<select data-mpag="${r.id}" title="${esc(T('mp.cfg.ai'))}">${(window.TX_WEB ? ['rule', 'claude'] : ['rule', 'claude', 'ext']).map(v => `<option value="${v}" ${ag === v ? 'selected' : ''}>${T('mp.ag.' + v)}</option>`).join('')}</select>`; // 网页版：房主接入了 AI 才能选 AI 智能体；没有外部智能体
     const who = u ? `<span class="mpwho"><i class="mpdot ${mpOnline(u) ? 'on' : ''}"></i>${esc(mpName(u))}${u === m.host ? ' 👑' : ''}</span>` : host ? agSel : `<span class="muted mpwho">${T('mp.ag.' + ag)}</span>`;
     const act = u === MPS.uid ? `<button data-mp="leave">${T('mp.leave_seat')}</button>` : !u ? `<button data-mpseat="${r.id}">${T('mp.take')}</button>` : '';
     return `<div class="mpseat ${u === MPS.uid ? 'me' : ''}"><span class="n"><i style="background:${polColor(r.id)}"></i>${esc(NAME(r.id))}</span>${who}<span class="mpact">${act}</span></div>`;
@@ -15154,7 +15630,7 @@ function mpShowMenu() {
       ${net ? `<button data-mpm="share">${T('mp.share')}</button>` : ''}
       ${net && !MPS.seat ? `<button data-mpm="join">${T('mp.join_play')}</button>` : ''}
       ${net && MPS.seat ? `<button data-mpm="leave">${T('mp.leave_seat')}</button>` : ''}
-      ${net ? `<button data-mpm="ext">${T('mp.ext_help')}</button>` : ''}
+      ${net && !window.TX_WEB ? `<button data-mpm="ext">${T('mp.ext_help')}</button>` : ''}
       <button data-mpm="settings">${T('u.settings')}</button>
       <button data-mpm="help">${T('mp.help')}</button>
       <button data-mpm="quit">${T('mp.quit')}</button>
@@ -17021,6 +17497,201 @@ document.addEventListener('click', e => {
   if (d.thsz !== undefined) { const j = +d.thsz; if (thDrag.ended && Date.now() - thDrag.ended < 80) return; if (st.secMode) { thSecTarget(j); return; } const D = UI.thSecD; if (D && D[j] && D[j].own.length) st.secSel = j; st.secInfo = j; st.z = D && D[j] ? D[j].key : null; thRender(); return; }
 });
 
+/* ===================== 网页版 · “AI 推演接口”的界面（src/web/ui，只在网页版构建里；与 src/ui 同一作用域） =====================
+ * 设置面板里的一节：选服务商、填密钥与模型、获取模型列表、测试连接、转发代理（附搭建说明与代理代码）；开局画面上显示接入状态。
+ * 保存后重新连接推演层（LLM.init），并把界面文字里的“Claude”换成所选服务商的名字（没有接入时换成“AI”）。
+ * 服务商的调用见 src/web/02_ai.js（window.TXAI）。
+ */
+const aiWeb = () => !!(window.TXAI && window.__txWeb); // 只在普通网站上（claude.ai 里用真正的 Claude）
+const AI_DOC = 'https://github.com/ZechenBian/zechenbian.github.io/blob/main/tianxia/README.md';
+let AID = null, aiKeep = false, aiFlash = null, aiPicked = null; // 设置面板里的草稿；重画时保留草稿；重画后显示的消息；获取到的模型列表
+
+/* ---------- 界面文字：把“Claude”换成所选服务商的名字 ---------- */
+const AI_ORIG = {}; // 键 → 换名之前的 [中, 英]
+const AI_KEEP = new Set(['mp.ag.ext', 'mp.ag.ext_x', 'mp.ext_x']); // 说的是另一个 Claude 会话，不换
+function aiBrand() {
+  if (!window.TXAI || !I18N.dict) return;
+  const D = I18N.dict, NO = window.TX_WEB_NOAI || {}, on = LLM.available();
+  if (!aiBrand.snap) {
+    for (const k in D) { const v = D[k]; if (!k.startsWith('ai.') && Array.isArray(v) && v.some(s => typeof s === 'string' && s.includes('Claude'))) AI_ORIG[k] = v.slice(); } // ai.* 里的 Claude 指的就是 Anthropic 这家服务商
+    for (const k in NO) if (!(k in AI_ORIG)) AI_ORIG[k] = D[k] ? D[k].slice() : null;
+    aiBrand.snap = true;
+  }
+  const lab = window.TXAI.label() || { zh: 'AI', en: 'AI' }, han = c => !!c && /[\u{3000}-\u{303f}\u{3400}-\u{9fff}\u{ff00}-\u{ffef}]/u.test(c);
+  // 中文简称（豆包、通义千问……）紧挨着汉字时去掉原来夹着“Claude”的空格：“由 Claude 实时推演”→“由豆包实时推演”，“● Claude 推演”→“● 豆包推演”
+  const zh = s => (han(lab.zh) ? s.replace(/( ?)Claude( ?)/g, (m, a, b, at, all) => (a && !han(all[at - 1]) ? ' ' : '') + lab.zh + (b && !han(all[at + m.length]) ? ' ' : '')) : s.replace(/Claude/g, lab.zh));
+  const sub = (s, i) => (typeof s !== 'string' || /claude\.ai/i.test(s) ? s : i === 0 ? zh(s) : s.replace(/Claude/g, lab.en));
+  for (const k in AI_ORIG) {
+    const v = !on && NO[k] ? NO[k] : AI_ORIG[k]; // 没有接入 AI 时用网页版的说法（如一句话命令只识别政策与设定）
+    if (v) D[k] = AI_KEEP.has(k) ? v.slice() : v.map(sub);
+  }
+}
+function aiRefresh() { aiBrand(); try { applyStatic(); } catch (e) { } }
+if (aiWeb()) {
+  aiBrand();
+  LLM.onState(() => aiRefresh()); // 先于 05_boot.js 的监听：重画顶栏之前文字已经换好
+  // 服务商的原话（e.detail）不放进 errText：errText 会进战报与聊天记录，联机时同步给其他玩家；详情在设置里“测试连接”时显示
+}
+
+/* ---------- 设置面板里的一节 ---------- */
+const aiP = id => window.TXAI.preset(id);
+const aiNm = (P, i) => P[i][EN() ? 1 : 0];
+function aiSettingsHTML() {
+  if (!aiWeb()) return '';
+  if (!aiKeep || !AID) { AID = window.TXAI.cfg; aiPicked = null; }
+  aiKeep = false;
+  return `<div class="opts aiopts"><div class="opt aibox" id="aiBox">${aiBoxHTML()}</div></div>`;
+}
+function aiNote(P) {
+  const a = [T(P.cors === 1 ? 'ai.cors_ok' : P.cors === 0 ? 'ai.cors_no' : 'ai.cors_unk', { x: { raw: esc(aiNm(P, 'b')) } })];
+  if (I18N.has('ai.note.' + P.id)) a.push(T('ai.note.' + P.id, { o: { raw: esc(location.origin) } }));
+  return a.join(' ');
+}
+function aiBoxHTML() {
+  const d = AID, P = d.p ? aiP(d.p) : null, u = (P && d.by[d.p]) || {};
+  const opts = window.TXAI.PRE.map(p => `<option value="${p.id}" ${p.id === d.p ? 'selected' : ''}>${esc(aiNm(p, 'n'))}</option>`).join('');
+  let h = `<h4>${T('ai.h')}</h4><p class="muted aix">${T('ai.x')}</p>
+    <label class="aif"><span>${T('ai.prov')}</span><select id="aiP"><option value="">${T('ai.none')}</option>${opts}</select></label>`;
+  if (P) {
+    const baseIn = `<label class="aif"><span>${T('ai.base')}</span><input id="aiBase" spellcheck="false" autocomplete="off" value="${esc(u.base || '')}" placeholder="${esc(P.base || T('ai.base_ph'))}"></label>`;
+    const picked = aiPicked && aiPicked.p === d.p ? aiPicked.ids : null;
+    h += `<p class="muted aix">${aiNote(P)}</p>
+    ${P.noKey ? '' : `<label class="aif"><span>${T('ai.key')}${P.key ? ` · <a href="${esc(P.key)}" target="_blank" rel="noopener">${T('ai.getkey')}</a>` : ''}</span><span class="airow"><input id="aiKey" type="password" spellcheck="false" autocomplete="off" value="${esc(u.key || '')}" placeholder="${esc(T('ai.key_ph'))}"><button class="mini" id="aiEye" type="button">${T('ai.show')}</button></span></label>`}
+    ${P.base ? '' : baseIn}
+    <label class="aif"><span>${T('ai.model')}</span><span class="airow"><input id="aiModel" list="aiModels" spellcheck="false" autocomplete="off" value="${esc(u.model || P.model || '')}" placeholder="${esc(P.model || T('ai.model_ph'))}"><button class="mini" id="aiList" type="button">${T('ai.list')}</button></span></label>
+    <datalist id="aiModels">${(P.models || []).map(m => `<option value="${esc(m)}"></option>`).join('')}</datalist>
+    ${picked && picked.length ? `<label class="aif"><span class="airow"><select id="aiPick"><option value="">${T('ai.pick', { n: { raw: picked.length } })}</option>${picked.map(m => `<option value="${esc(m)}">${esc(m)}</option>`).join('')}</select></span></label>` : ''}
+    <details class="aiadv" ${u.base || u.fast || u.maxTok || u.think || d.proxy ? 'open' : ''}><summary>${T('ai.adv')}</summary>
+      ${P.base ? baseIn : ''}
+      <label class="aif"><span>${T('ai.fast')}</span><input id="aiFast" spellcheck="false" autocomplete="off" value="${esc(u.fast || '')}" placeholder="${esc(P.fast || T('ai.fast_ph'))}"></label>
+      <label class="aif"><span>${T('ai.maxtok')}</span><input id="aiMax" type="number" min="256" max="1000000" step="256" value="${u.maxTok || ''}" placeholder="${P.maxTok || esc(T('ai.maxtok_ph'))}"></label>
+      ${P.fastBody ? `<label class="chk"><input type="checkbox" id="aiThink" ${u.think ? 'checked' : ''}><span>${T('ai.think')}</span></label>` : ''}
+      <label class="aif"><span>${T('ai.proxy')} · <a href="#" id="aiProxyHow">${T('ai.proxy_how')}</a></span><input id="aiProxy" spellcheck="false" autocomplete="off" value="${esc(d.proxy || '')}" placeholder="${esc(T('ai.proxy_ph'))}"></label>
+      <p class="muted aix">${T('ai.proxy_x')}</p>
+    </details>`;
+  }
+  h += `<div class="aibtns">${P ? `<button id="aiTest" type="button">${T('ai.test')}</button>` : ''}<button class="btn-primary" id="aiSave" type="button">${T(P ? 'ai.save' : 'ai.save_off')}</button>${Object.values(window.TXAI.cfg.by).some(x => x && x.key) || (P && u.key) ? `<button id="aiClear" type="button">${T('ai.clear')}</button>` : ''}</div>
+    <p class="aimsg" id="aiMsg" role="status"></p>${P && !P.noKey ? `<p class="muted aix">${T('ai.priv')}</p>` : ''}`;
+  return h;
+}
+function aiSettingsBind() {
+  const box = $('#aiBox'); if (!box || !AID) return;
+  const sel = $('#aiP'); if (sel) sel.onchange = () => { aiRead(); AID.p = sel.value; aiPicked = null; aiRedraw(); };
+  box.querySelectorAll('input').forEach(x => { x.oninput = () => aiRead(); x.onchange = () => aiRead(); });
+  const eye = $('#aiEye'); if (eye) eye.onclick = () => { const k = $('#aiKey'), show = k.type === 'password'; k.type = show ? 'text' : 'password'; eye.textContent = T(show ? 'ai.hide' : 'ai.show'); };
+  const ls = $('#aiList'); if (ls) ls.onclick = aiListModels;
+  const pk = $('#aiPick'); if (pk) pk.onchange = () => { if (pk.value) { $('#aiModel').value = pk.value; aiRead(); } };
+  const ts = $('#aiTest'); if (ts) ts.onclick = () => aiTestNow(AID, '');
+  const sv = $('#aiSave'); if (sv) sv.onclick = aiSaveNow;
+  const cl = $('#aiClear'); if (cl) cl.onclick = aiClearKey;
+  const ph = $('#aiProxyHow'); if (ph) ph.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); aiProxyHelp(); });
+  box.querySelectorAll('a[target=_blank]').forEach(a => a.addEventListener('click', e => e.stopPropagation())); // 页面的全局点击处理会拦下链接
+  if (aiFlash) { aiMsg(aiFlash.t, aiFlash.c); aiFlash = null; }
+}
+function aiRedraw() { const box = $('#aiBox'); if (!box) return; box.innerHTML = aiBoxHTML(); aiSettingsBind(); }
+// 把面板上的值读进草稿（与预设相同的值存为空，预设以后更新时跟着变）
+function aiRead() {
+  const d = AID; if (!d) return;
+  const pr = $('#aiProxy'); if (pr) d.proxy = pr.value.trim();
+  const P = d.p && aiP(d.p); if (!P) return;
+  const u = d.by[d.p] = Object.assign({}, d.by[d.p]);
+  const g = id => { const e = $('#' + id); return e ? e.value.trim() : null; };
+  let v;
+  if ((v = g('aiKey')) !== null) u.key = v;
+  if ((v = g('aiModel')) !== null) u.model = v === P.model ? '' : v;
+  if ((v = g('aiBase')) !== null) u.base = v.replace(/\/+$/, '') === P.base ? '' : v;
+  if ((v = g('aiFast')) !== null) u.fast = v === (P.fast || '') ? '' : v;
+  if ((v = g('aiMax')) !== null) u.maxTok = +v > 0 ? Math.round(+v) : 0;
+  const th = $('#aiThink'); if (th) u.think = th.checked;
+}
+function aiMsg(html, cls) { const m = $('#aiMsg'); if (!m) return; m.className = 'aimsg' + (cls ? ' ' + cls : ''); m.innerHTML = html; }
+function aiMissing(k) { const p = window.TXAI.problem(k); return p ? 'ai.e.' + p : ''; } // 填写有误时返回说明文字的键
+function aiErrMsg(e, k) {
+  const c = (e && e.code) || 'x', det = e && e.detail ? `<small class="muted">${esc(e.detail)}</small>` : '';
+  if (c === 'network') return (window.TXAI.viaProxy(k) ? T('ai.e.network_proxy', { x: { raw: esc(k.proxy) } }) : T(k.P.cors === 1 ? 'ai.e.network_ok' : 'ai.e.network', { x: { raw: esc(aiNm(k.P, 'b')) } })) + det;
+  if (I18N.has('ai.e.' + c)) return T('ai.e.' + c) + det;
+  return esc(LLM.errText(e));
+}
+async function aiTestNow(d, pre) {
+  if (d === AID) aiRead();
+  const k = window.TXAI.conf(d); if (!k) return;
+  const miss = aiMissing(k); if (miss) { aiMsg(pre + T(miss), 'warn'); return; }
+  const btn = $('#aiTest'); if (btn) btn.disabled = true;
+  aiMsg(pre + T('ai.testing'), '');
+  try {
+    const r = await window.TXAI.test(d);
+    aiMsg(pre + T(r.json ? 'ai.ok' : 'ai.ok_nojson', { m: { raw: esc(k.model) }, s: { raw: (r.ms / 1000).toFixed(1) } }), r.json ? 'ok' : 'warn');
+  } catch (e) { aiMsg(pre + aiErrMsg(e, k), 'err'); }
+  finally { const b = $('#aiTest'); if (b) b.disabled = false; }
+}
+async function aiSaveNow() {
+  aiRead();
+  const d = AID, k = window.TXAI.conf(d);
+  if (k) { const miss = aiMissing(k); if (miss) { aiMsg(T(miss), 'warn'); return; } }
+  window.TXAI.save(d);
+  if (k && UI.engine === 'rules') { UI.engine = 'auto'; savePrefs(); } // 接入 AI 就是要用它推演
+  await LLM.init();
+  aiRefresh(); renderTop();
+  const lab = window.TXAI.label();
+  const done = k ? T('ai.saved', { x: { raw: esc((lab ? lab[EN() ? 'en' : 'zh'] : '') + ' · ' + k.model) } }) + ' ' : T('ai.saved_off');
+  aiKeep = false; openSettings(); // 整个设置面板重画（推演引擎的状态也变了）
+  const box = $('#aiBox'); if (box) box.scrollIntoView({ block: 'nearest' });
+  if (k) aiTestNow(window.TXAI.cfg, done); // 顺手测试一次，结果显示在这一节下方
+  else aiMsg(done, 'ok');
+}
+function aiClearKey() { // 清除所有服务商的密钥（公用电脑用完时），AI 推演随之关闭
+  aiRead(); const d = AID;
+  for (const id of Object.keys(d.by)) d.by[id] = Object.assign({}, d.by[id], { key: '' });
+  const sv = window.TXAI.cfg; for (const id of Object.keys(sv.by)) if (sv.by[id]) sv.by[id].key = '';
+  sv.p = '';
+  window.TXAI.save(sv); // 立刻从本机删除
+  LLM.init().then(() => { aiRefresh(); renderTop(); });
+  aiPicked = null; aiRedraw(); aiMsg(T('ai.cleared'), 'ok');
+}
+async function aiListModels() {
+  aiRead(); const k = window.TXAI.conf(AID); if (!k) return;
+  const miss = window.TXAI.problem(k); if (miss && miss !== 'no_model') { aiMsg(T('ai.e.' + miss), 'warn'); return; }
+  const b = $('#aiList'); if (b) b.disabled = true;
+  aiMsg(T('ai.listing'), '');
+  try {
+    const ids = await window.TXAI.models(AID);
+    aiPicked = { p: AID.p, ids }; aiRedraw();
+    aiMsg(ids.length ? T('ai.listed', { n: { raw: ids.length } }) : T('ai.list_none'), ids.length ? 'ok' : 'warn');
+  } catch (e) { aiMsg(e && (e.status === 404 || e.status === 405) ? T('ai.list_unsupported') : aiErrMsg(e, k), e && e.status === 404 ? 'warn' : 'err'); } // 有的服务商没有模型列表接口
+  finally { const b2 = $('#aiList'); if (b2) b2.disabled = false; }
+}
+
+/* ---------- 转发代理：搭建说明与代理代码 ---------- */
+let aiProxySrc = null;
+const aiProxyCode = () => aiProxySrc || (aiProxySrc = fetch(new URL('ai-proxy.mjs', location.href)).then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); }).catch(e => { aiProxySrc = null; throw e; }));
+function aiProxyHelp() {
+  aiRead(); aiKeep = true;
+  const prev = UI.afterClose; UI.afterClose = null;
+  showModal(`<h2>${T('ai.ph.h')}</h2><p class="sub">${T('ai.ph.x')}</p>
+    <div class="aihelp">${T('ai.ph.cf')}<p class="muted">${T('ai.ph.cn')}</p>${T('ai.ph.node')}<div id="aiPhCode"></div></div>
+    <div class="foot"><a href="${AI_DOC}#ai-proxy" target="_blank" rel="noopener" id="aiPhDoc">${T('ai.ph.more')}</a><button id="aiPhDl">${T('ai.ph.dl')}</button><button id="aiPhCopy">${T('ai.ph.copy')}</button><button class="btn-primary" data-close="1">${T('u.back')}</button></div>`, 'narrow', true);
+  UI.afterClose = () => { UI.afterClose = prev; aiKeep = true; openSettings(); const box = $('#aiBox'); if (box) box.scrollIntoView({ block: 'nearest' }); };
+  $('#aiPhDoc').addEventListener('click', e => e.stopPropagation());
+  aiProxyCode().catch(() => { });
+  const fail = () => toast(T('ai.ph.nocode'), 5000);
+  $('#aiPhCopy').onclick = () => aiProxyCode().then(t => navigator.clipboard.writeText(t).then(() => toast(T('ai.ph.copied'), 3000), () => {
+    const box = $('#aiPhCode'); if (box) { box.innerHTML = `<p class="muted">${T('ai.ph.manual')}</p><textarea readonly spellcheck="false"></textarea>`; const ta = box.querySelector('textarea'); ta.value = t; ta.focus(); ta.select(); }
+  }), fail);
+  $('#aiPhDl').onclick = () => aiProxyCode().then(async t => { const dl = await window.claude.use('downloads'); if (dl) await dl.save({ filename: 'ai-proxy.mjs', data: t, mimeType: 'text/javascript' }); }, fail);
+}
+
+/* ---------- 开局画面：AI 推演的接入状态 ---------- */
+function aiStartHTML() {
+  if (!aiWeb()) return '';
+  const on = window.TXAI.ready(), k = window.TXAI.conf(), lab = window.TXAI.label();
+  const txt = on ? T('ai.start_on', { x: { raw: `<b class="on">${esc(lab[EN() ? 'en' : 'zh'])}</b> · ${esc(k.model)}` } }) + (LLM.state === 'off' ? ' ' + T('ai.start_err') : '') : T('ai.start_off');
+  return `<div class="aistart" id="aiStart"><span>${txt}</span><button class="mini" id="aiStartGo">${T(on ? 'ai.change' : 'ai.connect')}</button></div>`;
+}
+function aiStartBind() {
+  const b = $('#aiStartGo'); if (!b) return;
+  b.onclick = () => { UI.afterClose = () => mpShowStart(); openSettings(); const box = $('#aiBox'); if (box) box.scrollIntoView({ block: 'start' }); };
+}
+
 /* ===================== 界面层 v2 · 开局、设置、存档、启动 ===================== */
 function startHTML(sel) {
   const sid = UI.scen || '2026'; const SC = W.useScenario(sid);
@@ -17115,6 +17786,7 @@ function openSettings() {
     <div class="opt"><h4>${T('u.depth')}</h4><div class="radio">${r('st', 'quick', UI.tier, T('u.quick'), T('u.quick_x'))}${r('st', 'default', UI.tier, T('u.std'))}${r('st', 'complex', UI.tier, T('u.deep'), T('u.deep_x'))}</div></div>
     <div class="opt"><h4>${T('u.display')}</h4><div class="radio">${r('th', '', theme, T('u.th_sys'))}${r('th', 'light', theme, T('u.th_light'))}${r('th', 'dark', theme, T('u.th_dark'))}</div><label style="display:flex;gap:8px;margin-top:8px;font-size:13px"><input type="checkbox" id="lblChk" ${UI.labels ? 'checked' : ''}>${T('u.labels')}</label></div>
   </div>
+  ${typeof aiSettingsHTML === 'function' ? aiSettingsHTML() : ''}
   <div class="opts"><div class="opt"><h4>${T('u.saves')}</h4><div style="display:flex;gap:6px;flex-wrap:wrap"><button id="sExport" ${S && !UI.demo ? '' : 'disabled'}>${T('u.export')}</button><button id="sImport">${T('u.import')}</button><button id="sNew">${T('u.newgame')}</button><button id="sHelp">${T('u.help')}</button></div><p class="muted" style="font-size:12px">${T('u.autosave')}</p></div></div>
   <div class="foot"><button class="btn-primary" data-close="1">${T('u.done')}</button></div>`, 'narrow', true);
   const sh = $('#sheet');
@@ -17124,6 +17796,7 @@ function openSettings() {
   sh.querySelectorAll('input[name=th]').forEach(x => (x.onchange = () => { if (x.value) document.documentElement.setAttribute('data-theme', x.value); else document.documentElement.removeAttribute('data-theme'); savePrefs(); if (S) renderAll(); }));
   $('#lblChk').onchange = e => { UI.labels = e.target.checked; savePrefs(); placeLabels(); };
   $('#sExport').onclick = exportSave; $('#sImport').onclick = importSave; $('#sNew').onclick = () => showStart(S && S.player); $('#sHelp').onclick = showHelp;
+  if (typeof aiSettingsBind === 'function') aiSettingsBind(); // 网页版：AI 推演接口（src/web/ui）
 }
 function showHelp() {
   showModal(`<h2>${T('u.help')}</h2><div class="help">${['turn', 'sim', 'orders', 'ai', 'core', 'mil', 'wmap', 'army', 'ind', 'intel', 'pol', 'econ', 'nuke', 'scen', 'data'].map(k => `<p><b>${T('u.h.' + k)}</b>${T('u.h.' + k + '_x')}</p>`).join('')}</div>
