@@ -27,3 +27,11 @@ Visit: [https://zechenbian.github.io](https://zechenbian.github.io) (After setti
    ```
 
 ## Last Updated: January 26, 2025
+
+## Copyright / 版权
+
+© 2025–2026 Zechen Bian. All rights reserved. 保留所有权利。
+
+This repository and the website built from it — including [Gravity Slingshot](gravity-slingshot/) and [Tianxia](tianxia/) — are **not open source**. Public visibility does not grant a license. No copying, modification, redistribution, commercial use, or AI/ML training without written permission. See [LICENSE](LICENSE).
+
+本仓库及其网站（包括引力弹弓和天下棋局）**不是开源项目**，公开可见不代表授权。未经书面许可，不得复制、修改、再分发、商用或用于 AI/机器学习训练。详见 [LICENSE](LICENSE)。

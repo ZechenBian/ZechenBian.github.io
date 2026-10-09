@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 // 暴力验证每关纯弹道（不点火）可解，并沿真实可赢轨迹放置星星
 const PH=require('./physics.js');const LEVELS=require('./levels.js');const fs=require('fs');
 const {W,H,DT,SUB,MAXT,STAR_R}=PH;

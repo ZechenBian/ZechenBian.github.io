@@ -193,3 +193,14 @@ The start screen shows how many relays are connected under “Online”. If it s
 - Solo and hot-seat games are saved automatically in your browser.
 - Online games live on the relays; reloading the page takes you back to your last game.
 - “Settings / Saves” can export a save file.
+
+---
+
+## 版权 / Copyright
+
+© 2026 Zechen Bian. 保留所有权利 / All rights reserved.
+
+本项目**不是开源项目**。可以在线游玩；[ai-proxy.mjs](./ai-proxy.mjs) 可以按上文方法复制部署，但仅限用来玩本游戏，但未经书面许可，不得复制、修改、再分发、商用或用于 AI/机器学习训练。详见 [LICENSE](../LICENSE)。
+
+This project is **not open source**. You are welcome to play it online, and you may deploy [ai-proxy.mjs](./ai-proxy.mjs) as described above solely to play this game, but you may not copy, modify, redistribute, use commercially, or use it to train AI/ML models without written permission. See [LICENSE](../LICENSE).
+

@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// You may copy and run this file only to play Tianxia at https://zechenbian.github.io/tianxia/ — see LICENSE §2(c) at the repository root.
+// 仅允许为游玩 https://zechenbian.github.io/tianxia/ 而复制和运行本文件，详见仓库根目录 LICENSE 第二条（三）。
 // 天下棋局 · AI 转发代理 / Tianxia AI relay proxy
 //
 // 有的 AI 服务商（如 DeepSeek）不允许网页直接调用（浏览器的跨域限制 CORS）。这个小程序把网页发来的请求原样转给 AI 服务商，

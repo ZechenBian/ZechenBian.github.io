@@ -1,0 +1,146 @@
+Copyright (c) 2025-2026 Zechen Bian. All rights reserved.
+版权所有 (c) 2025-2026 Zechen Bian。保留所有权利。
+
+==============================================================================
+ENGLISH
+==============================================================================
+
+This repository (https://github.com/ZechenBian/zechenbian.github.io) and the
+website built from it (https://zechenbian.github.io) are NOT open source.
+Making the files publicly visible does not grant any license to them.
+
+1. SCOPE
+
+This notice covers everything in this repository and on the website,
+including the homepage, "Gravity Slingshot" (gravity-slingshot/) and
+"Tianxia" (tianxia/): source code, game rules and mechanics as expressed in
+the code and text, level designs, scenario and country data, text, graphics,
+layout and documentation (the "Work"). Third-party materials (for example
+web fonts loaded from Google Fonts) belong to their respective owners and
+are used under their own licenses.
+
+2. WHAT YOU MAY DO
+
+Only the following uses are permitted:
+
+ (a) Play and view. You may visit the website and play the games in a web
+     browser for your own personal, non-commercial use.
+
+ (b) GitHub. You may view and fork this repository on GitHub only to the
+     extent GitHub's Terms of Service require. A fork receives no rights
+     beyond that; in particular it may not be deployed as a website, used,
+     modified or redistributed outside GitHub.
+
+ (c) Tianxia relay proxy. You may copy and run the file tianxia/ai-proxy.mjs
+     (for example as a Cloudflare Worker or on your own computer), and change
+     its configuration, solely so that you and the people you play with can
+     use the Tianxia game at https://zechenbian.github.io/tianxia/. Any other
+     use or redistribution of that file is not permitted.
+
+ (d) Citation. You may quote brief excerpts with attribution for commentary,
+     review, teaching or academic citation, to the extent permitted by law.
+
+3. WHAT YOU MAY NOT DO
+
+Except as stated in Section 2, you may not, without the prior written
+permission of the copyright holder:
+
+ - copy, reproduce, download for redistribution, mirror or re-host the Work
+   or any part of it;
+ - modify, translate, adapt, port or create derivative works from the Work,
+   including clones or re-implementations that reproduce its levels, data,
+   rules text or other protected expression;
+ - distribute, publish, sublicense, sell, rent or otherwise make the Work
+   available to others, whether free of charge or not;
+ - use the Work, in whole or in part, for any commercial purpose;
+ - use the Work, in whole or in part, to train, fine-tune, evaluate or
+   benchmark any machine-learning or artificial-intelligence model, or
+   include it in any dataset, corpus or retrieval index for such purposes,
+   including by automated crawling or scraping;
+ - remove, obscure or alter any copyright notice or this license.
+
+4. PREVIOUSLY RELEASED VERSIONS
+
+Versions of gravity-slingshot/ committed before this license was added
+were distributed under the MIT License. Copies of those earlier versions
+obtained under the MIT License remain governed by it. Every version of the
+Work published on or after the commit that adds this file is governed only
+by this license.
+
+5. NO WARRANTY
+
+THE WORK IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE WORK OR ITS USE.
+
+6. PERMISSIONS
+
+To ask for permission for any use not listed above, contact Zechen Bian
+through GitHub: https://github.com/ZechenBian
+
+==============================================================================
+中文
+==============================================================================
+
+本仓库（https://github.com/ZechenBian/zechenbian.github.io）及由其生成的网站
+（https://zechenbian.github.io）不是开源项目。文件公开可见，不代表授予任何许可。
+
+一、适用范围
+
+本声明适用于本仓库和网站上的全部内容，包括个人主页、“引力弹弓”
+（gravity-slingshot/）和“天下棋局”（tianxia/）：源代码、以代码和文字表达的
+游戏规则与机制、关卡设计、剧本与国家数据、文字、图形、版式和文档（以下称
+“作品”）。第三方素材（例如从 Google Fonts 加载的网页字体）归其各自权利人所有，
+按其自身许可使用。
+
+二、允许的使用
+
+仅允许以下使用：
+
+ （一）游玩与浏览：可以在浏览器中访问网站、游玩游戏，限于个人、非商业用途。
+
+ （二）GitHub：可以在 GitHub 上查看和 fork 本仓库，但仅限于 GitHub 服务条款
+       所要求的范围。fork 不因此获得任何其他权利，特别是不得部署为网站，
+       不得在 GitHub 之外使用、修改或再分发。
+
+ （三）天下棋局转发代理：可以复制并运行 tianxia/ai-proxy.mjs（例如部署为
+       Cloudflare Worker 或在自己的电脑上运行），并修改其配置，但仅限于让
+       你和与你一同游戏的人使用 https://zechenbian.github.io/tianxia/ 上的
+       天下棋局。该文件的任何其他使用或再分发均不被允许。
+
+ （四）引用：在法律允许的范围内，可以为评论、评测、教学或学术引用而注明出处
+       并简短引用。
+
+三、禁止的行为
+
+除第二条所列情形外，未经版权人事先书面许可，不得：
+
+ - 复制、转载、为再分发而下载、镜像或重新托管作品或其任何部分；
+ - 修改、翻译、改编、移植作品或以其为基础创作衍生作品，包括复刻其关卡、
+   数据、规则文字或其他受保护表达的仿制品或重新实现；
+ - 分发、发布、再许可、出售、出租或以其他方式向他人提供作品，无论是否收费；
+ - 将作品全部或部分用于任何商业目的；
+ - 将作品全部或部分用于训练、微调、评估或测试任何机器学习或人工智能模型，
+   或为此目的将其纳入任何数据集、语料库或检索索引，包括通过自动抓取的方式；
+ - 删除、遮盖或篡改任何版权声明或本许可。
+
+四、此前发布的版本
+
+在加入本许可之前提交的 gravity-slingshot/ 各版本曾以 MIT 许可发布。依 MIT
+许可取得的这些早期版本的副本，仍受 MIT 许可约束。自加入本文件的提交起发布的
+作品的每一个版本，仅受本许可约束。
+
+五、免责
+
+作品按“原样”提供，不附带任何明示或默示的担保，包括但不限于适销性、特定用途
+适用性和不侵权的担保。在任何情况下，版权人均不对因作品或其使用而产生的任何
+索赔、损害或其他责任负责。
+
+六、申请许可
+
+如需上述以外的任何使用，请通过 GitHub 联系 Zechen Bian：
+https://github.com/ZechenBian
+
+中英文版本如有不一致，以英文版本为准。

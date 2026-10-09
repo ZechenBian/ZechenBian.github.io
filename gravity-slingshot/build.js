@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 // 把 physics.js 和 levels.json 内联进 template.html，生成根目录 index.html
 // Inline physics.js and levels.json into template.html → index.html at repo root
 const fs=require('fs'),path=require('path');

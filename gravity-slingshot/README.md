@@ -153,4 +153,12 @@ The solver verifies with pure ballistic shots (no burns), so burns are always a 
 
 ---
 
-MIT License. Built with Claude.
+## 版权 / Copyright
+
+© 2026 Zechen Bian. 保留所有权利 / All rights reserved.
+
+本项目**不是开源项目**。可以在线游玩，但未经书面许可，不得复制、修改、再分发、商用或用于 AI/机器学习训练。详见 [LICENSE](../LICENSE)。
+
+This project is **not open source**. You are welcome to play it online, but you may not copy, modify, redistribute, use commercially, or use it to train AI/ML models without written permission. See [LICENSE](../LICENSE).
+
+Built with Claude.

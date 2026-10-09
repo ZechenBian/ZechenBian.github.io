@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 // 共享物理模块：游戏和关卡求解器都用这一份代码
 const PH=(function(){
 const W=1000,H=600,DT=0.25,SUB=4,MAXT=1400;

@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 // 关卡定义。stars 由求解器沿真实可赢轨迹自动放置（见 solve.js）
 const P=(x,y,m,r,c,extra)=>Object.assign({x,y,m,r,c},extra||{});
 const LEVELS=[

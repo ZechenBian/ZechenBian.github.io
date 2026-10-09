@@ -7,5 +7,6 @@
     "solve": "node src/solve.js",
     "build": "node build.js"
   },
-  "license": "MIT"
+  "license": "SEE LICENSE IN ../LICENSE",
+  "author": "Zechen Bian"
 }
