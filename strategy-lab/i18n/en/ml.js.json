@@ -1,0 +1,4 @@
+[
+{"zh":"§0§：训练集只有 §1§ 行。多半是路径太短、预热期太长，或者特征在整段上都是 NaN。","en":"§0§: the training set has only §1§ rows. Most likely the paths are too short, the warm-up period is too long, or the features are NaN over the whole segment."},
+{"zh":"特征 1","en":"Feature 1"}
+]

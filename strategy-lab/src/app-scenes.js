@@ -262,7 +262,7 @@
         var it = r.item, c = cellOf(r.res, metric), tip = "", G = r.res && r.res.game;
         if (r.res) {
           if (G) tip = (G.lower ? "成本 " : "得分 ") + A.gfmt(G, G.score) + (G.se > 0 ? " ± " + A.gdiff(G, G.se).slice(1) : "") + (r.res.pd ? "；比基准 " + A.gdiff(G, r.res.pd.d) + (r.res.pd.se === r.res.pd.se ? " ± " + A.gdiff(G, r.res.pd.se).slice(1) : "") : "") + "；" + r.res.N + " 局";
-          else { var s = r.res.sum; tip = "增长率 " + (s.growth === -Infinity ? "−∞" : A.pctS(s.growth) + (s.growthSE === s.growthSE ? " ± " + P(s.growthSE) : "")) + "；比基准 " + (s.dGrowth === s.dGrowth ? A.pctS(s.dGrowth) + (s.dGrowthSE === s.dGrowthSE ? " ± " + P(s.dGrowthSE) : s.N < 2 ? "（只有一条路径，没有标准误）" : "") : "—") + "；夏普 " + F(s.sharpe, 2) + "；回撤中位数 " + P(s.ddMed, 1) + "；" + s.N + " 条 × " + s.T + " 步"; }
+          else { var s = r.res.sum; tip = "增长率 " + (s.growth === -Infinity ? "−∞" : A.pctS(s.growth) + (s.growthSE === s.growthSE ? " ± " + P(s.growthSE) : "")) + "；比基准 " + (s.dGrowth === s.dGrowth ? A.pctS(s.dGrowth) + (s.dGrowthSE === s.dGrowthSE ? " ± " + P(s.dGrowthSE) : s.N < 2 ? "（只有一条路径，没有标准误）" : "") : "—") + "；夏普 " + F(s.sharpe, 2) + "；回撤中位数 " + P(s.ddMed, 1) + "；" + s.N + A.n1(s.N, " 条 × ", " 条 × ") + s.T + " 步"; }
           tip += "；每步决策" + A.fmtStep(r.res.stepNs, r.res.runMs);
         }
         // "当前"跟着你现在的选择走：按规则比时看选的是哪条规则；玩法里按场景比时看左栏的设定现在等于哪个场景

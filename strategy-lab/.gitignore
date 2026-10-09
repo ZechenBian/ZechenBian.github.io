@@ -4,3 +4,4 @@ shots/
 test/.cache/
 *.log
 .DS_Store
+i18n/work/

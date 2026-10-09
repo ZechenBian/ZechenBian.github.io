@@ -37,7 +37,7 @@
   function less(a, b, what) { return { ok: a < b, note: n(a, 4) + " 应小于 " + n(b, 4) + (what ? "（" + what + "）" : "") }; }
   function wd(QL, type, over) { return Object.assign(QL.worldDefaults(type), over || {}); }
 
-  var M_SC = { mu1: "漂移 · 时长 1", mu25: "漂移 · 时长 25", sg: "波动 · 250 个点", sg25: "波动 · 25 个点", kp: "回复速度 · 时长 10", kp2: "回复速度 · 时长 2", h: "Hurst · 250 个点", h1000: "Hurst · 1000 个点" };
+  var M_SC = { mu1: "漂移 · 时长 1", mu25: "漂移 · 时长 25", sg: "波动 · 250 个点", sg25: "波动 · 30 个点", kp: "回复速度 · 时长 10", kp2: "回复速度 · 时长 2", h: "Hurst · 250 个点", h1000: "Hurst · 1000 个点" };
   grid("m", "o_meas", M_SC, [["prior", "meas_prior"], ["std", "meas_std"], ["half", "meas_half"], ["sub", "meas_sub"], ["shrink", "meas_shrink"], ["jack", "meas_jack"]], 3, [["bias", 2], ["mae", 3]], true);
   var P_SC = { bm: "布朗运动", ou: "均值回复 φ=0.9", ou10: "均值回复 · 提前 10 步", fbm: "分数布朗 H=0.75", osc: "带噪谐振子", logi: "Logistic", logi5: "Logistic · 提前 5 步", login: "Logistic · 5% 观测噪声", lor: "洛伦兹" };
   grid("p", "o_pred", P_SC, [["stay", "pred_stay"], ["line", "pred_line"], ["mean", "pred_mean"], ["ar", "pred_ar"], ["nn", "pred_nn"]], 3, [["rmse", 3], ["rmse0", 3]]);
@@ -379,7 +379,7 @@ $z^*\approx1.1228$ 是 $4\Phi(z)-2z\varphi(z)-3=0$ 的根。证明的思路写�
   a("stop_trail", "滚动统计", "不用", "O(t)：现找历史最高点（记下来可以做到 O(1)）", "O(1)", "到目前为止的最高点");
   a("stop_sqrt", "滚动统计", "不用", "O(t)（同上）", "O(1)", "最高点和剩余步数");
   a("stop_37", "滚动统计", "不用", "O(t)（同上）", "O(1)", "最高点和已过的步数");
-  a("stop_dp", "动态规划", "O(T·G·51)：G 个网格点", "O(t) 找最高点，再查表", "O(T·G)：一张停 / 走的表", "要知道步长的分布和漂移");
+  a("stop_dp", "动态规划", "O(T·G·53)：G 个网格点", "O(t) 找最高点，再查表", "O(T·G)：一张停 / 走的表", "要知道步长的分布和漂移");
 
   /* ================================================================== *
    *  自检清单（价格世界的对照表、十套玩法）：手册正文里拿对照表说过的话，和几个公式给出的数
@@ -517,7 +517,7 @@ $z^*\approx1.1228$ 是 $4\Phi(z)-2z\varphi(z)-3=0$ 的根。证明的思路写�
     fbm: { md: R`分数布朗运动 $B^H$ 是均值为 0、协方差为 $\mathbb{E}B^H_sB^H_t=\tfrac12\bigl(s^{2H}+t^{2H}-|t-s|^{2H}\bigr)$ 的高斯过程（这里再乘上一个波动 $\sigma$）。把它当作研究对象，应该看到：
 
 - **反常扩散。** $\mathbb{E}(X_{t+s}-X_t)^2=\sigma^2s^{2H}$。在双对数图上，均方位移对时间是一条斜率 $2H$ 的直线：$H=\frac12$ 是普通扩散，$H>\frac12$ 走得更快（超扩散），$H<\frac12$ 更慢（次扩散）。
-- **自相似。** 对任何 $c>0$，$(X_{ct})_{t\ge0}$ 与 $(c^HX_t)_{t\ge0}$ 同分布：把时间轴拉长 $c$ 倍、纵轴缩小 $c^H$ 倍，统计上看不出区别。
+- **自相似。** 对任何 $c>0$，$(X_{ct})_{t\ge0}$ 与 $(c^HX_t)_{t\ge0}$ 同分布：看 $c$ 倍长的一段时间、再把纵轴缩小 $c^H$ 倍，统计上和原来的看不出区别。
 - **长记忆。** 单位间隔的增量的自协方差是 $\gamma(k)=\frac{\sigma^2}{2}\bigl(|k+1|^{2H}-2|k|^{2H}+|k-1|^{2H}\bigr)\sim\sigma^2H(2H-1)\,k^{2H-2}$。$H>\frac12$ 时 $\sum_k\gamma(k)=\infty$：$n$ 个增量的样本均值的方差恰好是 $\sigma^2n^{2H-2}$，比独立时的 $1/n$ 衰减得慢。
 - **能预测。** $H\ne\frac12$ 时它不是半鞅，过去的增量对未来有信息。只用上一个增量做线性预测，能解释的方差比例是 $\rho_1^2$，$\rho_1=2^{2H-1}-1$；$H=0.75$ 时是 0.17，用上最近 60 个增量是 ⟪p.fbm.best|3⟫，再往前的历史几乎不再添什么。`,
       go: [["测 Hurst 指数", "o_meas", { what: "hurst" }], ["预测", "o_pred", { src: "fbm" }]] },

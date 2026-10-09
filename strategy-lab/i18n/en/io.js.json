@@ -1,0 +1,16 @@
+[
+{"zh":"文件是空的","en":"The file is empty"},
+{"zh":"没有找到成列的数据","en":"No data arranged in columns was found"},
+{"zh":"第 §0§ 列","en":"Column §0§"},
+{"zh":"/^(date|datetime|observation_date|日期|时间|time|timestamp)$/i","en":"/^(date|datetime|observation_date|日期|时间|time|timestamp)$/i"},
+{"zh":"/date|日期|时间/i","en":"/date|日期|时间/i"},
+{"zh":"/^(close|close\\/last|last|收盘|收盘价)$/i","en":"/^(close|close\\/last|last|收盘|收盘价)$/i"},
+{"zh":"/close|last|收盘/i","en":"/close|last|收盘/i"},
+{"zh":"/price|value|价格|数值|^px/i","en":"/price|value|价格|数值|^px/i"},
+{"zh":"/^第 /","en":"/^Column /"},
+{"zh":"/vol|成交|count|数量|^n$/i","en":"/vol|成交|count|数量|^n$/i"},
+{"zh":"这一列只有 §0§ 个有效数字，至少需要 30 个","en":"This column has only §0§ valid numbers; at least 30 are needed"},
+{"zh":"有效数据点太少（§0§ 个）","en":"Too few valid data points (§0§)"},
+{"zh":"§0§ 个点","en":"§0§ points"},
+{"zh":"，每年约 §0§ 步","en":", about §0§ steps per year"}
+]

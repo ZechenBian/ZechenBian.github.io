@@ -186,9 +186,9 @@
   function scoreInfo(d, p) {
     var sc = d.score(p), refs = d.refs ? d.refs(p) : [], th = d.theory ? d.theory(p) : null, out = [];
     out.push("**得分**是" + sc.name + (sc.unit ? "（" + sc.unit + "）" : "") + "，" + (sc.lower ? "越低越好" : "越高越好") + "。" + (d.scoreHow || "每一局算一个，全部对局取平均，± 是平均值的标准误。") + (d.crit ? "这套玩法的净值是利滚利的，所以同时按三种口径计分。" : ""));
-    var rows = refs.map(function (r) { return "- " + (r.bench ? "**基准**：" : r.kind === "bound" || r.calc ? "上界：" : r.alt ? "换规则：" : "参照：") + r.name; });
+    var rows = refs.map(function (r) { return "- " + (r.bench ? "**基准**：" : r.kind === "bound" || r.calc ? "上界：" : r.alt ? "换细则：" : "参照：") + r.name; });
     ((th && th.marks) || []).forEach(function (m) { rows.push("- " + (m.kind === "optimum" ? "理论最优：" : m.kind === "human" ? "真人实验：" : m.kind === "bound" ? "上界：" : "理论：") + m.name); });
-    if (rows.length) out.push("结果栏的对照表里，你的得分会和下面这些比。带\"基准\"\"参照\"\"上界\"\"换规则\"的几行是在同一批对局上现跑出来的，\"你 − 它\"是逐局的配对差；带\"理论\"字样的几行是算出来的数，不是跑出来的。\n\n" + rows.join("\n") + "\n\n**基准**是不动脑筋也做得到的打法，一条规则有没有用，看它比基准强多少。**上界**是提前知道答案才做得到的成绩，谁也超不过。**换规则**是同一条规则放到改过一处细则的同一批对局里重打一遍，量的是那一处细则值多少。");
+    if (rows.length) out.push("结果栏的对照表里，你的得分会和下面这些比。带\"基准\"\"参照\"\"上界\"\"换细则\"的几行是在同一批对局上现跑出来的，\"你 − 它\"是逐局的配对差；带\"理论\"字样的几行是算出来的数，不是跑出来的。\n\n" + rows.join("\n") + "\n\n**基准**是不动脑筋也做得到的打法，一条规则有没有用，看它比基准强多少。**上界**是提前知道答案才做得到的成绩，谁也超不过。**换细则**是同一条规则放到改过一处细则的同一批对局里重打一遍，量的是那一处细则值多少。");
     if (d.aux && d.aux.length) out.push("结果栏下面的一行小字另外报告：" + d.aux.map(function (a) { return a.name; }).join("；") + "。");
     return out.join("\n\n");
   }
@@ -522,7 +522,7 @@
   function tbl(headRow, rows, cls) { return h("div", { class: "gd-tw" }, h("table", { class: "gd-t" + (cls ? " " + cls : "") }, h("thead", null, h("tr", null, headRow.map(function (x) { return h("th", { text: x }); }))), h("tbody", null, rows.map(function (r) { return h("tr", null, r.map(function (c, i) { return i === 0 ? h("th", null, c) : h("td", typeof c === "string" ? { text: c } : null, typeof c === "string" ? null : c); })); })))); }
   function pageAlgos(host) {
     var N = G.algoNotes || {};
-    head(host, "对照", "算法对比：计算量与存储", "三张表，加上在你这台设备上量出来的数：事先算多少，每一步算多少，要记住多少东西。");
+    head(host, "对照", "算法对比：计算量与存储", "四张表，加上在你这台设备上量出来的数：事先算多少，每一步算多少，要记住多少东西。");
     host.appendChild(md(N.intro || ""));
     var np = function (st) { return String((st.params || []).filter(function (q) { return q.type === "num"; }).length); };
     var pr = A.allStrats().filter(function (st) { return !st.game && !st.src && G.algo[st.id]; }).map(function (st) { var a = G.algo[st.id]; return [link(st.name.replace(/（.*$/, ""), "strat:" + st.id), a.kind, a.fit, a.step, a.mem, a.need, np(st), A.tierBadge(st.explain && st.explain.tier)]; });

@@ -21,6 +21,13 @@
   // 右栏自动展开：在 Claude 里，或者独立的网页里已经接入了 AI。还没接入时不占地方，等人去点
   if (window.innerWidth >= 1240 && (A.aiHost || (window.QLAI && QLAI.ready()))) A.openClaude(true);
   A.requestRun("commit");
+  // 语言切换（独立的网页才有）：两种语言是两张页面，共用本机保存的状态，所以切过去以后玩法、世界、规则和参数都还在
+  var bl = $("btnLang");
+  if (bl) bl.addEventListener("click", function (e) {
+    try { A.persistNow(); } catch (x) {}
+    try { localStorage.setItem("ql.lang", bl.getAttribute("data-lang")); } catch (x) {}
+    if (location.protocol !== "file:") { e.preventDefault(); location.href = bl.getAttribute("data-dir"); }      // 网站上用目录的地址；从硬盘上打开时按 href 里写的文件名走
+  });
   // 离开页面：立刻存一次。平时的保存晚 400 毫秒才落盘，最后那一下改动（刚点的"知道了"、刚钉的对比）不能丢
   window.addEventListener("pagehide", function () { try { A.persistNow(); } catch (e) {} });
   document.addEventListener("visibilitychange", function () { if (document.visibilityState === "hidden") { try { A.persistNow(); } catch (e) {} } });

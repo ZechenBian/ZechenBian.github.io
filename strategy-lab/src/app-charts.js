@@ -118,7 +118,7 @@
         legend: [{ name: "中位数", color: "s1" }, { name: "样本路径与分位带", color: "s1", mark: "band" }],
         hover: { xs: x, dots: function (i) { return [{ y: f.q50[i], color: "s1" }]; }, tip: function (i) { return { title: "第 " + x[i] + " " + stepLabel(), rows: [{ name: "中位数", color: "s1", value: F(f.q50[i]) }, { name: "5%–95%", color: "s1", mark: "band", value: F(f.q5[i]) + " – " + F(f.q95[i]) }] }; } } };
     },
-    foot: function () { var ws = A.worldStats, w = A.wdef(); if (w.game && !w.crit && w.act !== "position") return ws ? "这是没有你的交易时市场本来的价格。" : ""; return ws ? "实测：每步收益年化均值 " + P(ws.annMean, 1) + "，年化波动 " + P(ws.annVol, 1) + "（" + ws.N + " 条路径）。" : ""; }
+    foot: function () { var ws = A.worldStats, w = A.wdef(); if (w.game && !w.crit && w.act !== "position") return ws ? "这是没有你的交易时市场本来的价格。" : ""; return ws ? "实测：每步收益年化均值 " + P(ws.annMean, 1) + "，年化波动 " + P(ws.annVol, 1) + "（" + ws.N + A.n1(ws.N, " 条路径", " 条路径") + "）。" : ""; }
   };
 
   CH.dist = {

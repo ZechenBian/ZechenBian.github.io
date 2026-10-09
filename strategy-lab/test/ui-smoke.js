@@ -7,7 +7,7 @@ function need(name, fallback) { try { return require(name); } catch (e) { return
 const { chromium } = need("playwright", "/opt/npm-tools/node_modules/playwright");
 const ROOT = path.join(__dirname, ".."), DIST = path.join(ROOT, "dist"), LIVE_CACHE = path.join(__dirname, ".cache/ui-live.json");
 const KATEX = [path.join(ROOT, "node_modules/katex/dist/katex.min.js"), "/opt/npm-tools/node_modules/katex/dist/katex.min.js"].find(f => fs.existsSync(f));
-const server = http.createServer((req, res) => { const u = decodeURIComponent(req.url.split("?")[0]), f = u === "/index.html" ? path.join(ROOT, "index.html") : path.join(DIST, u); /* /index.html 是独立的网页版，其余在 dist/ 里 */ fs.readFile(f, (e, d) => { if (e) { res.writeHead(404); res.end("nf"); } else { res.writeHead(200, { "content-type": f.endsWith(".html") ? "text/html; charset=utf-8" : "application/octet-stream" }); res.end(d); } }); });
+const server = http.createServer((req, res) => { const u = decodeURIComponent(req.url.split("?")[0]), f = u === "/index.html" || u === "/" ? path.join(ROOT, "index.html") : u === "/en/index.html" || u === "/en/" ? path.join(ROOT, "en/index.html") : path.join(DIST, u); /* / 和 /en/ 是独立的网页版（中文、英文），其余在 dist/ 里 */ fs.readFile(f, (e, d) => { if (e) { res.writeHead(404); res.end("nf"); } else { res.writeHead(200, { "content-type": f.endsWith(".html") ? "text/html; charset=utf-8" : "application/octet-stream" }); res.end(d); } }); });
 async function open(opts = {}) {
   await new Promise(r => server.listen(0, "127.0.0.1", r));
   const port = server.address().port;
@@ -17,6 +17,7 @@ async function open(opts = {}) {
   page.on("console", m => { if (m.type() === "error" || m.type() === "warning") logs.push(`[${m.type()}] ${m.text()}`); });
   page.on("pageerror", e => logs.push("[pageerror] " + e.message + "\n" + (e.stack || "").split("\n").slice(0, 3).join("\n")));
   const external = [];
+  if (opts.en) opts.standalone = true;
   if (opts.standalone) {
     // 独立的网页版：外面的东西一概连不上（记下它想连谁），页面照样要能用
     await page.route(u => /^https?:$/.test(u.protocol) && u.hostname !== "127.0.0.1", r => { external.push(new URL(r.request().url()).hostname); r.abort(); });
@@ -25,10 +26,12 @@ async function open(opts = {}) {
     await page.route("**/fonts.googleapis.com/**", r => r.fulfill({ status: 200, contentType: "text/css", body: "" }));
   }
   if (opts.init) await page.addInitScript(opts.init);
+  // opts.ls：打开之前先放进浏览器存储里的东西（只放一次：换页、刷新时不再覆盖页面自己存的）
+  if (opts.ls) await page.addInitScript(o => { try { if (!sessionStorage.getItem("__seeded")) { sessionStorage.setItem("__seeded", "1"); Object.keys(o).forEach(k => localStorage.setItem(k, o[k])); } } catch (e) {} }, opts.ls);
   // 现算的结果可以从上一次测试留下的存档里接着用（签名对不上时页面会自己作废重算）；ui-obs.js 不用存档，从头算一遍
   if (opts.seedLive && fs.existsSync(LIVE_CACHE)) await page.addInitScript(v => { try { if (!localStorage.getItem("ql.live.v2")) localStorage.setItem("ql.live.v2", v); } catch (e) {} }, fs.readFileSync(LIVE_CACHE, "utf8"));
-  await page.goto(opts.file ? "file://" + path.join(ROOT, "index.html") : `http://127.0.0.1:${port}/${opts.standalone ? "index" : "preview"}.html`);
-  return { browser, page, logs, external, close: async () => { await browser.close(); server.close(); } };
+  await page.goto(opts.file ? "file://" + path.join(ROOT, opts.en ? "en/index.html" : "index.html") : `http://127.0.0.1:${port}/${opts.en ? "en/index" : opts.standalone ? "index" : "preview"}.html`);
+  return { browser, page, logs, external, port, close: async () => { await browser.close(); server.close(); } };
 }
 /** 像用户那样换世界：是玩法就在"玩法"下拉框里选；是价格世界就先回到"交易一个资产"，再在"世界"下拉框里选 */
 async function pickWorld(page, x) {

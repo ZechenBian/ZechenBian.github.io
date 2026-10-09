@@ -123,7 +123,7 @@ const INIT = fs.readFileSync(path.join(__dirname, "mock-claude.js"), "utf8");
   await page.fill(".gd-filter", "做市"); await page.waitForTimeout(80);
   const gl = await page.locator(".gd-art dl.gd-gloss dt").allInnerTexts(); ok(gl.includes("做市商") && gl.length < 8 && (await page.locator(".gd-art h3.gd-gh").count()) <= gl.length, "名词可以筛：做市 → 做市商", gl.join(","));
   await page.evaluate(() => window.App.openGuide("start:read")); await page.waitForTimeout(100);
-  const rd = await page.locator(".gd-art").innerText(); ok((await page.locator(".gd-title").innerText()) === "怎么读结果栏" && /红色的 ✕ 不是出错/.test(rd) && /平均仓位/.test(rd) && /换规则/.test(rd) && (await page.locator(".gd-art table").count()) === 2, "\"怎么读结果栏\"一页：三个大数、小字、标签");
+  const rd = await page.locator(".gd-art").innerText(); ok((await page.locator(".gd-title").innerText()) === "怎么读结果栏" && /红色的 ✕ 不是出错/.test(rd) && /平均仓位/.test(rd) && /换细则/.test(rd) && (await page.locator(".gd-art table").count()) === 2, "\"怎么读结果栏\"一页：三个大数、小字、标签");
   await page.evaluate(() => window.App.openGuide("game:g_sec")); await page.waitForTimeout(100);
   const gp = await page.locator(".gd-art").innerText(); ok(/你的规则看得到什么、能做什么/.test(gp) && /s\.rank/.test(gp) && /裁判不把分数交给规则/.test(gp) && /细则/.test(gp), "玩法页有\"看得到什么\"一节");
   await page.evaluate(() => window.App.openGuide("now")); await page.waitForTimeout(100);

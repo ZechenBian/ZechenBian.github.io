@@ -21,5 +21,6 @@ out=$(node test/ui-guide-responsive.js 2>&1); echo "ui-guide-responsive: $(echo 
 out=$(node test/ui-standalone.js 2>&1); echo "ui-standalone: $(echo "$out" | grep -E "passed, [0-9]+ failed|CRASH" | tail -1)"; echo "$out" | grep -E "^\s+FAIL|CRASH"; echo "$out" | grep -qE "[1-9][0-9]* failed|CRASH" && fail=1
 # 独立网页版里的 AI 面板：接入一家服务商（本机的假接口）之后四种用法都能用
 out=$(node test/ui-ai.js 2>&1); echo "ui-ai: $(echo "$out" | grep -E "passed, [0-9]+ failed|CRASH" | tail -1)"; echo "$out" | grep -E "^\\s+FAIL|CRASH"; echo "$out" | grep -qE "[1-9][0-9]* failed|CRASH" && fail=1
+out=$(node test/ui-en.js 2>&1); echo "ui-en: $(echo "$out" | grep -E "passed, [0-9]+ failed|CRASH" | tail -1)"; echo "$out" | grep -E "^\\s+FAIL|CRASH"; echo "$out" | grep -qE "[1-9][0-9]* failed|CRASH" && fail=1
 [ $fail = 0 ] && echo "ALL GREEN" || echo "SOMETHING FAILED"
 exit $fail

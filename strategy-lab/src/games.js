@@ -52,7 +52,7 @@ QL.isGame = function (type) { return !!(WORLDS[type] && WORLDS[type].game); };
  *  这时玩法声明 veil(p) 为真，gen 另填一份 c.vr / c.vl，规则读到的是那一份；R / L 照旧留给裁判、图表和统计。 */
 function gameBatch(cfg, batchId, part) {
   var w = WORLDS[cfg.type], p = cfg.params, N = cfg.N | 0, T = Math.max(1, w.Tof ? w.Tof(p) : cfg.T | 0), K = w.Kof ? w.Kof(p) : 1;
-  if (N * T > QL.GAME_MAX_CELLS) throw new Error("这一批对局太大了（" + N + " 局 × " + T + " " + (w.unit || "回合") + "）：把局数调到 " + Math.max(1, Math.floor(QL.GAME_MAX_CELLS / T)) + " 以下，或者把每局的回合数调小。");
+  if (N * T > QL.GAME_MAX_CELLS) throw new Error("这一批对局太大了（" + N + " 局 × " + T + " " + (w.stepUnit || w.unit || "回合") + "）：把局数调到 " + Math.max(1, Math.floor(QL.GAME_MAX_CELLS / T)) + " 以下，或者把每局的回合数调小。");
   var R = new Float64Array(N * T), L = new Float64Array(N * (T + 1)), H = {}, spec = w.hidden ? w.hidden(p, T) : {}, hk = Object.keys(spec), i, n;
   var veil = !!(w.veil && w.veil(p)), VR = veil ? new Float64Array(N * T) : null, VL = veil ? new Float64Array(N * (T + 1)) : null;
   for (i = 0; i < hk.length; i++) H[hk[i]] = new Float64Array(N * spec[hk[i]]);
@@ -688,7 +688,7 @@ LIB.bold_timid = {
 LIB.bold_all = {
   head: "大胆下注：每一把都押上\"刚好够到目标\"的数额，够不着就全押。",
   decide: function decide(s, p) {
-    return 1;                                   // 裁判不会让你押得比\"够到目标所需\"更多，所以这里写全押就行
+    return 1;                                   // 裁判不会让你押得比"够到目标所需"更多，所以这里写全押就行
   }
 };
 LIB.bold_frac = {
