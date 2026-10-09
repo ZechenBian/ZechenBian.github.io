@@ -1,0 +1,31 @@
+<div class="app" id="app" data-tab="res">
+  <header class="top">
+    <div class="brand"><h1>策略实验室</h1><small>想法 → 规则 → 结果 → 解释</small></div>
+    <div class="top-world"><span id="topWorld"></span></div>
+    <div class="top-actions">
+      <button class="btn" id="btnGuide" type="button" title="说明、规则、每张图和每条规则的应用场景">手册 <kbd>?</kbd></button>
+      <button class="btn" id="btnPalette" type="button">找图表与命令 <kbd>⌘K</kbd></button>
+      <button class="btn primary" id="btnClaude" type="button" aria-pressed="false">Claude</button>
+    </div>
+  </header>
+  <nav class="tabs" id="tabs" role="tablist" aria-label="面板">
+    <button type="button" role="tab" data-tab="ctl" aria-selected="false">玩法与规则</button>
+    <button type="button" role="tab" data-tab="res" aria-selected="true">结果</button>
+    <button type="button" role="tab" data-tab="ai" aria-selected="false">Claude</button>
+  </nav>
+  <div class="shell">
+    <aside class="pane pane-ctl" id="paneCtl" aria-label="玩法、世界与规则">
+      <section class="blk" id="blkGame"></section>
+      <section class="blk" id="blkWorld"></section>
+      <section class="blk" id="blkStrat"></section>
+      <section class="blk" id="blkSet"></section>
+    </aside>
+    <main class="pane pane-res" id="paneRes">
+      <section class="summary" id="summary" aria-live="polite"></section>
+      <div class="shelf" id="shelf"></div>
+      <div class="grid" id="grid"></div>
+    </main>
+    <aside class="pane pane-ai" id="paneAi" aria-label="Claude"></aside>
+  </div>
+</div>
+<div id="overlays"></div>
