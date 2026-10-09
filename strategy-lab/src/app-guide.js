@@ -229,7 +229,7 @@
     };
     host.appendChild(sec("二、十套玩法", md("十套回合制的小游戏。细则写死，计分明确，每一套都取自一个真实的场景、一道经典的题目或者一个做过的实验，而且（至少部分地）知道最优解是什么。所以结果栏里除了你的得分，还有理论最优、上界和真人实验的成绩可以对照。"), mk(QL.GAMES)));
     host.appendChild(sec("三、四套观测玩法", md("把布朗运动、均值回复、混沌映射这些来自自然世界的过程，当作研究对象而不是价格。这里不挣钱：动作是一个估计、一个预测，或者\"现在报警\"\"现在停\"；计分是误差或延迟。它们回答的是这样的问题：这个过程的参数，一条轨迹能量准吗？它能不能预测，能提前多久？它变了没有？它的最高点能不能抓住？"), mk(QL.OBS)));
-    host.appendChild(sec("怎么开始", md("1. 左栏最上面的\"玩法\"里选一套。下面的\"世界\"会换成这套玩法能用的那几种；\"规则\"会换成它自己的内置规则，第一条通常是基准。\n2. 结果栏给出这套玩法自己的得分，旁边（窄屏上在下面）是同一批对局上的对照表。\n3. \"单局明细\"把一局从头到尾回放出来；\"参数扫描\"对一个参数逐个取值重打一遍，有公式可循的参数会叠上理论曲线。\n4. 换一个世界，规则不动，看得分怎么变。\"场景对比\"和手册里每套玩法的那张表，做的就是这件事。\n5. \"玩法\"一栏里的\"完整的细则与来历\"，通向这本手册里它的那一条。")));
+    host.appendChild(sec("怎么开始", md("1. 左栏最上面的\"玩法\"里选一套。下面的\"世界\"会换成这套玩法能用的那几种；\"规则\"会换成它自己的内置规则，第一条通常是基准。\n2. 结果栏给出这套玩法自己的得分，旁边（窄屏上在下面）是同一批对局上的对照表。\n3. \"单局明细\"把一局从头到尾回放出来；\"参数扫描\"对一个参数逐个取值重打一遍，有公式可循的参数会叠上理论曲线。\n4. 换一个世界，规则不动，看得分怎么变。\"场景对比\"和手册里每套玩法的那张表，做的就是这件事。\n5. \"玩法\"一栏里的\"完整的细则与来历\"，通向这本手册里它的那一条。\n6. 接单与冷却、秘书问题、偏硬币下注、多臂老虎机这四套可以自己上手：点\"玩法\"一栏里的\"亲手玩一局\"，逐回合做决定；打完之后同一局交给各条参照规则再打一遍，和你并排着比，多打几局还会累计。")));
   }
   /* ---------- 交易一个资产 ---------- */
   function pageTrade(host) {
@@ -338,7 +338,8 @@
     Object.keys(p).forEach(function (k) { if (mine[k] !== undefined && mine[k] !== p[k]) { p[k] = mine[k]; touched = true; } });
     if (isCur) p = A.wp();
     var th = w.theory(p);
-    head(host, (w.obsGame ? QL.OBS_GROUP : "十套玩法") + " · " + ((G.gameIndex || {})[type] || ["", "", ""])[2], w.name, w.blurb, [isCur ? btn("回到这一套", function () { if (ui) ui.close(); }, true) : btn("去玩这一套", closeThen(function () { A.applySetup({ world: type, strat: S.last[type] || w.defStrat }); }), true)]);   // 从手册过去：用这套玩法自己的规则（上次用的，或者默认的）
+    head(host, (w.obsGame ? QL.OBS_GROUP : "十套玩法") + " · " + ((G.gameIndex || {})[type] || ["", "", ""])[2], w.name, w.blurb, [isCur ? btn("回到这一套", function () { if (ui) ui.close(); }, true) : btn("去玩这一套", closeThen(function () { A.applySetup({ world: type, strat: S.last[type] || w.defStrat }); }), true),
+      A.humanOk && A.humanOk(type) ? btn("亲手玩一局", closeThen(function () { if (S.world.type !== type) A.applySetup({ world: type, strat: S.last[type] || w.defStrat }); A.openHuman(); })) : null]);   // 从手册过去：用这套玩法自己的规则（上次用的，或者默认的）
     if (g.scene) host.appendChild(sec("它从哪来", md(g.scene)));
     if (g.rules) host.appendChild(sec("细则", rulesList(g.rules(p, th)), h("p", { class: "note", text: isCur ? "数字取自左栏当前的设定。" : touched ? "数字取自你上次在这套玩法里留下的设定；\"去玩这一套\"会回到那里。" : "数字是默认的设定；选了这套玩法之后，在左栏可以改。" })));
     host.appendChild(sec("你的规则看得到什么、能做什么", apiBox(w), h("p", { class: "note", text: "s 是裁判每回合交给规则的那个对象。上面没列出来的东西，规则读不到。让 " + A.AI + " 写规则时，它拿到的也是这一份。" })));

@@ -37,6 +37,16 @@ A place to run quantitative-strategy experiments in the browser: pick a game, a 
 
 手册里有每套玩法的细则与来历、每张图怎么读、每条规则适合和不适合的场景、名词表，以及各套玩法已知的结论（定义、定理、证明的梗概、出处）。
 
+### 亲手玩一局
+
+接单与冷却、秘书问题、偏硬币下注、多臂老虎机这四套，除了让规则去打，也可以自己上手：在“玩法”一栏点“亲手玩一局”。
+
+- 一局缩短到人打得动的长度（几十回合；偏硬币下注也可以原样打实验里的 300 次），分布、目标、概率这些设定跟左栏走。
+- 每一回合你看到的，和规则在这一回合能读到的一样多。裁判藏着的东西（全场谁最好、各台真实的中奖率、后面还有什么报价）打完才揭晓。
+- 打完之后，同一局交给各条参照规则各打一遍，和你并排列出来；旁边是它们在几千局上的长期平均，以及理论值。
+- 多打几局，页面会给出你和先拿来比的那条参照规则（理论上最好的那条；没有现成最优解时取长期平均最高的）在同样几局上的平均差和它的标准误。差距不到 2 倍标准误，就还分不出是打法好还是运气好。
+- 成绩只存在这台设备的浏览器里。同一个种子下第 k 局永远是同一局，所以规则在你打过的那几局上的成绩随时可以重算。
+
 ### 数字是在你的电脑上现算的
 
 - **对照表**（每条内置规则 × 每个世界或场景，共 701 格）不写在页面里：第一次打开时用后台线程在本机算，算出一格显示一格，结果存在浏览器里，下次直接读。
@@ -94,7 +104,7 @@ sh test/run-all.sh               # 全部测试，要二三十分钟
 
 **英文版是怎么来的。** 源码只有一份，是中文的。构建时 [i18n/i18n.js](i18n/i18n.js) 把源码里每一段给人看的中文（界面上的字、手册、规则的说明、规则代码里的注释、发给 AI 的提示词，一共五千多段）换成 [i18n/en/](i18n/en/) 里的译文，代码本身一个字不动，所以两种语言跑的是同一套计算：同样的设定下结果逐位相同，现算的缓存也是共用的。译文入库时逐段自动核对：公式、现算的数字标记、代码必须和原文一致，占位符不能多也不能少。改了源码里的中文而没有补译文，构建会失败并指出是哪一段。细节见 [i18n/README.md](i18n/README.md)。
 
-测试分两部分：Node 里对引擎和手册里每个数字的核对（约 2000 项），无头浏览器里的界面检查（约 900 项）。AI 接口的测试用的是本机的一个假服务商，不会向外发请求。英文版的测试（`node test/ui-en.js`）把页面的每一处走一遍：每个世界、每套玩法、每条规则、每张图、手册的每一页，页面上不能出现汉字；并核对两种语言算出来的数相同。单独跑一个：`node test/obs.test.js`、`node test/ui-standalone.js`。
+测试分两部分：Node 里对引擎和手册里每个数字的核对（约 2100 项），无头浏览器里的界面检查（近 1000 项）。AI 接口的测试用的是本机的一个假服务商，不会向外发请求。英文版的测试（`node test/ui-en.js`）把页面的每一处走一遍：每个世界、每套玩法、每条规则、每张图、手册的每一页，页面上不能出现汉字；并核对两种语言算出来的数相同。单独跑一个：`node test/obs.test.js`、`node test/ui-standalone.js`。
 
 引擎和规则是纯 JavaScript，没有运行时依赖。页面内联了 [KaTeX](https://katex.org) 来排公式（MIT 许可，见 [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)）；界面字体从 Google Fonts 加载，连不上时用系统字体。
 
@@ -122,6 +132,16 @@ Games and worlds are separate so that you can see what happens when an assumptio
 4. After tuning, click "Test on fresh paths" to see whether the edge survives on paths the rule has not seen.
 
 The handbook covers the rules and origin of every game, how to read every chart, where each rule fits and where it does not, a glossary, and the known results for each game (definitions, theorems, proof sketches, references).
+
+### Play it yourself
+
+Four games (accept-and-cooldown, the secretary problem, betting on a biased coin, multi-armed bandits) can also be played by hand instead of by a rule: click "Play it yourself" in the "Game" section.
+
+- An episode is shortened to a human scale (a few dozen rounds; the coin game can also be played at the experiment's original 300 flips). The distribution, the objective and the probabilities follow your settings in the left column.
+- In every round you see exactly what a rule would be able to read in that round. What the referee keeps hidden (who is best overall, the arms' true win probabilities, the offers still to come) is revealed only when the episode ends.
+- When it ends, each reference rule plays the same episode and is listed next to you, together with its long-run average over a few thousand episodes and the theoretical values.
+- After several episodes the page reports the average difference between you and the reference rule you are compared with first (the theoretically best one, or the one with the highest long-run average where no optimum is known) on the same episodes, with its standard error. Under two standard errors, skill and luck cannot yet be told apart.
+- Results are kept only in this device's browser. Under a given seed, episode k is always the same episode, so the rules' results on the episodes you played can be recomputed at any time.
 
 ### The numbers are computed on your machine
 
@@ -169,7 +189,7 @@ sh test/run-all.sh               # the whole suite, twenty to thirty minutes
 
 **How the English edition is made.** There is one source tree, written in Chinese. At build time [i18n/i18n.js](i18n/i18n.js) replaces every piece of user-visible Chinese in the source (interface text, the handbook, the notes on each rule, the comments in rule code, the prompts sent to the AI: a little over five thousand units) with its translation from [i18n/en/](i18n/en/) and leaves the code itself untouched. Both languages therefore run the same computation: the same settings give identical results, and the cache of live-computed numbers is shared. Every translation is checked automatically when it is imported: formulas, live-number tokens and code must match the original, and no placeholder may be added or lost. If a Chinese string changes and no translation is supplied, the build fails and names the string. Details are in [i18n/README.md](i18n/README.md).
 
-The tests come in two parts: checks in Node of the engine and of every number quoted in the handbook (about 2,000), and browser checks in headless Chromium (about 900). The AI-interface tests talk to a mock provider on localhost and send nothing outside. The English-edition test (`node test/ui-en.js`) walks through every world, game, rule, chart and handbook page, requires that no Chinese appears anywhere on the page, and checks that the two languages compute the same numbers. To run one file: `node test/obs.test.js`, `node test/ui-standalone.js`.
+The tests come in two parts: checks in Node of the engine and of every number quoted in the handbook (about 2,100), and browser checks in headless Chromium (nearly 1,000). The AI-interface tests talk to a mock provider on localhost and send nothing outside. The English-edition test (`node test/ui-en.js`) walks through every world, game, rule, chart and handbook page, requires that no Chinese appears anywhere on the page, and checks that the two languages compute the same numbers. To run one file: `node test/obs.test.js`, `node test/ui-standalone.js`.
 
 The engine and the rules are plain JavaScript with no runtime dependencies. The page inlines [KaTeX](https://katex.org) for typesetting (MIT licence, see [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)); interface fonts load from Google Fonts and fall back to system fonts when unreachable.
 

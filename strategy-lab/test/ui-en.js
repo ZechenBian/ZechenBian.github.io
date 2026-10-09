@@ -138,6 +138,51 @@ function clipped() {
   await stage("import"); await pickWorld(page, "real"); await idle(); await page.evaluate(() => document.querySelectorAll("#paneCtl details").forEach(d => { d.open = true; })); await page.waitForTimeout(150);
   await pickWorld(page, "gbm"); await idle();
 
+  // 5b) 亲手玩一局：四套玩法每种长度点开看一眼，各打两局（键、按钮、"一直放过"都用上），打完的对照表、累计、图上的提示、清零
+  const humanPlay = g => page.evaluate(g => {
+    const q = s => document.querySelector(s); let n = 0;
+    while (!q("#hpNext") && n++ < 3000) {
+      const acts = document.querySelectorAll(".hp-board .hp-acts .hp-act");
+      if (g === "g_bandit") { const arms = Array.from(document.querySelectorAll(".hp-arm:not(:disabled)")); arms[n % arms.length].click(); }
+      else if (g === "g_coin") { if (n === 1) { q("#hpStake").value = ""; acts[0].click(); } document.querySelectorAll(".hp-chips .chip")[n % 4].click(); acts[n % 5 === 4 ? 2 : n % 3 === 2 ? 1 : 0].click(); }
+      else acts[n % 4 === 0 ? 0 : g === "g_sec" && n % 4 === 3 ? 2 : 1].click();
+    }
+    return n;
+  }, g);
+  const humanDone = async () => { await page.waitForFunction(() => { const c = document.querySelector(".hp-tab caption"); return c && !/…/.test(c.textContent); }, null, { timeout: 60000 }); await page.waitForTimeout(120); };
+  const humanHover = async () => { const bb = await page.locator(".hp-chart canvas").boundingBox(); for (const fx of [0.2, 0.5, 0.8]) for (const y of [50, bb.height - 70]) { await page.mouse.move(bb.x + bb.width * fx, bb.y + y); await page.waitForTimeout(40); } await page.mouse.move(4, 4); };
+  const humanSpill = [];
+  for (const g of ["g_lock", "g_sec", "g_coin", "g_bandit"]) {
+    await stage("human:" + g); await pickWorld(page, g); await idle();
+    await page.click("#btnHuman"); await page.waitForSelector(".modal.hpm .hp-board");
+    for (const b of await page.locator(".hp-sizes button").all()) { await b.click(); await page.waitForTimeout(70); }
+    await page.click('.hp-sizes [data-size="m"]'); await page.waitForTimeout(70);
+    if (g !== "g_coin") { await page.keyboard.press("0"); await page.keyboard.press("1"); await page.waitForTimeout(60); }
+    await humanHover();
+    for (let ep = 0; ep < 2; ep++) {
+      if (await page.locator("#hpNext").count()) { await page.waitForTimeout(650); await page.click("#hpNext"); await page.waitForTimeout(80); }
+      await humanPlay(g); await humanDone(); await humanHover();
+    }
+    const sp = await page.evaluate(clipped); if (sp.length) humanSpill.push(g + ": " + JSON.stringify(sp.slice(0, 3)));
+    if (g === "g_bandit") await page.screenshot({ path: SH("en-human.png") });
+    await page.click("#hpWipe"); await page.waitForTimeout(120); await page.click(".hp-top .helpbtn"); await page.waitForTimeout(200); await page.keyboard.press("Escape"); await page.waitForTimeout(80);
+    await closeModals();
+  }
+  // 另外几种设定下才出现的字：按名次计分又看得到分数、不封顶、有锁
+  for (const [g, over] of [["g_sec", { goal: "rank", info: "full" }], ["g_sec", { goal: "best", info: "full" }], ["g_coin", { cap: 0 }], ["g_bandit", { arms: 2, D: 3 }], ["g_lock", { dist: "normal", L: 1, T: 100 }]]) {
+    await stage("human:" + g + JSON.stringify(over)); await pickWorld(page, g); await idle();
+    await page.evaluate(over => { const A = window.App; Object.assign(A.wp(), over); A.renderWorld(); A.afterWorldChange(); }, over); await idle();
+    await page.click("#btnHuman"); await page.waitForSelector(".modal.hpm .hp-board");
+    for (const b of await page.locator(".hp-sizes button").all()) { await b.click(); await page.waitForTimeout(60); await humanPlay(g); await humanDone(); }
+    await closeModals();
+    await page.evaluate(g => { const A = window.App; A.state.wparams[g] = {}; A.renderWorld(); A.afterWorldChange(); }, g); await idle();
+  }
+  await stage("human:unsupported"); await pickWorld(page, "g_news"); await idle(); await page.evaluate(() => window.App.openHuman()); await page.waitForTimeout(150);
+  ok(humanSpill.length === 0, "亲手玩一局的弹层：按钮和表头里的字没有被截掉，表格不撑破弹层", humanSpill.join(" || "));
+  ok((await page.evaluate(() => { try { return Object.keys(JSON.parse(localStorage.getItem("ql.human.v1")).rec).length; } catch (e) { return 0; } })) >= 8, "英文页上亲手打的局照样记进存档");
+  await page.evaluate(() => localStorage.removeItem("ql.human.v1"));
+  await pickWorld(page, "gbm"); await idle();
+
   // 6) AI 面板：设置里的每一家；接到本机的假服务商上，把四种用法各走一遍（假服务商见到英文的提示词就用英文回答）
   await stage("ai"); await page.click("#btnClaude"); await page.waitForTimeout(200);
   for (const m of await page.locator("#aiModes button").all()) { await m.click(); await page.waitForTimeout(100); }
@@ -198,6 +243,14 @@ function clipped() {
     for (let i = 0; i < 3; i++) { await page.keyboard.press("Escape"); await page.waitForTimeout(80); }
     await page.evaluate(() => window.App.openCode()); await page.waitForTimeout(250); await check("code"); await page.keyboard.press("Escape");
     await page.evaluate(() => window.App.openPalette()); await page.waitForTimeout(250); await check("palette"); await page.keyboard.press("Escape");
+    for (const g of ["g_coin", "g_bandit", "g_sec", "g_lock"]) {   // 亲手玩一局：开局、打完之后各看一眼
+      await page.evaluate(g => { const A = window.App; A.setWorldType(g); A.openHuman(); }, g); await page.waitForSelector(".modal.hpm .hp-board"); await page.waitForTimeout(250); await check("human " + g);
+      await page.evaluate(g => { const q = s => document.querySelector(s); let n = 0; while (!q("#hpNext") && n++ < 3000) { if (g === "g_bandit") { const a = document.querySelectorAll(".hp-arm:not(:disabled)"); a[n % a.length].click(); } else document.querySelectorAll(".hp-board .hp-acts .hp-act")[g === "g_coin" ? 0 : n % 5 === 0 ? 0 : 1].click(); } }, g);
+      await page.waitForFunction(() => { const c = document.querySelector(".hp-tab caption"); return c && !/…/.test(c.textContent); }, null, { timeout: 60000 }); await page.waitForTimeout(200); await check("human " + g + " finished");
+      if (g === "g_coin") await page.screenshot({ path: SH("en-" + name + "-human.png") });
+      await page.keyboard.press("Escape"); await page.waitForTimeout(100);
+    }
+    await page.evaluate(() => { localStorage.removeItem("ql.human.v1"); window.App.setWorldType("gbm"); }); await idle();
     await page.evaluate(() => window.App.openAiSettings()); await page.waitForTimeout(250); await check("ai settings"); await page.screenshot({ path: SH("en-" + name + "-ai-settings.png") }); await page.keyboard.press("Escape");
     ok(probs.length === 0, name + " 宽度：不横向溢出，字没有被截掉", probs.join(" || "));
     ok(real(t.logs).length === 0, name + " 宽度：页面没有报错", real(t.logs).slice(0, 3).join(" || "));
@@ -214,6 +267,8 @@ function clipped() {
     await page.waitForSelector(".crit .big", { timeout: 20000 }); await idle();
     res[lang] = [];
     for (const [k, st] of CASES) { const has = st ? await page.evaluate(([k, st]) => window.QL_STRATS.some(s => s.id === st), [k, st]) : true; res[lang].push(await pick(page, idle, k, has ? st : null)); }
+    // 亲手玩一局：每套玩法第 0 局的数据、各条参照规则在上面的得分、长期平均、先和谁比
+    res[lang].push(await page.evaluate(() => { const QL = window.App.QL; return JSON.stringify(QL.humanGames().map(g => { const hp = QL.humanSizes(g, QL.worldDefaults(g))[1].hp, kit = QL.humanKit(g, hp, 7), B = QL.humanEpisode(g, hp, 7, 0), LB = QL.humanLongBatch(kit, 400), by = {}; kit.refs.forEach(r => { by[r.id] = QL.humanLongRef(kit, LB, r.id); }); return [g, Array.from(B.R).slice(0, 8), QL.humanRefsOn(kit, B, false).map(r => r.score), kit.refs.map(r => by[r.id].m), QL.humanStar(kit, by)]; })); }));
     if (lang === "zh") {
       // 中文页：对照表接着用 ui-obs.js 留下的存档，再把手册每一页走一遍，让正文里现算的数都算出来，回头和英文页的逐项比
       res.zhSig = await page.evaluate(() => { window.App.openGuide("matrix"); return window.App.live.sig; });
@@ -224,7 +279,7 @@ function clipped() {
     }
     await t.close();
   }
-  ok(JSON.stringify(res.zh) === JSON.stringify(res.en) && res.zh.every(x => /\d/.test(x)), "同样的世界、玩法和规则，两种语言算出来的数逐位相同", res.zh.map((x, i) => x === res.en[i] ? "" : CASES[i][0] + ": " + x + " vs " + res.en[i]).filter(Boolean).join(" || "));
+  ok(JSON.stringify(res.zh) === JSON.stringify(res.en) && res.zh.every(x => /\d/.test(x)), "同样的世界、玩法和规则，两种语言算出来的数逐位相同（连同亲手玩一局用的对局和参照规则的成绩）", res.zh.map((x, i) => x === res.en[i] ? "" : (CASES[i] ? CASES[i][0] : "human") + ": " + x.slice(0, 200) + " vs " + res.en[i].slice(0, 200)).filter(Boolean).join(" || "));
   ok(res.zhSig === enLive.sig, "两种语言的现算缓存用同一个签名", res.zhSig + " vs " + enLive.sig);
   // 英文版从头现算出来的整张对照表，和中文版（ui-obs.js 留下的存档）逐格相同
   let zhCache = null; try { zhCache = JSON.parse(res.zhCache || fs.readFileSync(LIVE_CACHE, "utf8")); } catch (e) {}
