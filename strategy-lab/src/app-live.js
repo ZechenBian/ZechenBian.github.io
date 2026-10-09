@@ -23,7 +23,8 @@
   function source() { return QLEngine.poolSource(builtins()); }
   function init() {
     if (mx) return;
-    var src = source(); sig = A.hash(src) + "." + src.length;
+    var src = source(); sig = (typeof window !== "undefined" && window.QL_LIVE_SIG) || A.hash(src) + "." + src.length;
+    L.sig = sig; L.srcSig = A.hash(src) + "." + src.length;
     mx = skeleton();
     try {
       var o = JSON.parse(localStorage.getItem(KEY) || "null");

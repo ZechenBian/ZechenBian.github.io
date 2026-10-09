@@ -6,9 +6,11 @@
 
 A place to run quantitative-strategy experiments in the browser: pick a game, a world and a rule, run the rule over thousands of simulated paths (or rounds), and read the distribution of outcomes against the theory. One web page, everything computed on your own machine, no sign-in and nothing to install.
 
-**▶ 在线打开 / Open online:** https://zechenbian.github.io/strategy-lab/
+**▶ 在线打开（中文）:** https://zechenbian.github.io/strategy-lab/
 
-界面是中文的。The interface is in Chinese.
+**▶ Open online (English):** https://zechenbian.github.io/strategy-lab/en/
+
+页面右上角的按钮在中文和英文之间切换，切换后当前的玩法、世界、规则和参数都还在。The button at the top right switches between Chinese and English and keeps the current game, world, rule and parameters.
 
 ---
 
@@ -74,21 +76,25 @@ A place to run quantitative-strategy experiments in the browser: pick a game, a 
 
 ```
 strategy-lab/
-├── index.html    构建出来的独立网页（上面的网址打开的就是它）
+├── index.html    构建出来的独立网页，中文（上面的网址打开的就是它）
+├── en/index.html 构建出来的独立网页，英文
 ├── build.py      把 src/ 拼成一个文件
-├── src/          引擎、内置规则、界面、手册的文字
+├── src/          引擎、内置规则、界面、手册的文字（只有一份，中文）
+├── i18n/         英文版：译文表和生成工具
 ├── data/         示例行情
 └── test/         自动检查
 ```
 
 ```sh
-npm install                      # 取 KaTeX 的发行文件；测试另外要用 Playwright
-python3 build.py                 # 生成 index.html（以及 dist/ 下在 Claude 里发布用的那一份）
+npm install                      # 取 KaTeX 的发行文件；英文版的生成工具要用 acorn，测试要用 Playwright
+python3 build.py                 # 生成 index.html 和 en/index.html（以及 dist/ 下在 Claude 里发布用的那一份）
 npx playwright install chromium  # 只有跑界面测试才需要
-sh test/run-all.sh               # 全部测试，要十几到二十分钟
+sh test/run-all.sh               # 全部测试，要二三十分钟
 ```
 
-测试分两部分：Node 里对引擎和手册里每个数字的核对（约 2000 项），无头浏览器里的界面检查（约 840 项）。AI 接口的测试用的是本机的一个假服务商，不会向外发请求。单独跑一个：`node test/obs.test.js`、`node test/ui-standalone.js`。
+**英文版是怎么来的。** 源码只有一份，是中文的。构建时 [i18n/i18n.js](i18n/i18n.js) 把源码里每一段给人看的中文（界面上的字、手册、规则的说明、规则代码里的注释、发给 AI 的提示词，一共五千多段）换成 [i18n/en/](i18n/en/) 里的译文，代码本身一个字不动，所以两种语言跑的是同一套计算：同样的设定下结果逐位相同，现算的缓存也是共用的。译文入库时逐段自动核对：公式、现算的数字标记、代码必须和原文一致，占位符不能多也不能少。改了源码里的中文而没有补译文，构建会失败并指出是哪一段。细节见 [i18n/README.md](i18n/README.md)。
+
+测试分两部分：Node 里对引擎和手册里每个数字的核对（约 2000 项），无头浏览器里的界面检查（约 900 项）。AI 接口的测试用的是本机的一个假服务商，不会向外发请求。英文版的测试（`node test/ui-en.js`）把页面的每一处走一遍：每个世界、每套玩法、每条规则、每张图、手册的每一页，页面上不能出现汉字；并核对两种语言算出来的数相同。单独跑一个：`node test/obs.test.js`、`node test/ui-standalone.js`。
 
 引擎和规则是纯 JavaScript，没有运行时依赖。页面内联了 [KaTeX](https://katex.org) 来排公式（MIT 许可，见 [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)）；界面字体从 Google Fonts 加载，连不上时用系统字体。
 
@@ -110,10 +116,10 @@ Games and worlds are separate so that you can see what happens when an assumptio
 
 ### Getting started
 
-1. Open the link above. On a first visit, click "手册" (handbook) at the top right, or press `?`, and do the first of the five short experiments.
+1. Open the link above. On a first visit, click "Handbook" at the top right, or press `?`, and do the first of the five short experiments.
 2. Choose a game, a world and a rule in the left column and drag the parameters; the summary and the charts recompute as you go. One backtest takes tens of milliseconds.
-3. "找图表与命令" (`Ctrl K` / `⌘K`) finds charts, worlds, rules and handbook pages by name.
-4. After tuning, click "用新路径检验" to see whether the edge survives on paths the rule has not seen.
+3. "Find charts & commands" (`Ctrl K` / `⌘K`) finds charts, worlds, rules and handbook pages by name.
+4. After tuning, click "Test on fresh paths" to see whether the edge survives on paths the rule has not seen.
 
 The handbook covers the rules and origin of every game, how to read every chart, where each rule fits and where it does not, a glossary, and the known results for each game (definitions, theorems, proof sketches, references).
 
@@ -136,13 +142,13 @@ The right-hand panel lets an AI turn a one-line idea into a rule (code, paramete
 | Doubao (Volcengine Ark) | doubao-seed-2-1-pro-260915 | **No: needs a forwarding proxy** | Activate the model in the Ark console first; an endpoint ID (ep-…) also works |
 | Other | yours | Depends on the provider | Any OpenAI-compatible Chat Completions API, including a local Ollama or LM Studio |
 
-To connect: click "AI" at the top right, then "接入 AI…", choose a provider, paste your key, click "测试连接" and, once it answers, "保存". Model names change quickly; if the provider does not recognise the model, "获取模型列表" fetches the current list.
+To connect: click "AI" at the top right, then "Connect an AI…", choose a provider, paste your key, click "Test connection" and, once it answers, "Save". Model names change quickly; if the provider does not recognise the model, "Fetch model list" gets the current list.
 
 - **"Callable directly from the page" was measured on 9 October 2026**, from a page at this address, by sending each API a request with an invalid key. The page could read the "invalid key" replies of DeepSeek, OpenAI and Kimi, so they accept calls from web pages; the reply from Volcengine Ark was blocked by the browser's cross-origin rules (CORS). A full conversation with a real key was not tested.
-- **Your key stays in your browser.** It is kept in localStorage, and requests go straight from the browser to the provider you chose (or to your forwarding proxy), never through this site. Other pages on the same domain can technically read it, so click "清除密钥" when you are done on a shared computer.
+- **Your key stays in your browser.** It is kept in localStorage, and requests go straight from the browser to the provider you chose (or to your forwarding proxy), never through this site. Other pages on the same domain can technically read it, so click "Clear key" when you are done on a shared computer.
 - **Cost** is billed by the provider to your account. Writing one rule sends roughly five thousand characters and receives a few thousand.
-- **Forwarding proxy** (under "高级" in the settings): when a provider blocks calls from web pages, a small relay has to pass the request on and add the response headers that let the page read the reply. The page requests `<proxy address>/<full API URL>`. The proxy sees your key, so use only one you deployed yourself. [tianxia/ai-proxy.mjs](../tianxia/ai-proxy.mjs), written for another project in this repository, is an example of such a relay (what it may be used for is governed by the [LICENSE](../LICENSE)).
-- Everything else works without an AI: worlds, rules, charts, parameter sweeps and the handbook all run locally, and you can edit a rule's code yourself under "代码与说明" below the rule in the left column.
+- **Forwarding proxy** (under "Advanced" in the settings): when a provider blocks calls from web pages, a small relay has to pass the request on and add the response headers that let the page read the reply. The page requests `<proxy address>/<full API URL>`. The proxy sees your key, so use only one you deployed yourself. [tianxia/ai-proxy.mjs](../tianxia/ai-proxy.mjs), written for another project in this repository, is an example of such a relay (what it may be used for is governed by the [LICENSE](../LICENSE)).
+- Everything else works without an AI: worlds, rules, charts, parameter sweeps and the handbook all run locally, and you can edit a rule's code yourself under "Code & notes" below the rule in the left column.
 
 The page was first built to run inside Claude; opened there, the panel uses Claude directly and needs no key.
 
@@ -155,13 +161,15 @@ The page was first built to run inside Claude; opened there, the panel uses Clau
 ### Development
 
 ```sh
-npm install                      # fetches the KaTeX distribution files; the tests also use Playwright
-python3 build.py                 # writes index.html (and the build for publishing inside Claude, under dist/)
+npm install                      # fetches the KaTeX distribution files; the English build uses acorn and the tests use Playwright
+python3 build.py                 # writes index.html and en/index.html (and the build for publishing inside Claude, under dist/)
 npx playwright install chromium  # only needed for the browser tests
-sh test/run-all.sh               # the whole suite, about fifteen to twenty minutes
+sh test/run-all.sh               # the whole suite, twenty to thirty minutes
 ```
 
-The tests come in two parts: checks in Node of the engine and of every number quoted in the handbook (about 2,000), and browser checks in headless Chromium (about 840). The AI-interface tests talk to a mock provider on localhost and send nothing outside. To run one file: `node test/obs.test.js`, `node test/ui-standalone.js`.
+**How the English edition is made.** There is one source tree, written in Chinese. At build time [i18n/i18n.js](i18n/i18n.js) replaces every piece of user-visible Chinese in the source (interface text, the handbook, the notes on each rule, the comments in rule code, the prompts sent to the AI: a little over five thousand units) with its translation from [i18n/en/](i18n/en/) and leaves the code itself untouched. Both languages therefore run the same computation: the same settings give identical results, and the cache of live-computed numbers is shared. Every translation is checked automatically when it is imported: formulas, live-number tokens and code must match the original, and no placeholder may be added or lost. If a Chinese string changes and no translation is supplied, the build fails and names the string. Details are in [i18n/README.md](i18n/README.md).
+
+The tests come in two parts: checks in Node of the engine and of every number quoted in the handbook (about 2,000), and browser checks in headless Chromium (about 900). The AI-interface tests talk to a mock provider on localhost and send nothing outside. The English-edition test (`node test/ui-en.js`) walks through every world, game, rule, chart and handbook page, requires that no Chinese appears anywhere on the page, and checks that the two languages compute the same numbers. To run one file: `node test/obs.test.js`, `node test/ui-standalone.js`.
 
 The engine and the rules are plain JavaScript with no runtime dependencies. The page inlines [KaTeX](https://katex.org) for typesetting (MIT licence, see [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)); interface fonts load from Google Fonts and fall back to system fonts when unreachable.
 

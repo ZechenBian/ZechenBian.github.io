@@ -232,7 +232,7 @@
     return (compact ? "" : "约 ") + A.fmtNs(ns);
   };
   A.fmtMs = function (ms) { if (!(ms === ms) || ms == null) return "—"; return ms < 1 ? "不到 1 毫秒" : ms < 1000 ? Math.round(ms) + " 毫秒" : (ms / 1000).toFixed(ms < 1e4 ? 1 : 0) + " 秒"; };
-  A.fmtCount = function (n) { if (!(n === n) || n == null) return "—"; return Math.round(n).toLocaleString("en-US") + " 个数"; };
+  A.fmtCount = function (n) { if (!(n === n) || n == null) return "—"; return Math.round(n).toLocaleString("en-US") + A.n1(Math.round(n), " 个数", " 个数"); };
   /** 规则下面的一行小字：这条规则的计算量和存储量（理论上的写法 + 在这台设备上量出来的） */
   A.showAlgoNote = function () {
     var el = $("algoNote"), r = A.run; if (!el) return;
@@ -307,7 +307,7 @@
     if (!r) { host.appendChild(h("div", { class: "statline" }, h("span", { class: "spin", style: { display: "inline-block", "vertical-align": "-2px", "margin-right": "8px" } }), d.game ? "正在生成对局并计分…" : "正在生成路径并回测…")); return; }
     var s = r.sum, b = r.benchSum, per = "每" + unit, G = d.game ? r.game : null, benchRef = G ? G.refs.filter(function (x) { return x.bench; })[0] : null;
     var benchName = benchRef ? benchRef.name : d.benchF === 0 ? "不下注" : "买入持有";
-    $("sumMeta").textContent = st.name + " · " + s.N + (d.game ? " 局 × " : " 条 × ") + s.T + (d.game && !d.crit ? " " + d.unit : " 步") + " · 用时 " + r.ms + " 毫秒";
+    $("sumMeta").textContent = st.name + " · " + s.N + (d.game ? " 局 × " : A.n1(s.N, " 条 × ", " 条 × ")) + s.T + (d.game && !d.crit ? " " + d.unit : " 步") + " · 用时 " + r.ms + " 毫秒";
     head.appendChild(h("span", { class: "meta", id: "sumBusy", hidden: true }, h("span", { class: "spin", style: { display: "inline-block", "vertical-align": "-2px", "margin-right": "6px" } }), "正在计算…"));
     head.appendChild(h("span", { class: "meta", text: "基准：" + benchName }));
     head.appendChild(A.helpBtn(d.game && !d.crit ? "game:" + S.world.type : "start:criteria", d.game && !d.crit ? "这套玩法怎么计分" : "这三个数各是什么意思"));
@@ -358,7 +358,7 @@
     if (r.fit && r.fit.data) host.appendChild(h("div", { class: "warn" }, "这条规则要先训练模型：训练段的前 " + Math.round(r.fit.frac * 100) + "%（" + r.fit.T + " 步）留给模型学，上面的结果和图表只来自后面的 " + s.T + " 步。不带训练的规则用的是整个训练段，两者的数字不能直接比；放进\"多策略对比\"里会自动对齐到同一段。"));
   };
   /* ---------- 玩法的摘要：得分 + 对照 ---------- */
-  var KIND = { sim: "参照", bound: "上界", alt: "换规则", theory: "理论", optimum: "理论最优", human: "真人实验" };
+  var KIND = { sim: "参照", bound: "上界", alt: "换细则", theory: "理论", optimum: "理论最优", human: "真人实验" };
   /** 差值的判词：|差| 不到 2 倍标准误的不算数 */
   function gVerdict(G, d, se, soft) {
     if (!(d === d)) return h("span", { class: "verdict flat", text: "—" });
@@ -549,7 +549,7 @@
   /** viewSt：要看的规则。不是当前选用的那条时只读（能看、能复制，改之前先选用它） */
   A.openCode = function (tab, viewSt) {
     var st = viewSt || A.strat(), view = tab || "explain", ro = st.id !== S.stratId;
-    var ex = h("div", { class: "explain" }), codeBox = h("div", { style: { display: "grid", gap: "10px" } }), errBox = h("div", { class: "warn err", hidden: true });
+    var ex = h("div", { class: "explain" }), codeBox = h("div", { style: { display: "grid", "grid-template-columns": "minmax(0, 1fr)", gap: "10px" } }), errBox = h("div", { class: "warn err", hidden: true });
     QLMD.mount(ex, A.explainMd(st));
     var ta = h("textarea", { class: "codeedit", spellcheck: "false", "aria-label": "策略代码", id: "codeEdit" }); ta.value = st.code; if (ro) ta.readOnly = true;
     ta.addEventListener("keydown", function (e) { if (e.key === "Tab") { e.preventDefault(); var a = ta.selectionStart; ta.value = ta.value.slice(0, a) + "  " + ta.value.slice(ta.selectionEnd); ta.selectionStart = ta.selectionEnd = a + 2; } });

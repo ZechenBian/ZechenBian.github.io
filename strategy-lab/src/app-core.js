@@ -39,6 +39,8 @@ var App = (function () {
     clearTimeout(toastT); toastT = setTimeout(function () { el.remove(); }, ms || 2600);
   }
   A.h = h; A.$ = $; A.clear = clear; A.debounce = debounce; A.toast = toast;
+  /** 数量是 1 时用 one，否则用 many。中文的量词不分单复数，所以调用的地方两个参数写的是同一段中文；英文版里它们分别被译成单数和复数 */
+  A.n1 = function (n, one, many) { return n === 1 ? one : many; };
   /* 右栏的助手是谁。在 Claude 里打开页面时由宿主提供 Claude；放在普通网站上时没有，由使用者自带密钥接入一家服务商（src/ai.js）。
    * 界面上泛指这位助手的地方一律用 A.AI：在 Claude 里是"Claude"，在独立的网页里是"AI"。 */
   A.aiHost = !!(window.claude && typeof window.claude.use === "function");
@@ -166,7 +168,7 @@ var App = (function () {
     if (A.worldStatsKey !== curWorldKey()) st = null;
     if (d.game) { var c = A.worldCfg(), wo = d.wsel ? (A.wschema().filter(function (q) { return q.key === d.wsel; })[0] || {}).options || [] : [], wn = wo.filter(function (o) { return o[0] === A.wp()[d.wsel]; })[0]; if (wn) nm += " · " + wn[1].replace(/（.*$/, ""); return nm + " · " + c.N + " 局 × " + (d.crit ? c.T + " 步" : c.T + " " + d.unit) + " · 种子 " + w.seed; }
     var n = st ? st.N : w.N, t = st ? st.T : w.T;
-    return nm + " · " + n + " 条 × " + t + " 步" + (w.type === "real" ? "" : " · 种子 " + w.seed);
+    return nm + " · " + n + A.n1(n, " 条 × ", " 条 × ") + t + " 步" + (w.type === "real" ? "" : " · 种子 " + w.seed);
   };
 
   function persist() {

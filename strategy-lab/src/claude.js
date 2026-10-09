@@ -294,11 +294,11 @@
     var c = st.claim, q = st.params.filter(function (x) { return x.key === c.param; })[0], n = 15, vals = [], i, k = c.objective;
     for (i = 0; i < n; i++) { var v = q.min + (q.max - q.min) * i / (n - 1); vals.push(q.step >= 1 ? Math.round(v) : +v.toPrecision(6)); }
     var cv = Math.min(q.max, Math.max(q.min, c.value)); if (vals.indexOf(cv) < 0) vals.push(cv); vals.sort(function (a, b) { return a - b; }); vals = vals.filter(function (x, j) { return j === 0 || x !== vals[j - 1]; });
-    var p = Object.assign({}, A.sp(st.id)), set = Object.assign({}, S.set), out = h("div", { class: "note", style: { "margin-top": "8px" } }, h("span", { class: "spin", style: { display: "inline-block", "vertical-align": "-2px", "margin-right": "6px" } }), "正在两批新路径上检验…"), stamp = Date.now() % 100000;
+    var p = Object.assign({}, A.sp(st.id)), set = Object.assign({}, S.set), out = h("div", { class: "note", style: { "margin-top": "8px" } }, h("span", { class: "spin", style: { display: "inline-block", "vertical-align": "-2px", "margin-right": "6px" } }), "正在两批新" + (c.objective === "score" ? "对局" : "路径") + "上检验…"), stamp = Date.now() % 100000;
     btn.disabled = true; el.appendChild(out); scrollLog();
     var res1, best;
     var sw = function (payload) { return A.sweepEngine().then(function (e) { return e.send("sweep", payload, { timeout: A.tmo(180000, st) }); }); };
-    var name0 = pLabel(st, c.param), on0 = OBJN[k], isG = k === "score", gd = isG ? A.wdef().score(A.wp()) : null;
+    var name0 = pLabel(st, c.param), isG = k === "score", gd = isG ? A.wdef().score(A.wp()) : null, on0 = isG && gd.lower ? "成本" : OBJN[k], pk = isG && gd.lower ? "最低点" : "峰值", bt = isG ? "对局" : "路径";
     /** 找出扫描结果里的峰值，并把曲线放进"参数扫描"图里 */
     function peakOf(m) {
       var bv = -Infinity, bj = -1; for (var j = 0; j < vals.length; j++) { var x = m[k][j]; if (x === x && x > bv && (k !== "mean" || m.pDD[j] <= set.ddProb / 100)) { bv = x; bj = j; } }
@@ -325,8 +325,8 @@
       return sw({ axes: [{ key: c.param, values: [cv, vals[best]] }], p: p, set: set, fresh: 2000 + stamp, keepWT: true, fitKeys: st.fitKeys || null });
     }).then(function (m2) {
       clear(out); out.className = "note"; btn.disabled = false;
-      var name = pLabel(st, c.param), on = OBJN[k], fmt = isG ? function (v) { return A.gdiff(gd, v).slice(1); } : k === "sharpe" ? function (v) { return F(v, 2); } : function (v) { return P(v); };
-      if (!m2) { out.appendChild(h("span", { class: "verdict up", text: "✓ 与声明一致。" })); out.appendChild(document.createTextNode(" 在一批新路径上扫描 " + name + "，" + on + "的峰值正好落在声明的 " + F(cv) + "。")); return; }
+      var name = pLabel(st, c.param), on = on0, fmt = isG ? function (v) { return A.gdiff(gd, v).slice(1); } : k === "sharpe" ? function (v) { return F(v, 2); } : function (v) { return P(v); };
+      if (!m2) { out.appendChild(h("span", { class: "verdict up", text: "✓ 与声明一致。" })); out.appendChild(document.createTextNode(" 在一批新" + bt + "上扫描 " + name + "，" + on + "的" + pk + "正好落在声明的 " + F(cv) + "。")); return; }
       var d, se, a = m2.keep[0], b = m2.keep[1], N = a.WT.length, s = 0, s2 = 0, cnt = 0, yrs = m2.T / m2.K, j;
       if (k === "growth") { for (j = 0; j < N; j++) if (a.WT[j] > 0 && b.WT[j] > 0) { var z = Math.log(b.WT[j] / a.WT[j]) / yrs; s += z; s2 += z * z; cnt++; } }
       else if (k === "mean") { for (j = 0; j < N; j++) { var y = b.WT[j] - a.WT[j]; s += y; s2 += y * y; cnt++; } }
@@ -335,7 +335,7 @@
       else { d = s / cnt; se = cnt > 1 ? Math.sqrt(Math.max(0, (s2 - s * s / cnt) / (cnt - 1)) / cnt) : NaN; }
       var okc = !(d > 2 * se);
       out.appendChild(h("span", { class: "verdict " + (okc ? "up" : "down"), text: okc ? "✓ 与声明一致。" : "✕ 与声明有出入。" }));
-      out.appendChild(document.createTextNode(" 第一批新路径上，" + on + "的峰值在 " + name + " = " + F(vals[best]) + "（声明的是 " + F(cv) + "）。在第二批新路径上把两者做配对比较：前者比后者" + (isG && gd.lower ? (d >= 0 ? "成本低 " : "成本高 ") : (d >= 0 ? "高 " : "低 ")) + fmt(Math.abs(d)) + " ± " + fmt(se) + (okc ? "，差别在误差之内，峰值附近本来就很平。" : "，超过 2 倍标准误。") + "扫描曲线已放到\"参数扫描\"图里。"));
+      out.appendChild(document.createTextNode(" 第一批新" + bt + "上，" + on + "的" + pk + "在 " + name + " = " + F(vals[best]) + "（声明的是 " + F(cv) + "）。在第二批新" + bt + "上把两者做配对比较：前者比后者" + (isG && gd.lower ? (d >= 0 ? "成本低 " : "成本高 ") : (d >= 0 ? "高 " : "低 ")) + fmt(Math.abs(d)) + " ± " + fmt(se) + (okc ? "，差别在误差之内，" + pk + "附近本来就很平。" : "，超过 2 倍标准误。") + "扫描曲线已放到\"参数扫描\"图里。"));
       scrollLog();
     }).catch(function (e) { clear(out); out.className = "warn err"; out.textContent = "检验没有完成：" + (e.message || e); btn.disabled = false; });
   }

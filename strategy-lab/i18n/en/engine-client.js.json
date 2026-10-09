@@ -1,0 +1,16 @@
+[
+{"zh":"这个环境不允许创建后台线程，无法运行回测（§0§）","en":"This environment does not allow background threads to be created, so the backtest cannot run (§0§)"},
+{"zh":"世界代码","en":"World code"},
+{"zh":"脚本错误","en":"Script error"},
+{"zh":"代码里没有定义 decide(s, p, st) 函数","en":"the code does not define a decide(s, p, st) function"},
+{"zh":"第 §0§ 行：","en":", line §0§: "},
+{"zh":"后台线程没有启动（10 秒无响应）","en":"The background thread did not start (no response for 10 seconds)"},
+{"zh":"策略代码第 §0§ 行：","en":"Strategy code, line §0§: "},
+{"zh":"世界代码第 §0§ 行：","en":"World code, line §0§: "},
+{"zh":"运行超过 §0§ 秒被中止：代码里可能有死循环，或者这一步的计算量太大","en":"The run was aborted after more than §0§ seconds: the code may contain an infinite loop, or this step needs too much computation"},
+{"zh":"后台线程已停止","en":"The background thread has stopped"},
+{"zh":"已停止","en":"Stopped"},
+{"zh":"这个环境不允许创建后台线程（§0§）","en":"This environment does not allow background threads to be created (§0§)"},
+{"zh":"后台线程没能启动：§0§","en":"The background thread could not start: §0§"},
+{"zh":"后台线程出错","en":"Background thread error"}
+]

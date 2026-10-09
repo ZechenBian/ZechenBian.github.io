@@ -1,0 +1,20 @@
+{
+ "_": "页面骨架（src/body.html）和示例数据名字（data/samples.json）里的中文。html 一栏的译文是 HTML（& 要写成 &amp;），text 一栏是纯文字。",
+ "html": [
+  ["说明、规则、每张图和每条规则的应用场景", "Explanations, rulebooks, and the use cases of every chart and every rule"],
+  ["想法 → 规则 → 结果 → 解释", "Idea → rule → result → explanation"],
+  ["玩法、世界与规则", "Game, world and rule"],
+  ["找图表与命令", "<span class=\"lang-long\">Find charts &amp; commands</span><span class=\"lang-short\">Find</span>"],
+  ["策略实验室", "Strategy Lab"],
+  ["玩法与规则", "Game &amp; rule"],
+  ["手册", "Handbook"],
+  ["面板", "Panels"],
+  ["结果", "Results"]
+ ],
+ "text": [
+  ["纳斯达克综指", "Nasdaq Composite"],
+  ["标普 500", "S&P 500"],
+  ["月线", "monthly"],
+  ["日线", "daily"]
+ ]
+}

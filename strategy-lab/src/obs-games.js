@@ -203,7 +203,7 @@ WORLDS.o_meas = {
   },
   scenes: [
     { name: "漂移 · 时长 1", p: { what: "mu" } }, { name: "漂移 · 时长 25", p: { what: "mu", dur: 25 } },
-    { name: "波动 · 250 个点", p: { what: "sigma" } }, { name: "波动 · 25 个点", p: { what: "sigma", T: 30 } },
+    { name: "波动 · 250 个点", p: { what: "sigma" } }, { name: "波动 · 30 个点", p: { what: "sigma", T: 30 } },
     { name: "回复速度 · 时长 10", p: { what: "kappa" } }, { name: "回复速度 · 时长 2", p: { what: "kappa", durk: 2 } },
     { name: "Hurst · 250 个点", p: { what: "hurst" } }, { name: "Hurst · 1000 个点", p: { what: "hurst", T: 1000 } }
   ],

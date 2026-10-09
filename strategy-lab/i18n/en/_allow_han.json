@@ -1,0 +1,15 @@
+[
+"/^(close|close\\/last|last|收盘|收盘价)$/i",
+"/^(date|datetime|observation_date|日期|时间|time|timestamp)$/i",
+"/close|last|收盘/i",
+"/content.{0,12}(risk|filter|policy)|data_inspection|inappropriate|sensitive.?content|high.?risk|flagged|moderation|prohibited|blocked due to|敏感|违规|不安全|审核/i",
+"/context.?length|maximum context|too many tokens|prompt is too long|input.{0,20}too long|超出.{0,6}长度/i",
+"/date|日期|时间/i",
+"/insufficient[_ ]?(balance|quota|funds|credit)|exceeded your current quota|quota.?exceeded|余额|欠费|arrearage|overdue|billing/i",
+"/not.?(exist|found)|does not exist|invalid model|unknown model|not.?activated|NotOpen|未开通|不存在|no access/i",
+"/price|value|价格|数值|^px/i",
+"/vol|成交|count|数量|^n$/i",
+"（【「『《“‘",
+"，。；：、！？）】」』》”’",
+"？"
+]

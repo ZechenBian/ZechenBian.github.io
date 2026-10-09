@@ -1,0 +1,13 @@
+[
+{"zh":"未导入数据","en":"no data imported"},
+{"zh":"/（.*$/","en":"/ \\(.*$/"},
+{"zh":"§0§ · §1§ 局 × §2§ · 种子 §3§","en":"§0§ · §1§ episodes × §2§s · seed §3§"},
+{"zh":"§0§ 步","en":"§0§ step"},
+{"zh":"§0§ · §1§§2§§3§ 步§4§","en":"§0§ · §1§§2§§3§ steps§4§"},
+{"zh":" 条 × ","en":" path × ","occ":1},
+{"zh":" 条 × ","en":" paths × ","occ":2},
+{"zh":" · 种子 §0§","en":" · seed §0§"},
+{"zh":"未命名的规则","en":"Unnamed rule"},
+{"zh":"这个世界需要先导入一段数据","en":"This world needs a data series to be imported first"},
+{"zh":"未知错误","en":"Unknown error"}
+]
