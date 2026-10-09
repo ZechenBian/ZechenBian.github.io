@@ -6,6 +6,14 @@
 (function (A) {
   "use strict";
   var h = A.h, $ = A.$, clear = A.clear, S = A.state, QL = A.QL, F = A.F, P = A.P, G = window.QL_GUIDE || { start: [], charts: {}, games: {}, worlds: {}, strats: {}, gstrats: {}, algo: {}, models: [], glossary: [], figs: {}, tour: [] };
+  /* 独立的网页里右栏不是 Claude，而是使用者自己接入的 AI：讲那块面板的一页换成另一种写法（guide.js 里的 web），别处泛指那位助手的地方跟着改口 */
+  if (!A.aiHost) {
+    (G.start || []).forEach(function (s) { if (s.web) { s.title = s.web.title; s.keys = s.web.keys; s.body = s.web.body; delete s.web; } });
+    (function swap(o, seen) {
+      if (seen.indexOf(o) >= 0) return; seen.push(o);
+      for (var k in o) { var v = o[k]; if (typeof v === "string") { if (v.indexOf("Claude") >= 0) o[k] = A.aiSay(v); } else if (v && typeof v === "object" && !(v instanceof Node)) swap(v, seen); }
+    })(G, []);
+  }
   var MX = { seed: QL.live.SEED };                // 对照表：清单是现成的，格子在这台电脑上现算（app-live.js）。真正用到时才去取 A.matrix
   function mxAll() { return A.matrix; }
   var ui = null, curKey = "", idx = null;
@@ -210,7 +218,7 @@
   }
   function pageGames(host) {
     head(host, "玩法", "总览：玩法、世界、规则", "一次实验由三样东西定下来：玩法规定你能做什么、怎么算分；世界规定数据从哪里来；规则是你自己定的做法。");
-    host.appendChild(md("**三层。** 左栏从上到下就是这三层。\n\n1. **玩法**是题目的类型：每一步你看到什么、能做什么动作、怎么结算、怎么计分。它写在细则里，不由你定。\n2. **世界**是数据服从的那个分布或者过程：布朗运动、均值回复、一枚偏硬币、指数分布的报价……同一种玩法可以换不同的世界，能换哪些由玩法决定。\n3. **规则**是你的做法：每一步看到信息之后给出一个动作。可以选内置的，也可以让 Claude 写。\n\n**为什么要把玩法和世界分开。** 一条规则总是按某个假设推出来的：\"报价服从指数分布\"\"步长是正态的\"\"噪声没有厚尾\"。把玩法固定、只换世界，看到的就是\"假设错了会怎样\"。在一个世界里可证最优的规则，换一个世界可以输给朴素的做法；这是这里最值得看的东西之一。\n\n**用词。** 一**局**是从头到尾完整的一场，里面的一步叫回合（有的玩法里叫次、把、天、期、步）。页面一次打很多局，得分是各局的平均。**细则**是玩法自己的规定；**规则**专指你定的做法。"));
+    host.appendChild(md("**三层。** 左栏从上到下就是这三层。\n\n1. **玩法**是题目的类型：每一步你看到什么、能做什么动作、怎么结算、怎么计分。它写在细则里，不由你定。\n2. **世界**是数据服从的那个分布或者过程：布朗运动、均值回复、一枚偏硬币、指数分布的报价……同一种玩法可以换不同的世界，能换哪些由玩法决定。\n3. **规则**是你的做法：每一步看到信息之后给出一个动作。可以选内置的，也可以让 " + A.AI + " 写。\n\n**为什么要把玩法和世界分开。** 一条规则总是按某个假设推出来的：\"报价服从指数分布\"\"步长是正态的\"\"噪声没有厚尾\"。把玩法固定、只换世界，看到的就是\"假设错了会怎样\"。在一个世界里可证最优的规则，换一个世界可以输给朴素的做法；这是这里最值得看的东西之一。\n\n**用词。** 一**局**是从头到尾完整的一场，里面的一步叫回合（有的玩法里叫次、把、天、期、步）。页面一次打很多局，得分是各局的平均。**细则**是玩法自己的规定；**规则**专指你定的做法。"));
     add(host, fig("round"));
     host.appendChild(sec("一、" + A.TRADE.name, md(A.TRADE.blurb + "\n\n这是量化里最基本的玩法，十几个价格世界都是给它用的：几何布朗运动、均值回复、牛熊切换、混沌序列、你导入的真实行情。它们之间只有\"价格怎么来\"不同，记账的办法完全一样。"),
       h("div", { class: "gd-acts" }, btn("它的细则", function () { show("game:trade"); }), btn("每一步怎么记账", function () { show("start:step"); }))));
@@ -333,7 +341,7 @@
     head(host, (w.obsGame ? QL.OBS_GROUP : "十套玩法") + " · " + ((G.gameIndex || {})[type] || ["", "", ""])[2], w.name, w.blurb, [isCur ? btn("回到这一套", function () { if (ui) ui.close(); }, true) : btn("去玩这一套", closeThen(function () { A.applySetup({ world: type, strat: S.last[type] || w.defStrat }); }), true)]);   // 从手册过去：用这套玩法自己的规则（上次用的，或者默认的）
     if (g.scene) host.appendChild(sec("它从哪来", md(g.scene)));
     if (g.rules) host.appendChild(sec("细则", rulesList(g.rules(p, th)), h("p", { class: "note", text: isCur ? "数字取自左栏当前的设定。" : touched ? "数字取自你上次在这套玩法里留下的设定；\"去玩这一套\"会回到那里。" : "数字是默认的设定；选了这套玩法之后，在左栏可以改。" })));
-    host.appendChild(sec("你的规则看得到什么、能做什么", apiBox(w), h("p", { class: "note", text: "s 是裁判每回合交给规则的那个对象。上面没列出来的东西，规则读不到。让 Claude 写规则时，它拿到的也是这一份。" })));
+    host.appendChild(sec("你的规则看得到什么、能做什么", apiBox(w), h("p", { class: "note", text: "s 是裁判每回合交给规则的那个对象。上面没列出来的东西，规则读不到。让 " + A.AI + " 写规则时，它拿到的也是这一份。" })));
     host.appendChild(sec("计分，以及和谁比", md(scoreInfo(w, p))));
     var wq = w.wsel ? (w.params || []).filter(function (x) { return x.key === w.wsel; })[0] : null;
     host.appendChild(sec("能换的世界", wq ? ul(wq.options.map(function (o) { return "**" + o[1] + "**" + (wq.descs && wq.descs[o[0]] ? "：" + wq.descs[o[0]] : ""); })) : md("**" + (w.wname || "这套玩法自带的世界") + "。** " + (w.wdesc || "")),
@@ -344,7 +352,7 @@
     var gmx = gameMatrix(type); if (gmx) host.appendChild(sec("各条规则在各个场景下的成绩", gmx, g.mxNote ? md(g.mxNote) : null));
     if (g.tryit) host.appendChild(sec("可以试试", ul(g.tryit)));
     if (g.origin) host.appendChild(sec("出处", md(g.origin)));
-    if (w.ideas && w.ideas.length) host.appendChild(sec("可以交给 Claude 的想法", ul(w.ideas.map(function (x) { return x; })), h("div", { class: "gd-acts" }, btn("打开 Claude 面板", closeThen(function () { A.applySetup({ world: type, claude: true }); })))));
+    if (w.ideas && w.ideas.length) host.appendChild(sec("可以交给 " + A.AI + " 的想法", ul(w.ideas.map(function (x) { return x; })), h("div", { class: "gd-acts" }, btn("打开 " + A.AI + " 面板", closeThen(function () { A.applySetup({ world: type, claude: true }); })))));
   }
 
   /* ---------- 世界 ---------- */
@@ -588,7 +596,7 @@
       var rank = function (e) { var t = (e.title + " " + (e.full || "")).toLowerCase(), k = (e.keys || "").toLowerCase(), sc = 0; words.forEach(function (w) { sc += t.indexOf(w) >= 0 ? 4 : k.indexOf(w) >= 0 ? 2 : 1; }); return sc; };
       L = L.map(function (e, i) { return [rank(e), i, e]; }).sort(function (a, b) { return b[0] - a[0] || a[1] - b[1]; }).map(function (x) { return x[2]; });
     }
-    if (words.length) nav.appendChild(h("div", { class: "sub", text: L.length ? "找到 " + L.length + " 条" : "没有找到。换个说法，或者到 Claude 面板里直接问。" }));
+    if (words.length) nav.appendChild(h("div", { class: "sub", text: L.length ? "找到 " + L.length + " 条" : "没有找到。换个说法，或者到 " + A.AI + " 面板里直接问。" }));
     L.forEach(function (e) {
       if (!words.length && e.group !== lastG) { nav.appendChild(h("h4", { text: e.group })); lastG = e.group; lastS = ""; }
       if (!words.length && e.sub && e.sub !== lastS) { nav.appendChild(h("div", { class: "sub", text: e.sub })); lastS = e.sub; }

@@ -22,12 +22,12 @@ const num = s => parseFloat(String(s).replace("−", "-").replace(/[^0-9.\-]/g, 
   const s0 = await page.evaluate(() => ({ katex: typeof window.katex, claude: typeof window.claude, lang: document.documentElement.lang, aiOpen: document.getElementById("app").classList.contains("ai-open"), big: document.querySelectorAll(".crit .big").length, g: window.App.run.sum.growth, sw: document.documentElement.scrollWidth, cw: document.documentElement.clientWidth, font: getComputedStyle(document.body).fontFamily }));
   ok(s0.katex === "object" && s0.claude === "undefined" && s0.lang === "zh-CN", "公式库在页面里；没有 Claude 的接口", JSON.stringify([s0.katex, s0.claude, s0.lang]));
   ok(s0.big === 3 && Math.abs(s0.g - 0.0586) < 0.002 && s0.sw <= s0.cw + 1, "连不上字体也照常算出结果，版面不溢出", JSON.stringify([s0.big, s0.g, s0.sw, s0.cw]));
-  ok(!s0.aiOpen && (await page.locator("#paneAi").isHidden()), "没有 Claude 时右栏不自动展开");
+  ok(!s0.aiOpen && (await page.locator("#paneAi").isHidden()), "还没接入 AI 时右栏不自动展开");
   await page.screenshot({ path: SH("sa-main.png") });
-  // Claude 面板：说清楚为什么用不了、该怎么办
+  // 右栏：独立的网页里是"AI"，要先接入一家服务商（细节在 ui-ai.js 里测）；没接入时说清楚怎么办
   await page.click("#btnClaude"); await page.waitForSelector("#aiOff:not([hidden])");
   const off = await page.locator("#aiOff").innerText();
-  ok(/要在 Claude 里打开/.test(off) && /代码与说明/.test(off) && /其余功能不受影响/.test(off) && (await page.locator("#aiSend").isDisabled()) && (await page.locator("#aiInput").isDisabled()) && !(await page.evaluate(() => document.getElementById("btnClaude").classList.contains("primary"))), "点开 Claude：写明用不了的原因和替代办法，输入框停用，按钮不再是主按钮", off.slice(0, 60));
+  ok(/接入一个 AI/.test(off) && /DeepSeek、ChatGPT、Kimi、豆包/.test(off) && /代码与说明/.test(off) && /不接入也不影响别的/.test(off) && (await page.locator("#aiSend").isDisabled()) && (await page.locator("#aiInput").isDisabled()) && (await page.locator("#btnClaude").innerText()) === "AI", "点开右栏：写明要先接入 AI、不接入时怎么办，输入框停用", off.slice(0, 60));
   await page.click("#btnClaude");
   // 手工改规则的代码：不靠 Claude 也能写规则
   await page.locator('#blkStrat button:has-text("代码与说明")').click(); await page.waitForSelector('.modal .seg button[data-v="code"]'); await page.locator('.modal .seg button[data-v="code"]').click(); await page.waitForSelector("#codeEdit");

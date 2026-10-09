@@ -42,9 +42,27 @@ A place to run quantitative-strategy experiments in the browser: pick a game, a 
 - 手册的**“自检”**一页列出 65 条可以用计算判对错的话（某个公式给出的数和模拟出来的对不对得上，某条规则在某个世界里是不是显著更好），在本机逐条算、逐条判。
 - 同一个随机种子永远得到同一批路径，所以任何结果都可以复现。
 
-### 关于 Claude 面板
+### 右栏的 AI 助手
 
-这个页面原本是在 Claude 里运行的：右栏可以让 Claude 把一句话的想法写成规则、造一个新的世界、解释眼前的结果。GitHub 上的这一份不在 Claude 里，那一栏用不了；其余功能完全一样。规则的代码可以自己改：左栏规则下面的“代码与说明”。
+右栏可以让 AI 把一句话的想法写成规则（给出代码、参数和最优性的说明，写完自动载入并回测）、造一个新的世界、把合适的图调出来、解释眼前的结果。在这个网页上它用的是**你自己的 API 密钥**，可以选：
+
+| 服务商 | 默认模型 | 能不能从网页直接调用 | 备注 |
+|---|---|---|---|
+| DeepSeek | deepseek-v4-pro | 可以 | |
+| ChatGPT（OpenAI） | gpt-6-sol | 可以 | ChatGPT 的会员订阅不包含 API 用量，API 要另外开通 |
+| Kimi（月之暗面） | kimi-k3 | 可以（国内站、国际站都可以） | 两个站点的密钥不通用，设置里要选对站点 |
+| 豆包（火山方舟） | doubao-seed-2-1-pro-260915 | **不可以，要经转发代理** | 模型要先在方舟控制台开通；也可以填 ep- 开头的接入点编号 |
+| 其他 | 自己填 | 看服务商 | 任何兼容 OpenAI Chat Completions 的接口；本机的 Ollama、LM Studio 也算 |
+
+怎么接入：点右上角的“AI”，再点“接入 AI…”，选服务商、填密钥，点“测试连接”，通了就“保存”。模型的名字变得很快，报“不认识这个模型”时点“获取模型列表”换一个。
+
+- **“能不能从网页直接调用”是 2026 年 10 月 9 日实测的**：在这个网址的页面上，用一把无效的密钥向各家的接口发请求。DeepSeek、OpenAI、Kimi 的“密钥无效”能被页面读到，说明它们允许网页调用；火山方舟的回答被浏览器的跨域限制（CORS）拦下。没有用真实的密钥测过完整的对话。
+- **密钥只在你的浏览器里**：保存在本机浏览器（localStorage），请求从浏览器直接发给所选的服务商（或者你填的转发代理），不经过本站。和本站同一个域名下的其他页面在技术上也读得到它，所以在公用电脑上用完请点“清除密钥”。
+- **费用**由服务商按你的账号计。写一条规则大约发送五千字、收回几千字。
+- **转发代理**（设置里的“高级”）：服务商不允许网页直接调用时，要有一个小程序把请求转过去，并给回答加上允许跨域读取的响应头。页面请求的地址是 `<代理地址>/<完整的接口地址>`。代理能看到你的密钥，只用你自己部署的。仓库里为另一个项目写的 [tianxia/ai-proxy.mjs](../tianxia/ai-proxy.mjs) 是这种代理的一个例子（它的使用范围以 [LICENSE](../LICENSE) 为准）。
+- 不接入 AI 也不影响别的：世界、规则、图表、参数扫描和手册都在本地运行；规则的代码可以自己改（左栏规则下面的“代码与说明”）。
+
+这个页面最初是在 Claude 里运行的；在那里打开时，右栏直接用 Claude，不需要密钥。
 
 ### 数据
 
@@ -70,7 +88,7 @@ npx playwright install chromium  # 只有跑界面测试才需要
 sh test/run-all.sh               # 全部测试，要十几到二十分钟
 ```
 
-测试分两部分：Node 里对引擎和手册里每个数字的核对（约 1900 项），无头浏览器里的界面检查（约 780 项）。单独跑一个：`node test/obs.test.js`、`node test/ui-standalone.js`。
+测试分两部分：Node 里对引擎和手册里每个数字的核对（约 2000 项），无头浏览器里的界面检查（约 840 项）。AI 接口的测试用的是本机的一个假服务商，不会向外发请求。单独跑一个：`node test/obs.test.js`、`node test/ui-standalone.js`。
 
 引擎和规则是纯 JavaScript，没有运行时依赖。页面内联了 [KaTeX](https://katex.org) 来排公式（MIT 许可，见 [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)）；界面字体从 Google Fonts 加载，连不上时用系统字体。
 
@@ -106,9 +124,27 @@ The handbook covers the rules and origin of every game, how to read every chart,
 - The handbook's **self-check** page lists 65 statements that a computation can decide (does a simulated number match its formula; is one rule significantly better than another in a given world) and checks them one by one on your machine.
 - The same random seed always gives the same paths, so every result can be reproduced.
 
-### The Claude panel
+### The AI assistant
 
-The page was built to run inside Claude, where the right-hand panel lets Claude turn a one-line idea into a rule, write a new world, or explain the result in front of you. This copy on GitHub does not run inside Claude, so that panel is unavailable; everything else is the same. You can edit a rule's code yourself under "代码与说明" below the rule in the left column.
+The right-hand panel lets an AI turn a one-line idea into a rule (code, parameters and a note on optimality, loaded and backtested automatically), write a new world, bring up the right charts, or explain the result in front of you. On this web page it runs on **your own API key**. You can choose:
+
+| Provider | Default model | Callable directly from the page? | Notes |
+|---|---|---|---|
+| DeepSeek | deepseek-v4-pro | Yes | |
+| ChatGPT (OpenAI) | gpt-6-sol | Yes | A ChatGPT subscription does not include API usage; the API is billed separately |
+| Kimi (Moonshot AI) | kimi-k3 | Yes (both the China and the international site) | Keys are not interchangeable between the two sites; pick the right one in the settings |
+| Doubao (Volcengine Ark) | doubao-seed-2-1-pro-260915 | **No: needs a forwarding proxy** | Activate the model in the Ark console first; an endpoint ID (ep-…) also works |
+| Other | yours | Depends on the provider | Any OpenAI-compatible Chat Completions API, including a local Ollama or LM Studio |
+
+To connect: click "AI" at the top right, then "接入 AI…", choose a provider, paste your key, click "测试连接" and, once it answers, "保存". Model names change quickly; if the provider does not recognise the model, "获取模型列表" fetches the current list.
+
+- **"Callable directly from the page" was measured on 9 October 2026**, from a page at this address, by sending each API a request with an invalid key. The page could read the "invalid key" replies of DeepSeek, OpenAI and Kimi, so they accept calls from web pages; the reply from Volcengine Ark was blocked by the browser's cross-origin rules (CORS). A full conversation with a real key was not tested.
+- **Your key stays in your browser.** It is kept in localStorage, and requests go straight from the browser to the provider you chose (or to your forwarding proxy), never through this site. Other pages on the same domain can technically read it, so click "清除密钥" when you are done on a shared computer.
+- **Cost** is billed by the provider to your account. Writing one rule sends roughly five thousand characters and receives a few thousand.
+- **Forwarding proxy** (under "高级" in the settings): when a provider blocks calls from web pages, a small relay has to pass the request on and add the response headers that let the page read the reply. The page requests `<proxy address>/<full API URL>`. The proxy sees your key, so use only one you deployed yourself. [tianxia/ai-proxy.mjs](../tianxia/ai-proxy.mjs), written for another project in this repository, is an example of such a relay (what it may be used for is governed by the [LICENSE](../LICENSE)).
+- Everything else works without an AI: worlds, rules, charts, parameter sweeps and the handbook all run locally, and you can edit a rule's code yourself under "代码与说明" below the rule in the left column.
+
+The page was first built to run inside Claude; opened there, the panel uses Claude directly and needs no key.
 
 ### Data
 
@@ -125,7 +161,7 @@ npx playwright install chromium  # only needed for the browser tests
 sh test/run-all.sh               # the whole suite, about fifteen to twenty minutes
 ```
 
-The tests come in two parts: checks in Node of the engine and of every number quoted in the handbook (about 1,900), and browser checks in headless Chromium (about 780). To run one file: `node test/obs.test.js`, `node test/ui-standalone.js`.
+The tests come in two parts: checks in Node of the engine and of every number quoted in the handbook (about 2,000), and browser checks in headless Chromium (about 840). The AI-interface tests talk to a mock provider on localhost and send nothing outside. To run one file: `node test/obs.test.js`, `node test/ui-standalone.js`.
 
 The engine and the rules are plain JavaScript with no runtime dependencies. The page inlines [KaTeX](https://katex.org) for typesetting (MIT licence, see [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)); interface fonts load from Google Fonts and fall back to system fonts when unreachable.
 

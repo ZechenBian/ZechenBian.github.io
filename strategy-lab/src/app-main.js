@@ -18,7 +18,8 @@
   A.on("run", function () { A.renderSummary(); });
   A.on("error", function () { A.renderSummary(); });
   A.on("world", function () { A.renderWorldHead(); });
-  if (window.innerWidth >= 1240 && window.claude && typeof window.claude.use === "function") A.openClaude(true);   // 独立的网页里没有 Claude：右栏不自动展开
+  // 右栏自动展开：在 Claude 里，或者独立的网页里已经接入了 AI。还没接入时不占地方，等人去点
+  if (window.innerWidth >= 1240 && (A.aiHost || (window.QLAI && QLAI.ready()))) A.openClaude(true);
   A.requestRun("commit");
   // 离开页面：立刻存一次。平时的保存晚 400 毫秒才落盘，最后那一下改动（刚点的"知道了"、刚钉的对比）不能丢
   window.addEventListener("pagehide", function () { try { A.persistNow(); } catch (e) {} });

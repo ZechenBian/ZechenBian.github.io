@@ -515,6 +515,32 @@ li.ck:last-child { border-bottom: 0; }
 #worldFixed { margin: 0 0 10px; }
 #worldFixed b { color: var(--ink); font-weight: 600; }
 
+/* 独立的网页：接入自己的 AI（src/ai.js、src/claude.js） */
+.ai-prov { flex: 0 1 auto; min-width: 0; max-width: 64%; overflow: hidden; text-overflow: ellipsis; display: block; font-family: var(--font-mono); font-weight: 400; }
+.ai-prov.primary { font-family: var(--font-body); font-weight: 500; }
+.ai-off .btn { white-space: normal; }
+.ai-detail { margin-top: 6px; overflow-wrap: anywhere; }
+.ai-set { display: grid; gap: 13px; }
+.ai-f { display: grid; gap: 5px; min-width: 0; }
+.ai-f > label { font-size: 12.5px; color: var(--ink2); font-weight: 600; }
+.ai-f input[type="text"], .ai-f input[type="password"], .ai-f select { width: 100%; min-width: 0; background: var(--surface-2); color: var(--ink); border: 1px solid var(--line); border-radius: 4px; padding: 6px 8px; font: 12.5px/1.4 var(--font-mono); }
+.ai-f input:focus-visible, .ai-f select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.ai-row { display: flex; gap: 6px; align-items: center; min-width: 0; }
+.ai-row input { flex: 1 1 auto; }
+.ai-row .btn { flex: none; }
+.ai-provs { display: flex; flex-wrap: wrap; gap: 6px; }
+.ai-hint { border-left: 2px solid var(--c-axis); padding-left: 9px; }
+.ai-f > label.ai-ck { display: inline-flex; gap: 7px; align-items: center; font-weight: 400; color: var(--ink); font-size: 13px; cursor: pointer; }
+.ai-adv .more-body { display: grid; gap: 13px; }
+.ai-st { font-size: 12.5px; color: var(--ink2); overflow-wrap: anywhere; }
+.ai-st:empty { display: none; }
+.ai-st.good { color: var(--good-ink); }
+.ai-st.bad { color: var(--crit-ink); }
+.aiset .modal-f { align-items: center; }
+.modal-box.aiset-box { display: flex; flex-direction: column; max-height: calc(100vh - 4vh - 32px); max-height: calc(100dvh - 4vh - 32px); }
+.aiset .modal-b { overflow-y: auto; min-height: 0; overscroll-behavior: contain; }
+.aiset .modal-f { border-top: 1px solid var(--line); padding-top: 10px; }
+
 </style>
 <style>
 /* KaTeX 0.16.47 的样式，字体内联。KaTeX: MIT License, (c) Khan Academy and other contributors; 字体: SIL Open Font License 1.1。全文见 THIRD-PARTY-NOTICES.md */
@@ -4240,7 +4266,7 @@ WORLDS.boot = {
   theory: function () { return { note: "Politis–Romano (1994) 平稳 bootstrap：块长服从几何分布，重采样序列仍然平稳。块长 1 的结果与真实历史的差距，度量了\"时间顺序\"本身贡献了多少收益。" }; }
 };
 WORLDS.custom = {
-  name: "自定义（Claude 或你自己写的采样函数）", short: "自定义", group: "自定义", needsCode: true,
+  name: "自定义（AI 或你自己写的采样函数）", short: "自定义", group: "自定义", needsCode: true,
   blurb: "由一段 simulate(T, rng, p) 函数生成每条路径的价格。",
   params: [], defaults: { N: 1000, T: 252, K: 252 },
   theory: function () { return { note: "" }; }
@@ -7599,7 +7625,29 @@ R`右栏的 Claude 有四种用法，用面板顶上的四个按钮切换：
 - 它写的代码和内置规则走的是同一个裁判：读不到未来的数据，也改不了计分方式。
 - 它说"这个参数是最优的"时，页面会用参数扫描去核对，核对的结果标在回答下面。
 - 它的解释是一个起点。最后说了算的是页面上的数字：配对差、样本外、参数扫描。`
-  ] });
+  ],
+  /* 独立的网页（不在 Claude 里打开）用下面这一份：右栏的 AI 由使用者自己接入 */
+  web: { title: "AI 面板怎么用", keys: "ai claude deepseek chatgpt openai gpt kimi moonshot 豆包 doubao 密钥 key api 接入 设置 模型 代理 写策略 造世界 调图表 问结果 提问 代码", body: [
+R`右栏的 AI 面板要先接入才能用：点面板右上角的"接入 AI…"，选一家服务商（DeepSeek、ChatGPT、Kimi、豆包，或者任何兼容 OpenAI 的接口），填上你在那一家申请的 API 密钥，点"测试连接"，通了再点"保存"。
+
+接入之后有四种用法，用面板顶上的四个按钮切换：
+
+- **写策略。** 用自己的话描述一个打法。AI 把它写成可以运行的规则，在当前的世界里试跑，给出每个参数的含义和取值理由，并说明这条规则在什么假设下是最优的、属于哪一档（可证最优、族内最优、有保证、启发式，四个词的意思见"名词"）、什么时候会失效。
+- **造世界。** 描述一种价格或信号的生成方式，可以是公式，也可以是一句话。AI 写出采样函数，"世界"一栏里会多出一个"自定义"。
+- **调图表。** 说你想看什么，它替你打开合适的图。
+- **问结果。** 针对眼前的数字提问。它能看到当前的世界、规则、参数和结果栏里的数字。
+
+几件事先知道：
+
+- **密钥和费用。** 密钥只保存在这台电脑的这个浏览器里；请求从你的浏览器直接发给服务商，不经过本站。费用由服务商按你的账号计。每次调用只在你点"发送"时发生。
+- **要等多久。** 写策略、造世界时默认让模型先深度思考，常常要等一两分钟，等的时候面板上会显示它已经想了多少字。不想等，可以在设置的"高级"里关掉。
+- **连不上。** 有的服务商不允许网页直接调用，这时会提示"请求没有发出去"。办法是在设置的"高级"里填一个转发代理。
+- **模型的名字。** 各家的模型换代很快。提示"不认识这个模型"时，到设置里点"获取模型列表"换一个。
+- AI 写的规则存在"我的策略"里，可以改代码，可以删。
+- 它写的代码和内置规则走的是同一个裁判：读不到未来的数据，也改不了计分方式。
+- 它说"这个参数是最优的"时，页面会用参数扫描去核对，核对的结果标在回答下面。
+- 不同的模型水平差得很多，它的解释只是一个起点。最后说了算的是页面上的数字：配对差、样本外、参数扫描。`
+  ] } });
 
   G.start.push({ id: "keys", title: "快捷键和小技巧", keys: "快捷键 键盘 技巧 命令 面板 表格 加宽 保存 种子 复现", body: [
 R`- **?** 打开或收起这本手册（光标不在输入框里的时候）。
@@ -9500,6 +9548,345 @@ $z^*\approx1.1228$ 是 $4\Phi(z)-2z\varphi(z)-3=0$ 的根。证明的思路写�
     ["反正弦律", `随机游走取到最大值的时刻的分布：两端的概率最大，中间最小。最高点更可能出现在开头或结尾。`]);
 })(typeof QL_GUIDE !== "undefined" ? QL_GUIDE : require("./guide.js"));
 
+/* ===== ai.js ===== */
+/* 独立网页里的 AI 接口：使用者自带 API 密钥，从浏览器直接调用所选的服务商。
+ *
+ * 在 Claude 里打开页面时用不到这一层：那里由宿主提供 Claude（window.claude.use("sample")），而且页面不能自己联网。
+ * 放到普通网站上以后没有那个能力，这里提供同样形状的替代品：sample(input, {modelTier, signal, onText}) → {text, truncated}。
+ *
+ *   · 服务商：DeepSeek、ChatGPT（OpenAI）、Kimi（月之暗面）、豆包（火山方舟），以及任何兼容 OpenAI Chat Completions 的接口。
+ *   · 密钥只存在本机浏览器里（localStorage "ql.ai.v1"），请求从浏览器直接发给所选的服务商；填了转发代理时经代理转发。
+ *     接口地址与代理地址必须是 http(s):// 开头，而且不能指向本网站（免得把密钥发给本站）。
+ *   · 有的服务商不允许网页直接调用（浏览器的跨域限制）。这时请求会以"连不上"告终，设置里可以填一个转发代理：
+ *     代理地址的用法是 <代理>/<完整的接口地址>，例如 https://my-proxy.example.workers.dev/https://api.deepseek.com/chat/completions
+ *   · 回答是流式的：边生成边显示。模型先"深度思考"时，正文到来之前只报告已经想了多少字。
+ *   · 服务商报错点名不认某个可选参数（HTTP 400）时去掉它重试，成功后在这次打开页面期间记住；429 / 5xx 退避后重试。
+ * 模型的名字变得很快。这里的默认值是 2026 年 10 月的；设置里的"获取模型列表"会向服务商查询当前可用的模型。 */
+var QLAI = (function () {
+  "use strict";
+  var LSK = "ql.ai.v1";
+  var NOTHINK = { thinking: { type: "disabled" } };
+  /* name 全称；short 界面上的简称；base 接口地址；model 默认模型；fast 做小事（挑图表）用的模型；models 候选；keyUrl 申请密钥的网址；
+     quiet(model) 不需要深度思考时附带的请求参数；maxTok 需要显式给出的最大输出；sites 同一家的不同站点（密钥不通用）；hint 设置里的提示；
+     cors 能不能从网页直接调用。2026-10-09 在 https://zechenbian.github.io 上用一把无效的密钥实测：DeepSeek、OpenAI、Kimi（两个站点）都能读到
+     "密钥无效"的回答，也就是允许网页调用；火山方舟的回答被浏览器的跨域限制拦下，要经转发代理 */
+  var PRE = [
+    { id: "deepseek", name: "DeepSeek（深度求索）", short: "DeepSeek", base: "https://api.deepseek.com", model: "deepseek-v4-pro", fast: "deepseek-flash", models: ["deepseek-v4-pro", "deepseek-flash"], keyUrl: "https://platform.deepseek.com/api_keys",
+      quiet: function () { return NOTHINK; } },
+    { id: "openai", name: "ChatGPT（OpenAI）", short: "ChatGPT", base: "https://api.openai.com/v1", model: "gpt-6-sol", fast: "gpt-6-luna", models: ["gpt-6-sol", "gpt-6.1-sol", "gpt-6-luna", "gpt-5.6", "gpt-5.5", "gpt-5.4-mini"], keyUrl: "https://platform.openai.com/api-keys",
+      hint: "ChatGPT 的会员订阅不包含 API 用量：API 要在 platform.openai.com 另外开通并充值。" },
+    { id: "kimi", name: "Kimi（月之暗面）", short: "Kimi", base: "https://api.moonshot.cn/v1", model: "kimi-k3", fast: "kimi-k2.6", models: ["kimi-k3", "kimi-k2.6", "kimi-k2.5"], keyUrl: "https://platform.moonshot.cn/console/api-keys",
+      sites: [["https://api.moonshot.cn/v1", "国内站 moonshot.cn"], ["https://api.moonshot.ai/v1", "国际站 moonshot.ai"]],
+      quiet: function (m) { return /^kimi-k2\.[0-6]\b/.test(m) ? NOTHINK : /^kimi-k3/.test(m) ? { reasoning_effort: "low" } : null; },
+      hint: "国内站和国际站的密钥不通用：密钥是在哪个站申请的，下面的\"站点\"就选哪个。" },
+    { id: "doubao", name: "豆包（火山方舟）", short: "豆包", base: "https://ark.cn-beijing.volces.com/api/v3", model: "doubao-seed-2-1-pro-260915", fast: "doubao-seed-2-1-lite-260915", models: ["doubao-seed-2-1-pro-260915", "doubao-seed-2-1-lite-260915", "doubao-seed-2-1-turbo-260628"], keyUrl: "https://console.volcengine.com/ark/region:ark+cn-beijing/apiKey",
+      quiet: function () { return NOTHINK; }, maxTok: 8192, cors: false,
+      hint: "模型要先在方舟控制台开通。\"模型\"一栏也可以填你创建的推理接入点的编号（ep- 开头）。" },
+    { id: "custom", name: "其他（兼容 OpenAI 的接口）", short: "AI", base: "", model: "", fast: "", models: [], keyUrl: "",
+      hint: "任何兼容 OpenAI Chat Completions 的接口都可以：填接口地址（到 /v1 为止）、密钥和模型名。本机的 Ollama、LM Studio 也算（例如 http://localhost:11434/v1，可以不填密钥）。" }
+  ];
+  function byId(id) { for (var i = 0; i < PRE.length; i++) if (PRE[i].id === id) return PRE[i]; return null; }
+  function clone(o) { return JSON.parse(JSON.stringify(o)); }
+  function trimUrl(s) { return String(s || "").trim().replace(/\/+$/, ""); }
+  // 本机与局域网地址（Ollama、LM Studio 等）：不经过转发代理（云端的代理连不到这些地址），也可以不填密钥
+  var LOCAL = /^(https?:\/\/)?(localhost|127\.\d+\.\d+\.\d+|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+|\[::1\]|0\.0\.0\.0|[^/:?#\s]+\.local)(:\d+)?(\/|$)/i;
+  function isLocal(u) { return LOCAL.test(String(u || "").trim()); }
+  /** 规范网址：补上 https://（本机与局域网补 http://）；接口地址去掉误贴的 /chat/completions；别的协议、坏网址返回空串 */
+  function normUrl(s, isBase) {
+    s = trimUrl(s); if (!s || s.charAt(0) === "/") return "";          // 相对路径会指向本网站
+    if (!/^https?:\/\//i.test(s)) {
+      if (/^[a-z][a-z0-9+.-]*:/i.test(s) && !/^[^/:]+:\d+(\/|$)/.test(s)) return "";   // javascript:、ftp:// 等
+      s = (isLocal(s) ? "http://" : "https://") + s.replace(/^\/+/, "");
+    }
+    if (isBase) s = trimUrl(s.replace(/\/(chat\/completions|completions|models)$/i, ""));
+    try { var u = new URL(s); if (!/^https?:$/.test(u.protocol) || !u.hostname || u.username || u.password) return ""; } catch (e) { return ""; }
+    return s;
+  }
+  function sameSite(u) { try { return location.protocol !== "file:" && new URL(u).origin === location.origin; } catch (e) { return true; } }
+  var ZW = /[\s​-‍⁠﻿]/g;                             // 复制密钥时常夹带的空白与零宽字符
+
+  /* ---------- 设置（只存在本机） ---------- */
+  function load() {
+    try {
+      var o = JSON.parse(localStorage.getItem(LSK) || "null");
+      if (o && typeof o === "object") return { p: byId(o.p) ? o.p : "", by: o.by && typeof o.by === "object" ? o.by : {}, proxy: typeof o.proxy === "string" ? o.proxy : "" };
+    } catch (e) {}
+    return { p: "", by: {}, proxy: "" };
+  }
+  var CFG = load(), subs = [], CAP = {};                                  // CAP：服务商+模型 → 已知不支持的参数（这次打开页面期间有效）
+  function fire() { subs.forEach(function (f) { try { f(); } catch (e) { console.error(e); } }); }
+  function save(c) {
+    CFG = { p: byId(c && c.p) ? c.p : "", by: clone((c && c.by) || {}), proxy: trimUrl(c && c.proxy) };
+    try { localStorage.setItem(LSK, JSON.stringify(CFG)); } catch (e) {}
+    Object.keys(CAP).forEach(function (k) { delete CAP[k]; });
+    fire();
+  }
+  try { window.addEventListener("storage", function (e) { if (e.key === LSK) { CFG = load(); fire(); } }); } catch (e) {}   // 另一个标签页改了设置
+  /** 合并预设与使用者填写的值；baseBad / proxyBad / keyBad 标出填错的地方 */
+  function conf(c, pid) {
+    c = c || CFG; pid = pid || c.p; var P = byId(pid); if (!P) return null;
+    var u = (c.by && c.by[pid]) || {};
+    var rawBase = trimUrl(u.base) || P.base || "", base = normUrl(rawBase, true), rawProxy = trimUrl(c.proxy), proxy = normUrl(rawProxy, false);
+    var key = String(u.key || "").replace(ZW, "");
+    return { id: pid, P: P, key: key, keyBad: !!key && !/^[\x21-\x7e]+$/.test(key),
+      model: String(u.model || "").trim() || P.model || "", fast: String(u.fast || "").trim() || (trimUrl(u.base) && trimUrl(u.base) !== P.base ? "" : P.fast) || "",
+      base: base && !sameSite(base) ? base : "", baseBad: !!rawBase && (!base || sameSite(base)),
+      proxy: proxy && !sameSite(proxy) ? proxy : "", proxyBad: !!rawProxy && (!proxy || sameSite(proxy)),
+      think: u.think !== false };
+  }
+  function usable(k) { return !!(k && k.base && k.model && !k.keyBad && !k.proxyBad && (k.key || isLocal(k.base))); }
+  function viaProxy(k) { return !!(k.proxy && !isLocal(k.base)); }
+  /** 这家服务商已知不允许网页直接调用，而这次又没有经过转发代理 */
+  function noCors(k) { return !!(k && k.P && k.P.cors === false && k.base === k.P.base && !viaProxy(k)); }
+  function url(k, path) { return (viaProxy(k) ? k.proxy + "/" : "") + k.base + path; }
+  function headers(k, json) { var h = {}; if (json) h["Content-Type"] = "application/json"; if (k.key) h.Authorization = "Bearer " + k.key; return h; }
+  /** 设置里填得对不对：返回错误代码或空串 */
+  function problem(k) {
+    if (!k) return "no_provider";
+    return k.baseBad ? "bad_base" : !k.base ? "no_base" : !k.model ? "no_model" : k.keyBad ? "bad_key" : k.proxyBad ? "bad_proxy" : !k.key && !isLocal(k.base) ? "no_key" : "";
+  }
+
+  /* ---------- 错误 ---------- */
+  function clean(s) { return String(s || "").replace(/[<>\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, " ").replace(/\s+/g, " ").trim(); }
+  function mkErr(code, detail, extra) { var e = { code: code, message: code }; if (detail) e.detail = clean(detail).slice(0, 300); if (extra) for (var x in extra) e[x] = extra[x]; return e; }
+  function abortErr() { var e = new Error("aborted"); e.name = "AbortError"; return e; }
+  async function httpErr(res) {
+    var txt = ""; try { txt = await res.text(); } catch (e) {}
+    var j = null; try { j = JSON.parse(txt); } catch (e) {}
+    if (Array.isArray(j)) j = j[0];
+    var er = j && typeof j === "object" ? (j.error !== undefined ? j.error : j.Error !== undefined ? j.Error : j) : null;
+    var m = er ? (typeof er === "string" ? er : er.message || er.msg || er.Message || j.message || j.msg || "") : "";
+    var ec = er && typeof er === "object" ? String(er.code || er.type || er.Code || er.status || "") : "";
+    if (!m) m = txt.replace(/<[^>]+>/g, " ");
+    m = clean(m).slice(0, 300);
+    var s = res.status, all = m + " " + ec, proxy = res.headers.get("x-tianxia-proxy") === "1" || res.headers.get("x-ai-proxy") === "1";
+    var code = proxy ? "proxy_refused"                                    // 转发代理自己拒绝（网站或服务商不在它的允许名单里）
+      : /content.{0,12}(risk|filter|policy)|data_inspection|inappropriate|sensitive.?content|high.?risk|flagged|moderation|prohibited|blocked due to|敏感|违规|不安全|审核/i.test(all) ? "refused"
+      : s === 402 || /insufficient[_ ]?(balance|quota|funds|credit)|exceeded your current quota|quota.?exceeded|余额|欠费|arrearage|overdue|billing/i.test(all) ? "quota"
+      : s === 401 || s === 403 || (s < 500 && /api[_ -]?key|unauthori[sz]ed|authenticat|invalid.?token/i.test(all)) ? "bad_auth"
+      : s === 429 ? "rate_limited"
+      : /context.?length|maximum context|too many tokens|prompt is too long|input.{0,20}too long|超出.{0,6}长度/i.test(all) ? "prompt_too_large"
+      : /model|endpoint/i.test(all) && (s === 404 || /not.?(exist|found)|does not exist|invalid model|unknown model|not.?activated|NotOpen|未开通|不存在|no access/i.test(all)) ? "bad_model"
+      : s === 404 || s === 405 ? "bad_url"
+      : s === 400 || s === 422 ? "invalid_request"
+      : s === 408 || s === 504 ? "timeout" : "upstream_error";
+    var ra = +(res.headers.get("retry-after") || 0);
+    return mkErr(code, "HTTP " + s + (m ? " · " + m : ""), { status: s, raw: m, retryAfter: ra > 0 ? Math.min(20000, Math.max(1000, ra * 1000)) : 0 });
+  }
+
+  /* ---------- 请求 ---------- */
+  /** 输入（字符串或 [{role, content}]）→ 交替的 user / assistant 消息（有的接口不接受连续两条同角色的消息） */
+  function msgs(input) {
+    var a = typeof input === "string" ? [{ role: "user", content: input }] : Array.isArray(input) ? input : [{ role: "user", content: String(input) }], out = [];
+    a.forEach(function (x) {
+      if (!x) return;
+      var role = x.role === "assistant" ? "assistant" : "user", content = typeof x.content === "string" ? x.content : JSON.stringify(x.content), l = out[out.length - 1];
+      if (l && l.role === role) l.content += "\n\n" + content; else out.push({ role: role, content: content });
+    });
+    if (!out.length || out[0].role !== "user") out.unshift({ role: "user", content: "(begin)" });
+    return out;
+  }
+  /** 去掉夹在正文里的思考段（有的模型把它放在 <think>…</think> 里）；流式显示到一半时，没闭合的那一段也不显示 */
+  function visible(t) {
+    var s = String(t || "").replace(/<(think|thinking|reasoning|reflection)>[\s\S]*?<\/\1>/gi, "");
+    var i = s.search(/<(think|thinking|reasoning|reflection)>/i); if (i >= 0) s = s.slice(0, i);
+    return s.replace(/^\s+/, "");
+  }
+  async function post(k, path, body, sig) {
+    var res;
+    try { res = await fetch(url(k, path), { method: "POST", headers: headers(k, true), body: JSON.stringify(body), signal: sig, credentials: "omit", referrerPolicy: "no-referrer" }); }
+    catch (e) { if (e && e.name === "AbortError") throw e; throw mkErr("network", String((e && e.message) || e), { proxy: viaProxy(k), nocors: noCors(k) }); }   // 跨域被拦、网络不通、代理连不上都落在这里
+    if (!res.ok) throw await httpErr(res);
+    return res;
+  }
+  /** 逐行解析服务商的流（OpenAI 兼容格式） */
+  function sse(o) {
+    var raw = "", think = 0, fin = null, err = null, shown = "";
+    return {
+      line: function (l) {
+        if (l.slice(0, 5) !== "data:") return;                            // 注释（: keep-alive）与 event: 行
+        var d = l.slice(5).trim(); if (!d || d === "[DONE]") return;
+        var j; try { j = JSON.parse(d); } catch (e) { return; }
+        if (j.error) { var er = j.error; err = mkErr(/overload|rate/i.test(String(er.type || er.code || "")) ? "rate_limited" : "upstream_error", String(er.message || er.type || "stream error"), { retry: true }); return; }
+        var c = j.choices && j.choices[0]; if (!c) return;
+        var dl = c.delta || c.message || {};
+        var rc = typeof dl.reasoning_content === "string" ? dl.reasoning_content : typeof dl.reasoning === "string" ? dl.reasoning : "";
+        if (rc) { think += rc.length; if (o.onThink && !raw) try { o.onThink(think); } catch (e) {} }
+        if (typeof dl.content === "string" && dl.content) {
+          raw += dl.content; var v = visible(raw);
+          if (v !== shown) { shown = v; if (o.onText) try { o.onText({ text: v }); } catch (e) {} }
+          else if (o.onThink && !v) try { o.onThink(think + raw.length); } catch (e) {}
+        }
+        if (c.finish_reason) fin = c.finish_reason;
+      },
+      get err() { return err; },
+      res: function () { return { text: visible(raw), fin: fin, stream: true }; }
+    };
+  }
+  async function readStream(res, o, beat) {
+    var p = sse(o), rd = res.body.getReader(), dec = new TextDecoder(), buf = "", done = false, i;
+    try {
+      for (;;) {
+        var r = await rd.read(); beat(); if (r.done) { done = true; break; }
+        if (o.sig && o.sig.aborted) throw abortErr();
+        buf += dec.decode(r.value, { stream: true });
+        while ((i = buf.indexOf("\n")) >= 0) { p.line(buf.slice(0, i).replace(/\r$/, "")); buf = buf.slice(i + 1); if (p.err) throw p.err; }
+      }
+      buf += dec.decode(); if (buf.trim()) p.line(buf.trim());
+      if (p.err) throw p.err;
+    } catch (e) {
+      if (e && (e.name === "AbortError" || e.code)) throw e;
+      throw mkErr("upstream_error", "stream interrupted: " + String((e && e.message) || e), { retry: true });
+    } finally { if (!done) try { rd.cancel().catch(function () {}); } catch (e) {} }
+    return p.res();
+  }
+  /** 发一次请求。f.extra 不要深度思考时的参数；f.mt 最大输出；f.stream 流式 */
+  async function once(k, model, m, f, o, beat) {
+    var body = { model: model, messages: m };
+    if (f.extra) { var q = clone(f.extra); for (var x in q) body[x] = q[x]; }
+    if (f.mt && k.P.maxTok) body.max_tokens = k.P.maxTok;
+    if (f.stream) body.stream = true;
+    var res = await post(k, "/chat/completions", body, o.sig); beat();
+    var ct = res.headers.get("content-type") || "";
+    if (res.body && /event-stream/i.test(ct)) return readStream(res, o, beat);
+    var txt = await res.text(); beat();
+    if (/^\s*(data|event):/.test(txt)) { var p = sse(o); txt.split("\n").forEach(function (l) { if (!p.err) p.line(l.replace(/\r$/, "")); }); if (p.err) throw p.err; return p.res(); }   // 流式回复但标错了类型
+    var j; try { j = JSON.parse(txt); } catch (e) { throw mkErr("upstream_error", "not JSON: " + txt.slice(0, 160)); }
+    if (j && j.error && !j.choices) { var er = j.error; throw mkErr("upstream_error", String((er && (er.message || er.msg)) || er)); }
+    var c = j.choices && j.choices[0], t = c && c.message ? c.message.content : c && c.text;
+    if (Array.isArray(t)) t = t.map(function (y) { return typeof y === "string" ? y : (y && y.text) || ""; }).join("");
+    t = visible(t);
+    if (t && o.onText) try { o.onText({ text: t }); } catch (e) {}
+    return { text: t, fin: c && c.finish_reason };
+  }
+  function wait(ms, sig) {
+    return new Promise(function (ok, no) {
+      if (sig && sig.aborted) { no(abortErr()); return; }
+      var t = setTimeout(ok, ms);
+      if (sig) sig.addEventListener("abort", function () { clearTimeout(t); no(abortErr()); }, { once: true });
+    });
+  }
+  async function call(k, model, input, o, beat) {
+    var m = msgs(input), ck = k.id + "|" + k.base + "|" + model, cap = CAP[ck] || (CAP[ck] = {});
+    var extra = o.quiet && k.P.quiet ? k.P.quiet(model) : null;
+    var f = { extra: cap.extra === false ? null : extra, mt: !!k.P.maxTok && cap.mt !== false, stream: cap.stream !== false };
+    var dropped = [], retries = 0, blind = false;
+    for (var n = 0; n < 8; n++) {
+      var r;
+      try { r = await once(k, model, m, f, o, beat); }
+      catch (e) {
+        if (!e || e.name === "AbortError") throw e;
+        if ((e.status === 400 || e.status === 422) && e.code === "invalid_request") {   // 参数不被接受：报错点名哪个就去掉哪个；没点名就把可选参数都去掉试一次
+          var t = String(e.raw || "");
+          var named = f.extra && /thinking|reasoning/i.test(t) ? "extra" : f.mt && /max_tokens|max_completion_tokens|maximum.{0,20}tokens|tokens.{0,20}(range|exceed|large)/i.test(t) ? "mt" : f.stream && /\bstream/i.test(t) ? "stream" : null;
+          if (named) { f[named] = named === "extra" ? null : false; dropped.push(named); continue; }
+          if (!blind && (f.extra || f.mt)) { blind = true; if (f.extra) { f.extra = null; dropped.push("extra"); } if (f.mt) { f.mt = false; dropped.push("mt"); } continue; }
+        }
+        if (retries < 2 && (e.retry || e.code === "rate_limited" || (e.code === "upstream_error" && e.status >= 500))) { retries++; await wait(e.retryAfter || (retries === 1 ? 2500 : 7000), o.sig); continue; }
+        throw e;
+      }
+      dropped.forEach(function (x) { cap[x] = false; });                 // 去掉之后成功了：记住这个模型不支持
+      return r;
+    }
+    throw mkErr("invalid_request");
+  }
+
+  /* ---------- 对外：与 Claude 里的 sample 同形 ---------- */
+  var TOTAL = 900000, IDLE = 180000;                                      // 整个请求最长 15 分钟；连续 3 分钟一个字节都没收到就放弃
+  async function run(input, o) {
+    o = o || {};
+    var k = conf(); if (!usable(k)) throw mkErr("unavailable");
+    var tier = o.modelTier || "default", model = tier === "quick" && k.fast ? k.fast : k.model;
+    var ext = o.signal, ctl = new AbortController(), why = "", idleT = null;
+    function onAb() { why = why || "cancelled"; ctl.abort(); }
+    if (ext) { if (ext.aborted) throw mkErr("cancelled"); ext.addEventListener("abort", onAb, { once: true }); }
+    var totalT = setTimeout(function () { why = "timeout"; ctl.abort(); }, o.timeout || TOTAL);
+    function beat() { clearTimeout(idleT); idleT = setTimeout(function () { why = "timeout"; ctl.abort(); }, IDLE); }
+    beat();
+    try {
+      var opt = { sig: ctl.signal, onText: o.onText, onThink: o.onThink, quiet: !(tier === "complex" && k.think) }, r;
+      try { r = await call(k, model, input, opt, beat); }
+      catch (e) {
+        if (!(e && e.code === "bad_model" && model !== k.model)) throw e;
+        model = k.model; r = await call(k, model, input, opt, beat);       // 做小事用的那个模型在这个账号上不可用：换回主模型
+      }
+      if (!r.text) throw mkErr(/content_filter|refusal|safety/i.test(String(r.fin || "")) ? "refused" : "empty_completion");
+      return { text: r.text, truncated: r.fin === "length", model: model, provider: k.id };
+    } catch (e) {
+      var err = ctl.signal.aborted ? mkErr(why || "cancelled") : e && e.name === "AbortError" ? mkErr("cancelled") : e;
+      if (err && err.code !== "cancelled") try { console.warn("[AI]", k.id, model, err.code, err.detail || ""); } catch (x) {}   // 详情只记在本机的控制台，里面没有密钥
+      throw err;
+    } finally { clearTimeout(totalT); clearTimeout(idleT); if (ext) ext.removeEventListener("abort", onAb); }
+  }
+  function sample() {
+    if (!usable(conf())) return null;
+    var s = function (input, o) { return run(input, o); };
+    s.limits = function () { return Promise.resolve({ tools: false, images: false, maxPromptBytes: 1 << 20 }); };
+    return s;
+  }
+  async function timed(fn, ms) {
+    var ctl = new AbortController(), t = setTimeout(function () { ctl.abort(); }, ms);
+    try { return await fn(ctl.signal); }
+    catch (e) { if (ctl.signal.aborted) throw mkErr("timeout"); throw e; }
+    finally { clearTimeout(t); }
+  }
+  /** 测试连接（用设置面板里还没保存的草稿）：发一句最短的话，看能不能回 */
+  async function test(c) {
+    var k = conf(c || CFG), bad = problem(k); if (bad) throw mkErr(bad);
+    var t0 = Date.now();
+    var r = await timed(function (sig) { return call(k, k.model, "Connection test. Reply with the single word: OK", { sig: sig, quiet: true }, function () {}); }, 90000);
+    return { ms: Date.now() - t0, text: String(r.text || "").slice(0, 80), model: k.model, viaProxy: viaProxy(k) };
+  }
+  /** 向服务商查询可用的模型（GET /models），去掉嵌入、语音、绘图等非对话模型 */
+  async function models(c) {
+    var k = conf(c || CFG), bad = problem(k); if (bad && bad !== "no_model") throw mkErr(bad);
+    var res = await timed(async function (sig) {
+      var r; try { r = await fetch(url(k, "/models"), { headers: headers(k, false), signal: sig, credentials: "omit", referrerPolicy: "no-referrer" }); }
+      catch (e) { if (e && e.name === "AbortError") throw e; throw mkErr("network", String((e && e.message) || e), { proxy: viaProxy(k), nocors: noCors(k) }); }
+      if (!r.ok) throw await httpErr(r);
+      return r.json();
+    }, 30000);
+    var arr = Array.isArray(res) ? res : (res && (res.data || res.models)) || [];
+    var ids = arr.map(function (x) { return typeof x === "string" ? x : x && (x.id || x.name || x.model); }).filter(function (x) { return typeof x === "string" && x; }).map(function (s) { return s.replace(/^models\//, "").slice(0, 120); });
+    var seen = {}; return ids.filter(function (s) { if (seen[s]) return false; seen[s] = 1; return !/embed|whisper|tts|dall-e|moderation|rerank|transcri|realtime|audio|speech|image|imagen|veo|sora|ocr|bge-|aqa|seedream|seedance|video/i.test(s); }).sort();
+  }
+
+  /* ---------- 给界面用的文字 ---------- */
+  var ERR = {
+    unavailable: "还没有接入 AI。先点\"接入 AI…\"，选一家服务商并填上密钥。",
+    no_provider: "先选一家服务商。", no_base: "没有填接口地址。", bad_base: "接口地址不对：要以 http:// 或 https:// 开头，而且不能指向本网站。", no_model: "没有填模型的名字。",
+    no_key: "没有填密钥。", bad_key: "密钥里有不该出现的字符（中文、全角符号等），请重新复制一遍。", bad_proxy: "转发代理的地址不对：要以 http:// 或 https:// 开头，而且不能指向本网站。",
+    bad_auth: "服务商不认这把密钥：可能是密钥填错了、已经作废，或者这把密钥属于另一个站点。",
+    quota: "账号的余额或额度不够了，要到服务商那里充值。",
+    rate_limited: "调用太频繁，或者达到了服务商给这个账号的限速。过一会儿再试。",
+    bad_model: "服务商不认识这个模型的名字，或者这个账号还没有开通它。到设置里点\"获取模型列表\"换一个。",
+    bad_url: "接口地址不对（服务商回答\"没有这个地址\"）。检查设置里的接口地址。",
+    prompt_too_large: "发送的内容超出了这个模型的长度上限。换一个上下文更长的模型，或者把自己写的代码改短一些。",
+    refused: "服务商的内容审核拦下了这次请求，换个说法试试。",
+    invalid_request: "服务商不接受这个请求的格式。换一个模型试试；用的是\"其他\"接口时，确认它兼容 OpenAI 的 Chat Completions。",
+    timeout: "等了很久没有回音，已经放弃。可以再试一次，或者换一个更快的模型。",
+    upstream_error: "服务商那边出了错。过一会儿再试。",
+    empty_completion: "模型没有给出回答。再试一次，或者把要求说得更具体一些。",
+    proxy_refused: "转发代理拒绝了这次请求：这个网站或者这家服务商不在它的允许名单里。",
+    network: "请求没有发出去。可能是网络不通，也可能是这家服务商不允许网页直接调用（浏览器的跨域限制）。后一种情况要在设置的\"高级\"里填一个转发代理。",
+    network_cors: "请求没有发出去：这家服务商不允许网页直接调用（浏览器的跨域限制）。要在设置的\"高级\"里填一个转发代理。",
+    network_proxy: "连不上转发代理。检查设置里代理的地址，以及代理是不是还在运行。"
+  };
+  /** 把错误说成人话；服务商的原话（detail）另外返回，界面用小字显示 */
+  function explain(e) {
+    var code = e && e.code === "network" ? (e.proxy ? "network_proxy" : e.nocors ? "network_cors" : "network") : e && e.code;
+    return { text: ERR[code] || "出错了" + (e && e.message ? "（" + e.message + "）" : "") + "。", detail: e && e.detail && !/^network/.test(code) ? e.detail : "" };
+  }
+  function label(c) { var k = conf(c || CFG); return usable(k) ? { short: k.P.short, model: k.model, id: k.id } : null; }
+
+  return {
+    PRE: PRE, preset: byId, cfg: function () { return clone(CFG); }, save: save, conf: conf, usable: usable, problem: problem, ready: function () { return usable(conf()); },
+    isLocal: isLocal, viaProxy: viaProxy, noCors: noCors, sample: sample, test: test, models: models, label: label, explain: explain, visible: visible,
+    onChange: function (f) { subs.push(f); }, _cap: CAP, _key: LSK
+  };
+})();
+if (typeof module !== "undefined" && module.exports) module.exports = QLAI;
+
 /* ===== app-core.js ===== */
 /* 应用主体（一）：小工具、状态、后台线程的调度。 */
 var App = (function () {
@@ -9540,6 +9927,12 @@ var App = (function () {
     clearTimeout(toastT); toastT = setTimeout(function () { el.remove(); }, ms || 2600);
   }
   A.h = h; A.$ = $; A.clear = clear; A.debounce = debounce; A.toast = toast;
+  /* 右栏的助手是谁。在 Claude 里打开页面时由宿主提供 Claude；放在普通网站上时没有，由使用者自带密钥接入一家服务商（src/ai.js）。
+   * 界面上泛指这位助手的地方一律用 A.AI：在 Claude 里是"Claude"，在独立的网页里是"AI"。 */
+  A.aiHost = !!(window.claude && typeof window.claude.use === "function");
+  A.AI = A.aiHost ? "Claude" : "AI";
+  /** 手册等现成的文字是按"在 Claude 里打开"写的；独立的网页里把其中的 Claude 换成当前的称呼 */
+  A.aiSay = function (s) { return A.aiHost ? s : String(s).replace(/Claude/g, A.AI); };
 
   /* ---------- 数字的写法 ---------- */
   var F = QLChart.fmtNum, P = QLChart.fmtPct;
@@ -10319,7 +10712,7 @@ var App = (function () {
       var e = A.err, msg = e.message || "出错了";
       host.appendChild(h("div", { class: "warn err" }, h("div", null, h("b", { text: e.compile ? "代码无法运行：" : e.needData ? "" : "运行出错：" }), msg,
         e.needData ? h("div", { class: "row", style: { "margin-top": "8px" } }, h("button", { class: "btn small", type: "button", text: "导入数据…", onclick: function () { A.openImport(); } })) : null,
-        (e.compile || e.runtime || e.timeout) ? h("div", { class: "row", style: { "margin-top": "8px" } }, h("button", { class: "btn small", type: "button", text: "打开代码", onclick: function () { A.openCode("code"); } }), A.askFix ? h("button", { class: "btn small", type: "button", text: "让 Claude 修复", onclick: function () { A.askFix(msg); } }) : null) : null)));
+        (e.compile || e.runtime || e.timeout) ? h("div", { class: "row", style: { "margin-top": "8px" } }, h("button", { class: "btn small", type: "button", text: "打开代码", onclick: function () { A.openCode("code"); } }), A.askFix ? h("button", { class: "btn small", type: "button", text: "让 " + A.AI + " 修复", onclick: function () { A.askFix(msg); } }) : null) : null)));
       return;
     }
     if (!r) { host.appendChild(h("div", { class: "statline" }, h("span", { class: "spin", style: { display: "inline-block", "vertical-align": "-2px", "margin-right": "8px" } }), d.game ? "正在生成对局并计分…" : "正在生成路径并回测…")); return; }
@@ -10617,7 +11010,8 @@ var App = (function () {
     L.push({ kind: "操作", name: "查看当前规则的代码与说明", key: "code 代码 说明", run: function () { A.openCode(); } });
     L.push({ kind: "操作", name: "换一批路径（种子 +1）", key: "seed 种子 重新", run: function () { S.world.seed = (S.world.seed + 1) % 1000000; A.renderWorld(); A.worldChanged(true); } });
     L.push({ kind: "操作", name: "把当前规则加入对比", key: "compare 对比 pin", run: function () { A.pinCompare(); } });
-    L.push({ kind: "操作", name: "打开 Claude 面板", key: "claude ai 助手", run: function () { A.openClaude(true); } });
+    L.push({ kind: "操作", name: "打开 " + A.AI + " 面板", key: "claude ai 助手", run: function () { A.openClaude(true); } });
+    if (!A.aiHost && A.openAiSettings) L.push({ kind: "操作", name: "AI 设置：服务商、密钥、模型", key: "ai 设置 接入 密钥 key deepseek chatgpt openai kimi 豆包 doubao 模型", run: function () { A.openAiSettings(); } });
     L.push({ kind: "操作", name: "打开手册", key: "手册 说明 帮助 help guide 文档 怎么用", run: function () { if (A.openGuide) A.openGuide(); } });
     L.push({ kind: "操作", name: "恢复默认设置", key: "reset 重置 默认", run: function () { A.resetting = true; try { localStorage.removeItem("ql.lab.v1"); } catch (e) {} A.toast("已清除本机保存的设置。重新打开页面后生效；在那之前的改动不会再保存。", 5000); } });
     Object.keys(A.CH).forEach(function (id) { var c = A.CH[id]; if (!A.chartOk(id)) return; L.push({ kind: "图表", name: (A.shown().indexOf(id) >= 0 ? "收起：" : "显示：") + A.chartName(id), hint: c.about, key: c.name + " " + (c.keys || ""), run: function () { A.toggleChart(id, true); } }); });
@@ -10637,7 +11031,7 @@ var App = (function () {
       if (cur >= shown.length) cur = Math.max(0, shown.length - 1);
       clear(list);
       shown.forEach(function (c, i) { list.appendChild(h("button", { class: "pal-item", type: "button", role: "option", "aria-selected": i === cur ? "true" : "false", onclick: function () { go(i); } }, h("small", { text: c.kind }), h("span", { text: c.name }))); });
-      if (!shown.length) list.appendChild(h("div", { class: "note", style: { padding: "8px 10px" }, text: "没有匹配的项。想要一张这里没有的图，可以到 Claude 面板里直接说。" }));
+      if (!shown.length) list.appendChild(h("div", { class: "note", style: { padding: "8px 10px" }, text: "没有匹配的项。想要一张这里没有的图，可以到 " + A.AI + " 面板里直接说。" }));
       var sel = list.children[cur]; if (sel && sel.scrollIntoView) sel.scrollIntoView({ block: "nearest" });
     }
     function go(i) { var c = shown[i]; if (!c) return; m.close(); c.run(); }
@@ -11282,7 +11676,7 @@ var App = (function () {
   };
 
   /* ---------- 模型诊断 ---------- */
-  var NO_MODEL = "当前规则没有训练模型。到规则里选\"模型\"一组，或者让 Claude 写一个带 fit 的策略。";
+  var NO_MODEL = "当前规则没有训练模型。到规则里选\"模型\"一组，或者让 " + A.AI + " 写一个带 fit 的策略。";
   function diag() { return A.run && A.run.diag; }
   /** 世界的真实条件期望 E[下一步收益 | 第一个特征 = x]；只在能写出来的组合上给出 */
   function truthFor(pd) {
@@ -11897,6 +12291,14 @@ var App = (function () {
 (function (A) {
   "use strict";
   var h = A.h, $ = A.$, clear = A.clear, S = A.state, QL = A.QL, F = A.F, P = A.P, G = window.QL_GUIDE || { start: [], charts: {}, games: {}, worlds: {}, strats: {}, gstrats: {}, algo: {}, models: [], glossary: [], figs: {}, tour: [] };
+  /* 独立的网页里右栏不是 Claude，而是使用者自己接入的 AI：讲那块面板的一页换成另一种写法（guide.js 里的 web），别处泛指那位助手的地方跟着改口 */
+  if (!A.aiHost) {
+    (G.start || []).forEach(function (s) { if (s.web) { s.title = s.web.title; s.keys = s.web.keys; s.body = s.web.body; delete s.web; } });
+    (function swap(o, seen) {
+      if (seen.indexOf(o) >= 0) return; seen.push(o);
+      for (var k in o) { var v = o[k]; if (typeof v === "string") { if (v.indexOf("Claude") >= 0) o[k] = A.aiSay(v); } else if (v && typeof v === "object" && !(v instanceof Node)) swap(v, seen); }
+    })(G, []);
+  }
   var MX = { seed: QL.live.SEED };                // 对照表：清单是现成的，格子在这台电脑上现算（app-live.js）。真正用到时才去取 A.matrix
   function mxAll() { return A.matrix; }
   var ui = null, curKey = "", idx = null;
@@ -12101,7 +12503,7 @@ var App = (function () {
   }
   function pageGames(host) {
     head(host, "玩法", "总览：玩法、世界、规则", "一次实验由三样东西定下来：玩法规定你能做什么、怎么算分；世界规定数据从哪里来；规则是你自己定的做法。");
-    host.appendChild(md("**三层。** 左栏从上到下就是这三层。\n\n1. **玩法**是题目的类型：每一步你看到什么、能做什么动作、怎么结算、怎么计分。它写在细则里，不由你定。\n2. **世界**是数据服从的那个分布或者过程：布朗运动、均值回复、一枚偏硬币、指数分布的报价……同一种玩法可以换不同的世界，能换哪些由玩法决定。\n3. **规则**是你的做法：每一步看到信息之后给出一个动作。可以选内置的，也可以让 Claude 写。\n\n**为什么要把玩法和世界分开。** 一条规则总是按某个假设推出来的：\"报价服从指数分布\"\"步长是正态的\"\"噪声没有厚尾\"。把玩法固定、只换世界，看到的就是\"假设错了会怎样\"。在一个世界里可证最优的规则，换一个世界可以输给朴素的做法；这是这里最值得看的东西之一。\n\n**用词。** 一**局**是从头到尾完整的一场，里面的一步叫回合（有的玩法里叫次、把、天、期、步）。页面一次打很多局，得分是各局的平均。**细则**是玩法自己的规定；**规则**专指你定的做法。"));
+    host.appendChild(md("**三层。** 左栏从上到下就是这三层。\n\n1. **玩法**是题目的类型：每一步你看到什么、能做什么动作、怎么结算、怎么计分。它写在细则里，不由你定。\n2. **世界**是数据服从的那个分布或者过程：布朗运动、均值回复、一枚偏硬币、指数分布的报价……同一种玩法可以换不同的世界，能换哪些由玩法决定。\n3. **规则**是你的做法：每一步看到信息之后给出一个动作。可以选内置的，也可以让 " + A.AI + " 写。\n\n**为什么要把玩法和世界分开。** 一条规则总是按某个假设推出来的：\"报价服从指数分布\"\"步长是正态的\"\"噪声没有厚尾\"。把玩法固定、只换世界，看到的就是\"假设错了会怎样\"。在一个世界里可证最优的规则，换一个世界可以输给朴素的做法；这是这里最值得看的东西之一。\n\n**用词。** 一**局**是从头到尾完整的一场，里面的一步叫回合（有的玩法里叫次、把、天、期、步）。页面一次打很多局，得分是各局的平均。**细则**是玩法自己的规定；**规则**专指你定的做法。"));
     add(host, fig("round"));
     host.appendChild(sec("一、" + A.TRADE.name, md(A.TRADE.blurb + "\n\n这是量化里最基本的玩法，十几个价格世界都是给它用的：几何布朗运动、均值回复、牛熊切换、混沌序列、你导入的真实行情。它们之间只有\"价格怎么来\"不同，记账的办法完全一样。"),
       h("div", { class: "gd-acts" }, btn("它的细则", function () { show("game:trade"); }), btn("每一步怎么记账", function () { show("start:step"); }))));
@@ -12224,7 +12626,7 @@ var App = (function () {
     head(host, (w.obsGame ? QL.OBS_GROUP : "十套玩法") + " · " + ((G.gameIndex || {})[type] || ["", "", ""])[2], w.name, w.blurb, [isCur ? btn("回到这一套", function () { if (ui) ui.close(); }, true) : btn("去玩这一套", closeThen(function () { A.applySetup({ world: type, strat: S.last[type] || w.defStrat }); }), true)]);   // 从手册过去：用这套玩法自己的规则（上次用的，或者默认的）
     if (g.scene) host.appendChild(sec("它从哪来", md(g.scene)));
     if (g.rules) host.appendChild(sec("细则", rulesList(g.rules(p, th)), h("p", { class: "note", text: isCur ? "数字取自左栏当前的设定。" : touched ? "数字取自你上次在这套玩法里留下的设定；\"去玩这一套\"会回到那里。" : "数字是默认的设定；选了这套玩法之后，在左栏可以改。" })));
-    host.appendChild(sec("你的规则看得到什么、能做什么", apiBox(w), h("p", { class: "note", text: "s 是裁判每回合交给规则的那个对象。上面没列出来的东西，规则读不到。让 Claude 写规则时，它拿到的也是这一份。" })));
+    host.appendChild(sec("你的规则看得到什么、能做什么", apiBox(w), h("p", { class: "note", text: "s 是裁判每回合交给规则的那个对象。上面没列出来的东西，规则读不到。让 " + A.AI + " 写规则时，它拿到的也是这一份。" })));
     host.appendChild(sec("计分，以及和谁比", md(scoreInfo(w, p))));
     var wq = w.wsel ? (w.params || []).filter(function (x) { return x.key === w.wsel; })[0] : null;
     host.appendChild(sec("能换的世界", wq ? ul(wq.options.map(function (o) { return "**" + o[1] + "**" + (wq.descs && wq.descs[o[0]] ? "：" + wq.descs[o[0]] : ""); })) : md("**" + (w.wname || "这套玩法自带的世界") + "。** " + (w.wdesc || "")),
@@ -12235,7 +12637,7 @@ var App = (function () {
     var gmx = gameMatrix(type); if (gmx) host.appendChild(sec("各条规则在各个场景下的成绩", gmx, g.mxNote ? md(g.mxNote) : null));
     if (g.tryit) host.appendChild(sec("可以试试", ul(g.tryit)));
     if (g.origin) host.appendChild(sec("出处", md(g.origin)));
-    if (w.ideas && w.ideas.length) host.appendChild(sec("可以交给 Claude 的想法", ul(w.ideas.map(function (x) { return x; })), h("div", { class: "gd-acts" }, btn("打开 Claude 面板", closeThen(function () { A.applySetup({ world: type, claude: true }); })))));
+    if (w.ideas && w.ideas.length) host.appendChild(sec("可以交给 " + A.AI + " 的想法", ul(w.ideas.map(function (x) { return x; })), h("div", { class: "gd-acts" }, btn("打开 " + A.AI + " 面板", closeThen(function () { A.applySetup({ world: type, claude: true }); })))));
   }
 
   /* ---------- 世界 ---------- */
@@ -12479,7 +12881,7 @@ var App = (function () {
       var rank = function (e) { var t = (e.title + " " + (e.full || "")).toLowerCase(), k = (e.keys || "").toLowerCase(), sc = 0; words.forEach(function (w) { sc += t.indexOf(w) >= 0 ? 4 : k.indexOf(w) >= 0 ? 2 : 1; }); return sc; };
       L = L.map(function (e, i) { return [rank(e), i, e]; }).sort(function (a, b) { return b[0] - a[0] || a[1] - b[1]; }).map(function (x) { return x[2]; });
     }
-    if (words.length) nav.appendChild(h("div", { class: "sub", text: L.length ? "找到 " + L.length + " 条" : "没有找到。换个说法，或者到 Claude 面板里直接问。" }));
+    if (words.length) nav.appendChild(h("div", { class: "sub", text: L.length ? "找到 " + L.length + " 条" : "没有找到。换个说法，或者到 " + A.AI + " 面板里直接问。" }));
     L.forEach(function (e) {
       if (!words.length && e.group !== lastG) { nav.appendChild(h("h4", { text: e.group })); lastG = e.group; lastS = ""; }
       if (!words.length && e.sub && e.sub !== lastS) { nav.appendChild(h("div", { class: "sub", text: e.sub })); lastS = e.sub; }
@@ -12552,12 +12954,16 @@ var App = (function () {
 })(App);
 
 /* ===== claude.js ===== */
-/* Claude 面板：页面内直接调用 Claude（用的是打开页面的人自己的额度）。
- * 四种用法：写策略、造世界、调图表、问结果。每次调用都只发生在你点"发送"的时候。 */
+/* 右栏的助手面板。四种用法：写策略、造世界、调图表、问结果。每次调用都只发生在你点"发送"的时候。
+ *   · 在 Claude 里打开页面：直接调用 Claude（用的是打开页面的人自己的额度）。
+ *   · 独立的网页：使用者在"设置"里选一家服务商（DeepSeek、ChatGPT、Kimi、豆包……）并填自己的密钥，见 src/ai.js。 */
 (function (A) {
   "use strict";
   var h = A.h, $ = A.$, clear = A.clear, S = A.state, QL = A.QL, F = A.F, P = A.P;
   var sample = null, limits = null, mode = "strategy", busy = false, ctl = null, turns = [], deep = false;
+  var HOST = A.aiHost, WEB = !HOST && window.QLAI ? window.QLAI : null, AI = A.AI;
+  /** 正在回答的是谁：在 Claude 里是 Claude；独立的网页里是所选服务商的简称（还没接入时就叫 AI） */
+  function who() { var l = WEB && WEB.label(); return l ? l.short : AI; }
   var MODES = [["strategy", "写策略"], ["world", "造世界"], ["chart", "调图表"], ["ask", "问结果"]];
   var EG = {
     strategy: ["在这个世界里对数最优的策略是什么？写出来并证明", "用过去 20 步的收益做动量，但波动高的时候自动减仓", "跌 5% 加仓一份，涨回均价全部卖出，最多加 4 次", "用梯度提升预测下一步收益：特征取最近 5 步收益和 20 步波动，并报告训练集与验证集的 R²"],
@@ -12565,7 +12971,7 @@ var App = (function () {
     chart: ["给我看最大回撤的分布", "这个世界的收益有没有厚尾", "这条规则应该押多大"],
     ask: ["为什么夏普比率不随杠杆变化？", "这条规则赚的钱是靠运气还是靠预测？", "终值分布为什么是右偏的？"]
   };
-  var PH = { strategy: "描述你的交易想法，Claude 会写成可运行的规则并解释…", world: "描述一种价格或信号的生成方式，可以是公式，也可以是一句话…", chart: "说你想看什么…", ask: "针对当前的结果提问…" };
+  var PH = { strategy: "描述你的交易想法，" + AI + " 会写成可运行的规则并解释…", world: "描述一种价格或信号的生成方式，可以是公式，也可以是一句话…", chart: "说你想看什么…", ask: "针对当前的结果提问…" };
   /** 玩法里"写策略"的例子：每套玩法自己带几条，再补两条通用的 */
   function examples(m) {
     var d = A.wdef();
@@ -12574,14 +12980,14 @@ var App = (function () {
     if (m === "chart" && d.game) return ["给我看一局里到底发生了什么", "哪个参数取多少最好", "各局的得分差别大不大"];
     return EG[m];
   }
-  function placeholder(m) { return m === "strategy" && A.isGame() ? "说说你打算怎么玩这一局，Claude 会写成可运行的规则并解释…" : PH[m]; }
+  function placeholder(m) { return m === "strategy" && A.isGame() ? "说说你打算怎么玩这一局，" + AI + " 会写成可运行的规则并解释…" : PH[m]; }
   var ERR = {
     not_granted: "你没有允许这个页面调用 Claude。重新打开页面后可以再选择。", sampling_disabled: "这个账号或组织没有开通页面内调用 Claude。", not_declared: "这个页面没有被授予调用 Claude 的能力。",
     capability_disabled: "当前打开方式下不能调用 Claude。", capability_removed: "当前的应用版本不支持这个调用，请更新应用。", tools_unavailable: "当前打开方式不支持深度模式，请关掉它再试。",
     rate_limited: "调用太频繁，或已达到用量上限。过一会儿再试。", session_expired: "登录已过期，请重新登录后再试。", refused: "Claude 没有接受这个请求，换个说法试试。",
     empty_completion: "没有得到回答，请把要求说得更具体一些再试。", invalid_json: "回答的格式不对，请再试一次。", prompt_too_large: "发送的内容太长了。", invalid_request: "请求格式有误（页面的问题）。"
   };
-  function errText(e) { return (e && ERR[e.code]) || "连接出了问题" + (e && e.message ? "（" + e.message + "）" : "") + "。可以再试一次。"; }
+  function errText(e) { if (WEB && e && e.code) return WEB.explain(e).text; return (e && ERR[e.code]) || "连接出了问题" + (e && e.message ? "（" + e.message + "）" : "") + "。可以再试一次。"; }
 
   /* ---------- 给 Claude 的环境描述 ---------- */
   function gameText() {
@@ -12750,22 +13156,29 @@ var App = (function () {
   }
   function runLine0(sum) { return "试运行（训练路径）：g = " + (sum.growth === -Infinity ? "−∞" : A.pctS(sum.growth) + " ± " + P(sum.growthSE)) + "，夏普 " + F(sum.sharpe, 2) + "，E[W]−1 = " + A.pctS(sum.meanW - 1) + (sum.badFrac > 0.25 ? "；有 " + P(sum.badFrac, 0) + " 的步数返回了无效值" : ""); }
 
-  function call(input, opts, onText) {
+  /** status：正在等的那一行。独立的网页里，模型先"深度思考"时正文迟迟不来，就在这一行上报告已经想了多少字 */
+  function call(input, opts, onText, status) {
     ctl = new AbortController();
     var o = Object.assign({ signal: ctl.signal, cache: false }, opts || {});
     if (onText) o.onText = function (u) { try { onText(u.text); } catch (e) { console.error(e); } };
+    if (WEB && status) o.onThink = function (n) { status.lastChild.textContent = who() + " 正在深度思考…（已经想了 " + n + " 字）"; };
     if (o.tools) delete o.cache;
     return sample(input, o);
   }
+  /** 这一类请求用哪一档模型。在 Claude 里由面板上的档位决定；独立的网页里没有档位：写规则、造世界允许深度思考，问结果不用，挑图表用便宜的那个模型 */
+  function tierOf(kind) {
+    if (WEB) return kind === "chart" ? "quick" : kind === "ask" ? "default" : "complex";
+    return kind === "chart" ? "quick" : kind === "ask" ? (S.tier === "complex" ? "default" : S.tier) : S.tier;
+  }
 
   function doStrategy(idea, fix) {
-    var el = card(), status = statusRow(deep ? "Claude 正在思考，并会自己试跑几次…" : "Claude 正在思考…（复杂的想法可能要一两分钟）"), bodyEl = h("div"); el.appendChild(status); el.appendChild(bodyEl);
-    var lastStage = -1, exEl = null, opts = { modelTier: S.tier };
+    var el = card(), status = statusRow(deep ? who() + " 正在思考，并会自己试跑几次…" : who() + " 正在思考…（复杂的想法可能要一两分钟）"), bodyEl = h("div"); el.appendChild(status); el.appendChild(bodyEl);
+    var lastStage = -1, exEl = null, opts = { modelTier: tierOf("strategy") };
     if (deep && limits && limits.tools) opts.tools = [{
       name: "backtest", description: A.isGame() && !A.isCrit() ? "在当前玩法的这批对局上编译并运行一段规则代码，返回得分和各个对照的得分；代码有错时返回错误信息。用它确认代码能跑、参数量级合理。最多调用 3 次，最后必须按要求的格式给出完整输出。" : "在当前世界的训练路径上编译并运行一段规则代码，返回三种口径的结果；代码有错时返回错误信息。用它确认代码能跑、参数量级合理。最多调用 3 次，最后必须按要求的格式给出完整输出。",
       inputSchema: { type: "object", properties: { code: { type: "string", description: "完整的规则代码（定义 decide，可选 init、fit）" }, params: { type: "object", description: "参数取值，键是参数的 key" } }, required: ["code", "params"] },
       execute: function (input) {
-        status.lastChild.textContent = "Claude 正在试跑代码…";
+        status.lastChild.textContent = who() + " 正在试跑代码…";
         var code = String(input.code || ""), params = input.params && typeof input.params === "object" ? input.params : {};
         return A.tryStrategy(code, params).then(function (m) { A.dropSide(code); var s = m.sum, b = m.benchSum;
           if (m.game && !A.isCrit()) { var G = m.game, o = { ok: true, score_name: G.name, higher_is_better: !G.lower, score: +(G.lower ? -G.score : G.score).toFixed(6), score_se: +(G.se || 0).toFixed(6), invalid_output_fraction: +s.badFrac.toFixed(3), references: {} }; G.refs.forEach(function (x) { if (!x.err) o.references[x.name] = +(G.lower ? -x.score : x.score).toFixed(6); }); G.marks.forEach(function (x) { o.references[x.name] = +(G.lower ? -x.value : x.value).toFixed(6); }); return o; }
@@ -12775,21 +13188,21 @@ var App = (function () {
     }];
     function paint(text, final) {
       var r = parseReply(text);
-      if (r.stage !== lastStage) { lastStage = r.stage; status.lastChild.textContent = ["Claude 正在思考…", "正在定参数…", "正在写代码…", "正在写解释…", "正在收尾…"][r.stage]; }
+      if (r.stage !== lastStage) { lastStage = r.stage; status.lastChild.textContent = [who() + " 正在思考…", "正在定参数…", "正在写代码…", "正在写解释…", "正在收尾…"][r.stage]; }
       if (r.stage >= 3 && r.explain) { if (!exEl) { clear(bodyEl); exEl = h("div"); bodyEl.appendChild(exEl); } if (final) QLMD.mount(exEl, r.explain); else QLMD.mountPartial(exEl, r.explain); scrollLogSoft(); }
       return r;
     }
-    return call(promptStrategy(idea, fix), opts, function (t) { paint(t, false); }).then(function (res) {
+    return call(promptStrategy(idea, fix), opts, function (t) { paint(t, false); }, status).then(function (res) {
       var r = parseReply(res.text);
       if (r.stage < 3 || !r.code || !r.meta) throw { code: "bad_format", text: res.text };
       var meta = r.meta, params = cleanParams(meta.params), tier = A.TIER[meta.tier] ? meta.tier : "heuristic";
-      var st = { id: "my-" + Date.now().toString(36), name: String(meta.name || "Claude 的策略").slice(0, 24), group: "我的策略", summary: String(meta.summary || "").slice(0, 160), params: params, code: r.code, explain: r.explain, tier: tier, src: "claude", idea: idea || "", claim: null };
+      var st = { id: "my-" + Date.now().toString(36), name: String(meta.name || AI + " 的策略").slice(0, 24), group: "我的策略", summary: String(meta.summary || "").slice(0, 160), params: params, code: r.code, explain: r.explain, tier: tier, src: "claude", idea: idea || "", claim: null };
       if (A.isGame()) st.game = S.world.type;      // 玩法里写的规则只在那套玩法里用
       var fk = fitKeysOf(st.code, params); if (fk) st.fitKeys = fk;
       var okObj = A.isCrit() ? { growth: 1, sharpe: 1, mean: 1 } : { score: 1 };
       if (meta.claim && typeof meta.claim === "object" && params.some(function (q) { return q.key === meta.claim.param && q.type === "num"; }) && isFinite(+meta.claim.value) && okObj[meta.claim.objective]) st.claim = { param: meta.claim.param, value: +meta.claim.value, objective: meta.claim.objective, note: String(meta.claim.note || "").slice(0, 200) };
       clear(el);
-      el.appendChild(h("div", { class: "a-h" }, h("b", { text: st.name }), A.tierBadge(tier), res.truncated ? h("span", { class: "tag", text: "回答被截断" }) : null, res.modelTierApplied && res.modelTierApplied !== S.tier ? h("span", { class: "tag", text: "实际使用的模型档位：" + tierName(res.modelTierApplied) }) : null));
+      el.appendChild(h("div", { class: "a-h" }, h("b", { text: st.name }), A.tierBadge(tier), res.truncated ? h("span", { class: "tag", text: "回答被截断" }) : null, HOST && res.modelTierApplied && res.modelTierApplied !== S.tier ? h("span", { class: "tag", text: "实际使用的模型档位：" + tierName(res.modelTierApplied) }) : null));
       if (st.summary) el.appendChild(h("div", { class: "note", style: { "margin-bottom": "6px" }, text: st.summary }));
       el.appendChild(paramTable(params)); el.appendChild(codeBlock(st.code));
       var ex = h("div", { style: { "margin-top": "8px" } }); QLMD.mount(ex, st.explain || ""); el.appendChild(ex);
@@ -12804,7 +13217,7 @@ var App = (function () {
         if (st.claim) el.insertBefore(h("div", { class: "note", style: { "margin-top": "6px" }, text: "它的声明：" + pLabel(st, st.claim.param) + " 的最优值是 " + F(st.claim.value) + "（" + OBJN[st.claim.objective] + "口径）。" + st.claim.note }), runEl);
       }, function (e) {
         clear(runEl); runEl.className = "warn err"; runEl.textContent = "这段代码没有跑通：" + (e.message || e);
-        actions.appendChild(h("button", { class: "btn small primary", type: "button", text: "让 Claude 修复", onclick: function () { A.my.push(st); S.sparams[st.id] = defs; S.stratId = st.id; A.renderStrat(); A.askFix(e.message || String(e)); } }));
+        actions.appendChild(h("button", { class: "btn small primary", type: "button", text: "让 " + AI + " 修复", onclick: function () { A.my.push(st); S.sparams[st.id] = defs; S.stratId = st.id; A.renderStrat(); A.askFix(e.message || String(e)); } }));
         actions.appendChild(h("button", { class: "btn small", type: "button", text: "复制代码", onclick: function () { A.copy(st.code); } }));
       });
     }).catch(function (e) { fail(el, e, bodyEl); });
@@ -12818,6 +13231,13 @@ var App = (function () {
     var st = el.querySelector(".a-status"); if (st) st.remove();
     if (e && e.code === "bad_format") { el.appendChild(h("div", { class: "warn err", text: "回答没有按约定的格式给出，无法自动载入。原文如下，可以再发一次。" })); el.appendChild(h("pre", { class: "code", text: String(e.text || "").slice(0, 6000) })); return; }
     if (e && e.code === "refused" && keepEl) clear(keepEl);
+    if (WEB && e && e.code) {     // 独立的网页：把服务商的原话也给出来；和设置有关的错，给一个直达设置的按钮
+      var ex = WEB.explain(e);
+      el.appendChild(h("div", { class: "warn err", text: ex.text }));
+      if (ex.detail) el.appendChild(h("div", { class: "note ai-detail", text: who() + " 的原话：" + ex.detail }));
+      if (/^(bad_auth|bad_model|bad_url|network|proxy_refused|unavailable|quota|invalid_request|timeout)$/.test(e.code)) el.appendChild(h("div", { class: "a-actions" }, h("button", { class: "btn small", type: "button", text: "打开设置", onclick: function () { A.openAiSettings(); } })));
+      return;
+    }
     el.appendChild(h("div", { class: "warn err", text: e && e.code ? errText(e) : "出错了：" + (e && e.message || e) }));
     if (e && (e.code === "not_granted" || e.code === "sampling_disabled" || e.code === "not_declared" || e.code === "capability_disabled")) disable(errText(e));
   }
@@ -12875,9 +13295,9 @@ var App = (function () {
   }
 
   function doWorld(idea, fix) {
-    var el = card(), status = statusRow("Claude 正在构造这个世界…"), bodyEl = h("div"); el.appendChild(status); el.appendChild(bodyEl);
+    var el = card(), status = statusRow(who() + " 正在构造这个世界…"), bodyEl = h("div"); el.appendChild(status); el.appendChild(bodyEl);
     var exEl = null;
-    return call(promptWorld(idea, fix), { modelTier: S.tier }, function (t) { var r = parseReply(t); status.lastChild.textContent = ["Claude 正在思考…", "正在定参数…", "正在写采样代码…", "正在写说明…", "正在收尾…"][r.stage]; if (r.stage >= 3 && r.explain) { if (!exEl) { exEl = h("div"); bodyEl.appendChild(exEl); } QLMD.mountPartial(exEl, r.explain); scrollLogSoft(); } }).then(function (res) {
+    return call(promptWorld(idea, fix), { modelTier: tierOf("world") }, function (t) { var r = parseReply(t); status.lastChild.textContent = [who() + " 正在思考…", "正在定参数…", "正在写采样代码…", "正在写说明…", "正在收尾…"][r.stage]; if (r.stage >= 3 && r.explain) { if (!exEl) { exEl = h("div"); bodyEl.appendChild(exEl); } QLMD.mountPartial(exEl, r.explain); scrollLogSoft(); } }, status).then(function (res) {
       var r = parseReply(res.text); if (r.stage < 3 || !r.code || !r.meta) throw { code: "bad_format", text: res.text };
       var meta = r.meta, params = cleanParams(meta.params), prev = { custom: S.custom, type: S.world.type, wp: S.wparams.custom, N: S.world.N, T: S.world.T, K: S.world.K };
       var cw = { name: String(meta.name || "自定义世界").slice(0, 24), summary: String(meta.summary || "").slice(0, 200), code: r.code, schema: params, explain: r.explain };
@@ -12899,7 +13319,7 @@ var App = (function () {
       }, function (e) {
         var msg = e.message || String(e);
         clear(runEl); runEl.className = "warn err"; runEl.textContent = "采样代码没有跑通：" + msg;
-        actions.appendChild(h("button", { class: "btn small primary", type: "button", text: "让 Claude 修复", onclick: function () { S.custom = cw; S.world.type = "custom"; send("修复采样代码", { world: true, fix: msg }); } }));
+        actions.appendChild(h("button", { class: "btn small primary", type: "button", text: "让 " + AI + " 修复", onclick: function () { S.custom = cw; S.world.type = "custom"; send("修复采样代码", { world: true, fix: msg }); } }));
         S.custom = prev.custom; S.world.type = prev.type; S.wparams.custom = prev.wp; S.world.N = prev.N; S.world.T = prev.T; S.world.K = prev.K;
         if (QL.WORLDS[prev.type].game) { A.fixStrat(); A.syncCharts(); A.renderStrat(); A.renderSettings(); }
         A.renderWorld(); A.requestRun("commit");
@@ -12909,7 +13329,7 @@ var App = (function () {
 
   function doChart(q) {
     var el = card(); el.appendChild(statusRow("正在找合适的图…"));
-    return call(promptChart(q), { modelTier: "quick", cache: true }).then(function (res) {
+    return call(promptChart(q), { modelTier: tierOf("chart"), cache: true }).then(function (res) {
       var t = res.text, a = t.indexOf("{"), b = t.lastIndexOf("}"), o = null; try { o = JSON.parse(t.slice(a, b + 1)); } catch (e) {}
       clear(el); if (!o) { el.appendChild(h("div", { class: "note", text: t.slice(0, 400) })); return; }
       var ids = (Array.isArray(o.show) ? o.show : []).filter(function (id) { return A.CH[id]; }).slice(0, 3);
@@ -12923,11 +13343,11 @@ var App = (function () {
     }).catch(function (e) { fail(el, e); });
   }
   function doAsk(q) {
-    var el = card(), status = statusRow("Claude 正在看这次的结果…"), out = h("div"); el.appendChild(status); el.appendChild(out);
+    var el = card(), status = statusRow(who() + " 正在看这次的结果…"), out = h("div"); el.appendChild(status); el.appendChild(out);
     turns.push({ role: "user", content: q }); if (turns.length > 8) turns = turns.slice(-8);
     while (turns.length && turns[0].role !== "user") turns.shift();
     var input = [{ role: "user", content: askRules() }].concat(turns);
-    return call(input, { modelTier: S.tier === "complex" ? "default" : S.tier }, function (t) { status.hidden = true; QLMD.mountPartial(out, t); scrollLogSoft(); }).then(function (res) {
+    return call(input, { modelTier: tierOf("ask") }, function (t) { status.hidden = true; QLMD.mountPartial(out, t); scrollLogSoft(); }, status).then(function (res) {
       status.remove(); QLMD.mount(out, res.text); turns.push({ role: "assistant", content: res.text });
     }).catch(function (e) { if (turns.length && turns[turns.length - 1].role === "user") turns.pop(); if (e && e.text && e.code !== "refused") { QLMD.mount(out, e.text); } fail(el, e, out); });
   }
@@ -12938,7 +13358,7 @@ var App = (function () {
     var pr = special && special.fix && !special.world ? doStrategy("", special.fix) : special && special.world ? doWorld(special.fix ? "" : text, special.fix) : mode === "strategy" ? doStrategy(text) : mode === "world" ? doWorld(text) : mode === "chart" ? doChart(text) : doAsk(text);
     pr.then(function () { setBusy(false); scrollLog(); }, function () { setBusy(false); });
   }
-  A.askFix = function (msg) { A.openClaude(true); if (!sample) { A.toast("这里不能调用 Claude，请手动修改代码"); return; } setMode("strategy"); send("修复这段代码的错误：" + String(msg).slice(0, 300), { fix: String(msg).slice(0, 1500) }); };
+  A.askFix = function (msg) { A.openClaude(true); if (!sample) { A.toast(WEB ? "还没有接入 AI：先在右栏点\"接入 AI…\"，或者手动修改代码" : "这里不能调用 Claude，请手动修改代码"); return; } setMode("strategy"); send("修复这段代码的错误：" + String(msg).slice(0, 300), { fix: String(msg).slice(0, 1500) }); };
 
   function disable(reason) { sample = null; var off = $("aiOff"); if (off) { off.hidden = false; off.textContent = reason + " 其余功能不受影响：世界、规则、图表和参数扫描都在本地运行。"; } var s = $("aiSend"); if (s) s.disabled = true; var t = $("aiInput"); if (t) t.disabled = true; var b = $("btnClaude"); if (b) b.classList.remove("primary"); }
   function setMode(m) {
@@ -12949,18 +13369,110 @@ var App = (function () {
   }
   function renderEmpty(e) {
     clear(e);
-    e.appendChild(h("div", { text: { strategy: A.isGame() ? "说说你想怎么玩这一局，Claude 会写成规则的代码、给出具体的参数，并解释它是不是最优。写好后自动载入并计分。" : "说出想法，Claude 会给出规则的代码、具体的参数，并解释为什么这样构造、是不是最优。写好后自动载入并回测。", world: "描述一种数据的生成方式，Claude 会写成采样函数，生成的路径立刻成为当前的世界。", chart: "说你想看什么，Claude 会把对应的图调出来。", ask: "针对眼前的数字提问。Claude 能看到当前的世界、规则和三种口径的结果。" }[mode] }));
-    var eg = h("div", { class: "eg" }); examples(mode).forEach(function (x) { eg.appendChild(h("button", { class: "btn small", type: "button", text: x, onclick: function () { var t = $("aiInput"); t.value = x; t.focus(); } })); }); e.appendChild(eg);
+    e.appendChild(h("div", { text: { strategy: A.isGame() ? "说说你想怎么玩这一局，" + AI + " 会写成规则的代码、给出具体的参数，并解释它是不是最优。写好后自动载入并计分。" : "说出想法，" + AI + " 会给出规则的代码、具体的参数，并解释为什么这样构造、是不是最优。写好后自动载入并回测。", world: "描述一种数据的生成方式，" + AI + " 会写成采样函数，生成的路径立刻成为当前的世界。", chart: "说你想看什么，" + AI + " 会把对应的图调出来。", ask: "针对眼前的数字提问。" + AI + " 能看到当前的世界、规则和三种口径的结果。" }[mode] }));
+    var eg = h("div", { class: "eg" }); examples(mode).forEach(function (x) { eg.appendChild(h("button", { class: "btn small", type: "button", text: x, onclick: function () { var t = $("aiInput"); t.value = x; if (!t.disabled) t.focus(); } })); }); e.appendChild(eg);
   }
+
+  /* ---------- 独立的网页：接入自己的 AI ---------- */
+  /** 按当前的设置把面板摆成"能用"或"还没接入" */
+  function webSync() {
+    var lab = WEB.label(), chip = $("aiProv"), off = $("aiOff"), s = $("aiSend"), t = $("aiInput");
+    sample = lab ? WEB.sample() : null; limits = { tools: false };
+    if (chip) { chip.textContent = lab ? lab.short + " · " + lab.model : "接入 AI…"; chip.title = lab ? "正在用 " + lab.short + " 的 " + lab.model + "。点这里换服务商、换模型或改密钥。" : "选一家服务商，填上你自己的 API 密钥"; chip.classList.toggle("primary", !lab); }
+    if (off) {
+      off.hidden = !!lab; clear(off);
+      if (!lab) {
+        off.appendChild(h("div", { text: "这一栏要先接入一个 AI 才能用：DeepSeek、ChatGPT、Kimi、豆包，或者任何兼容 OpenAI 的接口。用的是你自己的 API 密钥，密钥只保存在这台电脑的浏览器里。" }));
+        off.appendChild(h("div", { class: "row", style: { "margin-top": "8px" } }, h("button", { class: "btn small primary", type: "button", text: "接入 AI…", onclick: function () { A.openAiSettings(); } })));
+        off.appendChild(h("div", { class: "note", style: { "margin-top": "8px" }, text: "不接入也不影响别的：世界、规则、图表、参数扫描和手册都在本地运行；规则的代码可以自己改（左栏规则下面的\"代码与说明\"）。" }));
+      }
+    }
+    if (s) s.disabled = !lab; if (t) t.disabled = !lab;
+    if ($("aiModes")) setMode(mode);
+  }
+  /** 设置：选服务商、填密钥、选模型、测试连接。改动先落在草稿里，点"保存"才生效 */
+  A.openAiSettings = function () {
+    if (!WEB) return;
+    var draft = WEB.cfg(), m = null, body = h("div", { class: "ai-set" }), found = {}, busyNow = false;
+    if (!draft.p) draft.p = WEB.PRE[0].id;
+    function cur() { return draft.by[draft.p] || (draft.by[draft.p] = {}); }
+    function say(kind, text, detail) {
+      var st = body.querySelector(".ai-st"); if (!st) return; clear(st); st.className = "ai-st" + (kind ? " " + kind : "");
+      if (text) st.appendChild(h("div", { text: text })); if (detail) st.appendChild(h("div", { class: "note", text: detail }));
+    }
+    function sayErr(e) { var ex = WEB.explain(e); say("bad", "✕ " + ex.text, ex.detail ? "服务商的原话：" + ex.detail : ""); }
+    function field(label, control, hint) { return h("div", { class: "ai-f" }, h("label", { text: label, for: control.id || null }), control, hint ? h("div", { class: "note", text: hint }) : null); }
+    function lock(on) { busyNow = on; Array.prototype.forEach.call((m ? m.box : body).querySelectorAll("button.ai-act"), function (b) { b.disabled = on; }); }
+    function paint() {
+      var P = WEB.preset(draft.p), u = cur(); clear(body);
+      body.appendChild(h("div", { class: "note", text: "用你自己的 API 密钥调用所选的服务商。密钥只保存在这台电脑的这个浏览器里；请求从你的浏览器直接发给服务商，不经过本站；费用由服务商按你的账号计。" }));
+      body.appendChild(h("div", { class: "ai-f" }, h("label", { text: "服务商" }), h("div", { class: "ai-provs", role: "group", "aria-label": "服务商" }, WEB.PRE.map(function (x) {
+        return h("button", { class: "chip", type: "button", "data-p": x.id, "aria-pressed": x.id === draft.p ? "true" : "false", text: x.name, onclick: function () { draft.p = x.id; paint(); var k = $("aiKey"); if (k) k.focus(); } });
+      }))));
+      if (P.hint) body.appendChild(h("div", { class: "note ai-hint", text: P.hint }));
+      var needProxy = WEB.noCors(WEB.conf(draft));
+      if (needProxy) body.appendChild(h("div", { class: "warn ai-needproxy", text: P.short + " 的接口不允许网页直接调用（浏览器的跨域限制会把回答拦下）。要在下面的\"高级\"里填一个转发代理才能用。" }));
+      // 同一家的不同站点（密钥不通用）
+      if (P.sites) {
+        var site = h("select", { id: "aiSite", onchange: function () { u.base = site.value === P.base ? "" : site.value; paint(); } }, P.sites.map(function (x) { return h("option", { value: x[0], text: x[1], selected: (u.base || P.base) === x[0] }); }));
+        body.appendChild(field("站点", site));
+      }
+      if (!P.base) { var b0 = h("input", { type: "text", id: "aiBase", value: u.base || "", placeholder: "https://…/v1", spellcheck: "false", autocomplete: "off", oninput: function () { u.base = b0.value; } }); body.appendChild(field("接口地址", b0, "到 /v1 为止，后面的 /chat/completions 不用写。")); }
+      // 密钥
+      var key = h("input", { type: "password", id: "aiKey", value: u.key || "", placeholder: WEB.isLocal(u.base || P.base) ? "本机的接口可以不填" : "sk-…", spellcheck: "false", autocomplete: "off", oninput: function () { u.key = key.value; } });
+      var eye = h("button", { class: "btn small", type: "button", text: "显示", "aria-pressed": "false", onclick: function () { var on = key.type === "password"; key.type = on ? "text" : "password"; eye.textContent = on ? "隐藏" : "显示"; eye.setAttribute("aria-pressed", on ? "true" : "false"); } });
+      body.appendChild(h("div", { class: "ai-f" }, h("label", { text: "API 密钥", for: "aiKey" }), h("div", { class: "ai-row" }, key, eye),
+        P.keyUrl ? h("div", { class: "note" }, "还没有密钥？", h("a", { href: P.keyUrl, target: "_blank", rel: "noopener noreferrer", text: "到 " + P.short + " 的控制台申请 ↗" })) : null));
+      // 模型
+      var list = (found[draft.p] || []).concat(P.models.filter(function (x) { return (found[draft.p] || []).indexOf(x) < 0; }));
+      var model = h("input", { type: "text", id: "aiModel", value: u.model || "", placeholder: P.model || "模型的名字", list: "aiModelList", spellcheck: "false", autocomplete: "off", oninput: function () { u.model = model.value; } });
+      var fetchBtn = h("button", { class: "btn small ai-act", type: "button", text: "获取模型列表", onclick: function () {
+        if (busyNow) return; lock(true); say("", "正在向服务商查询…");
+        WEB.models(draft).then(function (ids) { lock(false); found[draft.p] = ids; var keep = model.value; paint(); if (keep) $("aiModel").value = keep; say(ids.length ? "good" : "", ids.length ? "查到 " + ids.length + " 个模型：点\"模型\"那一格可以从里面选。" : "服务商没有返回模型列表，模型的名字要自己填。"); }, function (e) { lock(false); sayErr(e); });
+      } });
+      body.appendChild(h("div", { class: "ai-f" }, h("label", { text: "模型", for: "aiModel" }), h("div", { class: "ai-row" }, model, fetchBtn), h("datalist", { id: "aiModelList" }, list.map(function (x) { return h("option", { value: x }); })),
+        h("div", { class: "note", text: P.model ? "留空就用 " + P.model + "。模型的名字变得很快，报\"不认识这个模型\"时点右边的按钮换一个。" : "填服务商给这个模型起的名字。" })));
+      // 高级
+      var adv = h("details", { class: "more ai-adv", open: !!(u.fast || (P.base && u.base && !P.sites) || draft.proxy || u.think === false || needProxy) }, h("summary", { text: "高级" }));
+      var ab = h("div", { class: "more-body" }); adv.appendChild(ab);
+      if (P.base && !P.sites) { var b1 = h("input", { type: "text", id: "aiBase", value: u.base || "", placeholder: P.base, spellcheck: "false", autocomplete: "off", oninput: function () { u.base = b1.value; } }); ab.appendChild(field("接口地址", b1, "一般不用改。走中转或者自建的兼容接口时填在这里。")); }
+      var fast = h("input", { type: "text", id: "aiFast", value: u.fast || "", placeholder: P.fast || "和上面的模型相同", list: "aiModelList", spellcheck: "false", autocomplete: "off", oninput: function () { u.fast = fast.value; } });
+      ab.appendChild(field("做小事用的模型", fast, "\"调图表\"只是从清单里挑几张图，用便宜、快的模型就够了。"));
+      var think = h("input", { type: "checkbox", id: "aiThink", checked: u.think !== false, onchange: function () { u.think = think.checked; } });
+      ab.appendChild(h("div", { class: "ai-f" }, h("label", { class: "ai-ck", for: "aiThink" }, think, "写策略、造世界时让模型先深度思考"), h("div", { class: "note", text: "更慢（常常要等一两分钟），推导和代码通常更可靠。问结果、调图表不受这一项影响，总是直接回答。" })));
+      var proxy = h("input", { type: "text", id: "aiProxy", value: draft.proxy || "", placeholder: "一般留空", spellcheck: "false", autocomplete: "off", oninput: function () { draft.proxy = proxy.value; }, onchange: function () { if (needProxy !== WEB.noCors(WEB.conf(draft))) paint(); } });
+      ab.appendChild(field("转发代理", proxy, "有的服务商不允许网页直接调用（浏览器的跨域限制），表现是\"请求没有发出去\"。这时要有一个转发代理把请求转过去，把它的地址填在这里：页面会请求 <代理地址>/<完整的接口地址>。代理能看到你的密钥，只填你自己部署或者信得过的。"));
+      body.appendChild(adv);
+      body.appendChild(h("div", { class: "ai-st", role: "status", "aria-live": "polite" }));
+      body.appendChild(h("div", { class: "note", text: "和本站同一个域名下的其他页面在技术上也读得到保存在这里的密钥。用的是公用电脑的话，用完请点\"清除密钥\"。" }));
+    }
+    var clearBtn = h("button", { class: "btn ai-act", type: "button", text: "清除密钥", title: "把这家服务商的密钥从这个浏览器里删掉", onclick: function () {
+      var P = WEB.preset(draft.p); delete cur().key; var c = WEB.cfg(); if (c.by[draft.p]) delete c.by[draft.p].key; WEB.save(c); paint(); say("", "已经把 " + P.short + " 的密钥从这个浏览器里删掉。");
+    } });
+    var testBtn = h("button", { class: "btn ai-act", type: "button", text: "测试连接", onclick: function () {
+      if (busyNow) return; lock(true); say("", "正在测试：发一句最短的话，等它回…");
+      WEB.test(draft).then(function (r) { lock(false); say("good", "✓ 通了：" + r.model + " 在 " + (r.ms / 1000).toFixed(1) + " 秒里回了话" + (r.viaProxy ? "（经转发代理）" : "") + "。记得点\"保存\"。"); }, function (e) { lock(false); sayErr(e); });
+    } });
+    var saveBtn = h("button", { class: "btn primary ai-act", type: "button", text: "保存", onclick: function () {
+      var bad = WEB.problem(WEB.conf(draft)); if (bad) { sayErr({ code: bad }); return; }
+      WEB.save(draft); m.close(); A.toast("已接入 " + WEB.label().short + "。右栏可以用了。"); A.openClaude(true);
+    } });
+    paint();
+    m = A.modal("接入 AI", body, { narrow: true, cls: "aiset", focus: "#aiKey", foot: [clearBtn, h("span", { style: { flex: "1" } }), testBtn, saveBtn] });
+  };
+
   A.initClaude = function () {
     var host = clear($("paneAi"));
+    // 顶栏的按钮、手机上的标签、面板的名字：独立的网页里叫 AI
+    var hb = $("btnClaude"), tb = document.querySelector('#tabs [data-tab="ai"]'); if (hb) hb.textContent = AI; if (tb) tb.textContent = AI; host.setAttribute("aria-label", AI);
     var tierSel = h("select", { "aria-label": "模型档位", title: "越强越慢，也越耗用量", onchange: function () { S.tier = tierSel.value; A.persist(); } }, [["complex", "最强"], ["default", "均衡"], ["quick", "最快"]].map(function (x) { return h("option", { value: x[0], text: "模型：" + x[1], selected: S.tier === x[0] }); }));
-    host.appendChild(h("div", { class: "ai-h" }, h("h2", { text: "Claude" }), tierSel, h("button", { class: "iconbtn", type: "button", "aria-label": "收起 Claude 面板", text: "✕", onclick: function () { if (window.matchMedia("(max-width: 779.9px)").matches) A.setTab("res"); else A.openClaude(false); } })));
+    var prov = WEB ? h("button", { class: "btn small ai-prov", type: "button", id: "aiProv", onclick: function () { A.openAiSettings(); } }) : null;
+    host.appendChild(h("div", { class: "ai-h" }, h("h2", { text: AI }), WEB ? prov : tierSel, h("button", { class: "iconbtn", type: "button", "aria-label": "收起 " + AI + " 面板", text: "✕", onclick: function () { if (window.matchMedia("(max-width: 779.9px)").matches) A.setTab("res"); else A.openClaude(false); } })));
     host.appendChild(h("div", { class: "ai-modes", id: "aiModes" }, MODES.map(function (m) { return h("button", { class: "chip", type: "button", "data-m": m[0], "aria-pressed": m[0] === mode ? "true" : "false", text: m[1], onclick: function () { setMode(m[0]); } }); })));
     host.appendChild(h("div", { class: "ai-off", id: "aiOff", hidden: true }));
     var empty = h("div", { class: "ai-empty", id: "aiEmpty" }); renderEmpty(empty);
     host.appendChild(h("div", { class: "ai-log", id: "aiLog", "aria-live": "polite" }, empty));
-    var ta = h("textarea", { id: "aiInput", placeholder: placeholder(mode), "aria-label": "对 Claude 说", rows: "3" });
+    var ta = h("textarea", { id: "aiInput", placeholder: placeholder(mode), "aria-label": "对 " + AI + " 说", rows: "3" });
     ta.addEventListener("keydown", function (e) { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); go(); } });
     function go() { var v = ta.value; if (!v.trim() || busy) return; ta.value = ""; send(v); }
     var deepCb = h("input", { type: "checkbox", id: "aiDeep" }); deepCb.addEventListener("change", function () { deep = deepCb.checked; });
@@ -12968,9 +13480,11 @@ var App = (function () {
       h("label", { class: "note", id: "aiDeepWrap", hidden: true, title: "让 Claude 在回答前自己调用回测、看结果、再改。更慢，也更耗用量。", style: { display: "inline-flex", gap: "6px", "align-items": "center" } }, deepCb, "深度模式"), h("span", { style: { flex: "1" } }),
       h("button", { class: "btn", type: "button", id: "aiStop", hidden: true, text: "停止", onclick: function () { if (ctl) ctl.abort(); } }),
       h("button", { class: "btn primary", type: "button", id: "aiSend", text: "发送", title: "⌘/Ctrl + Enter", onclick: go }))));
-    // 取得调用 Claude 的能力；取不到就把这一块标成不可用
     var cl = window.claude, sendBtn = $("aiSend");
-    if (!cl || typeof cl.use !== "function") { disable("这个页面要在 Claude 里打开才能调用 Claude；现在这样打开，写规则、造世界、调图表、问结果这四项用不了。规则的代码可以自己改：左栏规则下面的\"代码与说明\"。"); return; }
+    // 独立的网页：用使用者自己接入的服务商；设置变了（包括在别的标签页里改的）就跟着变
+    if (WEB) { webSync(); WEB.onChange(webSync); return; }
+    // 在 Claude 里：取得调用 Claude 的能力；取不到就把这一块标成不可用
+    if (!HOST) { disable("这个页面要在 Claude 里打开才能调用 Claude；现在这样打开，写规则、造世界、调图表、问结果这四项用不了。规则的代码可以自己改：左栏规则下面的\"代码与说明\"。"); return; }
     sendBtn.disabled = true; sendBtn.textContent = "正在连接…";       // 能力要等宿主应答之后才可用
     cl.use("sample").then(function (fn) {
       sendBtn.textContent = "发送";
@@ -13004,7 +13518,8 @@ var App = (function () {
   A.on("run", function () { A.renderSummary(); });
   A.on("error", function () { A.renderSummary(); });
   A.on("world", function () { A.renderWorldHead(); });
-  if (window.innerWidth >= 1240 && window.claude && typeof window.claude.use === "function") A.openClaude(true);   // 独立的网页里没有 Claude：右栏不自动展开
+  // 右栏自动展开：在 Claude 里，或者独立的网页里已经接入了 AI。还没接入时不占地方，等人去点
+  if (window.innerWidth >= 1240 && (A.aiHost || (window.QLAI && QLAI.ready()))) A.openClaude(true);
   A.requestRun("commit");
   // 离开页面：立刻存一次。平时的保存晚 400 毫秒才落盘，最后那一下改动（刚点的"知道了"、刚钉的对比）不能丢
   window.addEventListener("pagehide", function () { try { A.persistNow(); } catch (e) {} });

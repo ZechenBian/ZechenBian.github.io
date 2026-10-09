@@ -301,7 +301,7 @@
       var e = A.err, msg = e.message || "出错了";
       host.appendChild(h("div", { class: "warn err" }, h("div", null, h("b", { text: e.compile ? "代码无法运行：" : e.needData ? "" : "运行出错：" }), msg,
         e.needData ? h("div", { class: "row", style: { "margin-top": "8px" } }, h("button", { class: "btn small", type: "button", text: "导入数据…", onclick: function () { A.openImport(); } })) : null,
-        (e.compile || e.runtime || e.timeout) ? h("div", { class: "row", style: { "margin-top": "8px" } }, h("button", { class: "btn small", type: "button", text: "打开代码", onclick: function () { A.openCode("code"); } }), A.askFix ? h("button", { class: "btn small", type: "button", text: "让 Claude 修复", onclick: function () { A.askFix(msg); } }) : null) : null)));
+        (e.compile || e.runtime || e.timeout) ? h("div", { class: "row", style: { "margin-top": "8px" } }, h("button", { class: "btn small", type: "button", text: "打开代码", onclick: function () { A.openCode("code"); } }), A.askFix ? h("button", { class: "btn small", type: "button", text: "让 " + A.AI + " 修复", onclick: function () { A.askFix(msg); } }) : null) : null)));
       return;
     }
     if (!r) { host.appendChild(h("div", { class: "statline" }, h("span", { class: "spin", style: { display: "inline-block", "vertical-align": "-2px", "margin-right": "8px" } }), d.game ? "正在生成对局并计分…" : "正在生成路径并回测…")); return; }
@@ -599,7 +599,8 @@
     L.push({ kind: "操作", name: "查看当前规则的代码与说明", key: "code 代码 说明", run: function () { A.openCode(); } });
     L.push({ kind: "操作", name: "换一批路径（种子 +1）", key: "seed 种子 重新", run: function () { S.world.seed = (S.world.seed + 1) % 1000000; A.renderWorld(); A.worldChanged(true); } });
     L.push({ kind: "操作", name: "把当前规则加入对比", key: "compare 对比 pin", run: function () { A.pinCompare(); } });
-    L.push({ kind: "操作", name: "打开 Claude 面板", key: "claude ai 助手", run: function () { A.openClaude(true); } });
+    L.push({ kind: "操作", name: "打开 " + A.AI + " 面板", key: "claude ai 助手", run: function () { A.openClaude(true); } });
+    if (!A.aiHost && A.openAiSettings) L.push({ kind: "操作", name: "AI 设置：服务商、密钥、模型", key: "ai 设置 接入 密钥 key deepseek chatgpt openai kimi 豆包 doubao 模型", run: function () { A.openAiSettings(); } });
     L.push({ kind: "操作", name: "打开手册", key: "手册 说明 帮助 help guide 文档 怎么用", run: function () { if (A.openGuide) A.openGuide(); } });
     L.push({ kind: "操作", name: "恢复默认设置", key: "reset 重置 默认", run: function () { A.resetting = true; try { localStorage.removeItem("ql.lab.v1"); } catch (e) {} A.toast("已清除本机保存的设置。重新打开页面后生效；在那之前的改动不会再保存。", 5000); } });
     Object.keys(A.CH).forEach(function (id) { var c = A.CH[id]; if (!A.chartOk(id)) return; L.push({ kind: "图表", name: (A.shown().indexOf(id) >= 0 ? "收起：" : "显示：") + A.chartName(id), hint: c.about, key: c.name + " " + (c.keys || ""), run: function () { A.toggleChart(id, true); } }); });
@@ -619,7 +620,7 @@
       if (cur >= shown.length) cur = Math.max(0, shown.length - 1);
       clear(list);
       shown.forEach(function (c, i) { list.appendChild(h("button", { class: "pal-item", type: "button", role: "option", "aria-selected": i === cur ? "true" : "false", onclick: function () { go(i); } }, h("small", { text: c.kind }), h("span", { text: c.name }))); });
-      if (!shown.length) list.appendChild(h("div", { class: "note", style: { padding: "8px 10px" }, text: "没有匹配的项。想要一张这里没有的图，可以到 Claude 面板里直接说。" }));
+      if (!shown.length) list.appendChild(h("div", { class: "note", style: { padding: "8px 10px" }, text: "没有匹配的项。想要一张这里没有的图，可以到 " + A.AI + " 面板里直接说。" }));
       var sel = list.children[cur]; if (sel && sel.scrollIntoView) sel.scrollIntoView({ block: "nearest" });
     }
     function go(i) { var c = shown[i]; if (!c) return; m.close(); c.run(); }
