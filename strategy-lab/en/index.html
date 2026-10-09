@@ -552,6 +552,85 @@ li.ck:last-child { border-bottom: 0; }
 /* 标题的字距是按汉字定的；拉丁字母用不着那么宽 */
 html[lang="en"] :is(.brand h1, .blk > h2, .sum-head h2, .ai-h h2, .modal-h h2, .gd-h h2, .gd-nav h4, .gd-title, .gd-sec > h3, h3.gd-gh, .gd-kicker) { letter-spacing: 0.01em; }
 
+/* ---------- 亲手玩一局（src/app-human.js） ---------- */
+.modal-box.hpm-box { width: min(860px, 100%); }
+#btnHuman { font-weight: 600; }
+.hp { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; min-width: 0; }
+.hp-top { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.hp-top .sp { flex: 1; }
+.hp-sizes { flex-wrap: wrap; max-width: 100%; }
+.hp-ep { font: 700 15px/1.3 var(--font-display); letter-spacing: 0.04em; white-space: nowrap; }
+.hp-tally { font-size: 12.5px; color: var(--ink2); font-variant-numeric: tabular-nums; }
+ul.hp-setup { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 6px; font-size: 12px; color: var(--ink2); }
+ul.hp-setup li { border: 1px solid var(--line); border-radius: 3px; padding: 1px 7px; background: var(--surface-2); min-width: 0; overflow-wrap: anywhere; }
+.hp-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); gap: 8px; }
+.hp-tile { border: 1px solid var(--line); border-radius: 5px; padding: 6px 10px 7px; min-width: 0; display: grid; gap: 1px; }
+.hp-tile span { font-size: 11.5px; color: var(--muted); }
+.hp-tile b { font: 600 17px/1.3 var(--font-mono); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.hp-board { border: 1px solid var(--line); border-radius: 6px; background: var(--surface-2); padding: 14px 16px 16px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; justify-items: center; text-align: center; min-width: 0; }
+.hp-q { font-size: 13px; color: var(--ink2); }
+.hp-big { font: 600 40px/1.15 var(--font-body); letter-spacing: -0.01em; display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
+.hp-big.num, .hp-big .num { font-family: var(--font-mono); }
+.hp-badge { font: 600 12px/1.5 var(--font-body); letter-spacing: 0; color: var(--accent-ink); background: var(--accent-wash); border: 1px solid var(--accent); border-radius: 999px; padding: 0 9px; white-space: nowrap; }
+.hp-sub { font-size: 12.5px; color: var(--ink2); min-height: 1.5em; max-width: 62ch; }
+.hp-sub b { color: var(--ink); font-weight: 600; }
+.hp-acts { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 4px; max-width: 100%; }
+.btn.hp-act { padding: 8px 16px; font-size: 14px; white-space: normal; text-align: center; }
+.hp-log { font-size: 12.5px; color: var(--ink2); min-height: 1.5em; text-align: center; overflow-wrap: anywhere; }
+.hp-chart { min-width: 0; }
+/* 偏硬币下注：注码 */
+.hp-bet { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
+.hp-cur { font: 600 24px/1 var(--font-mono); color: var(--ink2); }
+input[type="number"].hp-stake { width: 138px; font-size: 24px; padding: 4px 10px; background: var(--surface); }
+.hp-pct { font-size: 12.5px; color: var(--ink2); font-variant-numeric: tabular-nums; min-width: 8.5em; text-align: left; }
+.hp-chips { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+/* 多臂老虎机：一台机器一张牌 */
+.hp-arms { display: grid; grid-template-columns: repeat(auto-fit, minmax(132px, 1fr)); gap: 8px; width: 100%; }
+.hp-arm { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 3px 8px; align-items: baseline; text-align: left; border: 1px solid var(--line); background: var(--surface); border-radius: 6px; padding: 9px 11px 8px; cursor: pointer; min-width: 0; }
+.hp-arm:hover:not(:disabled) { border-color: var(--accent); background: var(--accent-wash); }
+.hp-arm:disabled { opacity: 0.5; cursor: default; }
+.hp-arm-n { font-weight: 600; display: flex; gap: 6px; align-items: center; min-width: 0; }
+.hp-arm-n kbd { font: 11px var(--font-mono); color: var(--muted); border: 1px solid var(--line); border-radius: 3px; padding: 0 4px; background: var(--surface-2); }
+.hp-arm-r { font-size: 16px; font-weight: 600; }
+.hp-arm-bar { grid-column: 1 / -1; height: 5px; background: var(--c-grid); border-radius: 3px; overflow: hidden; }
+.hp-arm-bar i { display: block; height: 100%; background: var(--c-s1); border-radius: 3px; }
+.hp-arm-s, .hp-arm-f { grid-column: 1 / -1; font-size: 11.5px; color: var(--muted); min-height: 1.5em; }
+.hp-arm-f { font-weight: 600; }
+.hp-arm.hit { border-color: var(--accent); }
+.hp-arm.hit .hp-arm-f { color: var(--accent-ink); }
+/* 打完之后：你和先比的那条规则并排，下面是揭晓的东西和对照表 */
+.hp-verdict { justify-items: stretch; text-align: left; }
+.hp-vs { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; }
+.hp-side { border: 1px solid var(--line); background: var(--surface); border-radius: 6px; padding: 8px 12px 10px; display: grid; gap: 2px; min-width: 0; align-content: start; }
+.hp-side.me { border-color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); }
+.hp-lab { font-size: 12px; color: var(--ink2); overflow-wrap: anywhere; }
+.hp-num { font: 600 28px/1.2 var(--font-mono); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.hp-gap { font-size: 13px; }
+.hp-hind { display: grid; gap: 4px; min-width: 0; }
+.hp-hind p { margin: 0; font-size: 13px; line-height: 1.65; color: var(--ink); }
+.hp-hind .gref, .hp-after .gref { padding: 0; }
+.hp-verdict .hp-acts { justify-content: flex-start; }
+.hp-after { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; min-width: 0; }
+.hp-after:empty { display: none; }
+table.hp-tab tr.me td { background: var(--accent-wash); }
+table.hp-tab tr.star td:first-child { font-weight: 600; }
+table.hp-tab th:not(:first-child), .hp-hind table.gtab th:not(:first-child) { text-align: right; padding-left: 10px; }
+table.hp-tab td.num, .hp-hind table.gtab td.num { text-align: right; padding-left: 10px; }
+table.hp-tab td:first-child { padding-left: 6px; }
+table.hp-tab th:first-child { padding-left: 6px; }
+.hp-cum { margin: 0; font-size: 13px; line-height: 1.7; color: var(--ink); }
+.hp-foot .note { margin-left: auto; }
+@media (max-width: 560px) {
+  .hp-tiles { grid-template-columns: repeat(auto-fit, minmax(86px, 1fr)); gap: 6px; }
+  .hp-tile { padding: 5px 8px 6px; }
+  .hp-tile b { font-size: 15px; }
+  .hp-board { padding: 12px 10px 14px; }
+  .hp-big { font-size: 32px; }
+  .hp-num { font-size: 23px; }
+  .btn.hp-act { padding: 8px 12px; }
+  .hp-foot .note { margin-left: 0; }
+}
+
 </style>
 <style>
 /* KaTeX 0.16.47 的样式，字体内联。KaTeX: MIT License, (c) Khan Academy and other contributors; 字体: SIL Open Font License 1.1。全文见 THIRD-PARTY-NOTICES.md */
@@ -5862,6 +5941,184 @@ function QL_OBS_STRATS(QL) {
 }
 if (typeof module !== "undefined" && module.exports) module.exports = QL_OBS_STRATS;
 
+/* ===== human.js ===== */
+/* 策略实验室 · 亲手玩一局（引擎这一半）
+ * 裁判 play(E) 是同步的：它一回合一回合地问规则要动作，一口气把一局走完。人没法同步作答，
+ * 所以这里每次都从头重放：已经定下的回合照原样作答，走到第一个还没定的回合，把这时候规则看得到的东西抄下来交给界面。
+ * 人打的局很短（几十到几百回合），重放一遍不到一毫秒。这样做有两个好处：
+ *   1. 裁判的代码一个字不用动，人和规则面对的是同一个裁判、同一局的同一串随机数；
+ *   2. 给人看的局面只从 s（裁判交给规则的那个对象）里取：规则读不到的东西，人在打的时候也看不到。
+ * 这个文件只在主线程里用，不进后台线程。 */
+function QL_HUMAN_INSTALL(QL) {
+"use strict";
+var WORLDS = QL.WORLDS, LIB = QL.gameLib, RNG = QL.RNG;
+var EP_BID = 7000, LONG_BID = 6999;   // 亲手玩的对局用自己的批次号：与计分的那一批（0）、样本外的各批（1, 2, …）、给模型学的（负数）都不相同
+var SAME_MAX = 300;                   // 左栏的设定不超过这么多回合时，可以原样拿来打
+function copy(a) { return Array.prototype.slice.call(a); }
+function meanSe(a) { var n = a.length, s = 0, s2 = 0, i; for (i = 0; i < n; i++) { s += a[i]; s2 += a[i] * a[i]; } var m = n ? s / n : NaN, v = n > 1 ? Math.max(0, (s2 - s * s / n) / (n - 1)) : 0; return { m: m, se: n > 1 ? Math.sqrt(v / n) : NaN, n: n }; }
+
+/* ---------- 每套玩法给人打时的规定 ----------
+ * sizes   人打得动的几种长度（只改长度；分布、目标、概率这些"风味"跟左栏走）
+ * star    打完之后先和哪一条参照规则比：{ id, why }。why 是理由："opt" 理论上最好；"growth" 增长率最优（见偏硬币下注）；
+ *         "long" 没有事先指定的（id 是 null），打之前按长期平均挑最高的那条
+ * snap    从 s 里抄下这一回合给人看的东西（只许读规则读得到的）
+ * auto    这一回合其实没得选时，替人作答（被锁住、只剩最后一个人）；有得选就返回 null
+ * reveal  打完之后才揭晓的东西（整局的数据，连同裁判藏着的那些） */
+var H = {};
+H.g_lock = {
+  sizes: [{ id: "s", over: { T: 30, L: 3 } }, { id: "m", over: { T: 60, L: 5 } }, { id: "l", over: { T: 120, L: 8 } }],
+  star: function () { return { id: "dp", why: "opt" }; },
+  snap: function (s) { return { x: s.x, locked: s.locked }; },
+  auto: function (v) { return v.locked > 0 ? 0 : null; },
+  reveal: function (B) {
+    // 事后诸葛亮接的是哪几单：先倒推出每个回合起最多还能拿多少，再顺着走一遍
+    var T = B.T, Lk = Math.max(0, B.gp.L | 0), x = B.R, V = new Float64Array(T + Lk + 2), take = [], t;
+    for (t = T - 1; t >= 0; t--) { var a = x[t] + V[t + Lk + 1]; V[t] = a > V[t + 1] ? a : V[t + 1]; }
+    for (t = 0; t < T;) { if (x[t] + V[t + Lk + 1] > V[t + 1]) { take.push(t); t += Lk + 1; } else t++; }
+    return { x: copy(x), prophet: take, prophetTotal: V[0] };
+  }
+};
+H.g_sec = {
+  sizes: [{ id: "s", over: { n: 10 } }, { id: "m", over: { n: 20 } }, { id: "l", over: { n: 50 } }],
+  // 看得到分数、又按名次计分时没有现成的最优解（Robbins 问题）：那时按长期平均挑
+  star: function (p) { return p.goal === "rank" ? (p.info === "full" ? { id: null, why: "long" } : { id: "rank", why: "opt" }) : { id: p.info === "full" ? "gm" : "cut", why: "opt" }; },
+  snap: function (s) { return { rank: s.rank, x: s.x, left: s.left }; },
+  auto: function (v) { return v.left === 0 ? 1 : null; },
+  reveal: function (B) {
+    var T = B.T, abs = B.H.abs, best = 0, t;
+    for (t = 0; t < T; t++) if (abs[t] === 1) best = t;
+    return { x: copy(B.R), abs: copy(abs), rel: copy(B.H.rel), best: best };
+  }
+};
+H.g_coin = {
+  sizes: [{ id: "s", over: { T: 20 } }, { id: "m", over: { T: 40 } }, { id: "l", over: { T: 100 } }],
+  star: function (p) { return +p.cap > 0 ? { id: "dp", why: "opt" } : { id: "kelly", why: "growth" }; },   // 不封顶时"期望到手"最大的打法是每次全押，几乎必然输光：那时和 Kelly 比
+  snap: function (s) { return { wealth: s.wealth, last: s.last, lastA: s.lastA, prev: s.t > 0 ? s.ret(0) : NaN }; },
+  /** 把"押多少美元、押哪一面"换成裁判认的那个数：押上的资金比例，负数押反面。
+   *  比例乘回资金时可能差最后一位，所以往上让一丝：押 1 美分不会因为舍入变成"不足 1 美分" */
+  frac: function (W, stake, side) {
+    if (!(stake > 0) || !(W > 0)) return 0;
+    var f = stake >= W ? 1 : Math.min(1, stake / W * (1 + 1e-15));
+    return side < 0 ? -f : f;
+  },
+  reveal: function (B) { var h = 0, t; for (t = 0; t < B.T; t++) if (B.R[t] > 0) h++; return { flips: copy(B.R), heads: h }; }
+};
+H.g_bandit = {
+  sizes: [{ id: "s", over: { T: 30 } }, { id: "m", over: { T: 60 } }, { id: "l", over: { T: 120 } }],
+  star: function () { return { id: null, why: "long" }; },   // 哪条参照规则好要看一局有多长：几十回合的短局里"贪心"比 Thompson 抽样好，长局里反过来
+  snap: function (s) { return { pulls: copy(s.pulls), wins: copy(s.wins), lock: copy(s.lock), last: s.last, lastA: s.lastA }; },
+  auto: function (v) { for (var k = 0; k < v.lock.length; k++) if (!(v.lock[k] > 0)) return null; return 0; },   // 每一台都锁着：这一回合只能作废
+  reveal: function (B) { var mu = copy(B.H.mu), best = 0, k; for (k = 1; k < mu.length; k++) if (mu[k] > mu[best]) best = k; return { mu: mu, best: best }; }
+};
+
+QL.HUMAN_VER = 1;   // 对局的生成方式变了就加一：存下来的成绩是按"第几局"记的，换了生成方式就对不上了
+QL.humanGames = function () { return Object.keys(H); };
+QL.humanDef = function (type) { return H[type] || null; };
+/** 这套玩法给人打时可以选的几种长度：[{ id, hp }]。hp 是完整的一组参数。
+ *  左栏的设定本身就打得动（不超过 300 回合）而且不在预设里时，多一个 id 为 "same" 的选项：原样打 */
+QL.humanSizes = function (type, p) {
+  var hd = H[type], w = WORLDS[type], out = [], seen = {};
+  if (!hd) return out;
+  hd.sizes.forEach(function (z) { var hp = Object.assign({}, p, z.over); out.push({ id: z.id, hp: hp }); seen[JSON.stringify(hp)] = 1; });
+  if (w.Tof(p) <= SAME_MAX && !seen[JSON.stringify(p)]) out.push({ id: "same", hp: Object.assign({}, p) });
+  return out;
+};
+/** 第 k 局（k = 0, 1, 2, …）。同一个种子、同一组参数下，第 k 局永远是同一局 */
+QL.humanEpisode = function (type, hp, seed, k) {
+  if (!H[type]) throw new Error("This game cannot be played by hand: " + type);
+  return QL.gameBatch({ type: type, params: hp, N: 1, seed: seed, S0: 100 }, EP_BID + (k | 0));
+};
+
+/** 把一局推进到下一个要人拿主意的回合。acts[t]：第 t 回合已经定下的动作（和规则的 decide 返回的是同一种数）。
+ *  没打完：{ done: false, t, view, views, a, w, m, acts }：view 是眼下这一回合给人看的东西，views[i] 是前面各回合的；
+ *    a / w / m 是裁判记下的动作、随回合推进的那个量（累计收益、资金……）、回合上的标记，只到已经打过的回合为止。
+ *  打完了：{ done: true, score, aux, views, a, w, m, acts }。acts 里补上了替人作答的那些回合。 */
+QL.humanStep = function (B, acts) {
+  var hd = H[B.game];
+  if (!hd) throw new Error("This game cannot be played by hand: " + B.game);
+  acts = copy(acts || []);
+  for (var guard = 0; guard <= B.T + 1; guard++) {
+    var n = acts.length, at = -1, views = [];
+    var res = QL.runGame(B, {
+      decide: function (s) {
+        var t = s.t;
+        if (at < 0) { var v = hd.snap(s); v.t = t; views[t] = v; }   // past the first undecided round the referee is no longer looking at the real position: stop copying
+        if (t < n) return acts[t];
+        if (at < 0) at = t;
+        return NaN;                                                  // the remaining rounds are played out as "do nothing"; their results do not count
+      }
+    }, {}, null, { detail: 0 });
+    var det = res.det;
+    if (at < 0) return { done: true, acts: acts, views: views, a: copy(det.a), w: copy(det.w), m: copy(det.m), score: res.SC[0], aux: copy(res.AUX), T: B.T };
+    var a = hd.auto ? hd.auto(views[at], B) : null;
+    if (a == null) return { done: false, acts: acts, t: at, view: views[at], views: views, a: copy(det.a.subarray(0, at)), w: copy(det.w.subarray(0, at + 1)), m: copy(det.m.subarray(0, at)), T: B.T };
+    while (acts.length < at) acts.push(NaN);                         // 裁判没问的回合占个位
+    acts.push(a);
+  }
+  throw new Error("This episode cannot advance: the referee keeps asking about the same round.");
+};
+
+/* ---------- 参照规则 ---------- */
+/** 只做逐局计算的参照物（"事后诸葛亮"这一类）。与 games.js 里的 calcRef 是同一回事 */
+function calcOn(B, calc) {
+  var w = WORLDS[B.game], N = B.N, T = B.T, SC = new Float64Array(N), hk = Object.keys(B.H || {}), E = { T: T, p: B.gp, g: w.consts ? w.consts(B.gp, T) : {}, r: null, lv: null, h: {}, tmp: {} };
+  for (var n = 0; n < N; n++) {
+    E.r = B.R.subarray(n * T, (n + 1) * T); E.lv = B.L.subarray(n * (T + 1), (n + 1) * (T + 1));
+    for (var i = 0; i < hk.length; i++) { var Hh = B.H[hk[i]], len = Hh.length / N; E.h[hk[i]] = Hh.subarray(n * len, (n + 1) * len); }
+    SC[n] = calc(E);
+  }
+  return SC;
+}
+/** 这一组设定要用到的东西，算一次，之后每一局都用它：参照规则（要先学一遍的，在另外一批对局上学好）、理论值、得分的写法 */
+QL.humanKit = function (type, hp, seed) {
+  var hd = H[type], w = WORLDS[type];
+  if (!hd) throw new Error("This game cannot be played by hand: " + type);
+  var T = w.Tof(hp), fitD = null, th = w.theory ? w.theory(hp) : null, sd = w.score(hp), refs = [];
+  function fitData() { return fitD || (fitD = QL.makeData(QL.gameBatch({ type: type, params: hp, N: Math.max(200, Math.min(2000, Math.ceil(24000 / T))), seed: seed, S0: 100 }, 0, "fit"))); }
+  (w.refs ? w.refs(hp) : []).forEach(function (r) {
+    if (!r.lib && !r.calc) return;                 // "换细则"那一类要另外生成对局，这里不比
+    var o = { id: r.id, name: r.name, kind: r.kind || (r.calc ? "bound" : "sim"), bench: !!r.bench, lib: r.lib || "", p: r.p || {}, calc: r.calc || null, strat: r.lib ? LIB[r.lib] : null, model: undefined, err: "" };
+    try { if (o.strat && o.strat.fit) o.model = o.strat.fit(fitData(), o.p, QL.ml, new RNG(seed, -5, -5)); } catch (e) { o.err = String(e && e.message || e); }
+    refs.push(o);
+  });
+  var marks = th && th.marks ? th.marks.map(function (m) { return { id: m.id, name: m.name, value: m.value, kind: m.kind || "theory" }; }) : [];
+  var star = hd.star(hp);
+  return { type: type, hp: hp, seed: seed, T: T, refs: refs, star: star.id, starWhy: star.why, marks: marks, score: { name: sd.name, kind: sd.kind || "num", digits: sd.digits == null ? 3 : sd.digits, lower: !!sd.lower, unit: sd.unit || "" } };
+};
+function runRef(B, r, detail) {
+  if (r.calc) return { SC: calcOn(B, r.calc), det: null };
+  var res = QL.runGame(B, r.strat, r.p, null, detail ? { detail: 0 } : {}, r.model);
+  return { SC: res.SC, det: res.det };
+}
+/** 同一局交给各条参照规则各打一遍：[{ id, score, a, w, m }]。a / w / m 是它那一局的明细（只做逐局计算的上界没有） */
+QL.humanRefsOn = function (kit, B, detail) {
+  return kit.refs.map(function (r) {
+    var o = { id: r.id, score: NaN, a: null, w: null, m: null, err: r.err };
+    if (r.err) return o;
+    try { var x = runRef(B, r, detail !== false); o.score = x.SC[0]; if (x.det) { o.a = copy(x.det.a); o.w = copy(x.det.w); o.m = copy(x.det.m); } } catch (e) { o.err = String(e && e.message || e); }
+    return o;
+  });
+};
+/** 长期平均：另外生成 N 局（与亲手打的那些局不是同一批），某一条参照规则在上面的平均得分 ± 标准误 */
+QL.humanLongN = function (kit) { return Math.max(300, Math.min(4000, Math.round(240000 / kit.T))); };
+QL.humanLongBatch = function (kit, N) { return QL.gameBatch({ type: kit.type, params: kit.hp, N: N || QL.humanLongN(kit), seed: kit.seed, S0: 100 }, LONG_BID); };
+QL.humanLongRef = function (kit, B, id) {
+  var r = kit.refs.filter(function (x) { return x.id === id; })[0];
+  if (!r || r.err) return { m: NaN, se: NaN, n: 0 };
+  return meanSe(runRef(B, r, false).SC);
+};
+/** 先和哪一条参照规则比。事先指定了就是它；没有指定的，在真的规则（不算上界）里挑长期平均最高的。by：{ id: { m } } */
+QL.humanStar = function (kit, by) {
+  if (kit.star) return kit.star;
+  var best = null;
+  kit.refs.forEach(function (r) { var x = by && by[r.id]; if (r.strat && !r.err && x && x.m === x.m && (best === null || x.m > by[best].m)) best = r.id; });
+  return best;
+};
+QL.humanMeanSe = meanSe;
+return H;
+}
+if (typeof module !== "undefined" && module.exports) module.exports = QL_HUMAN_INSTALL;
+
 /* ===== charts.js ===== */
 /* 图表层：只用 Canvas 2D，不依赖外部库。
  * 一张图 = 共享 x 轴的若干面板（每个面板只有一条 y 轴，绝不做双轴）或一张热力图。
@@ -9272,7 +9529,9 @@ var App = (function () {
     [[QL.GAME_GROUP, QL.GAMES], [QL.OBS_GROUP, QL.OBS]].forEach(function (x) { gsel.appendChild(h("optgroup", { label: x[0] }, x[1].map(function (k) { return h("option", { value: k, text: QL.WORLDS[k].name, selected: k === game }); }))); });
     gh.appendChild(gsel);
     gh.appendChild(h("p", { class: "blurb", text: d.game ? d.blurb : A.TRADE.blurb }));
-    gh.appendChild(h("div", { class: "row tight", style: { "margin-bottom": d.game ? "10px" : "0" } }, h("button", { class: "btn small", type: "button", id: "btnRules", text: "Full rulebook & background", onclick: function () { A.openGuide("game:" + game); } })));
+    gh.appendChild(h("div", { class: "row tight", style: { "margin-bottom": d.game ? "10px" : "0" } },
+      A.humanOk && A.humanOk(game) ? h("button", { class: "btn small primary", type: "button", id: "btnHuman", text: "Play it yourself", title: "You make the decision in every round; afterwards each reference rule plays the same episode for comparison", onclick: function () { A.openHuman(); } }) : null,
+      h("button", { class: "btn small", type: "button", id: "btnRules", text: "Full rulebook & background", onclick: function () { A.openGuide("game:" + game); } })));
     if (d.game) {
       var gp = h("div", { class: "fields" }); gh.appendChild(gp);
       A.renderParams(gp, A.wschema().filter(function (q) { return !isW(q); }), vals, onIn, onCm, "w");
@@ -9551,6 +9810,7 @@ var App = (function () {
   };
   /* ---------- 玩法的摘要：得分 + 对照 ---------- */
   var KIND = { sim: "Reference", bound: "Upper bound", alt: "Rulebook variant", theory: "Theory", optimum: "Theoretical optimum", human: "Human experiment" };
+  A.KIND = KIND;
   /** 差值的判词：|差| 不到 2 倍标准误的不算数 */
   function gVerdict(G, d, se, soft) {
     if (!(d === d)) return h("span", { class: "verdict flat", text: "—" });
@@ -9794,6 +10054,7 @@ var App = (function () {
     L.push({ kind: "Action", name: "Open the " + A.AI + " panel", key: "claude ai assistant", run: function () { A.openClaude(true); } });
     if (!A.aiHost && A.openAiSettings) L.push({ kind: "Action", name: "AI settings: provider, key, model", key: "ai settings connect provider api key deepseek chatgpt openai kimi doubao model", run: function () { A.openAiSettings(); } });
     L.push({ kind: "Action", name: "Open the handbook", key: "handbook notes help guide docs manual how to use", run: function () { if (A.openGuide) A.openGuide(); } });
+    if (A.humanOk && A.humanOk()) L.push({ kind: "Action", name: "Play it yourself (" + A.wdef().short + ")", key: "play human yourself by hand manual interactive try an episode", run: function () { A.openHuman(); } });
     L.push({ kind: "Action", name: "Restore default settings", key: "reset default restore", run: function () { A.resetting = true; try { localStorage.removeItem("ql.lab.v1"); } catch (e) {} A.toast("The settings saved on this device have been cleared. This takes effect after you reopen the page; changes made before then will no longer be saved.", 5000); } });
     Object.keys(A.CH).forEach(function (id) { var c = A.CH[id]; if (!A.chartOk(id)) return; L.push({ kind: "Chart", name: (A.shown().indexOf(id) >= 0 ? "Hide: " : "Show: ") + A.chartName(id), hint: c.about, key: c.name + " " + (c.keys || ""), run: function () { A.toggleChart(id, true); } }); });
     QL.WORLD_GROUPS.forEach(function (g) { Object.keys(QL.WORLDS).forEach(function (k) { var w = QL.WORLDS[k]; if (w.group !== g || (k === "custom" && !S.custom)) return; L.push({ kind: w.game ? "Game" : "World", name: w.name, key: w.name + " " + w.short + " " + k + (w.game ? " game games" : " world"), run: function () { A.setWorldType(k); } }); }); });
@@ -11065,6 +11326,554 @@ var App = (function () {
   A.on("world", function () { if (A.scn.rows && A.scn.type !== S.world.type) { stop(); A.scn.rows = null; A.scn.stopped = false; if (A.shown().indexOf("scenes") >= 0) redraw(); } });
 })(App);
 
+/* ===== app-human.js ===== */
+/* 应用主体（六）：亲手玩一局。
+ * 页面上别的地方都是让规则去打；这里是你自己逐回合做决定，打完之后同一局交给各条参照规则再打一遍，并排着比。
+ * 逐回合推进、参照规则、长期平均都在 human.js 里；这个文件只管界面：弹层、每套玩法的局面和按钮、打完之后的对照、累计的成绩。
+ * 成绩按"哪套玩法 + 哪组设定 + 哪个种子"分开记在这台设备的浏览器里（只有数字）。
+ * 同一组设定下第 k 局永远是同一局，所以规则在你打过的那几局上的成绩随时可以重算，不用存。 */
+(function (A) {
+  "use strict";
+  var h = A.h, clear = A.clear, S = A.state, QL = A.QL, F = A.F, P = A.P;
+  if (typeof QL_HUMAN_INSTALL === "function" && !QL.humanDef) QL_HUMAN_INSTALL(QL);
+  A.humanOk = function (type) { return !!(QL.humanDef && QL.humanDef(type || S.world.type)); };
+  if (!QL.humanDef) return;
+
+  /* ---------- 存档 ---------- */
+  var KEY = "ql.human.v1", store = { v: 1, size: {}, rec: {} };
+  function isNum(x) { return typeof x === "number" && x === x && isFinite(x); }
+  try {
+    var o0 = JSON.parse(localStorage.getItem(KEY) || "null");
+    if (o0 && o0.v === 1) {
+      if (o0.size && typeof o0.size === "object") Object.keys(o0.size).forEach(function (k) { if (typeof o0.size[k] === "string") store.size[k] = o0.size[k]; });
+      if (o0.rec && typeof o0.rec === "object") Object.keys(o0.rec).forEach(function (k) {
+        var r = o0.rec[k]; if (!r || !Array.isArray(r.me) || !r.me.every(isNum)) return;
+        // me：打完的各局的得分；base：清零之前已经用掉了多少局（清零之后接着往下打没见过的局）；cur：打到一半的这一局已经交上去的动作
+        store.rec[k] = { me: r.me.slice(0, 5000), base: isNum(r.base) && r.base >= 0 ? Math.floor(r.base) : 0, at: isNum(r.at) ? r.at : 0, cur: Array.isArray(r.cur) ? r.cur.map(function (a) { return isNum(a) ? a : NaN; }) : null };
+      });
+    }
+  } catch (e) {}
+  function save() {
+    try {
+      var ks = Object.keys(store.rec);
+      if (ks.length > 30) { ks.sort(function (a, b) { return store.rec[a].at - store.rec[b].at; }); ks.slice(0, ks.length - 30).forEach(function (k) { delete store.rec[k]; }); }   // 只留最近用过的 30 组设定
+      localStorage.setItem(KEY, JSON.stringify(store));
+    } catch (e) {}
+  }
+
+  /* ---------- 一组设定 = 一份记录 ---------- */
+  var live = {};   // 这次打开页面期间：每组设定各自的参照规则、打到一半的局、刚打完的局
+  function sess(type, hp, seed) {
+    var key = "h" + QL.HUMAN_VER + "|" + type + "|" + seed + "|" + JSON.stringify(hp), s = live[key];
+    if (!s) s = live[key] = { key: key, type: type, hp: hp, seed: seed, kit: QL.humanKit(type, hp, seed), B: null, k: 0, step: null, fin: null, finAt: 0, mark: null, mem: {}, refSC: {}, long: null, star: "" };
+    return s;
+  }
+  function recOf(s) { return store.rec[s.key] || null; }
+  function recMake(s) { var r = store.rec[s.key] || (store.rec[s.key] = { me: [], base: 0, at: 0, cur: null }); r.at = Date.now(); return r; }
+  function played(s) { var r = recOf(s); return r ? r.me : []; }
+  /** 开一局：接着存档里的局号往下；上次打到一半的，从断开的地方接着打 */
+  function begin(s) {
+    var r = recOf(s);
+    s.k = r ? r.base + r.me.length : 0; s.B = QL.humanEpisode(s.type, s.hp, s.seed, s.k); s.fin = null; s.mark = null;
+    var st; try { st = QL.humanStep(s.B, r && r.cur ? r.cur : []); } catch (e) { st = QL.humanStep(s.B, []); }
+    if (st.done) finish(s, st); else s.step = st;
+  }
+  /** 把动作 a 交给眼下这一回合 */
+  function advance(s, a) {
+    var st = s.step, acts = st.acts.slice();
+    while (acts.length < st.t) acts.push(NaN);
+    acts[st.t] = a;
+    var nx = QL.humanStep(s.B, acts);
+    if (nx.done) finish(s, nx); else s.step = nx;
+  }
+  function finish(s, st) {
+    var r = recMake(s), refs = QL.humanRefsOn(s.kit, s.B, true), sc = {};
+    r.me.push(st.score); r.cur = null;
+    if (r.me.length > 5000) { r.me.shift(); r.base++; }   // 只留最近的 5000 局；局号照旧往下数
+    save();
+    refs.forEach(function (x) { sc[x.id] = x.score; }); s.refSC[s.k] = sc;
+    s.fin = { k: s.k, st: st, refs: refs, reveal: QL.humanDef(s.type).reveal(s.B) };
+    s.step = null; s.finAt = Date.now();
+  }
+  /** 你打过的那几局上，各条参照规则的得分（同样的局、同样的顺序） */
+  function cumul(s) {
+    var r = recOf(s), me = r ? r.me : [], base = r ? r.base : 0, by = {}, i;
+    s.kit.refs.forEach(function (x) { by[x.id] = []; });
+    for (i = 0; i < me.length; i++) {
+      var sc = s.refSC[base + i];
+      if (!sc) { sc = s.refSC[base + i] = {}; QL.humanRefsOn(s.kit, QL.humanEpisode(s.type, s.hp, s.seed, base + i), false).forEach(function (x) { sc[x.id] = x.score; }); }
+      s.kit.refs.forEach(function (x) { by[x.id].push(sc[x.id]); });
+    }
+    return { me: me, by: by };
+  }
+  /** 长期平均：在后台一条规则算一小段，不卡住界面（人打一局的工夫足够算完）。真等不及时 longNow 当场把剩下的算完 */
+  function longStart(s) {
+    if (s.long) return s.long;
+    var L = s.long = { done: false, N: QL.humanLongN(s.kit), by: {}, cbs: [], B: null, i: 0, ids: s.kit.refs.map(function (r) { return r.id; }) };
+    L.tick = function () {
+      if (L.done) return;
+      try { if (!L.B) L.B = QL.humanLongBatch(s.kit, L.N); else { L.by[L.ids[L.i]] = QL.humanLongRef(s.kit, L.B, L.ids[L.i]); L.i++; } } catch (e) { if (!L.B) L.i = L.ids.length; else L.i++; }
+      if (L.i >= L.ids.length) { L.done = true; L.B = null; L.cbs.splice(0).forEach(function (f) { try { f(); } catch (e) {} }); }
+    };
+    (function loop() { setTimeout(function () { L.tick(); if (!L.done) loop(); }, 25); })();
+    return L;
+  }
+  function longNow(s) { var L = longStart(s); while (!L.done) L.tick(); return L; }
+  /** 打完之后先和哪一条参照规则比：玩法事先指定的那条；没有指定的，挑长期平均最高的 */
+  function starOf(s) { return s.star || (s.star = s.kit.star || QL.humanStar(s.kit, longNow(s).by) || ""); }
+
+  /* ---------- 写法 ---------- */
+  function usd(v) { return A.gfmt({ kind: "usd", digits: Math.abs(v - Math.round(v)) < 1e-9 ? 0 : 2 }, v); }
+  function usd2(v) { return A.gfmt({ kind: "usd", digits: 2 }, v); }
+  function fix2(v) { return (Math.round(v * 100) / 100).toFixed(2); }
+  function cents(v) { return Math.floor(v * 100 + 1e-9) / 100; }
+  function zeros(n) { var a = []; for (var i = 0; i < n; i++) a.push(0); return a; }
+  function short(name) { return String(name).replace(/ \(.*$/, ""); }
+  function optName(type, key, val) {
+    var q = (QL.WORLDS[type].params || []).filter(function (x) { return x.key === key; })[0], o = q && q.options ? q.options.filter(function (x) { return x[0] === val; })[0] : null;
+    return o ? o[1] : String(val);
+  }
+  function actBtn(label, key, fn, primary, focus) {
+    return h("button", { class: "btn hp-act" + (primary ? " primary" : "") + (focus ? " hp-focus" : ""), type: "button", onclick: fn }, label, key ? h("kbd", { text: key }) : null);
+  }
+  function barX(T) { var x0 = [], x1 = [], xs = [], i; for (i = 0; i < T; i++) { x0.push(i + 0.58); x1.push(i + 1.42); xs.push(i + 1); } return { x0: x0, x1: x1, xs: xs }; }
+  function blank(T) { var a = []; for (var i = 0; i < T; i++) a.push(NaN); return a; }
+  function noTick() { return ""; }
+  /** 横轴上"第几回合"的刻度：只落在整数上 */
+  function intTicks(T, from) { var st = 1, out = [], i; [1, 2, 5, 10, 20, 25, 50, 100, 200, 500].some(function (v) { st = v; return T / v <= 12; }); for (i = from ? st : 0; i <= T; i += st) out.push(i); return out; }
+
+  /* ---------- 每套玩法：局面、按钮、图、打完之后揭晓什么 ----------
+   * c：{ hp, T, done, st, view, fin, star, starShort, starRun, mark, mem, act(a), run(first, more) }
+   *   st 是 human.js 的 humanStep 返回的东西；打完之后 fin.reveal 里才有裁判藏着的数据。 */
+  var UI = {};
+
+  /* ① 接单与冷却 */
+  function lockStats(st, n) { var tot = 0, cnt = 0; for (var i = 0; i < n; i++) if (st.m[i] === 1) { tot += st.views[i].x; cnt++; } return { tot: tot, cnt: cnt }; }
+  UI.g_lock = {
+    sizeLabel: function (hp) { return "" + hp.T + " rounds"; },
+    setup: function (hp) { return ["" + hp.T + " rounds", "Lock after accepting (rounds): " + (hp.L | 0), "Offers: " + QL.lockTheory(hp).dist.label + ", mean 1"]; },
+    tiles: function (c) { var n = c.done ? c.T : c.st.t, q = lockStats(c.st, n); return [["Round", (c.done ? c.T : n + 1) + " / " + c.T], ["Collected so far", F(q.tot, 2)], ["Offers accepted", String(q.cnt)]]; },
+    board: function (c) {
+      var t = c.st.t, T = c.T, L = c.hp.L | 0;
+      var sub = t === T - 1 ? "This is the last round." : L <= 0 ? "" : t + 1 + L >= T ? "If you accept, you stay locked for the rest of the episode (rounds left after this one: " + (T - t - 1) + ")." : L === 1 ? "If you accept, you cannot accept in the next round." : "If you accept, you cannot accept in rounds " + (t + 2) + " to " + (t + 1 + L) + ".";
+      return h("div", { class: "hp-board" },
+        h("div", { class: "hp-q", text: "Offer in round " + (t + 1) }),
+        h("div", { class: "hp-big num", text: F(c.view.x, 2) }),
+        h("div", { class: "hp-sub", text: sub }),
+        h("div", { class: "hp-acts" }, actBtn("Accept", "1", function () { c.act(1); }, true), actBtn("Pass", "0", function () { c.act(0); }, false, true)));
+    },
+    keys: function (c, key) { if (key === "1") { c.act(1); return true; } if (key === "0") { c.act(0); return true; } return false; },
+    log: function (c) {
+      if (!c.mark) return "";
+      var st = c.st, n = c.done ? c.T : st.t, j = c.mark.to, x = F(st.views[j].x, 2), missed = [], i;
+      if (st.m[j] !== 1) return "Round " + (j + 1) + ": offer " + x + ", you passed.";
+      for (i = j + 1; i < n; i++) missed.push(F(st.views[i].x, 2));
+      return missed.length ? "Round " + (j + 1) + ": you accepted " + x + ". Offers that came while you were locked: " + missed.join(", ") + "." : "Round " + (j + 1) + ": you accepted " + x + ".";
+    },
+    chart: function (c) {
+      var st = c.st, T = c.T, n = c.done ? T : st.t, bx = barX(T), seen = blank(T), mine = blank(T), now = blank(T), cx = [0], cy = [0], tot = 0, bands = [], run = -1, i;
+      for (i = 0; i < n; i++) { var x = st.views[i].x, tk = st.m[i] === 1; if (tk) { mine[i] = x; tot += x; } else seen[i] = x; cx.push(i + 1); cy.push(tot); }
+      if (!c.done) now[n] = c.view.x;
+      for (i = 0; i <= n; i++) { var lk = i < n && st.m[i] === 2; if (lk && run < 0) run = i; if (!lk && run >= 0) { bands.push({ kind: "vband", x0: run + 0.5, x1: i + 0.5, color: "s4", alpha: 0.14 }); run = -1; } }
+      var p1 = bands.concat([{ kind: "bars", x0: bx.x0, x1: bx.x1, y: seen, color: "neutral", name: "Offer" }, { kind: "bars", x0: bx.x0, x1: bx.x1, y: mine, color: "s1", name: "Accepted by you" }, { kind: "bars", x0: bx.x0, x1: bx.x1, y: now, color: "s1", alpha: 0.4, name: "Current offer" }]);
+      var legend = [{ name: "Offer", color: "neutral", mark: "rect" }, { name: "Accepted by you", color: "s1", mark: "rect" }, { name: "Rounds while locked", color: "s4", mark: "band" }];
+      var p2 = [{ kind: "step", x: cx, y: cy, color: "s1", name: "You", end: c.done ? "You" : null }], sr = c.starRun, rv = c.done ? c.fin.reveal : null;
+      if (sr && sr.m) {
+        var sx = [], sy = [], wx = [];
+        for (i = 0; i < T; i++) if (sr.m[i] === 1) { sx.push(i + 1); sy.push(rv.x[i]); }
+        for (i = 0; i <= T; i++) wx.push(i);
+        p1.push({ kind: "points", x: sx, y: sy, color: "s2", r: 3.5, name: "Accepted by \"" + c.starShort + "\"" }); legend.push({ name: "Accepted by \"" + c.starShort + "\"", color: "s2", mark: "dot" });
+        p2.unshift({ kind: "step", x: wx, y: sr.w, color: "s2", name: c.starShort, end: c.starShort });
+      }
+      return {
+        height: 300, x: { label: "Round", domain: [0, T + 0.5], ticks: intTicks(T) }, legend: legend,
+        panels: [{ weight: 1.25, y: { label: "Offer", zero: true }, layers: p1 }, { weight: 0.8, y: { label: "Cumulative payoff", zero: true }, layers: p2 }],
+        hover: { xs: bx.xs, bars: true, tip: function (k) {
+          if (k > n || (k === n && c.done)) return null;
+          var rows = [{ name: "Offer", color: "neutral", mark: "rect", value: F(k < n ? st.views[k].x : c.view.x, 2) }];
+          if (k < n) { rows.push({ name: st.m[k] === 1 ? "You accepted" : st.m[k] === 2 ? "You were locked" : "You passed", color: "s1", mark: "rect", value: st.m[k] === 1 ? "✓" : "—" }); rows.push({ name: "Cumulative payoff so far", color: "s1", value: F(cy[k + 1], 2) }); }
+          if (sr && sr.m) rows.push({ name: c.starShort, color: "s2", mark: "dot", value: sr.m[k] === 1 ? "✓" : "—" });
+          return { title: "Round " + (k + 1), rows: rows };
+        } }
+      };
+    },
+    hind: function (c) {
+      var st = c.fin.st, rv = c.fin.reveal, q = lockStats(st, c.T), sr = c.starRun, out = [], i;
+      out.push("Offers you accepted: " + q.cnt + ", for a total of " + F(q.tot, 2) + ". Knowing every offer in advance, the most you could have taken is " + F(rv.prophetTotal, 2) + " (by accepting " + rv.prophet.length + ").");
+      if (sr && sr.m) { var n2 = 0, t2 = 0; for (i = 0; i < c.T; i++) if (sr.m[i] === 1) { n2++; t2 += rv.x[i]; } out.push("\"" + c.star.name + "\" accepted " + n2 + ", for a total of " + F(t2, 2) + "."); }
+      return out;
+    }
+  };
+
+  /* ② 秘书问题 */
+  UI.g_sec = {
+    sizeLabel: function (hp) { return "" + hp.n + " candidates"; },
+    setup: function (hp) { return ["" + hp.n + " candidates, pick only one", "Objective: " + optName("g_sec", "goal", hp.goal), "You see: " + optName("g_sec", "info", hp.info)]; },
+    tiles: function (c) {
+      if (c.done) { var pick = c.st.m.indexOf(1); return [["You picked", "Candidate " + (pick + 1)], ["Overall rank", c.fin.reveal.abs[pick] + " / " + c.T]]; }
+      return [["Candidate", (c.st.t + 1) + " / " + c.T], ["Still to come", String(c.view.left)]];
+    },
+    board: function (c) {
+      var v = c.view, t = c.st.t, full = c.hp.info === "full";
+      return h("div", { class: "hp-board" },
+        h("div", { class: "hp-q", text: "Candidate " + (t + 1) + " of " + c.T }),
+        h("div", { class: "hp-big" }, h("span", { class: "num", text: "Rank " + v.rank }), v.rank === 1 && t > 0 ? h("span", { class: "hp-badge", text: "Best so far" }) : null),
+        h("div", { class: "hp-sub", text: t === 0 ? "This is the first candidate to arrive; there is no one to compare with yet." : "This is the candidate's rank among the " + (t + 1) + " seen so far; rank 1 is the best so far." }),
+        full ? h("div", { class: "hp-sub" }, "Score: ", h("b", { class: "num", text: F(v.x, 3) }), " (scores are independent and uniform between 0 and 1)") : null,
+        h("div", { class: "hp-acts" },
+          actBtn("Take this one", "1", function () { c.act(1); }, true), actBtn("Pass", "0", function () { c.act(0); }, false, true),
+          actBtn("Pass until a best-so-far appears", "2", function () { UI.g_sec.skip(c); })));
+    },
+    /** 放过眼前这一位，之后凡不是"目前最好"的也都放过 */
+    skip: function (c) { c.run(0, function (st) { return st.view.rank === 1 ? null : 0; }); },
+    keys: function (c, key) { if (key === "1") { c.act(1); return true; } if (key === "0") { c.act(0); return true; } if (key === "2") { UI.g_sec.skip(c); return true; } return false; },
+    log: function (c) {
+      if (!c.mark || c.done) return "";
+      var a = c.mark.from, b = c.mark.to;
+      return a === b ? "Candidate " + (a + 1) + " ranked " + c.st.views[a].rank + "; you passed." : "You passed candidates " + (a + 1) + " to " + (b + 1) + ".";
+    },
+    chart: function (c) {
+      var st = c.st, T = c.T, full = c.hp.info === "full", bx = barX(T), hgt = blank(T), i, layers, legend, rv = c.done ? c.fin.reveal : null, pick = c.done ? st.m.indexOf(1) : -1, m = c.done ? T : st.t + 1;
+      if (rv) for (i = 0; i < T; i++) hgt[i] = full ? rv.x[i] : (T - rv.abs[i] + 1) / T;
+      else if (full) for (i = 0; i < m; i++) hgt[i] = st.views[i].x;
+      else { var order = []; for (i = 0; i < m; i++) order.splice(st.views[i].rank - 1, 0, i); for (i = 0; i < m; i++) hgt[order[i]] = (m - i) / m; }   // 到场时的相对名次足以排出见过的人之间的先后
+      function only(f) { return hgt.map(function (v, k) { return f(k) ? v : NaN; }); }
+      if (!c.done) {
+        layers = [{ kind: "bars", x0: bx.x0, x1: bx.x1, y: only(function (k) { return k < st.t; }), color: "neutral", name: "Passed by you" }, { kind: "bars", x0: bx.x0, x1: bx.x1, y: only(function (k) { return k === st.t; }), color: "s1", name: "Current candidate" }];
+        legend = [{ name: "Passed by you", color: "neutral", mark: "rect" }, { name: "Current candidate", color: "s1", mark: "rect" }];
+      } else {
+        layers = [{ kind: "bars", x0: bx.x0, x1: bx.x1, y: only(function (k) { return k < pick && k !== rv.best; }), color: "neutral", name: "Passed by you" },
+          { kind: "bars", x0: bx.x0, x1: bx.x1, y: only(function (k) { return k > pick && k !== rv.best; }), color: "neutral", alpha: 0.4, name: "Arrived after you chose" },
+          { kind: "bars", x0: bx.x0, x1: bx.x1, y: only(function (k) { return k === rv.best && k !== pick; }), color: "s3", name: "Best overall" },
+          { kind: "bars", x0: bx.x0, x1: bx.x1, y: only(function (k) { return k === pick; }), color: "s1", name: "Your pick" }];
+        legend = [{ name: "Your pick", color: "s1", mark: "rect" }];
+        if (rv.best !== pick) legend.push({ name: "Best overall", color: "s3", mark: "rect" });
+        if (pick > 0) legend.push({ name: "Passed by you", color: "neutral", mark: "rect" });
+        if (pick < T - 1) legend.push({ name: "Arrived after you chose", color: "neutral", mark: "band" });
+        var sp = c.starRun && c.starRun.m ? c.starRun.m.indexOf(1) : -1;
+        if (sp >= 0) { layers.push({ kind: "points", x: [sp + 1], y: [hgt[sp]], color: "s2", r: 4.5, name: "Pick of \"" + c.starShort + "\"" }); legend.push({ name: "Pick of \"" + c.starShort + "\"", color: "s2", mark: "dot" }); }
+      }
+      return {
+        height: 230, x: { label: "Order of arrival", domain: [0.5, T + 0.5], ticks: intTicks(T, 1) }, legend: legend,
+        panels: [{ y: full ? { label: "Score", domain: [0, 1.06] } : { label: c.done ? "Standing among all candidates (higher is better)" : "Standing among those seen so far (higher is better)", domain: [0, 1.1], fmt: noTick }, layers: layers }],
+        hover: { xs: bx.xs, bars: true, tip: function (k) {
+          if (k >= m) return null;
+          var rows = [];
+          if (rv) rows.push({ name: "Overall rank", value: String(rv.abs[k]) });
+          rows.push({ name: "Rank on arrival among those seen", value: String(rv ? rv.rel[k] : st.views[k].rank) });
+          if (full) rows.push({ name: "Score", value: F(rv ? rv.x[k] : st.views[k].x, 3) });
+          return { title: "Candidate " + (k + 1), rows: rows };
+        } }
+      };
+    },
+    hind: function (c) {
+      var st = c.fin.st, rv = c.fin.reveal, T = c.T, pick = st.m.indexOf(1), ar = rv.abs[pick], out = [], sp = c.starRun && c.starRun.m ? c.starRun.m.indexOf(1) : -1;
+      if (c.hp.goal === "rank") out.push("You picked candidate " + (pick + 1) + ", who ranks " + ar + " among all " + T + ".");
+      else if (ar === 1) out.push("You picked the best candidate overall (candidate " + (pick + 1) + ").");
+      else if (rv.best < pick) out.push("You picked candidate " + (pick + 1) + ", who ranks " + ar + " overall. The best overall was candidate " + (rv.best + 1) + ", whom you had already passed.");
+      else out.push("You picked candidate " + (pick + 1) + ", who ranks " + ar + " overall. The best overall was candidate " + (rv.best + 1) + ", who arrived after you had chosen.");
+      if (pick === T - 1) out.push("You passed everyone up to the last candidate and had to take that one.");
+      if (sp >= 0) out.push("\"" + c.star.name + "\" picked candidate " + (sp + 1) + ", rank " + rv.abs[sp] + " overall.");
+      return out;
+    }
+  };
+
+  /* ③ 偏硬币下注 */
+  UI.g_coin = {
+    sizeLabel: function (hp) { return "" + hp.T + " flips"; },
+    setup: function (hp) { return ["Probability of heads: " + P(+hp.p, 0), "Starting bankroll: " + usd(+hp.start), "" + hp.T + " flips in total", +hp.cap > 0 ? "Maximum payout: " + usd(+hp.cap) : "No cap", "A correct call wins the amount staked; a wrong call loses it"]; },
+    tiles: function (c) {
+      var cap = +c.hp.cap, out = [["Bankroll", usd2(c.done ? c.st.score : c.view.wealth)], ["Flips left", String(c.done ? 0 : c.T - c.st.t)]];
+      if (cap > 0) out.push(["Cap", usd(cap)]);
+      return out;
+    },
+    board: function (c) {
+      var hd = QL.humanDef("g_coin"), W = c.view.wealth, t = c.st.t, mem = c.mem;
+      if (!mem.mode) { mem.mode = "frac"; mem.f = 0.1; mem.amt = 0; }
+      // 默认的注码：上一次是点的"百分之几"，这一次照同样的比例；上一次是自己填的金额，这一次还是那个金额
+      var def = mem.mode === "all" ? W : mem.mode === "frac" ? cents(W * mem.f) : Math.min(mem.amt, W);
+      var inp = h("input", { type: "number", id: "hpStake", class: "hp-stake hp-focus", min: 0, max: fix2(W), step: 0.01, value: fix2(def), inputmode: "decimal", "aria-label": "Stake in dollars" });
+      var pct = h("span", { class: "hp-pct" });
+      function cur() { var x = parseFloat(inp.value); return x === x && x > 0 ? Math.min(x, W) : 0; }
+      function showPct() { pct.textContent = "= " + P(cur() / W, 1) + " of your bankroll"; }
+      function chip(label, f) {
+        return h("button", { class: "chip", type: "button", text: label, onclick: function () { mem.mode = f >= 1 ? "all" : "frac"; mem.f = f; inp.value = fix2(f >= 1 ? W : cents(W * f)); showPct(); inp.focus(); inp.select(); } });
+      }
+      function bet(side) {
+        var x = cur();
+        if (side !== 0 && !(x > 0)) { pct.textContent = "Enter a number greater than 0, or click \"Skip this flip\"."; inp.focus(); return; }
+        if (mem.mode === "amt") mem.amt = x;
+        c.act(side === 0 ? 0 : mem.mode === "all" ? side : hd.frac(W, x, side));
+      }
+      inp.addEventListener("input", function () { mem.mode = "amt"; showPct(); });
+      inp.addEventListener("keydown", function (e) { if (e.key === "Enter" && !e.isComposing && e.keyCode !== 229) { e.preventDefault(); e.stopPropagation(); if (!e.repeat) bet(1); } });
+      showPct();
+      return h("div", { class: "hp-board" },
+        h("div", { class: "hp-q", text: "Flip " + (t + 1) + ": how much do you stake?" }),
+        h("div", { class: "hp-bet" }, h("span", { class: "hp-cur", text: "$" }), inp, pct),
+        h("div", { class: "hp-chips" }, chip("5%", 0.05), chip("10%", 0.1), chip("20%", 0.2), chip("50%", 0.5), chip("All in", 1)),
+        h("div", { class: "hp-acts" }, actBtn("Bet heads", "↵", function () { bet(1); }, true), actBtn("Bet tails", "", function () { bet(-1); }), actBtn("Skip this flip", "", function () { bet(0); })),
+        h("div", { class: "hp-sub", text: "If you skip, the coin is still flipped and you still use up one of your flips." }));
+    },
+    log: function (c) {
+      if (!c.mark) return "";
+      var st = c.st, j = c.mark.to, Wb = st.views[j].wealth, Wa = c.done ? st.score : c.view.wealth, r = c.done ? c.fin.reveal.flips[j] : c.view.prev, pnl = Wa - Wb, side = r > 0 ? "heads" : "tails";
+      var stake = c.done ? Math.min(1, Math.abs(st.acts[j])) * Wb : Math.abs(c.view.last);   // 打完那一下没有"下一回合"可看：用交上去的比例乘回去（st.acts 是原数；裁判明细里的 st.a 是单精度的，乘回去会差一丝）
+      if (!(stake >= 0.01)) return "Flip " + (j + 1) + " came up " + side + ". You did not bet this time.";
+      return pnl > 0 ? "Flip " + (j + 1) + " came up " + side + ": your " + usd2(stake) + " bet won, and your bankroll is now " + usd2(Wa) + "." : "Flip " + (j + 1) + " came up " + side + ": your " + usd2(stake) + " bet lost, and your bankroll is now " + usd2(Wa) + ".";
+    },
+    chart: function (c) {
+      var st = c.st, T = c.T, cap = +c.hp.cap, J = st.views.length, bx = barX(T), wx = [], wy = [], win = blank(T), lose = blank(T), none = blank(T), i, rv = c.done ? c.fin.reveal : null, nres = c.done ? T : st.t;
+      for (i = 0; i < J; i++) { wx.push(i); wy.push(st.views[i].wealth); }            // views[i].wealth：第 i 次下注之前的资金
+      if (c.done) { wx.push(J); wy.push(st.score); if (J < T) { wx.push(T); wy.push(st.score); } }
+      for (i = 0; i < nres; i++) {
+        var r = rv ? rv.flips[i] : st.views[i + 1].prev, pnl = i + 1 < J ? st.views[i + 1].last : i === J - 1 && c.done ? st.score - st.views[i].wealth : 0, bet0 = i < J && Math.abs(c.done && i === J - 1 ? Math.min(1, Math.abs(st.acts[i])) * st.views[i].wealth : pnl) >= 0.01;
+        (bet0 ? (pnl > 0 ? win : lose) : none)[i] = r > 0 ? 1 : -1;
+      }
+      var p1 = [], legend = [{ name: "Your bankroll", color: "s1" }], sr = c.starRun;
+      if (cap > 0) { p1.push({ kind: "hline", y: cap, color: "axis", dash: [4, 3] }); legend.push({ name: "Cap " + usd(cap), color: "axis", mark: "dash" }); }
+      if (sr && sr.w) { var sx = []; for (i = 0; i <= T; i++) sx.push(i); p1.push({ kind: "line", x: sx, y: sr.w, color: "s2", name: c.starShort, end: c.starShort }); legend.push({ name: c.starShort, color: "s2" }); }
+      p1.push({ kind: "line", x: wx, y: wy, color: "s1", name: "Your bankroll", end: c.done ? "You" : null });
+      legend.push({ name: "Won", color: "s1", mark: "rect" }, { name: "Lost", color: "ink2", mark: "rect" }, { name: "No bet", color: "neutral", mark: "rect" });
+      return {
+        height: 300, x: { label: "Flip number", domain: [0, T + 0.5], ticks: intTicks(T) }, legend: legend,
+        panels: [{ weight: 1.5, y: { label: "Bankroll (dollars)", zero: true }, layers: p1 },
+          { weight: 0.5, y: { label: "Coin: up is heads, down is tails", domain: [-1.5, 1.5], fmt: noTick }, layers: [{ kind: "bars", x0: bx.x0, x1: bx.x1, y: none, color: "neutral", name: "No bet" }, { kind: "bars", x0: bx.x0, x1: bx.x1, y: lose, color: "ink2", name: "Lost" }, { kind: "bars", x0: bx.x0, x1: bx.x1, y: win, color: "s1", name: "Won" }] }],
+        hover: { xs: bx.xs, bars: true, tip: function (k) {
+          if (k >= nres) return null;
+          var up = (win[k] || lose[k] || none[k]) > 0, after = k + 1 < J ? st.views[k + 1].wealth : c.done ? st.score : NaN;
+          var rows = [{ name: up ? "Heads" : "Tails", value: win[k] === win[k] ? "Won" : lose[k] === lose[k] ? "Lost" : "No bet" }];
+          if (after === after) rows.push({ name: "Your bankroll after this flip", color: "s1", value: usd2(after) });
+          if (sr && sr.w) rows.push({ name: c.starShort, color: "s2", value: usd2(sr.w[k + 1]) });
+          return { title: "Flip " + (k + 1), rows: rows };
+        } }
+      };
+    },
+    hind: function (c) {
+      var st = c.fin.st, rv = c.fin.reveal, T = c.T, J = st.views.length, cap = +c.hp.cap, W = st.score, out = [];
+      out.push("Of the " + T + " flips in this episode, " + rv.heads + " came up heads.");
+      if (W <= 0) out.push("You went broke on flip " + J + ".");
+      else if (cap > 0 && W >= cap) out.push("You reached the cap on flip " + J + " and took home " + usd2(W) + ".");
+      else out.push("You played all " + T + " flips and took home " + usd2(W) + ".");
+      if (c.starRun) out.push("\"" + c.star.name + "\" took home " + usd2(c.starRun.score) + ".");
+      return out;
+    }
+  };
+
+  /* ⑤ 多臂老虎机 */
+  UI.g_bandit = {
+    sizeLabel: function (hp) { return "" + hp.T + " rounds"; },
+    setup: function (hp) {
+      var a = ["" + (hp.arms | 0) + " arms", "" + hp.T + " pulls in total; a win scores 1 point", "Win probabilities: " + optName("g_bandit", "prior", hp.prior)];
+      if ((hp.D | 0) > 0) a.push("Lock after a pull (rounds): " + (hp.D | 0));
+      return a;
+    },
+    tiles: function (c) { var n = c.done ? c.T : c.st.t, tot = c.st.w[n]; return [["Round", (c.done ? c.T : n + 1) + " / " + c.T], ["Score", String(tot)], ["Average per round", n ? F(tot / n, 3) : "—"]]; },
+    board: function (c) {
+      var v = c.view, K = v.pulls.length, t = c.st.t, grid = h("div", { class: "hp-arms" }), foc = -1, k0;
+      // 焦点留在刚拉过的那一台上（连着按回车就是接着拉它）；它被锁住了，或者这是第一回合，就给第一台能拉的
+      if (t > 0 && v.lastA >= 0 && v.lastA < K && !(v.lock[v.lastA] > 0)) foc = v.lastA;
+      for (k0 = 0; foc < 0 && k0 < K; k0++) if (!(v.lock[k0] > 0)) foc = k0;
+      for (var k = 0; k < K; k++) (function (k) {
+        var n = v.pulls[k], w = v.wins[k], lk = v.lock[k] > 0, here = t > 0 && v.lastA === k && c.st.m[t - 1] !== 2;
+        grid.appendChild(h("button", { class: "hp-arm" + (here ? (v.last > 0 ? " hit" : " miss") : "") + (k === foc ? " hp-focus" : ""), type: "button", disabled: lk, "data-k": k, onclick: function () { c.act(k); } },
+          h("span", { class: "hp-arm-n" }, "Arm " + (k + 1), K <= 9 ? h("kbd", { text: String(k + 1) }) : null),
+          h("span", { class: "hp-arm-r num", text: n ? P(w / n, 0) : "—" }),
+          h("span", { class: "hp-arm-bar" }, h("i", { style: { width: (n ? 100 * w / n : 0) + "%" } })),
+          h("span", { class: "hp-arm-s", text: lk ? "Locked; rounds to wait: " + v.lock[k] : "Pulls: " + n + " · wins: " + w }),
+          h("span", { class: "hp-arm-f", text: here ? (v.last > 0 ? "✓ Won just now" : "✗ No win just now") : "\u00a0" })));
+      })(k);
+      return h("div", { class: "hp-board" }, h("div", { class: "hp-q", text: "Round " + (t + 1) + ": which arm do you pull?" }), grid);
+    },
+    keys: function (c, key) {
+      var k = "123456789".indexOf(key), v = c.view;
+      if (key.length !== 1 || k < 0 || k >= v.pulls.length || v.pulls.length > 9 || v.lock[k] > 0) return false;
+      c.act(k); return true;
+    },
+    log: function (c) {
+      if (!c.mark) return "";
+      var st = c.st, j = c.mark.to, arm = st.a[j] + 1;
+      if (st.m[j] === 2) return "Round " + (j + 1) + ": every arm is locked, so the round is wasted.";
+      return st.w[j + 1] > st.w[j] ? "Round " + (j + 1) + ": you pulled arm " + arm + " and won." : "Round " + (j + 1) + ": you pulled arm " + arm + "; no win.";
+    },
+    chart: function (c) {
+      var st = c.st, T = c.T, n = c.done ? T : st.t, K = c.hp.arms | 0, hx = [], hy = [], mx = [], my = [], cx = [0], cy = [0], bands = [], xs = [], i, rv = c.done ? c.fin.reveal : null, sr = c.starRun;
+      for (i = 0; i < T; i++) xs.push(i + 1);
+      for (i = 0; i < n; i++) {
+        if (st.m[i] === 2) bands.push({ kind: "vband", x0: i + 0.5, x1: i + 1.5, color: "s4", alpha: 0.14 });
+        else if (st.w[i + 1] > st.w[i]) { hx.push(i + 1); hy.push(st.a[i] + 1); } else { mx.push(i + 1); my.push(st.a[i] + 1); }
+        cx.push(i + 1); cy.push(st.w[i + 1]);
+      }
+      var p1 = bands.slice(), legend = [{ name: "Win", color: "s1", mark: "dot" }, { name: "No win", color: "neutral", mark: "dot" }];
+      if (rv) { p1.push({ kind: "hline", y: rv.best + 1, color: "s3", dash: [4, 3] }); legend.push({ name: "Best arm", color: "s3", mark: "dash" }); }
+      p1.push({ kind: "points", x: mx, y: my, color: "neutral", r: 3, ring: false, name: "No win" }, { kind: "points", x: hx, y: hy, color: "s1", r: 3.5, ring: false, name: "Win" });
+      var p2 = [{ kind: "step", x: cx, y: cy, color: "s1", name: "You", end: c.done ? "You" : null }];
+      if (sr && sr.w) { var wx = []; for (i = 0; i <= T; i++) wx.push(i); p2.unshift({ kind: "step", x: wx, y: sr.w, color: "s2", name: c.starShort, end: c.starShort }); legend.push({ name: "Your cumulative score", color: "s1" }, { name: c.starShort, color: "s2" }); }
+      return {
+        height: 300, x: { label: "Round", domain: [0, T + 0.5], ticks: intTicks(T) }, legend: legend,
+        panels: [{ weight: 1, y: { label: "Arm pulled", domain: [0.4, K + 0.6] }, layers: p1 }, { weight: 0.9, y: { label: "Cumulative score", zero: true }, layers: p2 }],
+        hover: { xs: xs, dots: function (k) { return k < n ? [{ y: cy[k + 1], color: "s1", panel: 1 }] : []; }, tip: function (k) {
+          if (k >= n) return null;
+          var rows = [st.m[k] === 2 ? { name: "Round wasted", value: "—" } : { name: st.w[k + 1] > st.w[k] ? "Win" : "No win", color: st.w[k + 1] > st.w[k] ? "s1" : "neutral", mark: "dot", value: "Arm " + (st.a[k] + 1) }];
+          rows.push({ name: "Cumulative score so far", color: "s1", value: String(cy[k + 1]) });
+          if (sr && sr.w) rows.push({ name: c.starShort, color: "s2", value: String(sr.w[k + 1]) });
+          return { title: "Round " + (k + 1), rows: rows };
+        } }
+      };
+    },
+    hind: function (c) {
+      var st = c.fin.st, rv = c.fin.reveal, T = c.T, K = rv.mu.length, pulls = zeros(K), wins = zeros(K), sr = c.starRun, i, k, out = [];
+      for (i = 0; i < T; i++) { if (st.m[i] === 2) continue; k = st.a[i]; pulls[k]++; if (st.w[i + 1] > st.w[i]) wins[k]++; }
+      out.push("The best arm was arm " + (rv.best + 1) + ", with a true win probability of " + P(rv.mu[rv.best], 0) + ". Your pulls of it: " + pulls[rv.best] + ", which is " + P(pulls[rv.best] / T, 0) + " of all rounds.");
+      if (sr && sr.a) { var n2 = 0; for (i = 0; i < T; i++) if (sr.m[i] !== 2 && sr.a[i] === rv.best) n2++; out.push("Pulls of it by \"" + c.star.name + "\": " + n2 + "."); }
+      var tb = h("tbody");
+      for (k = 0; k < K; k++) tb.appendChild(h("tr", { "data-arm": k }, h("td", { text: k === rv.best ? "Arm " + (k + 1) + " (best)" : "Arm " + (k + 1) }), h("td", { class: "num", text: P(rv.mu[k], 0) }), h("td", { class: "num", text: String(pulls[k]) }), h("td", { class: "num", text: pulls[k] ? P(wins[k] / pulls[k], 0) : "—" })));
+      out.push(h("div", { class: "gref hp-reveal" }, h("table", { class: "gtab" }, h("caption", { text: "Revealed only after the episode: the arms' true win probabilities" }), h("thead", null, h("tr", null, ["Arm", "True win probability", "Your pulls", "Win rate you observed"].map(function (x) { return h("th", { text: x }); }))), tb)));
+      return out;
+    }
+  };
+
+  /* ---------- 弹层 ---------- */
+  A.openHuman = function () {
+    var type = S.world.type, w = A.wdef();
+    if (!A.humanOk(type)) { A.toast("This game cannot be played by hand yet. The ones that can: " + QL.humanGames().map(function (k) { return QL.WORLDS[k].short; }).join(", ") + ".", 4600); return; }
+    var ui = UI[type], seed = S.world.seed, sizes = QL.humanSizes(type, Object.assign({}, A.wp())), sizeId = store.size[type], s = null, chart = null, alive = true;
+    if (!sizes.some(function (z) { return z.id === sizeId; })) sizeId = "m";
+    var top = h("div", { class: "hp-top" }), setup = h("ul", { class: "hp-setup" }), tiles = h("div", { class: "hp-tiles" }), main = h("div", { class: "hp-main" }), logEl = h("div", { class: "hp-log", "aria-live": "polite" }),
+      chartHost = h("div", { class: "hp-chart" }), after = h("div", { class: "hp-after" });
+    var m = A.modal("Play it yourself · " + w.name, h("div", { class: "hp", "data-game": type }, top, setup, tiles, main, logEl, chartHost, after), { cls: "hpm", focus: ".hp-focus", onClose: function () { alive = false; if (chart) chart.destroy(); } });
+
+    function G() { return s.kit.score; }
+    function fm(v) { return A.gfmt(G(), v); }
+    /** 一局的得分。"赢了算 1、没赢算 0"的那种得分，一局里只有这两个值：写成 ✓ / ✗ */
+    function fm1(v) { var g = G(); if (g.kind === "prob" && (v === 0 || v === 1)) return v ? "✓" : "✗"; return fm(v); }
+    function ctx() {
+      var fin = s.fin, st = fin ? fin.st : s.step, sid = fin ? starOf(s) : "", sr = sid ? s.kit.refs.filter(function (r) { return r.id === sid; })[0] || null : null;
+      return {
+        hp: s.hp, T: s.kit.T, done: !!fin, fin: fin, st: st, view: fin ? null : st.view, mark: s.mark, mem: s.mem,
+        star: sr, starShort: sr ? short(sr.name) : "", starRun: fin && sr ? fin.refs.filter(function (r) { return r.id === sr.id && !r.err; })[0] || null : null,
+        act: function (a) { run(a, null); }, run: run
+      };
+    }
+    /** 交上一个动作；more(step) 接着给出后面的动作，返回 null 就停（"一直放过，直到……"用的） */
+    function run(first, more) {
+      if (!s.step || s.fin) return;
+      var from = s.step.t, to = from, a = first;
+      for (var g = 0; g <= s.kit.T && a != null; g++) { to = s.step.t; advance(s, a); a = more && s.step ? more(s.step) : null; }
+      s.mark = { from: from, to: to };
+      if (!s.fin) { var r = recMake(s); r.cur = s.step.acts.slice(); save(); }
+      render();
+    }
+    function setSize(id) {
+      var z = sizes.filter(function (x) { return x.id === id; })[0] || sizes[0];
+      sizeId = z.id; store.size[type] = z.id; save();
+      s = sess(type, z.hp, seed);
+      if (!s.step && !s.fin) begin(s);
+      render();
+      var mine = s, L = longStart(s);
+      if (!L.done) L.cbs.push(function () { if (alive && s === mine && s.fin) renderAfter(); });
+    }
+    function next() {
+      if (Date.now() - s.finAt < 600) return;   // 刚打完的一瞬间不接：连按回车下注的人，不会一头撞过这一局的结果
+      s.fin = null; begin(s); render();
+    }
+    function wipe() {
+      var r = recOf(s); if (!r) return;
+      r.base += r.me.length; r.me = []; r.cur = null; r.at = Date.now(); save();
+      s.fin = null; begin(s); render(); A.toast("The record for these settings has been cleared. From here on you play new episodes you have not seen.", 3600);
+    }
+
+    function renderTop() {
+      clear(top);
+      var seg = h("div", { class: "seg hp-sizes", role: "group", "aria-label": "Episode length" }), me = played(s);
+      sizes.forEach(function (z) {
+        seg.appendChild(h("button", { type: "button", "data-size": z.id, "aria-pressed": z.id === sizeId ? "true" : "false", text: z.id === "same" ? "Same as the left column (" + ui.sizeLabel(z.hp) + ")" : ui.sizeLabel(z.hp), onclick: function () { if (z.id !== sizeId) setSize(z.id); } }));
+      });
+      top.appendChild(seg);
+      top.appendChild(h("span", { class: "hp-ep", text: "Episode " + (me.length + (s.fin ? 0 : 1)) }));
+      top.appendChild(h("span", { class: "sp" }));
+      if (me.length) top.appendChild(h("span", { class: "hp-tally", text: "Played " + me.length + A.n1(me.length, " episode, average ", " episodes, average ") + fm(QL.humanMeanSe(me).m) }));
+      if (A.openGuide) top.appendChild(A.helpBtn("game:" + type, "This game's rulebook, background, and known results"));
+    }
+    function verdict(c) {
+      var fin = s.fin, me = fin.st.score, g = G(), sr = c.starRun, d = sr ? me - sr.score : NaN, gap = null;
+      if (sr) {
+        if (g.kind === "prob" && (me === 0 || me === 1) && (sr.score === 0 || sr.score === 1)) gap = h("span", { class: "verdict " + (d > 0 ? "up" : d < 0 ? "down" : "flat"), text: d > 0 ? "▲ You won, it did not" : d < 0 ? "▼ It won, you did not" : me ? "= Both won" : "= Neither won" });
+        else { var ds = A.gdiff(g, d); gap = h("span", { class: "verdict " + (ds.charAt(0) === "+" ? "up" : ds.charAt(0) === "−" ? "down" : "flat"), text: ds.charAt(0) === "+" ? "▲ You are " + ds.slice(1) + " higher in this episode" : ds.charAt(0) === "−" ? "▼ You are " + ds.slice(1) + " lower in this episode" : "≈ Almost the same in this episode" }); }
+      }
+      var box = h("div", { class: "hp-board hp-verdict" },
+        h("div", { class: "hp-q", text: "Episode finished · Score: " + g.name }),
+        h("div", { class: "hp-vs" },
+          h("div", { class: "hp-side me" }, h("span", { class: "hp-lab", text: "You" }), h("b", { class: "hp-num num", id: "hpMe", text: fm1(me) })),
+          sr ? h("div", { class: "hp-side" }, h("span", { class: "hp-lab", text: "" + c.star.name + " · same episode" }), h("b", { class: "hp-num num", id: "hpStar", text: fm1(sr.score) })) : null),
+        gap ? h("div", { class: "hp-gap" }, gap) : null);
+      if (sr) {
+        var why = s.kit.starWhy === "opt" ? "Compared first with \"" + c.star.name + "\": under these settings it is, in theory, the best of these reference rules."
+          : s.kit.starWhy === "growth" ? "Compared first with \"" + c.star.name + "\". Without a cap, the play with the highest expected payout is to bet everything every time, but that almost surely ends broke; the Kelly fraction maximizes the long-run growth rate of the bankroll."
+            : "Compared first with \"" + c.star.name + "\": under these settings it has the highest long-run average of these reference rules.";
+        box.appendChild(h("div", { class: "note hp-why", text: why }));
+      }
+      var hind = h("div", { class: "hp-hind" });
+      ui.hind(c).forEach(function (x) { hind.appendChild(typeof x === "string" ? h("p", { text: x }) : x); });
+      box.appendChild(hind);
+      box.appendChild(h("div", { class: "hp-acts" }, h("button", { class: "btn primary hp-act hp-focus", type: "button", id: "hpNext", onclick: next }, "Next episode", h("kbd", { text: "↵" }))));
+      return box;
+    }
+    function renderAfter() {
+      clear(after); if (!s.fin) return;
+      var fin = s.fin, g = G(), cu = cumul(s), n = cu.me.length, L = s.long && s.long.done ? s.long : null, K = A.KIND || {}, tb = h("tbody"), my = QL.humanMeanSe(cu.me), sid = starOf(s);
+      function row(attr, name, one, avg, lr) { var tr = h("tr", attr, h("td", null, name), h("td", { class: "num", text: one })); if (n > 1) tr.appendChild(h("td", { class: "num", text: avg })); tr.appendChild(h("td", { class: "num", text: lr })); tb.appendChild(tr); }
+      row({ "data-who": "me", class: "me" }, h("b", { text: "You" }), fm1(fin.st.score), fm(my.m), "—");
+      s.kit.refs.forEach(function (r) {
+        var x = fin.refs.filter(function (q) { return q.id === r.id; })[0], lr = L ? L.by[r.id] : null;
+        row({ "data-ref": r.id, class: r.id === sid ? "star" : null }, [h("span", { class: "tag", text: r.bench ? "Benchmark" : K[r.kind] || "Reference" }), " ", r.name], x && !x.err ? fm1(x.score) : "Error", r.err ? "Error" : fm(QL.humanMeanSe(cu.by[r.id]).m), r.err ? "Error" : lr ? fm(lr.m) : "…");
+      });
+      s.kit.marks.forEach(function (mk) { row({ "data-mark": mk.id }, [h("span", { class: "tag", text: K[mk.kind] || "Theory" }), " ", mk.name], "—", "—", fm(mk.value)); });
+      var head = [h("th", { text: "Compared with" }), h("th", { text: "This episode" })];
+      if (n > 1) head.push(h("th", { text: "Average over these " + n + " episodes" }));
+      head.push(h("th", { text: "Long-run average" }));
+      after.appendChild(h("div", { class: "gref" }, h("table", { class: "gtab hp-tab" },
+        h("caption", { text: "Each reference rule plays the same episodes. \"Long-run average\" is computed on " + (s.long ? s.long.N : QL.humanLongN(s.kit)) + " separately generated episodes" + (L ? "." : "; computing…") }),
+        h("thead", null, h("tr", null, head)), tb)));
+      // 累计：和先比的那条规则在同样几局上的配对差
+      var sr = s.kit.refs.filter(function (r) { return r.id === sid; })[0], note;
+      if (sr && !sr.err && n > 1) {
+        var ref = cu.by[sr.id], diff = cu.me.map(function (v, i) { return v - ref[i]; }), dm = QL.humanMeanSe(diff), z = dm.se > 0 ? dm.m / dm.se : 0, ds = A.gdiff(g, dm.m), ss = dm.se > 0 ? A.gdiff(g, dm.se).slice(1) : "";
+        var head2 = "After " + n + " episodes: your average is " + fm(my.m) + ", and \"" + sr.name + "\" averages " + fm(QL.humanMeanSe(ref).m) + " on the same " + n + " episodes.";
+        var mid = ds.charAt(0) === "+" ? "You are ahead by " + ds.slice(1) + (ss ? " ± " + ss : "") + "." : ds.charAt(0) === "−" ? "You are behind by " + ds.slice(1) + (ss ? " ± " + ss : "") + "." : "You and it are almost level.";
+        var tail = !(dm.se > 0) ? "" : z > 2 ? "The gap exceeds 2 standard errors: so far, you have played better than it." : z < -2 ? "The gap exceeds 2 standard errors: so far, it has played better than you." : "The gap is under 2 standard errors: no telling yet who is better; luck outweighs the difference in play.";
+        note = h("p", { class: "hp-cum", id: "hpCum" }, head2, " ", h("b", { class: "verdict " + (z > 2 ? "up" : z < -2 ? "down" : "flat"), text: mid }), " ", tail);
+      } else note = h("p", { class: "hp-cum", id: "hpCum", text: "A single episode is mostly luck. Play a few more and this line will give the average difference between you and \"" + (sr ? sr.name : "") + "\" on the same episodes, with its standard error." });
+      after.appendChild(note);
+      after.appendChild(h("div", { class: "row tight hp-foot" },
+        h("button", { class: "btn small", type: "button", id: "hpWipe", text: "Clear the record for these settings", onclick: wipe }),
+        h("button", { class: "btn small", type: "button", text: "This game's rulebook & known results", onclick: function () { if (A.openGuide) A.openGuide("game:" + type); } }),
+        h("span", { class: "note", text: "Results are stored only in this device's browser." })));
+    }
+    function render() {
+      var c = ctx(), g = G();
+      renderTop();
+      clear(setup); ui.setup(s.hp).concat(["Score: " + g.name, "Seed " + seed]).forEach(function (t) { setup.appendChild(h("li", { text: t })); });
+      clear(tiles); ui.tiles(c).forEach(function (t) { tiles.appendChild(h("div", { class: "hp-tile" }, h("span", { text: t[0] }), h("b", { class: "num", text: t[1] }))); });
+      clear(main); main.appendChild(s.fin ? verdict(c) : ui.board(c));
+      logEl.textContent = ui.log(c) || (s.fin ? "" : "In each round you see exactly what a rule would see in that round; what the referee keeps hidden is revealed only after the episode.");
+      var spec = ui.chart(c);
+      if (!chart) chart = new QLChart.Chart(chartHost, { height: spec.height || 280 });
+      chart.set(spec);
+      renderAfter();
+      var f = m.box.querySelector(".hp-focus");
+      if (f) { try { f.focus({ preventScroll: true }); } catch (e) { f.focus(); } if (f.select && f.tagName === "INPUT") f.select(); }
+    }
+    m.box.addEventListener("keydown", function (e) {
+      if (e.metaKey || e.ctrlKey || e.altKey || e.isComposing || e.repeat || !s || s.fin || !s.step || !ui.keys) return;   // 按住不放不算：一次按键一个决定
+      var tg = e.target, tag = tg && tg.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;   // 正在填数字时不抢
+      if (ui.keys(ctx(), e.key)) e.preventDefault();
+    });
+    setSize(sizeId);
+  };
+})(App);
+
 /* ===== app-guide.js ===== */
 /* 应用主体（五）：手册。
  * 一个平时收起的说明层：顶栏的"手册"按钮、每个标题旁的小问号、? 键、命令面板都能把它调出来，
@@ -11295,7 +12104,7 @@ var App = (function () {
     };
     host.appendChild(sec("2. Ten games", md("Ten small round-based games. The rulebook is fixed and the scoring is explicit; each game is taken from a real situation, a classic problem or an experiment that has actually been run, and the optimal solution is known (at least in part). So besides your score, the results bar also shows the theoretical optimum, the upper bound and the results of human experiments for comparison."), mk(QL.GAMES)));
     host.appendChild(sec("3. Four observation games", md("Processes that come from the natural world, such as Brownian motion, mean reversion and chaotic maps, are treated as objects of study rather than as prices. No money is made here: the action is an estimate, a forecast, or \"raise the alarm now\" or \"stop now\"; the score is an error or a delay. They answer questions like these: can a single trajectory measure the parameters of this process accurately? Can the process be forecast, and how far ahead? Has it changed? Can its maximum be caught?"), mk(QL.OBS)));
-    host.appendChild(sec("How to start", md("1. Pick a game under \"Game\" at the top of the left column. \"World\" below it changes to the worlds this game can use; \"Rule\" changes to the game's own built-in rules, the first of which is usually the benchmark.\n2. The results bar gives this game's own score; beside it (below it on narrow screens) is the comparison table on the same batch of episodes.\n3. \"Single-episode detail\" replays one episode from start to finish; \"Parameter sweep\" replays the batch for each value of one parameter in turn, and overlays the theoretical curve for parameters that have a formula.\n4. Change the world, leave the rule alone, and see how the score changes. \"Scenario comparison\" and the table for each game in the handbook do exactly this.\n5. \"Full rulebook & background\" in the \"Game\" section leads to that game's entry in this handbook.")));
+    host.appendChild(sec("How to start", md("1. Pick a game under \"Game\" at the top of the left column. \"World\" below it changes to the worlds this game can use; \"Rule\" changes to the game's own built-in rules, the first of which is usually the benchmark.\n2. The results bar gives this game's own score; beside it (below it on narrow screens) is the comparison table on the same batch of episodes.\n3. \"Single-episode detail\" replays one episode from start to finish; \"Parameter sweep\" replays the batch for each value of one parameter in turn, and overlays the theoretical curve for parameters that have a formula.\n4. Change the world, leave the rule alone, and see how the score changes. \"Scenario comparison\" and the table for each game in the handbook do exactly this.\n5. \"Full rulebook & background\" in the \"Game\" section leads to that game's entry in this handbook.\n6. Four games can be played by hand: Job offers, Secretary problem, Biased coin and Multi-armed bandit. Click \"Play it yourself\" in the \"Game\" section and decide round by round; when the episode ends, each reference rule plays the same episode and is shown next to you, and the record accumulates as you play more episodes.")));
   }
   /* ---------- 交易一个资产 ---------- */
   function pageTrade(host) {
@@ -11404,7 +12213,8 @@ var App = (function () {
     Object.keys(p).forEach(function (k) { if (mine[k] !== undefined && mine[k] !== p[k]) { p[k] = mine[k]; touched = true; } });
     if (isCur) p = A.wp();
     var th = w.theory(p);
-    head(host, (w.obsGame ? QL.OBS_GROUP : "Ten games") + " · " + ((G.gameIndex || {})[type] || ["", "", ""])[2], w.name, w.blurb, [isCur ? btn("Back to this game", function () { if (ui) ui.close(); }, true) : btn("Play this game", closeThen(function () { A.applySetup({ world: type, strat: S.last[type] || w.defStrat }); }), true)]);   // 从手册过去：用这套玩法自己的规则（上次用的，或者默认的）
+    head(host, (w.obsGame ? QL.OBS_GROUP : "Ten games") + " · " + ((G.gameIndex || {})[type] || ["", "", ""])[2], w.name, w.blurb, [isCur ? btn("Back to this game", function () { if (ui) ui.close(); }, true) : btn("Play this game", closeThen(function () { A.applySetup({ world: type, strat: S.last[type] || w.defStrat }); }), true),
+      A.humanOk && A.humanOk(type) ? btn("Play it yourself", closeThen(function () { if (S.world.type !== type) A.applySetup({ world: type, strat: S.last[type] || w.defStrat }); A.openHuman(); })) : null]);   // 从手册过去：用这套玩法自己的规则（上次用的，或者默认的）
     if (g.scene) host.appendChild(sec("Where it comes from", md(g.scene)));
     if (g.rules) host.appendChild(sec("Rulebook", rulesList(g.rules(p, th)), h("p", { class: "note", text: isCur ? "The numbers are taken from the current settings in the left column." : touched ? "The numbers are taken from the settings you left in this game last time; \"Play this game\" goes back to them." : "The numbers are the default settings; once you have selected this game, you can change them in the left column." })));
     host.appendChild(sec("What your rule can see and do", apiBox(w), h("p", { class: "note", text: "s is the object the referee hands to the rule each round. The rule cannot read anything that is not listed above. When you ask " + A.AI + " to write a rule, this is also what it is given." })));

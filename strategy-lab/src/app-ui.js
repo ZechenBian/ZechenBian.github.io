@@ -80,7 +80,9 @@
     [[QL.GAME_GROUP, QL.GAMES], [QL.OBS_GROUP, QL.OBS]].forEach(function (x) { gsel.appendChild(h("optgroup", { label: x[0] }, x[1].map(function (k) { return h("option", { value: k, text: QL.WORLDS[k].name, selected: k === game }); }))); });
     gh.appendChild(gsel);
     gh.appendChild(h("p", { class: "blurb", text: d.game ? d.blurb : A.TRADE.blurb }));
-    gh.appendChild(h("div", { class: "row tight", style: { "margin-bottom": d.game ? "10px" : "0" } }, h("button", { class: "btn small", type: "button", id: "btnRules", text: "完整的细则与来历", onclick: function () { A.openGuide("game:" + game); } })));
+    gh.appendChild(h("div", { class: "row tight", style: { "margin-bottom": d.game ? "10px" : "0" } },
+      A.humanOk && A.humanOk(game) ? h("button", { class: "btn small primary", type: "button", id: "btnHuman", text: "亲手玩一局", title: "你自己逐回合做决定，打完和各条参照规则在同一局上比", onclick: function () { A.openHuman(); } }) : null,
+      h("button", { class: "btn small", type: "button", id: "btnRules", text: "完整的细则与来历", onclick: function () { A.openGuide("game:" + game); } })));
     if (d.game) {
       var gp = h("div", { class: "fields" }); gh.appendChild(gp);
       A.renderParams(gp, A.wschema().filter(function (q) { return !isW(q); }), vals, onIn, onCm, "w");
@@ -359,6 +361,7 @@
   };
   /* ---------- 玩法的摘要：得分 + 对照 ---------- */
   var KIND = { sim: "参照", bound: "上界", alt: "换细则", theory: "理论", optimum: "理论最优", human: "真人实验" };
+  A.KIND = KIND;
   /** 差值的判词：|差| 不到 2 倍标准误的不算数 */
   function gVerdict(G, d, se, soft) {
     if (!(d === d)) return h("span", { class: "verdict flat", text: "—" });
@@ -602,6 +605,7 @@
     L.push({ kind: "操作", name: "打开 " + A.AI + " 面板", key: "claude ai 助手", run: function () { A.openClaude(true); } });
     if (!A.aiHost && A.openAiSettings) L.push({ kind: "操作", name: "AI 设置：服务商、密钥、模型", key: "ai 设置 接入 密钥 key deepseek chatgpt openai kimi 豆包 doubao 模型", run: function () { A.openAiSettings(); } });
     L.push({ kind: "操作", name: "打开手册", key: "手册 说明 帮助 help guide 文档 怎么用", run: function () { if (A.openGuide) A.openGuide(); } });
+    if (A.humanOk && A.humanOk()) L.push({ kind: "操作", name: "亲手玩一局（" + A.wdef().short + "）", key: "play human 亲手 自己 玩 手动 打一局", run: function () { A.openHuman(); } });
     L.push({ kind: "操作", name: "恢复默认设置", key: "reset 重置 默认", run: function () { A.resetting = true; try { localStorage.removeItem("ql.lab.v1"); } catch (e) {} A.toast("已清除本机保存的设置。重新打开页面后生效；在那之前的改动不会再保存。", 5000); } });
     Object.keys(A.CH).forEach(function (id) { var c = A.CH[id]; if (!A.chartOk(id)) return; L.push({ kind: "图表", name: (A.shown().indexOf(id) >= 0 ? "收起：" : "显示：") + A.chartName(id), hint: c.about, key: c.name + " " + (c.keys || ""), run: function () { A.toggleChart(id, true); } }); });
     QL.WORLD_GROUPS.forEach(function (g) { Object.keys(QL.WORLDS).forEach(function (k) { var w = QL.WORLDS[k]; if (w.group !== g || (k === "custom" && !S.custom)) return; L.push({ kind: w.game ? "玩法" : "世界", name: w.name, key: w.name + " " + w.short + " " + k + (w.game ? " 玩法 游戏" : " 世界"), run: function () { A.setWorldType(k); } }); }); });

@@ -526,3 +526,82 @@ li.ck:last-child { border-bottom: 0; }
 @media (max-width: 779.9px) { .top-actions { gap: 6px; } .top-actions .btn { padding-inline: 9px; } }           /* 多了一个语言按钮：窄屏上顶栏收紧一点，留在一行里 */
 /* 标题的字距是按汉字定的；拉丁字母用不着那么宽 */
 html[lang="en"] :is(.brand h1, .blk > h2, .sum-head h2, .ai-h h2, .modal-h h2, .gd-h h2, .gd-nav h4, .gd-title, .gd-sec > h3, h3.gd-gh, .gd-kicker) { letter-spacing: 0.01em; }
+
+/* ---------- 亲手玩一局（src/app-human.js） ---------- */
+.modal-box.hpm-box { width: min(860px, 100%); }
+#btnHuman { font-weight: 600; }
+.hp { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; min-width: 0; }
+.hp-top { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.hp-top .sp { flex: 1; }
+.hp-sizes { flex-wrap: wrap; max-width: 100%; }
+.hp-ep { font: 700 15px/1.3 var(--font-display); letter-spacing: 0.04em; white-space: nowrap; }
+.hp-tally { font-size: 12.5px; color: var(--ink2); font-variant-numeric: tabular-nums; }
+ul.hp-setup { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 6px; font-size: 12px; color: var(--ink2); }
+ul.hp-setup li { border: 1px solid var(--line); border-radius: 3px; padding: 1px 7px; background: var(--surface-2); min-width: 0; overflow-wrap: anywhere; }
+.hp-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); gap: 8px; }
+.hp-tile { border: 1px solid var(--line); border-radius: 5px; padding: 6px 10px 7px; min-width: 0; display: grid; gap: 1px; }
+.hp-tile span { font-size: 11.5px; color: var(--muted); }
+.hp-tile b { font: 600 17px/1.3 var(--font-mono); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.hp-board { border: 1px solid var(--line); border-radius: 6px; background: var(--surface-2); padding: 14px 16px 16px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; justify-items: center; text-align: center; min-width: 0; }
+.hp-q { font-size: 13px; color: var(--ink2); }
+.hp-big { font: 600 40px/1.15 var(--font-body); letter-spacing: -0.01em; display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
+.hp-big.num, .hp-big .num { font-family: var(--font-mono); }
+.hp-badge { font: 600 12px/1.5 var(--font-body); letter-spacing: 0; color: var(--accent-ink); background: var(--accent-wash); border: 1px solid var(--accent); border-radius: 999px; padding: 0 9px; white-space: nowrap; }
+.hp-sub { font-size: 12.5px; color: var(--ink2); min-height: 1.5em; max-width: 62ch; }
+.hp-sub b { color: var(--ink); font-weight: 600; }
+.hp-acts { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 4px; max-width: 100%; }
+.btn.hp-act { padding: 8px 16px; font-size: 14px; white-space: normal; text-align: center; }
+.hp-log { font-size: 12.5px; color: var(--ink2); min-height: 1.5em; text-align: center; overflow-wrap: anywhere; }
+.hp-chart { min-width: 0; }
+/* 偏硬币下注：注码 */
+.hp-bet { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
+.hp-cur { font: 600 24px/1 var(--font-mono); color: var(--ink2); }
+input[type="number"].hp-stake { width: 138px; font-size: 24px; padding: 4px 10px; background: var(--surface); }
+.hp-pct { font-size: 12.5px; color: var(--ink2); font-variant-numeric: tabular-nums; min-width: 8.5em; text-align: left; }
+.hp-chips { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+/* 多臂老虎机：一台机器一张牌 */
+.hp-arms { display: grid; grid-template-columns: repeat(auto-fit, minmax(132px, 1fr)); gap: 8px; width: 100%; }
+.hp-arm { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 3px 8px; align-items: baseline; text-align: left; border: 1px solid var(--line); background: var(--surface); border-radius: 6px; padding: 9px 11px 8px; cursor: pointer; min-width: 0; }
+.hp-arm:hover:not(:disabled) { border-color: var(--accent); background: var(--accent-wash); }
+.hp-arm:disabled { opacity: 0.5; cursor: default; }
+.hp-arm-n { font-weight: 600; display: flex; gap: 6px; align-items: center; min-width: 0; }
+.hp-arm-n kbd { font: 11px var(--font-mono); color: var(--muted); border: 1px solid var(--line); border-radius: 3px; padding: 0 4px; background: var(--surface-2); }
+.hp-arm-r { font-size: 16px; font-weight: 600; }
+.hp-arm-bar { grid-column: 1 / -1; height: 5px; background: var(--c-grid); border-radius: 3px; overflow: hidden; }
+.hp-arm-bar i { display: block; height: 100%; background: var(--c-s1); border-radius: 3px; }
+.hp-arm-s, .hp-arm-f { grid-column: 1 / -1; font-size: 11.5px; color: var(--muted); min-height: 1.5em; }
+.hp-arm-f { font-weight: 600; }
+.hp-arm.hit { border-color: var(--accent); }
+.hp-arm.hit .hp-arm-f { color: var(--accent-ink); }
+/* 打完之后：你和先比的那条规则并排，下面是揭晓的东西和对照表 */
+.hp-verdict { justify-items: stretch; text-align: left; }
+.hp-vs { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; }
+.hp-side { border: 1px solid var(--line); background: var(--surface); border-radius: 6px; padding: 8px 12px 10px; display: grid; gap: 2px; min-width: 0; align-content: start; }
+.hp-side.me { border-color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); }
+.hp-lab { font-size: 12px; color: var(--ink2); overflow-wrap: anywhere; }
+.hp-num { font: 600 28px/1.2 var(--font-mono); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.hp-gap { font-size: 13px; }
+.hp-hind { display: grid; gap: 4px; min-width: 0; }
+.hp-hind p { margin: 0; font-size: 13px; line-height: 1.65; color: var(--ink); }
+.hp-hind .gref, .hp-after .gref { padding: 0; }
+.hp-verdict .hp-acts { justify-content: flex-start; }
+.hp-after { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; min-width: 0; }
+.hp-after:empty { display: none; }
+table.hp-tab tr.me td { background: var(--accent-wash); }
+table.hp-tab tr.star td:first-child { font-weight: 600; }
+table.hp-tab th:not(:first-child), .hp-hind table.gtab th:not(:first-child) { text-align: right; padding-left: 10px; }
+table.hp-tab td.num, .hp-hind table.gtab td.num { text-align: right; padding-left: 10px; }
+table.hp-tab td:first-child { padding-left: 6px; }
+table.hp-tab th:first-child { padding-left: 6px; }
+.hp-cum { margin: 0; font-size: 13px; line-height: 1.7; color: var(--ink); }
+.hp-foot .note { margin-left: auto; }
+@media (max-width: 560px) {
+  .hp-tiles { grid-template-columns: repeat(auto-fit, minmax(86px, 1fr)); gap: 6px; }
+  .hp-tile { padding: 5px 8px 6px; }
+  .hp-tile b { font-size: 15px; }
+  .hp-board { padding: 12px 10px 14px; }
+  .hp-big { font-size: 32px; }
+  .hp-num { font-size: 23px; }
+  .btn.hp-act { padding: 8px 12px; }
+  .hp-foot .note { margin-left: 0; }
+}
