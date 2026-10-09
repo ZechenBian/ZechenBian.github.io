@@ -613,7 +613,7 @@ WORLDS.boot = {
   theory: function () { return { note: "Politis–Romano (1994) 平稳 bootstrap：块长服从几何分布，重采样序列仍然平稳。块长 1 的结果与真实历史的差距，度量了\"时间顺序\"本身贡献了多少收益。" }; }
 };
 WORLDS.custom = {
-  name: "自定义（Claude 或你自己写的采样函数）", short: "自定义", group: "自定义", needsCode: true,
+  name: "自定义（AI 或你自己写的采样函数）", short: "自定义", group: "自定义", needsCode: true,
   blurb: "由一段 simulate(T, rng, p) 函数生成每条路径的价格。",
   params: [], defaults: { N: 1000, T: 252, K: 252 },
   theory: function () { return { note: "" }; }

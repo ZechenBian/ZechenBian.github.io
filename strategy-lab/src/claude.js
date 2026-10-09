@@ -1,11 +1,15 @@
 // Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
 // Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
-/* Claude 面板：页面内直接调用 Claude（用的是打开页面的人自己的额度）。
- * 四种用法：写策略、造世界、调图表、问结果。每次调用都只发生在你点"发送"的时候。 */
+/* 右栏的助手面板。四种用法：写策略、造世界、调图表、问结果。每次调用都只发生在你点"发送"的时候。
+ *   · 在 Claude 里打开页面：直接调用 Claude（用的是打开页面的人自己的额度）。
+ *   · 独立的网页：使用者在"设置"里选一家服务商（DeepSeek、ChatGPT、Kimi、豆包……）并填自己的密钥，见 src/ai.js。 */
 (function (A) {
   "use strict";
   var h = A.h, $ = A.$, clear = A.clear, S = A.state, QL = A.QL, F = A.F, P = A.P;
   var sample = null, limits = null, mode = "strategy", busy = false, ctl = null, turns = [], deep = false;
+  var HOST = A.aiHost, WEB = !HOST && window.QLAI ? window.QLAI : null, AI = A.AI;
+  /** 正在回答的是谁：在 Claude 里是 Claude；独立的网页里是所选服务商的简称（还没接入时就叫 AI） */
+  function who() { var l = WEB && WEB.label(); return l ? l.short : AI; }
   var MODES = [["strategy", "写策略"], ["world", "造世界"], ["chart", "调图表"], ["ask", "问结果"]];
   var EG = {
     strategy: ["在这个世界里对数最优的策略是什么？写出来并证明", "用过去 20 步的收益做动量，但波动高的时候自动减仓", "跌 5% 加仓一份，涨回均价全部卖出，最多加 4 次", "用梯度提升预测下一步收益：特征取最近 5 步收益和 20 步波动，并报告训练集与验证集的 R²"],
@@ -13,7 +17,7 @@
     chart: ["给我看最大回撤的分布", "这个世界的收益有没有厚尾", "这条规则应该押多大"],
     ask: ["为什么夏普比率不随杠杆变化？", "这条规则赚的钱是靠运气还是靠预测？", "终值分布为什么是右偏的？"]
   };
-  var PH = { strategy: "描述你的交易想法，Claude 会写成可运行的规则并解释…", world: "描述一种价格或信号的生成方式，可以是公式，也可以是一句话…", chart: "说你想看什么…", ask: "针对当前的结果提问…" };
+  var PH = { strategy: "描述你的交易想法，" + AI + " 会写成可运行的规则并解释…", world: "描述一种价格或信号的生成方式，可以是公式，也可以是一句话…", chart: "说你想看什么…", ask: "针对当前的结果提问…" };
   /** 玩法里"写策略"的例子：每套玩法自己带几条，再补两条通用的 */
   function examples(m) {
     var d = A.wdef();
@@ -22,14 +26,14 @@
     if (m === "chart" && d.game) return ["给我看一局里到底发生了什么", "哪个参数取多少最好", "各局的得分差别大不大"];
     return EG[m];
   }
-  function placeholder(m) { return m === "strategy" && A.isGame() ? "说说你打算怎么玩这一局，Claude 会写成可运行的规则并解释…" : PH[m]; }
+  function placeholder(m) { return m === "strategy" && A.isGame() ? "说说你打算怎么玩这一局，" + AI + " 会写成可运行的规则并解释…" : PH[m]; }
   var ERR = {
     not_granted: "你没有允许这个页面调用 Claude。重新打开页面后可以再选择。", sampling_disabled: "这个账号或组织没有开通页面内调用 Claude。", not_declared: "这个页面没有被授予调用 Claude 的能力。",
     capability_disabled: "当前打开方式下不能调用 Claude。", capability_removed: "当前的应用版本不支持这个调用，请更新应用。", tools_unavailable: "当前打开方式不支持深度模式，请关掉它再试。",
     rate_limited: "调用太频繁，或已达到用量上限。过一会儿再试。", session_expired: "登录已过期，请重新登录后再试。", refused: "Claude 没有接受这个请求，换个说法试试。",
     empty_completion: "没有得到回答，请把要求说得更具体一些再试。", invalid_json: "回答的格式不对，请再试一次。", prompt_too_large: "发送的内容太长了。", invalid_request: "请求格式有误（页面的问题）。"
   };
-  function errText(e) { return (e && ERR[e.code]) || "连接出了问题" + (e && e.message ? "（" + e.message + "）" : "") + "。可以再试一次。"; }
+  function errText(e) { if (WEB && e && e.code) return WEB.explain(e).text; return (e && ERR[e.code]) || "连接出了问题" + (e && e.message ? "（" + e.message + "）" : "") + "。可以再试一次。"; }
 
   /* ---------- 给 Claude 的环境描述 ---------- */
   function gameText() {
@@ -198,22 +202,29 @@
   }
   function runLine0(sum) { return "试运行（训练路径）：g = " + (sum.growth === -Infinity ? "−∞" : A.pctS(sum.growth) + " ± " + P(sum.growthSE)) + "，夏普 " + F(sum.sharpe, 2) + "，E[W]−1 = " + A.pctS(sum.meanW - 1) + (sum.badFrac > 0.25 ? "；有 " + P(sum.badFrac, 0) + " 的步数返回了无效值" : ""); }
 
-  function call(input, opts, onText) {
+  /** status：正在等的那一行。独立的网页里，模型先"深度思考"时正文迟迟不来，就在这一行上报告已经想了多少字 */
+  function call(input, opts, onText, status) {
     ctl = new AbortController();
     var o = Object.assign({ signal: ctl.signal, cache: false }, opts || {});
     if (onText) o.onText = function (u) { try { onText(u.text); } catch (e) { console.error(e); } };
+    if (WEB && status) o.onThink = function (n) { status.lastChild.textContent = who() + " 正在深度思考…（已经想了 " + n + " 字）"; };
     if (o.tools) delete o.cache;
     return sample(input, o);
   }
+  /** 这一类请求用哪一档模型。在 Claude 里由面板上的档位决定；独立的网页里没有档位：写规则、造世界允许深度思考，问结果不用，挑图表用便宜的那个模型 */
+  function tierOf(kind) {
+    if (WEB) return kind === "chart" ? "quick" : kind === "ask" ? "default" : "complex";
+    return kind === "chart" ? "quick" : kind === "ask" ? (S.tier === "complex" ? "default" : S.tier) : S.tier;
+  }
 
   function doStrategy(idea, fix) {
-    var el = card(), status = statusRow(deep ? "Claude 正在思考，并会自己试跑几次…" : "Claude 正在思考…（复杂的想法可能要一两分钟）"), bodyEl = h("div"); el.appendChild(status); el.appendChild(bodyEl);
-    var lastStage = -1, exEl = null, opts = { modelTier: S.tier };
+    var el = card(), status = statusRow(deep ? who() + " 正在思考，并会自己试跑几次…" : who() + " 正在思考…（复杂的想法可能要一两分钟）"), bodyEl = h("div"); el.appendChild(status); el.appendChild(bodyEl);
+    var lastStage = -1, exEl = null, opts = { modelTier: tierOf("strategy") };
     if (deep && limits && limits.tools) opts.tools = [{
       name: "backtest", description: A.isGame() && !A.isCrit() ? "在当前玩法的这批对局上编译并运行一段规则代码，返回得分和各个对照的得分；代码有错时返回错误信息。用它确认代码能跑、参数量级合理。最多调用 3 次，最后必须按要求的格式给出完整输出。" : "在当前世界的训练路径上编译并运行一段规则代码，返回三种口径的结果；代码有错时返回错误信息。用它确认代码能跑、参数量级合理。最多调用 3 次，最后必须按要求的格式给出完整输出。",
       inputSchema: { type: "object", properties: { code: { type: "string", description: "完整的规则代码（定义 decide，可选 init、fit）" }, params: { type: "object", description: "参数取值，键是参数的 key" } }, required: ["code", "params"] },
       execute: function (input) {
-        status.lastChild.textContent = "Claude 正在试跑代码…";
+        status.lastChild.textContent = who() + " 正在试跑代码…";
         var code = String(input.code || ""), params = input.params && typeof input.params === "object" ? input.params : {};
         return A.tryStrategy(code, params).then(function (m) { A.dropSide(code); var s = m.sum, b = m.benchSum;
           if (m.game && !A.isCrit()) { var G = m.game, o = { ok: true, score_name: G.name, higher_is_better: !G.lower, score: +(G.lower ? -G.score : G.score).toFixed(6), score_se: +(G.se || 0).toFixed(6), invalid_output_fraction: +s.badFrac.toFixed(3), references: {} }; G.refs.forEach(function (x) { if (!x.err) o.references[x.name] = +(G.lower ? -x.score : x.score).toFixed(6); }); G.marks.forEach(function (x) { o.references[x.name] = +(G.lower ? -x.value : x.value).toFixed(6); }); return o; }
@@ -223,21 +234,21 @@
     }];
     function paint(text, final) {
       var r = parseReply(text);
-      if (r.stage !== lastStage) { lastStage = r.stage; status.lastChild.textContent = ["Claude 正在思考…", "正在定参数…", "正在写代码…", "正在写解释…", "正在收尾…"][r.stage]; }
+      if (r.stage !== lastStage) { lastStage = r.stage; status.lastChild.textContent = [who() + " 正在思考…", "正在定参数…", "正在写代码…", "正在写解释…", "正在收尾…"][r.stage]; }
       if (r.stage >= 3 && r.explain) { if (!exEl) { clear(bodyEl); exEl = h("div"); bodyEl.appendChild(exEl); } if (final) QLMD.mount(exEl, r.explain); else QLMD.mountPartial(exEl, r.explain); scrollLogSoft(); }
       return r;
     }
-    return call(promptStrategy(idea, fix), opts, function (t) { paint(t, false); }).then(function (res) {
+    return call(promptStrategy(idea, fix), opts, function (t) { paint(t, false); }, status).then(function (res) {
       var r = parseReply(res.text);
       if (r.stage < 3 || !r.code || !r.meta) throw { code: "bad_format", text: res.text };
       var meta = r.meta, params = cleanParams(meta.params), tier = A.TIER[meta.tier] ? meta.tier : "heuristic";
-      var st = { id: "my-" + Date.now().toString(36), name: String(meta.name || "Claude 的策略").slice(0, 24), group: "我的策略", summary: String(meta.summary || "").slice(0, 160), params: params, code: r.code, explain: r.explain, tier: tier, src: "claude", idea: idea || "", claim: null };
+      var st = { id: "my-" + Date.now().toString(36), name: String(meta.name || AI + " 的策略").slice(0, 24), group: "我的策略", summary: String(meta.summary || "").slice(0, 160), params: params, code: r.code, explain: r.explain, tier: tier, src: "claude", idea: idea || "", claim: null };
       if (A.isGame()) st.game = S.world.type;      // 玩法里写的规则只在那套玩法里用
       var fk = fitKeysOf(st.code, params); if (fk) st.fitKeys = fk;
       var okObj = A.isCrit() ? { growth: 1, sharpe: 1, mean: 1 } : { score: 1 };
       if (meta.claim && typeof meta.claim === "object" && params.some(function (q) { return q.key === meta.claim.param && q.type === "num"; }) && isFinite(+meta.claim.value) && okObj[meta.claim.objective]) st.claim = { param: meta.claim.param, value: +meta.claim.value, objective: meta.claim.objective, note: String(meta.claim.note || "").slice(0, 200) };
       clear(el);
-      el.appendChild(h("div", { class: "a-h" }, h("b", { text: st.name }), A.tierBadge(tier), res.truncated ? h("span", { class: "tag", text: "回答被截断" }) : null, res.modelTierApplied && res.modelTierApplied !== S.tier ? h("span", { class: "tag", text: "实际使用的模型档位：" + tierName(res.modelTierApplied) }) : null));
+      el.appendChild(h("div", { class: "a-h" }, h("b", { text: st.name }), A.tierBadge(tier), res.truncated ? h("span", { class: "tag", text: "回答被截断" }) : null, HOST && res.modelTierApplied && res.modelTierApplied !== S.tier ? h("span", { class: "tag", text: "实际使用的模型档位：" + tierName(res.modelTierApplied) }) : null));
       if (st.summary) el.appendChild(h("div", { class: "note", style: { "margin-bottom": "6px" }, text: st.summary }));
       el.appendChild(paramTable(params)); el.appendChild(codeBlock(st.code));
       var ex = h("div", { style: { "margin-top": "8px" } }); QLMD.mount(ex, st.explain || ""); el.appendChild(ex);
@@ -252,7 +263,7 @@
         if (st.claim) el.insertBefore(h("div", { class: "note", style: { "margin-top": "6px" }, text: "它的声明：" + pLabel(st, st.claim.param) + " 的最优值是 " + F(st.claim.value) + "（" + OBJN[st.claim.objective] + "口径）。" + st.claim.note }), runEl);
       }, function (e) {
         clear(runEl); runEl.className = "warn err"; runEl.textContent = "这段代码没有跑通：" + (e.message || e);
-        actions.appendChild(h("button", { class: "btn small primary", type: "button", text: "让 Claude 修复", onclick: function () { A.my.push(st); S.sparams[st.id] = defs; S.stratId = st.id; A.renderStrat(); A.askFix(e.message || String(e)); } }));
+        actions.appendChild(h("button", { class: "btn small primary", type: "button", text: "让 " + AI + " 修复", onclick: function () { A.my.push(st); S.sparams[st.id] = defs; S.stratId = st.id; A.renderStrat(); A.askFix(e.message || String(e)); } }));
         actions.appendChild(h("button", { class: "btn small", type: "button", text: "复制代码", onclick: function () { A.copy(st.code); } }));
       });
     }).catch(function (e) { fail(el, e, bodyEl); });
@@ -266,6 +277,13 @@
     var st = el.querySelector(".a-status"); if (st) st.remove();
     if (e && e.code === "bad_format") { el.appendChild(h("div", { class: "warn err", text: "回答没有按约定的格式给出，无法自动载入。原文如下，可以再发一次。" })); el.appendChild(h("pre", { class: "code", text: String(e.text || "").slice(0, 6000) })); return; }
     if (e && e.code === "refused" && keepEl) clear(keepEl);
+    if (WEB && e && e.code) {     // 独立的网页：把服务商的原话也给出来；和设置有关的错，给一个直达设置的按钮
+      var ex = WEB.explain(e);
+      el.appendChild(h("div", { class: "warn err", text: ex.text }));
+      if (ex.detail) el.appendChild(h("div", { class: "note ai-detail", text: who() + " 的原话：" + ex.detail }));
+      if (/^(bad_auth|bad_model|bad_url|network|proxy_refused|unavailable|quota|invalid_request|timeout)$/.test(e.code)) el.appendChild(h("div", { class: "a-actions" }, h("button", { class: "btn small", type: "button", text: "打开设置", onclick: function () { A.openAiSettings(); } })));
+      return;
+    }
     el.appendChild(h("div", { class: "warn err", text: e && e.code ? errText(e) : "出错了：" + (e && e.message || e) }));
     if (e && (e.code === "not_granted" || e.code === "sampling_disabled" || e.code === "not_declared" || e.code === "capability_disabled")) disable(errText(e));
   }
@@ -323,9 +341,9 @@
   }
 
   function doWorld(idea, fix) {
-    var el = card(), status = statusRow("Claude 正在构造这个世界…"), bodyEl = h("div"); el.appendChild(status); el.appendChild(bodyEl);
+    var el = card(), status = statusRow(who() + " 正在构造这个世界…"), bodyEl = h("div"); el.appendChild(status); el.appendChild(bodyEl);
     var exEl = null;
-    return call(promptWorld(idea, fix), { modelTier: S.tier }, function (t) { var r = parseReply(t); status.lastChild.textContent = ["Claude 正在思考…", "正在定参数…", "正在写采样代码…", "正在写说明…", "正在收尾…"][r.stage]; if (r.stage >= 3 && r.explain) { if (!exEl) { exEl = h("div"); bodyEl.appendChild(exEl); } QLMD.mountPartial(exEl, r.explain); scrollLogSoft(); } }).then(function (res) {
+    return call(promptWorld(idea, fix), { modelTier: tierOf("world") }, function (t) { var r = parseReply(t); status.lastChild.textContent = [who() + " 正在思考…", "正在定参数…", "正在写采样代码…", "正在写说明…", "正在收尾…"][r.stage]; if (r.stage >= 3 && r.explain) { if (!exEl) { exEl = h("div"); bodyEl.appendChild(exEl); } QLMD.mountPartial(exEl, r.explain); scrollLogSoft(); } }, status).then(function (res) {
       var r = parseReply(res.text); if (r.stage < 3 || !r.code || !r.meta) throw { code: "bad_format", text: res.text };
       var meta = r.meta, params = cleanParams(meta.params), prev = { custom: S.custom, type: S.world.type, wp: S.wparams.custom, N: S.world.N, T: S.world.T, K: S.world.K };
       var cw = { name: String(meta.name || "自定义世界").slice(0, 24), summary: String(meta.summary || "").slice(0, 200), code: r.code, schema: params, explain: r.explain };
@@ -347,7 +365,7 @@
       }, function (e) {
         var msg = e.message || String(e);
         clear(runEl); runEl.className = "warn err"; runEl.textContent = "采样代码没有跑通：" + msg;
-        actions.appendChild(h("button", { class: "btn small primary", type: "button", text: "让 Claude 修复", onclick: function () { S.custom = cw; S.world.type = "custom"; send("修复采样代码", { world: true, fix: msg }); } }));
+        actions.appendChild(h("button", { class: "btn small primary", type: "button", text: "让 " + AI + " 修复", onclick: function () { S.custom = cw; S.world.type = "custom"; send("修复采样代码", { world: true, fix: msg }); } }));
         S.custom = prev.custom; S.world.type = prev.type; S.wparams.custom = prev.wp; S.world.N = prev.N; S.world.T = prev.T; S.world.K = prev.K;
         if (QL.WORLDS[prev.type].game) { A.fixStrat(); A.syncCharts(); A.renderStrat(); A.renderSettings(); }
         A.renderWorld(); A.requestRun("commit");
@@ -357,7 +375,7 @@
 
   function doChart(q) {
     var el = card(); el.appendChild(statusRow("正在找合适的图…"));
-    return call(promptChart(q), { modelTier: "quick", cache: true }).then(function (res) {
+    return call(promptChart(q), { modelTier: tierOf("chart"), cache: true }).then(function (res) {
       var t = res.text, a = t.indexOf("{"), b = t.lastIndexOf("}"), o = null; try { o = JSON.parse(t.slice(a, b + 1)); } catch (e) {}
       clear(el); if (!o) { el.appendChild(h("div", { class: "note", text: t.slice(0, 400) })); return; }
       var ids = (Array.isArray(o.show) ? o.show : []).filter(function (id) { return A.CH[id]; }).slice(0, 3);
@@ -371,11 +389,11 @@
     }).catch(function (e) { fail(el, e); });
   }
   function doAsk(q) {
-    var el = card(), status = statusRow("Claude 正在看这次的结果…"), out = h("div"); el.appendChild(status); el.appendChild(out);
+    var el = card(), status = statusRow(who() + " 正在看这次的结果…"), out = h("div"); el.appendChild(status); el.appendChild(out);
     turns.push({ role: "user", content: q }); if (turns.length > 8) turns = turns.slice(-8);
     while (turns.length && turns[0].role !== "user") turns.shift();
     var input = [{ role: "user", content: askRules() }].concat(turns);
-    return call(input, { modelTier: S.tier === "complex" ? "default" : S.tier }, function (t) { status.hidden = true; QLMD.mountPartial(out, t); scrollLogSoft(); }).then(function (res) {
+    return call(input, { modelTier: tierOf("ask") }, function (t) { status.hidden = true; QLMD.mountPartial(out, t); scrollLogSoft(); }, status).then(function (res) {
       status.remove(); QLMD.mount(out, res.text); turns.push({ role: "assistant", content: res.text });
     }).catch(function (e) { if (turns.length && turns[turns.length - 1].role === "user") turns.pop(); if (e && e.text && e.code !== "refused") { QLMD.mount(out, e.text); } fail(el, e, out); });
   }
@@ -386,7 +404,7 @@
     var pr = special && special.fix && !special.world ? doStrategy("", special.fix) : special && special.world ? doWorld(special.fix ? "" : text, special.fix) : mode === "strategy" ? doStrategy(text) : mode === "world" ? doWorld(text) : mode === "chart" ? doChart(text) : doAsk(text);
     pr.then(function () { setBusy(false); scrollLog(); }, function () { setBusy(false); });
   }
-  A.askFix = function (msg) { A.openClaude(true); if (!sample) { A.toast("这里不能调用 Claude，请手动修改代码"); return; } setMode("strategy"); send("修复这段代码的错误：" + String(msg).slice(0, 300), { fix: String(msg).slice(0, 1500) }); };
+  A.askFix = function (msg) { A.openClaude(true); if (!sample) { A.toast(WEB ? "还没有接入 AI：先在右栏点\"接入 AI…\"，或者手动修改代码" : "这里不能调用 Claude，请手动修改代码"); return; } setMode("strategy"); send("修复这段代码的错误：" + String(msg).slice(0, 300), { fix: String(msg).slice(0, 1500) }); };
 
   function disable(reason) { sample = null; var off = $("aiOff"); if (off) { off.hidden = false; off.textContent = reason + " 其余功能不受影响：世界、规则、图表和参数扫描都在本地运行。"; } var s = $("aiSend"); if (s) s.disabled = true; var t = $("aiInput"); if (t) t.disabled = true; var b = $("btnClaude"); if (b) b.classList.remove("primary"); }
   function setMode(m) {
@@ -397,18 +415,110 @@
   }
   function renderEmpty(e) {
     clear(e);
-    e.appendChild(h("div", { text: { strategy: A.isGame() ? "说说你想怎么玩这一局，Claude 会写成规则的代码、给出具体的参数，并解释它是不是最优。写好后自动载入并计分。" : "说出想法，Claude 会给出规则的代码、具体的参数，并解释为什么这样构造、是不是最优。写好后自动载入并回测。", world: "描述一种数据的生成方式，Claude 会写成采样函数，生成的路径立刻成为当前的世界。", chart: "说你想看什么，Claude 会把对应的图调出来。", ask: "针对眼前的数字提问。Claude 能看到当前的世界、规则和三种口径的结果。" }[mode] }));
-    var eg = h("div", { class: "eg" }); examples(mode).forEach(function (x) { eg.appendChild(h("button", { class: "btn small", type: "button", text: x, onclick: function () { var t = $("aiInput"); t.value = x; t.focus(); } })); }); e.appendChild(eg);
+    e.appendChild(h("div", { text: { strategy: A.isGame() ? "说说你想怎么玩这一局，" + AI + " 会写成规则的代码、给出具体的参数，并解释它是不是最优。写好后自动载入并计分。" : "说出想法，" + AI + " 会给出规则的代码、具体的参数，并解释为什么这样构造、是不是最优。写好后自动载入并回测。", world: "描述一种数据的生成方式，" + AI + " 会写成采样函数，生成的路径立刻成为当前的世界。", chart: "说你想看什么，" + AI + " 会把对应的图调出来。", ask: "针对眼前的数字提问。" + AI + " 能看到当前的世界、规则和三种口径的结果。" }[mode] }));
+    var eg = h("div", { class: "eg" }); examples(mode).forEach(function (x) { eg.appendChild(h("button", { class: "btn small", type: "button", text: x, onclick: function () { var t = $("aiInput"); t.value = x; if (!t.disabled) t.focus(); } })); }); e.appendChild(eg);
   }
+
+  /* ---------- 独立的网页：接入自己的 AI ---------- */
+  /** 按当前的设置把面板摆成"能用"或"还没接入" */
+  function webSync() {
+    var lab = WEB.label(), chip = $("aiProv"), off = $("aiOff"), s = $("aiSend"), t = $("aiInput");
+    sample = lab ? WEB.sample() : null; limits = { tools: false };
+    if (chip) { chip.textContent = lab ? lab.short + " · " + lab.model : "接入 AI…"; chip.title = lab ? "正在用 " + lab.short + " 的 " + lab.model + "。点这里换服务商、换模型或改密钥。" : "选一家服务商，填上你自己的 API 密钥"; chip.classList.toggle("primary", !lab); }
+    if (off) {
+      off.hidden = !!lab; clear(off);
+      if (!lab) {
+        off.appendChild(h("div", { text: "这一栏要先接入一个 AI 才能用：DeepSeek、ChatGPT、Kimi、豆包，或者任何兼容 OpenAI 的接口。用的是你自己的 API 密钥，密钥只保存在这台电脑的浏览器里。" }));
+        off.appendChild(h("div", { class: "row", style: { "margin-top": "8px" } }, h("button", { class: "btn small primary", type: "button", text: "接入 AI…", onclick: function () { A.openAiSettings(); } })));
+        off.appendChild(h("div", { class: "note", style: { "margin-top": "8px" }, text: "不接入也不影响别的：世界、规则、图表、参数扫描和手册都在本地运行；规则的代码可以自己改（左栏规则下面的\"代码与说明\"）。" }));
+      }
+    }
+    if (s) s.disabled = !lab; if (t) t.disabled = !lab;
+    if ($("aiModes")) setMode(mode);
+  }
+  /** 设置：选服务商、填密钥、选模型、测试连接。改动先落在草稿里，点"保存"才生效 */
+  A.openAiSettings = function () {
+    if (!WEB) return;
+    var draft = WEB.cfg(), m = null, body = h("div", { class: "ai-set" }), found = {}, busyNow = false;
+    if (!draft.p) draft.p = WEB.PRE[0].id;
+    function cur() { return draft.by[draft.p] || (draft.by[draft.p] = {}); }
+    function say(kind, text, detail) {
+      var st = body.querySelector(".ai-st"); if (!st) return; clear(st); st.className = "ai-st" + (kind ? " " + kind : "");
+      if (text) st.appendChild(h("div", { text: text })); if (detail) st.appendChild(h("div", { class: "note", text: detail }));
+    }
+    function sayErr(e) { var ex = WEB.explain(e); say("bad", "✕ " + ex.text, ex.detail ? "服务商的原话：" + ex.detail : ""); }
+    function field(label, control, hint) { return h("div", { class: "ai-f" }, h("label", { text: label, for: control.id || null }), control, hint ? h("div", { class: "note", text: hint }) : null); }
+    function lock(on) { busyNow = on; Array.prototype.forEach.call((m ? m.box : body).querySelectorAll("button.ai-act"), function (b) { b.disabled = on; }); }
+    function paint() {
+      var P = WEB.preset(draft.p), u = cur(); clear(body);
+      body.appendChild(h("div", { class: "note", text: "用你自己的 API 密钥调用所选的服务商。密钥只保存在这台电脑的这个浏览器里；请求从你的浏览器直接发给服务商，不经过本站；费用由服务商按你的账号计。" }));
+      body.appendChild(h("div", { class: "ai-f" }, h("label", { text: "服务商" }), h("div", { class: "ai-provs", role: "group", "aria-label": "服务商" }, WEB.PRE.map(function (x) {
+        return h("button", { class: "chip", type: "button", "data-p": x.id, "aria-pressed": x.id === draft.p ? "true" : "false", text: x.name, onclick: function () { draft.p = x.id; paint(); var k = $("aiKey"); if (k) k.focus(); } });
+      }))));
+      if (P.hint) body.appendChild(h("div", { class: "note ai-hint", text: P.hint }));
+      var needProxy = WEB.noCors(WEB.conf(draft));
+      if (needProxy) body.appendChild(h("div", { class: "warn ai-needproxy", text: P.short + " 的接口不允许网页直接调用（浏览器的跨域限制会把回答拦下）。要在下面的\"高级\"里填一个转发代理才能用。" }));
+      // 同一家的不同站点（密钥不通用）
+      if (P.sites) {
+        var site = h("select", { id: "aiSite", onchange: function () { u.base = site.value === P.base ? "" : site.value; paint(); } }, P.sites.map(function (x) { return h("option", { value: x[0], text: x[1], selected: (u.base || P.base) === x[0] }); }));
+        body.appendChild(field("站点", site));
+      }
+      if (!P.base) { var b0 = h("input", { type: "text", id: "aiBase", value: u.base || "", placeholder: "https://…/v1", spellcheck: "false", autocomplete: "off", oninput: function () { u.base = b0.value; } }); body.appendChild(field("接口地址", b0, "到 /v1 为止，后面的 /chat/completions 不用写。")); }
+      // 密钥
+      var key = h("input", { type: "password", id: "aiKey", value: u.key || "", placeholder: WEB.isLocal(u.base || P.base) ? "本机的接口可以不填" : "sk-…", spellcheck: "false", autocomplete: "off", oninput: function () { u.key = key.value; } });
+      var eye = h("button", { class: "btn small", type: "button", text: "显示", "aria-pressed": "false", onclick: function () { var on = key.type === "password"; key.type = on ? "text" : "password"; eye.textContent = on ? "隐藏" : "显示"; eye.setAttribute("aria-pressed", on ? "true" : "false"); } });
+      body.appendChild(h("div", { class: "ai-f" }, h("label", { text: "API 密钥", for: "aiKey" }), h("div", { class: "ai-row" }, key, eye),
+        P.keyUrl ? h("div", { class: "note" }, "还没有密钥？", h("a", { href: P.keyUrl, target: "_blank", rel: "noopener noreferrer", text: "到 " + P.short + " 的控制台申请 ↗" })) : null));
+      // 模型
+      var list = (found[draft.p] || []).concat(P.models.filter(function (x) { return (found[draft.p] || []).indexOf(x) < 0; }));
+      var model = h("input", { type: "text", id: "aiModel", value: u.model || "", placeholder: P.model || "模型的名字", list: "aiModelList", spellcheck: "false", autocomplete: "off", oninput: function () { u.model = model.value; } });
+      var fetchBtn = h("button", { class: "btn small ai-act", type: "button", text: "获取模型列表", onclick: function () {
+        if (busyNow) return; lock(true); say("", "正在向服务商查询…");
+        WEB.models(draft).then(function (ids) { lock(false); found[draft.p] = ids; var keep = model.value; paint(); if (keep) $("aiModel").value = keep; say(ids.length ? "good" : "", ids.length ? "查到 " + ids.length + " 个模型：点\"模型\"那一格可以从里面选。" : "服务商没有返回模型列表，模型的名字要自己填。"); }, function (e) { lock(false); sayErr(e); });
+      } });
+      body.appendChild(h("div", { class: "ai-f" }, h("label", { text: "模型", for: "aiModel" }), h("div", { class: "ai-row" }, model, fetchBtn), h("datalist", { id: "aiModelList" }, list.map(function (x) { return h("option", { value: x }); })),
+        h("div", { class: "note", text: P.model ? "留空就用 " + P.model + "。模型的名字变得很快，报\"不认识这个模型\"时点右边的按钮换一个。" : "填服务商给这个模型起的名字。" })));
+      // 高级
+      var adv = h("details", { class: "more ai-adv", open: !!(u.fast || (P.base && u.base && !P.sites) || draft.proxy || u.think === false || needProxy) }, h("summary", { text: "高级" }));
+      var ab = h("div", { class: "more-body" }); adv.appendChild(ab);
+      if (P.base && !P.sites) { var b1 = h("input", { type: "text", id: "aiBase", value: u.base || "", placeholder: P.base, spellcheck: "false", autocomplete: "off", oninput: function () { u.base = b1.value; } }); ab.appendChild(field("接口地址", b1, "一般不用改。走中转或者自建的兼容接口时填在这里。")); }
+      var fast = h("input", { type: "text", id: "aiFast", value: u.fast || "", placeholder: P.fast || "和上面的模型相同", list: "aiModelList", spellcheck: "false", autocomplete: "off", oninput: function () { u.fast = fast.value; } });
+      ab.appendChild(field("做小事用的模型", fast, "\"调图表\"只是从清单里挑几张图，用便宜、快的模型就够了。"));
+      var think = h("input", { type: "checkbox", id: "aiThink", checked: u.think !== false, onchange: function () { u.think = think.checked; } });
+      ab.appendChild(h("div", { class: "ai-f" }, h("label", { class: "ai-ck", for: "aiThink" }, think, "写策略、造世界时让模型先深度思考"), h("div", { class: "note", text: "更慢（常常要等一两分钟），推导和代码通常更可靠。问结果、调图表不受这一项影响，总是直接回答。" })));
+      var proxy = h("input", { type: "text", id: "aiProxy", value: draft.proxy || "", placeholder: "一般留空", spellcheck: "false", autocomplete: "off", oninput: function () { draft.proxy = proxy.value; }, onchange: function () { if (needProxy !== WEB.noCors(WEB.conf(draft))) paint(); } });
+      ab.appendChild(field("转发代理", proxy, "有的服务商不允许网页直接调用（浏览器的跨域限制），表现是\"请求没有发出去\"。这时要有一个转发代理把请求转过去，把它的地址填在这里：页面会请求 <代理地址>/<完整的接口地址>。代理能看到你的密钥，只填你自己部署或者信得过的。"));
+      body.appendChild(adv);
+      body.appendChild(h("div", { class: "ai-st", role: "status", "aria-live": "polite" }));
+      body.appendChild(h("div", { class: "note", text: "和本站同一个域名下的其他页面在技术上也读得到保存在这里的密钥。用的是公用电脑的话，用完请点\"清除密钥\"。" }));
+    }
+    var clearBtn = h("button", { class: "btn ai-act", type: "button", text: "清除密钥", title: "把这家服务商的密钥从这个浏览器里删掉", onclick: function () {
+      var P = WEB.preset(draft.p); delete cur().key; var c = WEB.cfg(); if (c.by[draft.p]) delete c.by[draft.p].key; WEB.save(c); paint(); say("", "已经把 " + P.short + " 的密钥从这个浏览器里删掉。");
+    } });
+    var testBtn = h("button", { class: "btn ai-act", type: "button", text: "测试连接", onclick: function () {
+      if (busyNow) return; lock(true); say("", "正在测试：发一句最短的话，等它回…");
+      WEB.test(draft).then(function (r) { lock(false); say("good", "✓ 通了：" + r.model + " 在 " + (r.ms / 1000).toFixed(1) + " 秒里回了话" + (r.viaProxy ? "（经转发代理）" : "") + "。记得点\"保存\"。"); }, function (e) { lock(false); sayErr(e); });
+    } });
+    var saveBtn = h("button", { class: "btn primary ai-act", type: "button", text: "保存", onclick: function () {
+      var bad = WEB.problem(WEB.conf(draft)); if (bad) { sayErr({ code: bad }); return; }
+      WEB.save(draft); m.close(); A.toast("已接入 " + WEB.label().short + "。右栏可以用了。"); A.openClaude(true);
+    } });
+    paint();
+    m = A.modal("接入 AI", body, { narrow: true, cls: "aiset", focus: "#aiKey", foot: [clearBtn, h("span", { style: { flex: "1" } }), testBtn, saveBtn] });
+  };
+
   A.initClaude = function () {
     var host = clear($("paneAi"));
+    // 顶栏的按钮、手机上的标签、面板的名字：独立的网页里叫 AI
+    var hb = $("btnClaude"), tb = document.querySelector('#tabs [data-tab="ai"]'); if (hb) hb.textContent = AI; if (tb) tb.textContent = AI; host.setAttribute("aria-label", AI);
     var tierSel = h("select", { "aria-label": "模型档位", title: "越强越慢，也越耗用量", onchange: function () { S.tier = tierSel.value; A.persist(); } }, [["complex", "最强"], ["default", "均衡"], ["quick", "最快"]].map(function (x) { return h("option", { value: x[0], text: "模型：" + x[1], selected: S.tier === x[0] }); }));
-    host.appendChild(h("div", { class: "ai-h" }, h("h2", { text: "Claude" }), tierSel, h("button", { class: "iconbtn", type: "button", "aria-label": "收起 Claude 面板", text: "✕", onclick: function () { if (window.matchMedia("(max-width: 779.9px)").matches) A.setTab("res"); else A.openClaude(false); } })));
+    var prov = WEB ? h("button", { class: "btn small ai-prov", type: "button", id: "aiProv", onclick: function () { A.openAiSettings(); } }) : null;
+    host.appendChild(h("div", { class: "ai-h" }, h("h2", { text: AI }), WEB ? prov : tierSel, h("button", { class: "iconbtn", type: "button", "aria-label": "收起 " + AI + " 面板", text: "✕", onclick: function () { if (window.matchMedia("(max-width: 779.9px)").matches) A.setTab("res"); else A.openClaude(false); } })));
     host.appendChild(h("div", { class: "ai-modes", id: "aiModes" }, MODES.map(function (m) { return h("button", { class: "chip", type: "button", "data-m": m[0], "aria-pressed": m[0] === mode ? "true" : "false", text: m[1], onclick: function () { setMode(m[0]); } }); })));
     host.appendChild(h("div", { class: "ai-off", id: "aiOff", hidden: true }));
     var empty = h("div", { class: "ai-empty", id: "aiEmpty" }); renderEmpty(empty);
     host.appendChild(h("div", { class: "ai-log", id: "aiLog", "aria-live": "polite" }, empty));
-    var ta = h("textarea", { id: "aiInput", placeholder: placeholder(mode), "aria-label": "对 Claude 说", rows: "3" });
+    var ta = h("textarea", { id: "aiInput", placeholder: placeholder(mode), "aria-label": "对 " + AI + " 说", rows: "3" });
     ta.addEventListener("keydown", function (e) { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); go(); } });
     function go() { var v = ta.value; if (!v.trim() || busy) return; ta.value = ""; send(v); }
     var deepCb = h("input", { type: "checkbox", id: "aiDeep" }); deepCb.addEventListener("change", function () { deep = deepCb.checked; });
@@ -416,9 +526,11 @@
       h("label", { class: "note", id: "aiDeepWrap", hidden: true, title: "让 Claude 在回答前自己调用回测、看结果、再改。更慢，也更耗用量。", style: { display: "inline-flex", gap: "6px", "align-items": "center" } }, deepCb, "深度模式"), h("span", { style: { flex: "1" } }),
       h("button", { class: "btn", type: "button", id: "aiStop", hidden: true, text: "停止", onclick: function () { if (ctl) ctl.abort(); } }),
       h("button", { class: "btn primary", type: "button", id: "aiSend", text: "发送", title: "⌘/Ctrl + Enter", onclick: go }))));
-    // 取得调用 Claude 的能力；取不到就把这一块标成不可用
     var cl = window.claude, sendBtn = $("aiSend");
-    if (!cl || typeof cl.use !== "function") { disable("这个页面要在 Claude 里打开才能调用 Claude；现在这样打开，写规则、造世界、调图表、问结果这四项用不了。规则的代码可以自己改：左栏规则下面的\"代码与说明\"。"); return; }
+    // 独立的网页：用使用者自己接入的服务商；设置变了（包括在别的标签页里改的）就跟着变
+    if (WEB) { webSync(); WEB.onChange(webSync); return; }
+    // 在 Claude 里：取得调用 Claude 的能力；取不到就把这一块标成不可用
+    if (!HOST) { disable("这个页面要在 Claude 里打开才能调用 Claude；现在这样打开，写规则、造世界、调图表、问结果这四项用不了。规则的代码可以自己改：左栏规则下面的\"代码与说明\"。"); return; }
     sendBtn.disabled = true; sendBtn.textContent = "正在连接…";       // 能力要等宿主应答之后才可用
     cl.use("sample").then(function (fn) {
       sendBtn.textContent = "发送";

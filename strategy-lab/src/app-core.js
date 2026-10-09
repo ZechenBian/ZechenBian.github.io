@@ -39,6 +39,12 @@ var App = (function () {
     clearTimeout(toastT); toastT = setTimeout(function () { el.remove(); }, ms || 2600);
   }
   A.h = h; A.$ = $; A.clear = clear; A.debounce = debounce; A.toast = toast;
+  /* 右栏的助手是谁。在 Claude 里打开页面时由宿主提供 Claude；放在普通网站上时没有，由使用者自带密钥接入一家服务商（src/ai.js）。
+   * 界面上泛指这位助手的地方一律用 A.AI：在 Claude 里是"Claude"，在独立的网页里是"AI"。 */
+  A.aiHost = !!(window.claude && typeof window.claude.use === "function");
+  A.AI = A.aiHost ? "Claude" : "AI";
+  /** 手册等现成的文字是按"在 Claude 里打开"写的；独立的网页里把其中的 Claude 换成当前的称呼 */
+  A.aiSay = function (s) { return A.aiHost ? s : String(s).replace(/Claude/g, A.AI); };
 
   /* ---------- 数字的写法 ---------- */
   var F = QLChart.fmtNum, P = QLChart.fmtPct;

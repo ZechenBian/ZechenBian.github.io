@@ -526,7 +526,7 @@
   };
 
   /* ---------- 模型诊断 ---------- */
-  var NO_MODEL = "当前规则没有训练模型。到规则里选\"模型\"一组，或者让 Claude 写一个带 fit 的策略。";
+  var NO_MODEL = "当前规则没有训练模型。到规则里选\"模型\"一组，或者让 " + A.AI + " 写一个带 fit 的策略。";
   function diag() { return A.run && A.run.diag; }
   /** 世界的真实条件期望 E[下一步收益 | 第一个特征 = x]；只在能写出来的组合上给出 */
   function truthFor(pd) {

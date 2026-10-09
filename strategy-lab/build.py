@@ -39,7 +39,7 @@ def katex_css():
 # 顺序有讲究：模型库和玩法是被内核"安装"的，要先于内核定义；规则表在内核之后；界面各部分按依赖排
 JS = ["ml.js", "games.js", "obs-games.js", "live.js", "core.js", "strategies.js", "models.js", "game-strats.js", "obs-strats.js", "charts.js", "engine-client.js", "md.js", "io.js",
       "guide.js", "guide-games.js", "guide-worlds.js", "guide-obs.js",
-      "app-core.js", "app-live.js", "app-ui.js", "app-charts.js", "app-scenes.js", "app-guide.js", "claude.js", "app-main.js"]
+      "ai.js", "app-core.js", "app-live.js", "app-ui.js", "app-charts.js", "app-scenes.js", "app-guide.js", "claude.js", "app-main.js"]
 JS = [f for f in JS if os.path.exists(os.path.join(ROOT, "src", f))]
 js = "/* %s\n   Not open source. %s */\n" % (COPY, LICENSE_URL) + "\n".join("/* ===== %s ===== */\n%s" % (f, src(f)) for f in JS)
 assert "</script" not in js.lower(), "内联脚本里不能出现 </script"

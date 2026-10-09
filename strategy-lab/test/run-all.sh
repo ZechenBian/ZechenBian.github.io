@@ -5,7 +5,7 @@
 cd "$(dirname "$0")/.." || exit 1
 python3 build.py || exit 1
 fail=0
-for t in engine worker io ml claims model-claims games games-worker obs guide; do
+for t in engine worker io ml ai claims model-claims games games-worker obs guide; do
   out=$(node test/$t.test.js 2>&1); line=$(echo "$out" | grep -E "passed, [0-9]+ failed" | tail -1)
   echo "$t: $line"; echo "$out" | grep -E "^\s+FAIL|CRASH" ; echo "$line" | grep -q ", 0 failed" || fail=1
 done
@@ -19,5 +19,7 @@ out=$(node test/ui-models-shots.js 2>&1); echo "ui-models-shots: $(echo "$out" |
 out=$(node test/ui-guide-responsive.js 2>&1); echo "ui-guide-responsive: $(echo "$out" | tail -3 | tr '\n' ';' | cut -c1-400)"; echo "$out" | grep -q "OVERFLOWING\|CRASH\|PROBLEMS\|wrong" && fail=1
 # 独立的网页版 index.html：不在 Claude 里、连不上外面的网站时也要能用
 out=$(node test/ui-standalone.js 2>&1); echo "ui-standalone: $(echo "$out" | grep -E "passed, [0-9]+ failed|CRASH" | tail -1)"; echo "$out" | grep -E "^\s+FAIL|CRASH"; echo "$out" | grep -qE "[1-9][0-9]* failed|CRASH" && fail=1
+# 独立网页版里的 AI 面板：接入一家服务商（本机的假接口）之后四种用法都能用
+out=$(node test/ui-ai.js 2>&1); echo "ui-ai: $(echo "$out" | grep -E "passed, [0-9]+ failed|CRASH" | tail -1)"; echo "$out" | grep -E "^\\s+FAIL|CRASH"; echo "$out" | grep -qE "[1-9][0-9]* failed|CRASH" && fail=1
 [ $fail = 0 ] && echo "ALL GREEN" || echo "SOMETHING FAILED"
 exit $fail

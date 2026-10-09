@@ -492,3 +492,29 @@ li.ck:last-child { border-bottom: 0; }
 #blkGame select, #blkWorld select { max-width: 100%; }
 #worldFixed { margin: 0 0 10px; }
 #worldFixed b { color: var(--ink); font-weight: 600; }
+
+/* 独立的网页：接入自己的 AI（src/ai.js、src/claude.js） */
+.ai-prov { flex: 0 1 auto; min-width: 0; max-width: 64%; overflow: hidden; text-overflow: ellipsis; display: block; font-family: var(--font-mono); font-weight: 400; }
+.ai-prov.primary { font-family: var(--font-body); font-weight: 500; }
+.ai-off .btn { white-space: normal; }
+.ai-detail { margin-top: 6px; overflow-wrap: anywhere; }
+.ai-set { display: grid; gap: 13px; }
+.ai-f { display: grid; gap: 5px; min-width: 0; }
+.ai-f > label { font-size: 12.5px; color: var(--ink2); font-weight: 600; }
+.ai-f input[type="text"], .ai-f input[type="password"], .ai-f select { width: 100%; min-width: 0; background: var(--surface-2); color: var(--ink); border: 1px solid var(--line); border-radius: 4px; padding: 6px 8px; font: 12.5px/1.4 var(--font-mono); }
+.ai-f input:focus-visible, .ai-f select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.ai-row { display: flex; gap: 6px; align-items: center; min-width: 0; }
+.ai-row input { flex: 1 1 auto; }
+.ai-row .btn { flex: none; }
+.ai-provs { display: flex; flex-wrap: wrap; gap: 6px; }
+.ai-hint { border-left: 2px solid var(--c-axis); padding-left: 9px; }
+.ai-f > label.ai-ck { display: inline-flex; gap: 7px; align-items: center; font-weight: 400; color: var(--ink); font-size: 13px; cursor: pointer; }
+.ai-adv .more-body { display: grid; gap: 13px; }
+.ai-st { font-size: 12.5px; color: var(--ink2); overflow-wrap: anywhere; }
+.ai-st:empty { display: none; }
+.ai-st.good { color: var(--good-ink); }
+.ai-st.bad { color: var(--crit-ink); }
+.aiset .modal-f { align-items: center; }
+.modal-box.aiset-box { display: flex; flex-direction: column; max-height: calc(100vh - 4vh - 32px); max-height: calc(100dvh - 4vh - 32px); }
+.aiset .modal-b { overflow-y: auto; min-height: 0; overscroll-behavior: contain; }
+.aiset .modal-f { border-top: 1px solid var(--line); padding-top: 10px; }
