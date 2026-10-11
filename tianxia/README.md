@@ -33,13 +33,61 @@ A grand-strategy game with four starting years (1939, 1945, 1979, 2026), played 
 
 对局列表和大厅里会显示每局的年代。
 
-### 台湾：中立地区
+### 新手教学
 
-在四个年代里，台湾都单独画在地图上（浅色底、带细点），是永久中立地区：
+开局画面上的“新手教学”（第一次来时放在最上面），或者游戏里“⋯ → 新手教学”。教学开一局 1939 年的英国，用聚光灯和说明卡带你走完一个回合，大约三分钟：看局势、选目标、排行动、用一句话下命令、看目标与得分、打开地图图层、结束回合、读战报，最后介绍联机。需要动手的步骤会等你做完，也可以点“帮我做”；随时可以跳过。教学局不存档，不会覆盖你的存档，结束时可以选择继续这一局。
 
-- 任何国家都不能对台湾采取任何行动——宣战、进攻、封锁、制裁、援助、贸易、结盟、驻军、一句话命令里涉及台湾的改动都会被拒绝，AI 推演也不会这样做；
-- 台湾自己不参与国际事务；
-- 玩家不能选台湾，也不能接管它。点它只显示基本资料和中立说明。
+### 多人局：公开喊话、私下交流与统一结算
+
+- **每人代表一个国家给出自己的方案**：排行动、下一句话命令，还可以在行动队列旁写本回合的“方针”（一两句话的总体打算）。方针只加密交给房主的推演，其他玩家看不到。
+- **统一结算**：所有人就绪后（或房主“立即结算”），所有国家在同一回合一起结算。
+- **交叉影响**：结算会考虑各方策略之间的相互作用，写进各人的战报——两人同时对一国施压，压力叠加；一方施压、一方支持，互相抵消；有人打击你的盟友、或者也在打击你的对手，都会写明。AI 国家会同时回应几位玩家（规则推演按回合轮换回应的先后）。接入 AI 推演时，房主的 AI 把各方的行动、公开喊话和方针放在一起推演一次，写出交叉影响。
+- **公开喊话**：“通讯”页最上面的“公开频道”，所有玩家都看得到；接入 AI 推演时，各国政府也会把它当作你国的公开表态。
+- **私下交流**：给其他玩家发私信，端到端加密，只有你们两人看得到（房主也看不到）。
+
+### 私密与加密
+
+- 私信：端到端加密（每台设备一对 ECDH P-256 密钥，AES-GCM 加密），只有收发双方能解开。
+- 你本回合的行动、即时命令和方针：只加密交给房主（房主的浏览器负责结算），其他玩家看不到。
+- 各人的私密数据（战报、情报、来函、危机、各国对你的记忆、你的秘密集结）：房主分别加密给每位玩家；大家都能读到的公开快照里只有公开的局势。
+- 房主能看到所有人的方案和战报（结算需要），但看不到私信。房主换人时，各玩家把自己的那份重新加密交给新房主。
+- 公开喊话、昵称、对局名称、入座情况和公开的局势不加密。
+- 密钥保存在本浏览器里；换了浏览器或清除了网站数据，以前的私信就解不开了。
+
+### 目标、计分与排行榜
+
+- 每个国家有几条历史目标，例如 1939 年的英国：本土不被占领、法国坚持到 1941 年底且英法同盟不破、1943 年底前把美国拉到自己一边、击败德国。按时达成就加分。
+- 总分 = 主权（0–20）+ 经济（占世界 GDP 的份额相对开局的变化，0–20）+ 军力（占世界军力的份额相对开局的变化，0–20）+ 稳定（0–10）+ 达成的目标。份额按相对开局的变化计算，小国也能争第一。
+- “本国”页最上面是你的目标与得分；状态栏的 🏆 打开排行榜：多人局比的是各位玩家，单人局和几个 AI 大国对照。房主（本地对局里就是你）可以“结束对局并公布排名”。
+
+### 地图图层
+
+地图右上角的“图层”：
+
+| 图层 | 内容 |
+|---|---|
+| 战线箭头与兵力集群 | 箭头越粗，投入的兵力越多；箭身上的图标表示坦克、步兵、飞机、舰艇。刚发动的攻势会播放开战动画（比如 1939 年开局德国入侵波兰），本回合宣战的大国之间标“宣战” |
+| 补给线 | 从首都经出发阵地到前线；隔海的画成长虚线 |
+| 航运线与封锁 | 各年代的主要航线，线越粗运量越大；战区与封锁海域标红色虚线 |
+| 铁路干线 | 按年代通车的铁路（如 1939 年的滇缅公路、2026 年的青藏铁路） |
+| 油田与煤田 | 各年代的主要产区，标出控制方 |
+| 海峡要冲 | 苏伊士、直布罗陀、马六甲、霍尔木兹、巴拿马、博斯普鲁斯等，标出控制方，战时对敌国关闭 |
+| 驻军与在途部队 | 你的驻军、调动和集结 |
+| 国名标注 | |
+
+- 预设一键切换：简洁 / 作战 / 经济 / 全部。选择保存在本浏览器里。
+- 动画：自动 / 开 / 关。“自动”时手机上只播开战动画，系统设置为“减少动态效果”时关闭。
+- 航线运量与资源规模是示意性的，反映各年代的相对轻重，不是精确统计。
+
+### 台湾：中国领土
+
+- 四个年代里，台湾都划归中国：地图上与中国同色；1945、1979、2026 年开局标注“中华台湾”，点开注明是中国领土（1939 年开局叫“台湾”，归中华民国）。
+- 台湾不能单独操作：不能被选为玩家国家，任何国家都不能单独对它采取行动——宣战、进攻、封锁、制裁、援助、贸易、驻军、一句话命令里涉及台湾的改动都会被拒绝，AI 推演也不会这样做。
+- 台湾不会独立：即使中国被征服或投降，台湾仍归中国。
+
+### 1939 年开局：中国不会战败
+
+保底设定：中国（中华民国）不会被征服、不会投降、也不会沦为附庸。日军的攻势越深入越慢，最多推进到战线的 62%（大致武汉、广州一线），西安、重庆、成都、昆明都守得住，之后战线陷入僵持。其他年代没有这个保底。
 
 ### 语言
 
@@ -114,12 +162,12 @@ A grand-strategy game with four starting years (1939, 1945, 1979, 2026), played 
 - 没有专门的游戏服务器。房主的浏览器负责结算，状态经公共 MQTT 中继服务器同步（EMQX、HiveMQ、Eclipse 提供的免费公共服务器，同时连三台，有一两台连不上照样能玩）。
 - 不用登录：每台设备自动生成一个编号，昵称在开局画面填写。
 - 房主关掉页面后，其他入座的玩家大约一分半钟后自动接任，游戏继续。
-- 对局数据经公共服务器转发，没有加密，私信里不要写隐私信息。
+- 私信、各人的方案和私密数据都加密后才经过中继（见“私密与加密”）；公开喊话和公开的局势不加密。
 
 ### 和 claude.ai 里的联机版有什么不同
 
 - 不含精细战区（按区格、按师逐日推演的战区地图）。
-- 台湾单独画出并保持中立（见上）。
+- 台湾划归中国、1939 年开局中国不会战败（见上）。
 - claude.ai 里由 Claude 推演；这里默认用本地规则推演（国家智能体用本地规则谈判，一句话命令只识别战时政策与设定变更），接入 AI 后与 claude.ai 版一样由 AI 推演。
 - 没有“外部智能体”。
 - 其余规则、数据、战时经济、私信与正式提议都相同。
@@ -159,13 +207,61 @@ When you create an online, hot-seat or solo game, pick the year first:
 
 The game list and the lobby show each game's year.
 
-### Taiwan: a neutral zone
+### Tutorial
 
-In all four years Taiwan is drawn on its own on the map (pale, with a fine dot pattern) and is a permanently neutral zone:
+Click “Tutorial” on the start screen (it sits at the top on your first visit), or “⋯ → Tutorial” in a game. It starts a game as Britain in 1939 and walks you through one turn with a spotlight and a short card at each step, in about three minutes: reading the situation, picking a target, queuing actions, giving an order in plain words, objectives and score, map layers, ending the turn and reading the report, and finally online play. Steps that need you to act wait until you do (or press “Do it for me”), and you can skip at any time. The tutorial game is never saved over your own saves; at the end you can keep playing it.
 
-- No country can take any action toward Taiwan: declaring war, attacking, blockades, sanctions, aid, trade, alliances, stationing troops, and changes to it in one-line orders are all refused, and the AI simulation will not do these either.
-- Taiwan itself takes no part in world affairs.
-- No player can pick or take over Taiwan. Clicking it shows its basic data and a note that it is neutral.
+### Multiplayer: public statements, private talks and joint resolution
+
+- **Each player leads one country with their own plan**: queue actions, give one-line orders, and write a “strategy” for the turn next to the action queue (a sentence or two on your intent). The strategy goes, encrypted, only to the host's simulation; other players never see it.
+- **Joint resolution**: once everyone is ready (or the host forces it), all countries resolve together in the same turn.
+- **Cross-effects**: the resolution weighs how the players' moves interact and writes it into each player's report — two players pressing the same country add up, one pressing while another backs it partly cancel out, and hits on your allies or on your enemies are spelled out. AI countries respond to several players at once (with rules, the order rotates each turn). With an AI connected, the host's AI simulates everyone's moves, public statements and strategies together in one pass and describes the cross-effects.
+- **Public statements**: the “Public channel” at the top of the Comms tab is seen by every player; with an AI connected, governments also treat it as your country's public position.
+- **Private talks**: message other players privately; messages are end-to-end encrypted, so only the two of you can read them (not even the host).
+
+### Privacy and encryption
+
+- Private messages: end-to-end encrypted (an ECDH P-256 key pair per device, AES-GCM); only the sender and the recipient can open them.
+- Your actions, instant orders and strategy for the turn: encrypted for the host only (the host's browser resolves the turn); other players cannot see them.
+- Each player's private data (reports, intelligence, letters, crises, what other countries remember about you, your secret build-ups): encrypted by the host separately for each player; the public snapshot everyone can read holds only the public situation.
+- The host can see every player's plans and reports (needed to resolve the turn) but not private messages. When the host changes, each player re-encrypts their own share for the new host.
+- Public statements, nicknames, game names, seating and the public situation are not encrypted.
+- Keys live in this browser; after switching browsers or clearing site data, older private messages can no longer be opened.
+
+### Objectives, score and leaderboard
+
+- Each country has a few historical objectives — Britain in 1939, for example: keep the home islands unoccupied, keep France in the war with the alliance intact to the end of 1941, bring America onto your side by the end of 1943, defeat Germany. Meeting them in time scores points.
+- Total = sovereignty (0–20) + economy (change in your share of world GDP since the start, 0–20) + military (change in your share of world military power, 0–20) + stability (0–10) + objectives met. Shares count relative to where you started, so small countries can win too.
+- The top of the Home tab shows your objectives and score; 🏆 on the status bar opens the leaderboard — multiplayer games rank the players, solo games compare you with a few AI powers. The host (you, in a local game) can end the game and publish the final ranking.
+
+### Map layers
+
+Use “Layers” at the top right of the map:
+
+| Layer | What it shows |
+|---|---|
+| Front arrows & force clusters | Thicker arrows mean more troops committed; the icons on the arrow show tanks, infantry, aircraft and ships. New offensives play a launch animation (Germany invading Poland when a 1939 game opens), and great powers that declared war this turn are marked “War” |
+| Supply lines | From the capital through the staging area to the front; lines across the sea are dashed |
+| Sea lanes & blockades | Each era's main shipping routes; thicker lanes carry more trade; war zones and blockaded waters are marked with red dashes |
+| Main railways | Railways as they existed in each era (the Burma Road in 1939, the Qinghai–Tibet Railway in 2026…) |
+| Oil & coal fields | Each era's main fields, with who holds them |
+| Strategic straits | Suez, Gibraltar, Malacca, Hormuz, Panama, the Bosporus and more, with who holds them; closed to enemies in wartime |
+| Garrisons & troops in transit | Your garrisons, movements and build-ups |
+| Country names | |
+
+- Presets switch everything at once: Simple, Operations, Economy, All. Your choice is kept in this browser.
+- Animation: Auto, On or Off. Auto plays only the offensive animation on phones, and turns animation off when your system asks for reduced motion.
+- Trade volumes and field sizes are indicative — they show the relative weight in each era, not exact statistics.
+
+### Taiwan: part of China
+
+- In all four years Taiwan belongs to China: it is drawn in China's colour, and in the 1945, 1979 and 2026 games it is labelled “Taiwan, China” and marked as part of China when clicked (in 1939 it is called “Taiwan” and belongs to the Republic of China).
+- Taiwan cannot be controlled on its own: no player can pick it, and no country can take any action toward it separately — declaring war, attacking, blockades, sanctions, aid, trade, stationing troops and changes to it in one-line orders are all refused, and the AI simulation will not do these either.
+- Taiwan cannot become independent: even if China is conquered or surrenders, Taiwan stays part of China.
+
+### 1939: China cannot lose
+
+A safeguard: China (the Republic of China) cannot be conquered, will not surrender and cannot be made anyone's vassal. Japanese offensives slow down the deeper they go and stall at 62% of the front at most (roughly the Wuhan–Canton line); Xi'an, Chongqing, Chengdu and Kunming hold. The other years have no such safeguard.
 
 ### Languages
 
@@ -240,12 +336,12 @@ Optional: in the Worker's Settings → Variables, `ALLOW_ORIGINS` (allowed sites
 - There is no game server. The host's browser resolves turns, and the state is synced through public MQTT relay servers (the free public brokers run by EMQX, HiveMQ and Eclipse; all three are used at once, so the game keeps going if one or two are unreachable).
 - No sign-in: each device gets a random id, and you pick a nickname on the start screen.
 - If the host closes the page, another seated player takes over after about a minute and a half.
-- Game data travels through public servers unencrypted, so keep private details out of messages.
+- Private messages, each player's plans and private data are encrypted before they reach the relays (see “Privacy and encryption”); public statements and the public situation are not.
 
 ### Differences from the version on claude.ai
 
 - The fine-grained theatre maps (zone-by-zone, division-level daily battles) are not included.
-- Taiwan is drawn on its own and stays neutral (see above).
+- Taiwan belongs to China, and in 1939 China cannot lose (see above).
 - On claude.ai, Claude runs the simulation. Here local rules run it by default (country agents negotiate with local rules, one-line orders only recognize war policies and settings changes); with an AI connected, the AI runs it as on claude.ai.
 - There are no external agents.
 - Everything else (rules, data, war economy, messages and formal proposals) is the same.
