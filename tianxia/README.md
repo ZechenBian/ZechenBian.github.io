@@ -2,9 +2,9 @@
 
 [中文](#中文) · [English](#english)
 
-1939 年开局的大战略推演，几个人在各自的设备上联网对弈。单个网页文件，打开即玩，不用登录、不用安装。推演默认用本地规则，也可以接入 ChatGPT、DeepSeek、豆包等 AI（用你自己的 API 密钥）。
+大战略推演，四个开局年代（1939、1945、1979、2026）任选，几个人在各自的设备上联网对弈。单个网页文件，打开即玩，不用登录、不用安装。界面有中文和英文，联机时每人用自己的语言。推演默认用本地规则，也可以接入 ChatGPT、DeepSeek、豆包等 AI（用你自己的 API 密钥）。
 
-A grand-strategy game starting in 1939, played online by several people on their own devices. One web page: open it and play, with no sign-in and nothing to install. The simulation runs on local rules, or on ChatGPT, DeepSeek, Doubao or another AI with your own API key.
+A grand-strategy game with four starting years (1939, 1945, 1979, 2026), played online by several people on their own devices. One web page: open it and play, with no sign-in and nothing to install. The interface is in Chinese and English, and in online games each player uses their own language. The simulation runs on local rules, or on ChatGPT, DeepSeek, Doubao or another AI with your own API key.
 
 **▶ 在线玩 / Play online:** https://zechenbian.github.io/tianxia/
 
@@ -19,6 +19,38 @@ A grand-strategy game starting in 1939, played online by several people on their
 | 联网对战 | 各自打开上面的网址 → 先在开局画面填一个昵称 → “联网对战” → 新建一局，或者加入列表里的对局 → 选一个国家入座。房主点“开始对局”。所有人同时规划，全员点“就绪”（或房主“立即结算”）后结算 |
 | 同屏轮流 | 几个人轮流用同一台设备 |
 | 单人 + 智能体 | 你一个国家，其余国家交给智能体 |
+
+### 四个开局年代
+
+新建联网对局、同屏轮流或单人对局时，先选年代：
+
+| 年代 | 开局局势 |
+|---|---|
+| 1939 · 二战爆发 | 德国刚刚入侵波兰，英法对德宣战；苏德签订互不侵犯条约，意大利观望，美国中立，日本深陷中国战场 |
+| 1945 · 战后新秩序 | 二战刚刚结束：美国独占原子弹，红军控制东欧，殖民帝国开始瓦解，冷战的帷幕正在拉开 |
+| 1979 · 冷战高峰 | 美苏核均势，华约与北约在欧洲对峙；中美刚刚建交，伊朗爆发伊斯兰革命，苏联即将出兵阿富汗 |
+| 2026 · 当今世界 | 以 2026 年公开的军力与经济数据为起点：俄乌战争仍在继续，中美竞争加剧，中东与朝鲜半岛局势紧张 |
+
+对局列表和大厅里会显示每局的年代。
+
+### 台湾：中立地区
+
+在四个年代里，台湾都单独画在地图上（浅色底、带细点），是永久中立地区：
+
+- 任何国家都不能对台湾采取任何行动——宣战、进攻、封锁、制裁、援助、贸易、结盟、驻军、一句话命令里涉及台湾的改动都会被拒绝，AI 推演也不会这样做；
+- 台湾自己不参与国际事务；
+- 玩家不能选台湾，也不能接管它。点它只显示基本资料和中立说明。
+
+### 语言
+
+开局画面和顶栏都可以切换中文 / English。联网对战时每个人用自己的语言：
+
+- 界面、规则推演的战报和日志，各按自己的语言显示；
+- 接入 AI 时，房主的 AI 按每位玩家的语言写给他的战报（各国表态、情报解读、新闻、危机）；
+- 所有人都看得到的 AI 文字（各国表态的日志、世界事件、AI 国家的战略规划、一句话命令的标题和各国表态），在玩家语言不同时中英两种都写，各自看到自己的语言；
+- 玩家自己写的私信、提议附言和自己起的对局名称照原文显示（没改过的默认对局名称会按各自的语言显示）。
+
+中途换语言也可以，下一回合起按新的语言写。
 
 ### 邀请朋友
 
@@ -87,6 +119,7 @@ A grand-strategy game starting in 1939, played online by several people on their
 ### 和 claude.ai 里的联机版有什么不同
 
 - 不含精细战区（按区格、按师逐日推演的战区地图）。
+- 台湾单独画出并保持中立（见上）。
 - claude.ai 里由 Claude 推演；这里默认用本地规则推演（国家智能体用本地规则谈判，一句话命令只识别战时政策与设定变更），接入 AI 后与 claude.ai 版一样由 AI 推演。
 - 没有“外部智能体”。
 - 其余规则、数据、战时经济、私信与正式提议都相同。
@@ -112,6 +145,38 @@ A grand-strategy game starting in 1939, played online by several people on their
 | Online | Everyone opens the address above → enter a nickname on the start screen → “Online” → create a game or join one from the list → take a country. The host clicks “Start game”. Everyone plans at the same time; the turn resolves once all are ready (or when the host forces it) |
 | Hot-seat | Several people take turns on one device |
 | Solo | You play one country; agents run the rest |
+
+### Four starting years
+
+When you create an online, hot-seat or solo game, pick the year first:
+
+| Year | Opening situation |
+|---|---|
+| 1939 · The world goes to war | Germany has just invaded Poland and Britain and France have declared war; the Soviet Union has a pact with Hitler, Italy waits, the US stays neutral and Japan is mired in China |
+| 1945 · The postwar order | The Second World War has just ended: America alone has the bomb, the Red Army holds Eastern Europe, the colonial empires are cracking and the Cold War is about to begin |
+| 1979 · The Cold War at its peak | US–Soviet nuclear parity, with NATO and the Warsaw Pact facing off in Europe; America and China have just normalized relations, Iran has had its Islamic revolution, and the Soviets are about to go into Afghanistan |
+| 2026 · The world today | Starts from public 2026 military and economic data: the Russia–Ukraine war goes on, US–China rivalry sharpens, and the Middle East and Korea stay tense |
+
+The game list and the lobby show each game's year.
+
+### Taiwan: a neutral zone
+
+In all four years Taiwan is drawn on its own on the map (pale, with a fine dot pattern) and is a permanently neutral zone:
+
+- No country can take any action toward Taiwan: declaring war, attacking, blockades, sanctions, aid, trade, alliances, stationing troops, and changes to it in one-line orders are all refused, and the AI simulation will not do these either.
+- Taiwan itself takes no part in world affairs.
+- No player can pick or take over Taiwan. Clicking it shows its basic data and a note that it is neutral.
+
+### Languages
+
+Switch between 中文 and English on the start screen or in the top bar. In online games each player uses their own language:
+
+- The interface and the rule-based reports and log show in each player's own language.
+- With an AI connected, the host's AI writes each player's report (other countries' statements, intelligence reads, headlines, crises) in that player's language.
+- AI text that every player sees (the log of statements, world events, AI countries' strategies, the title of a one-line order and the reactions to it) is written in both Chinese and English when the players use different languages, and each player sees their own.
+- What players write themselves (messages, notes on proposals, game names they typed) is shown as written; an unchanged default game name follows each player's language.
+
+You can switch language mid-game; from the next turn the AI writes in the new language.
 
 ### Inviting friends
 
@@ -180,6 +245,7 @@ Optional: in the Worker's Settings → Variables, `ALLOW_ORIGINS` (allowed sites
 ### Differences from the version on claude.ai
 
 - The fine-grained theatre maps (zone-by-zone, division-level daily battles) are not included.
+- Taiwan is drawn on its own and stays neutral (see above).
 - On claude.ai, Claude runs the simulation. Here local rules run it by default (country agents negotiate with local rules, one-line orders only recognize war policies and settings changes); with an AI connected, the AI runs it as on claude.ai.
 - There are no external agents.
 - Everything else (rules, data, war economy, messages and formal proposals) is the same.
