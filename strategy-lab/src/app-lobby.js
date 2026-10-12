@@ -7,7 +7,7 @@
   "use strict";
   var h = A.h, $ = A.$;
   var cards = [], routes = {};
-  /** 登记一张卡片：{ id, order, kicker, title, blurb, status(), go(arg), label, route }。route：地址里 #route 或 #route=参数 会直接打开它 */
+  /** 登记一张卡片：{ id, order, kicker, title, blurb, status(), go(arg), label（文字，或者返回文字的函数）, route, wide, primary }。route：地址里 #route 或 #route=参数 会直接打开它 */
   A.lobbyAdd = function (c) { cards.push(c); cards.sort(function (a, b) { return a.order - b.order; }); if (c.route) routes[c.route] = c; };
   A.lobbyCards = function () { return cards.slice(); };
   /** 能发给别人的地址：这张页面 + #入口 */
@@ -24,7 +24,7 @@
         h("h3", { text: c.title }),
         h("p", { class: "lb-blurb", text: c.blurb }),
         h("div", { class: "lb-foot" },
-          h("button", { class: "btn" + (c.primary ? " primary" : ""), type: "button", "data-go": c.id, text: c.label || "打开", onclick: function () { m.close(); c.go(); } }),
+          h("button", { class: "btn" + (c.primary ? " primary" : ""), type: "button", "data-go": c.id, text: (typeof c.label === "function" ? c.label() : c.label) || "打开", onclick: function () { m.close(); c.go(); } }),
           st ? h("span", { class: "lb-status", text: st }) : null)));
     });
     var m = A.modal("大厅", [

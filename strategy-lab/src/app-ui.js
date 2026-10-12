@@ -103,6 +103,7 @@
       });
       host.appendChild(sel);
       host.appendChild(h("p", { class: "blurb", text: w.type === "custom" && S.custom ? (S.custom.summary || d.blurb) : d.blurb }));
+      if (w.type === "custom" && S.custom && S.custom.foreign) host.appendChild(h("p", { class: "note", id: "worldForeign" }, "这个世界是别人写的", S.custom.from && S.custom.from.user ? ["（", h("a", { href: S.custom.from.url, target: "_blank", rel: "noopener", text: "@" + S.custom.from.user }), "）"] : null, "，在隔离环境里运行：它碰不到这张页面里的东西，也连不了网。"));
     }
     if (d.needsData) {
       var ds = A.dataset(), dsel = h("select", { id: "dsSel", "aria-label": "数据集", onchange: function () { w.dsId = dsel.value; A.afterWorldChange(); } },
@@ -592,7 +593,7 @@
       var old = c.code; c.code = ta.value; errBox.hidden = true; apply.disabled = true;
       A.engine().then(function () { A.requestRun("commit"); m.close(); }).catch(function (e) { c.code = old; errBox.hidden = false; errBox.textContent = e.message || String(e); apply.disabled = false; });
     } });
-    var m = A.modal("自定义世界：" + c.name, [ex, h("pre", { class: "code", style: { "max-height": "120px" }, text: "function simulate(T, rng, p)  →  返回长度为 T+1 的正的价格数组\nrng.u()  rng.normal()  rng.exp(rate)  rng.t(nu)  rng.gamma(k)  rng.poisson(lam)\nrng.bernoulli(p)  rng.laplace()  rng.cauchy()  rng.int(n)  rng.uniform(a, b)" }), ta, errBox], { foot: [apply] });
+    var m = A.modal("自定义世界：" + c.name, [ex, h("pre", { class: "code", style: { "max-height": "120px" }, text: "function simulate(T, rng, p, K)  →  返回长度为 T+1 的正的价格数组（K 是每年几步，可以不用）\nrng.u()  rng.normal()  rng.exp(rate)  rng.t(nu)  rng.gamma(k)  rng.poisson(lam)\nrng.bernoulli(p)  rng.laplace()  rng.cauchy()  rng.int(n)  rng.uniform(a, b)" }), ta, errBox], { foot: [apply] });
   };
 
   /* ---------- 命令面板 ---------- */

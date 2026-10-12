@@ -30,7 +30,7 @@ A place to run quantitative-strategy experiments in the browser: pick a game, a 
 
 ### 怎么开始
 
-1. 打开上面的网址。第一次来，点右上角的“手册”（或按 `?`），先做“五个小实验”里的第一个，两三分钟。
+1. 打开上面的网址。第一次来，点右上角的“大厅”，从“新手教程”开始；或者点“手册”（也可以按 `?`），先做“五个小实验”里的第一个，两三分钟。
 2. 左栏选玩法、世界和规则，拖动参数；中间的结果栏和图表跟着重算。一次回测只要几十毫秒。
 3. “找图表与命令”（`Ctrl K` / `⌘K`）按名字找图表、世界、规则和手册条目。
 4. 调过参数之后点“用新路径检验”，看优势在没见过的数据上还在不在。
@@ -46,6 +46,25 @@ A place to run quantitative-strategy experiments in the browser: pick a game, a 
 - 打完之后，同一局交给各条参照规则各打一遍，和你并排列出来；旁边是它们在几千局上的长期平均，以及理论值。
 - 多打几局，页面会给出你和先拿来比的那条参照规则（理论上最好的那条；没有现成最优解时取长期平均最高的）在同样几局上的平均差和它的标准误。差距不到 2 倍标准误，就还分不出是打法好还是运气好。
 - 成绩只存在这台设备的浏览器里。同一个种子下第 k 局永远是同一局，所以规则在你打过的那几局上的成绩随时可以重算。
+
+### 大厅：和别人一起玩
+
+右上角的“大厅”里有六样东西。页面仍然没有自己的服务器：要给别人看的东西，是这个仓库里公开的 Issue；实时房间走公共的 MQTT 中继。
+
+| | 做什么 | 凭什么可信 |
+|---|---|---|
+| 新手教程 | 八步，每步两三分钟；每一步有一个按钮带你去那个地方，做完点左下角回到教程 | |
+| 每日一局 | 全站每天同一局（按 UTC 换日，四套能亲手打的玩法轮着来），打完看自己排在哪 | 贴上榜的是你每一步的动作，不是分数；每个看榜的人在自己的浏览器里照着动作重放 |
+| 实时房间 | 最多八个人同时打同一局，只看得到彼此打到第几回合，打完一起揭晓 | 先交“封条”（动作的 SHA-256），人都交齐了再亮动作；和封条对不上的作废 |
+| 十项全能 | 一条规则走遍十个世界，每个世界里和买入持有比长期增长率，按最差的一项计分；每周一换种子 | 榜上的每条规则都在你的浏览器里现跑一遍 |
+| 规则同场 | 几条规则在同一个市场里互相当对手：共同价值拍卖（第一价格 / 第二价格），或者一起做市 | 自带的规则有闭式的理论值可以对照 |
+| 世界工坊 | 自己造世界（一段生成价格的代码）和玩法（一个发牌、亮牌、判分的裁判），造好了贴出来，别人载入之后拿自己的规则来试 | |
+
+- **贴东西要一个 GitHub 账号。** 点“贴到 GitHub”，页面把内容填进一条新 Issue，你在 GitHub 上点提交。帖子是公开的，署你的用户名；想撤回，把那条 Issue 关掉。只是看榜不需要账号（GitHub 对不登录的访问限每小时 60 次，超了会让你过一会儿再刷新）。
+- **别人写的代码一律在隔离环境里运行。** 具体是一个不带同源权限的沙盒页面里的后台线程，内容安全策略禁掉所有网络请求：它读不到这张页面、你的存档和密钥，也发不出任何东西。从榜上、工坊里载入的规则和世界，拿到实验室里用时同样如此。
+- **防得了什么，防不了什么。** 亲手打的榜防不了“先把整一局看完，再回头选动作”（种子是公开的），所以只图个乐。规则同场和工坊里，裁判和几条规则编在同一个线程里，互相之间没法做到完全隔绝；有别人的代码在场时，页面会提醒这个结果只图个乐。数据安全靠的是隔离环境，不受这一条影响。
+- **实时房间**的昵称、进度和动作会经过公共中继（broker.emqx.io、broker.hivemq.com、mqtt.eclipseprojects.io），不需要账号；有的网络连不上它们。
+- 不会写代码也能写规则：规则同场和世界工坊里都有“复制给 AI 的说明”，把接口和要求复制下来，贴给任何一个 AI，再把它回的代码贴回来。
 
 ### 数字是在你的电脑上现算的
 
@@ -78,7 +97,7 @@ A place to run quantitative-strategy experiments in the browser: pick a game, a 
 
 ### 数据
 
-- 全部计算都在浏览器里完成，页面不上传任何东西。设置和算过的结果存在本机浏览器里（localStorage）。
+- 全部计算都在浏览器里完成，页面自己不上传任何东西。会离开这台设备的只有这几样：你在大厅里点“贴到 GitHub”并在 GitHub 上提交的内容；实时房间里的昵称、进度和动作；用 AI 助手时发给服务商的提示词（分别见上面“大厅”和“右栏的 AI 助手”两节）。看榜时页面只是向 GitHub 读取公开的帖子。设置和算过的结果存在本机浏览器里（localStorage）。
 - 自带 7 段旧行情（GOOG 日线 2004–2008；标普 500、纳斯达克综指、AAPL、MSFT、IBM、AMZN 月线，到 2022 年），只为演示“真实数据”的流程，不保证准确。可以导入自己的 CSV。
 - 这是做实验和学习用的工具，页面上的任何结果都不是投资建议。
 
@@ -89,7 +108,7 @@ strategy-lab/
 ├── index.html    构建出来的独立网页，中文（上面的网址打开的就是它）
 ├── en/index.html 构建出来的独立网页，英文
 ├── build.py      把 src/ 拼成一个文件
-├── src/          引擎、内置规则、界面、手册的文字（只有一份，中文）
+├── src/          引擎、内置规则、界面、手册的文字（只有一份，中文）；大厅的几样东西也在这里（hub.js 读写 GitHub，mq.js 是实时房间的中继，sandbox.js 是隔离环境）
 ├── i18n/         英文版：译文表和生成工具
 ├── data/         示例行情
 └── test/         自动检查
@@ -99,12 +118,12 @@ strategy-lab/
 npm install                      # 取 KaTeX 的发行文件；英文版的生成工具要用 acorn，测试要用 Playwright
 python3 build.py                 # 生成 index.html 和 en/index.html（以及 dist/ 下在 Claude 里发布用的那一份）
 npx playwright install chromium  # 只有跑界面测试才需要
-sh test/run-all.sh               # 全部测试，要二三十分钟
+sh test/run-all.sh               # 全部测试，要半个多小时
 ```
 
-**英文版是怎么来的。** 源码只有一份，是中文的。构建时 [i18n/i18n.js](i18n/i18n.js) 把源码里每一段给人看的中文（界面上的字、手册、规则的说明、规则代码里的注释、发给 AI 的提示词，一共五千多段）换成 [i18n/en/](i18n/en/) 里的译文，代码本身一个字不动，所以两种语言跑的是同一套计算：同样的设定下结果逐位相同，现算的缓存也是共用的。译文入库时逐段自动核对：公式、现算的数字标记、代码必须和原文一致，占位符不能多也不能少。改了源码里的中文而没有补译文，构建会失败并指出是哪一段。细节见 [i18n/README.md](i18n/README.md)。
+**英文版是怎么来的。** 源码只有一份，是中文的。构建时 [i18n/i18n.js](i18n/i18n.js) 把源码里每一段给人看的中文（界面上的字、手册、规则的说明、规则代码里的注释、发给 AI 的提示词，一共六千多段）换成 [i18n/en/](i18n/en/) 里的译文，代码本身一个字不动，所以两种语言跑的是同一套计算：同样的设定下结果逐位相同，现算的缓存也是共用的。译文入库时逐段自动核对：公式、现算的数字标记、代码必须和原文一致，占位符不能多也不能少。改了源码里的中文而没有补译文，构建会失败并指出是哪一段。细节见 [i18n/README.md](i18n/README.md)。
 
-测试分两部分：Node 里对引擎和手册里每个数字的核对（约 2100 项），无头浏览器里的界面检查（近 1000 项）。AI 接口的测试用的是本机的一个假服务商，不会向外发请求。英文版的测试（`node test/ui-en.js`）把页面的每一处走一遍：每个世界、每套玩法、每条规则、每张图、手册的每一页，页面上不能出现汉字；并核对两种语言算出来的数相同。单独跑一个：`node test/obs.test.js`、`node test/ui-standalone.js`。
+测试分两部分：Node 里对引擎和手册里每个数字的核对（约 2300 项），无头浏览器里的界面检查（约 1300 项）。AI 接口的测试用的是本机的一个假服务商，大厅的测试把 GitHub 换成本机的假数据、把中继换成本机的假中继，都不会向外发请求。别人写的代码那一部分是真测：测试里放了会联网、会改内置对象、会去动别人成绩的规则和裁判，核对它们一样也办不到。英文版的测试（`node test/ui-en.js`，大厅的那几样在 `node test/ui-en-lobby.js`）把页面的每一处走一遍：每个世界、每套玩法、每条规则、每张图、手册的每一页，页面上不能出现汉字；并核对两种语言算出来的数相同。单独跑一个：`node test/obs.test.js`、`node test/ui-standalone.js`。
 
 引擎和规则是纯 JavaScript，没有运行时依赖。页面内联了 [KaTeX](https://katex.org) 来排公式（MIT 许可，见 [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)）；界面字体从 Google Fonts 加载，连不上时用系统字体。
 
@@ -126,7 +145,7 @@ Games and worlds are separate so that you can see what happens when an assumptio
 
 ### Getting started
 
-1. Open the link above. On a first visit, click "Handbook" at the top right, or press `?`, and do the first of the five short experiments.
+1. Open the link above. On a first visit, click "Lobby" at the top right and start with the beginner's tutorial; or click "Handbook" (or press `?`) and do the first of the five short experiments.
 2. Choose a game, a world and a rule in the left column and drag the parameters; the summary and the charts recompute as you go. One backtest takes tens of milliseconds.
 3. "Find charts & commands" (`Ctrl K` / `⌘K`) finds charts, worlds, rules and handbook pages by name.
 4. After tuning, click "Test on fresh paths" to see whether the edge survives on paths the rule has not seen.
@@ -142,6 +161,25 @@ Four games (accept-and-cooldown, the secretary problem, betting on a biased coin
 - When it ends, each reference rule plays the same episode and is listed next to you, together with its long-run average over a few thousand episodes and the theoretical values.
 - After several episodes the page reports the average difference between you and the reference rule you are compared with first (the theoretically best one, or the one with the highest long-run average where no optimum is known) on the same episodes, with its standard error. Under two standard errors, skill and luck cannot yet be told apart.
 - Results are kept only in this device's browser. Under a given seed, episode k is always the same episode, so the rules' results on the episodes you played can be recomputed at any time.
+
+### The lobby: playing with other people
+
+"Lobby" at the top right holds six things. The page still has no server of its own: anything meant for other people is a public issue in this repository, and live rooms go through public MQTT relays.
+
+| | What it does | Why it can be trusted |
+|---|---|---|
+| Beginner's tutorial | Eight steps of two or three minutes; each has a button that takes you there, and a chip at the bottom left brings you back | |
+| Daily episode | One episode per UTC day, the same for everyone (the four hand-playable games take turns); afterwards you see where you rank | What is posted is your sequence of actions, not a score; every viewer replays the actions in their own browser |
+| Live room | Up to eight people play the same episode at once, seeing only how far the others have got; results are revealed together | A seal (the SHA-256 of the actions) is posted first and the actions only once every seal is in; anything that does not match its seal is void |
+| Decathlon | One rule goes through ten worlds and is compared with buy and hold by long-run growth rate in each; the worst event is the score; the seed changes every Monday | Every rule on the board is rerun in your browser |
+| Rule arena | Several rules in one market as each other's opponents: a common-value auction (first or second price), or competitive market making | The built-in rules have closed-form benchmarks to compare against |
+| World workshop | Build worlds (code that generates prices) and games (a referee that deals, shows and scores), post them, and let others bring their own rules | |
+
+- **Posting needs a GitHub account.** Click "Post to GitHub": the page fills in a new issue and you submit it on GitHub. The post is public and carries your username; close the issue to take it back. Just viewing the boards needs no account (GitHub allows 60 requests per hour without signing in; beyond that you are asked to refresh later).
+- **Code written by other people always runs in an isolated environment**: a worker inside a sandboxed page without same-origin rights, under a content security policy that blocks every network request. It cannot read this page, your saved data or your keys, and cannot send anything out. The same holds when a rule or world loaded from a board or the workshop is used in the lab.
+- **What this does and does not prevent.** A board for hand-played episodes cannot stop someone from looking at the whole episode first and choosing their actions afterwards (the seed is public), so it is just for fun. In the arena and the workshop the referee and the rules share one worker and cannot be completely isolated from one another; when someone else's code takes part, the page says that the result is just for fun. Data safety comes from the isolated environment and is not affected by this.
+- **Live rooms** pass nicknames, progress and actions through public relays (broker.emqx.io, broker.hivemq.com, mqtt.eclipseprojects.io) and need no account; some networks cannot reach them.
+- You can write rules without knowing how to code: the arena and the workshop have a "Copy a brief for an AI" button that copies the interface and the requirements; paste it to any AI and paste the code it replies with back in.
 
 ### The numbers are computed on your machine
 
@@ -174,7 +212,7 @@ The page was first built to run inside Claude; opened there, the panel uses Clau
 
 ### Data
 
-- All computation happens in the browser and nothing is uploaded. Settings and computed results are kept in the browser's localStorage.
+- All computation happens in the browser, and the page uploads nothing by itself. Only these leave this device: what you submit on GitHub after clicking "Post to GitHub" in the lobby; nicknames, progress and actions in a live room; and the prompts sent to your provider when you use the AI assistant (see "The lobby" and "The AI assistant" above). Viewing a board only reads public posts from GitHub. Settings and computed results are kept in the browser's localStorage.
 - Seven bundled historical price series (GOOG daily 2004–2008; S&P 500, Nasdaq Composite, AAPL, MSFT, IBM and AMZN monthly to 2022) are there only to demonstrate the real-data workflow; their accuracy is not guaranteed. You can import your own CSV.
 - This is a tool for experiments and learning. Nothing on the page is investment advice.
 
@@ -184,12 +222,12 @@ The page was first built to run inside Claude; opened there, the panel uses Clau
 npm install                      # fetches the KaTeX distribution files; the English build uses acorn and the tests use Playwright
 python3 build.py                 # writes index.html and en/index.html (and the build for publishing inside Claude, under dist/)
 npx playwright install chromium  # only needed for the browser tests
-sh test/run-all.sh               # the whole suite, twenty to thirty minutes
+sh test/run-all.sh               # the whole suite, a little over half an hour
 ```
 
-**How the English edition is made.** There is one source tree, written in Chinese. At build time [i18n/i18n.js](i18n/i18n.js) replaces every piece of user-visible Chinese in the source (interface text, the handbook, the notes on each rule, the comments in rule code, the prompts sent to the AI: a little over five thousand units) with its translation from [i18n/en/](i18n/en/) and leaves the code itself untouched. Both languages therefore run the same computation: the same settings give identical results, and the cache of live-computed numbers is shared. Every translation is checked automatically when it is imported: formulas, live-number tokens and code must match the original, and no placeholder may be added or lost. If a Chinese string changes and no translation is supplied, the build fails and names the string. Details are in [i18n/README.md](i18n/README.md).
+**How the English edition is made.** There is one source tree, written in Chinese. At build time [i18n/i18n.js](i18n/i18n.js) replaces every piece of user-visible Chinese in the source (interface text, the handbook, the notes on each rule, the comments in rule code, the prompts sent to the AI: a little over six thousand units) with its translation from [i18n/en/](i18n/en/) and leaves the code itself untouched. Both languages therefore run the same computation: the same settings give identical results, and the cache of live-computed numbers is shared. Every translation is checked automatically when it is imported: formulas, live-number tokens and code must match the original, and no placeholder may be added or lost. If a Chinese string changes and no translation is supplied, the build fails and names the string. Details are in [i18n/README.md](i18n/README.md).
 
-The tests come in two parts: checks in Node of the engine and of every number quoted in the handbook (about 2,100), and browser checks in headless Chromium (nearly 1,000). The AI-interface tests talk to a mock provider on localhost and send nothing outside. The English-edition test (`node test/ui-en.js`) walks through every world, game, rule, chart and handbook page, requires that no Chinese appears anywhere on the page, and checks that the two languages compute the same numbers. To run one file: `node test/obs.test.js`, `node test/ui-standalone.js`.
+The tests come in two parts: checks in Node of the engine and of every number quoted in the handbook (about 2,300), and browser checks in headless Chromium (about 1,300). The AI-interface tests talk to a mock provider on localhost; the lobby tests replace GitHub with local fixtures and the relays with a local broker; nothing is sent outside. The handling of other people's code is tested for real: the tests include rules and referees that try to reach the network, patch built-ins and tamper with other players' results, and check that none of it works. The English-edition test (`node test/ui-en.js`, with the lobby features in `node test/ui-en-lobby.js`) walks through every world, game, rule, chart and handbook page, requires that no Chinese appears anywhere on the page, and checks that the two languages compute the same numbers. To run one file: `node test/obs.test.js`, `node test/ui-standalone.js`.
 
 The engine and the rules are plain JavaScript with no runtime dependencies. The page inlines [KaTeX](https://katex.org) for typesetting (MIT licence, see [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)); interface fonts load from Google Fonts and fall back to system fonts when unreachable.
 

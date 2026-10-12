@@ -155,7 +155,10 @@ let pass = 0, fail = 0; const ok = (c, name, d) => { if (c) { pass++; if (proces
   const pd = await newPlayer("#room=ZZZZ99"); await pd.waitForSelector("#rmJoinCode"); await pd.fill("#rmNick", "丁"); await pd.click("#rmJoin");
   await pd.waitForFunction(() => /没有找到这个房间/.test((document.querySelector("#rmWait") || {}).innerText || ""), null, { timeout: 12000 });
   ok(true, "房间号不存在：等几秒之后说没有找到");
-  await pd.click("#rmLeave").catch(() => {}); await pd.keyboard.press("Escape");
+  ok((await txt(pd, "#rmLeave")) === "换一个房间", "没找到房间时有一条出路");
+  await pd.click("#rmLeave"); await pd.waitForSelector("#rmNick");
+  ok((await pd.evaluate(() => window.App.roomNow())) === null && (await pd.inputValue("#rmNick")) === "丁" && (await pd.locator("#rmWait").count()) === 0, "点它：离开那个不存在的房间，回到开房间 / 进房间那一步，名字还记着");
+  await pd.keyboard.press("Escape");
   // 往中继上直接放 8 个"在场的人"，再让丁进这个房间
   const prefix = "strategy-lab/v1/r/" + code + "/", { QLMQ } = require("../src/mq.js");
   const bot = QLMQ.connect(B1.url, {}); await new Promise(r => bot.on("connect", r));

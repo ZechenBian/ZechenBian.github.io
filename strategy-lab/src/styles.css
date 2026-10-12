@@ -724,3 +724,43 @@ ul.ar-marks { margin: 4px 0 0; padding-left: 18px; font-size: 12.5px; color: var
 .ar-ftxt a { color: var(--accent-ink); text-decoration: none; }
 table.ar-tab td:nth-child(2) { overflow-wrap: anywhere; }
 @media (max-width: 560px) { table.ar-tab th:nth-child(5), table.ar-tab td:nth-child(5), table.ar-tab th:nth-child(6), table.ar-tab td:nth-child(6) { display: none; } }
+
+/* ---------- 世界工坊（src/app-shop.js）。名单、表单、结果表沿用规则同场的样式 ---------- */
+.sh-txt { cursor: default; }
+.sh-about { margin: 0; font-size: 13px; line-height: 1.65; color: var(--ink); white-space: pre-wrap; overflow-wrap: anywhere; max-width: 84ch; }
+.more-body.sh-about { color: var(--ink2); }
+.ar-form textarea.sh-par { padding: 4px 8px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 4px; min-width: 0; width: 100%; resize: vertical; font-size: 12.5px; line-height: 1.5; }
+.ar-form textarea.sh-par.num { font-family: var(--font-mono); white-space: pre; overflow: auto; }
+.sh-two { gap: 6px 10px; align-items: center; }
+.sh-two input[type="number"] { width: 96px; flex: none; }
+.sh-two label { white-space: nowrap; }
+.sh-pair { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; min-width: 0; }   /* 第二个数和它的标签一起折行 */
+@media (max-width: 560px) { .ar-form { grid-template-columns: minmax(0, 1fr); gap: 3px; } .ar-form label { margin-top: 5px; } }   /* 手机上表单改成一栏：标签在上，输入框在下 */
+.ar-set.sh-gp { flex: 1 1 200px; }
+.ar-set.sh-gp input { width: 100%; padding: 2px 6px; }
+table.sh-tab td:nth-child(2) .tag { margin-left: 8px; }
+table.sh-trace td.sh-see { text-align: left; font-family: var(--font-mono); font-size: 12px; overflow-wrap: anywhere; }
+table.sh-trace th:nth-child(2) { text-align: left; }
+#shTrace .row { margin-bottom: 6px; }
+@media (max-width: 560px) { table.sh-tab th:nth-child(5), table.sh-tab td:nth-child(5) { display: none; } .sh-host .ar-rule { flex-wrap: wrap; } }
+
+/* ---------- 新手教程（src/app-tour.js） ---------- */
+.modal-box.tourm-box { width: min(720px, 100%); }
+.tourm .modal-f .sp { flex: 1; }
+.tourm .modal-f .note { align-self: center; }
+.tour-nav { display: flex; flex-wrap: wrap; gap: 6px; }
+.tour-pill { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--ink2); padding: 3px 11px 3px 4px; font-size: 12.5px; cursor: pointer; }
+.tour-pill:hover { border-color: var(--c-axis); color: var(--ink); }
+.tour-pill[aria-selected="true"] { border-color: var(--accent); background: var(--accent-wash); color: var(--ink); font-weight: 600; }
+.tour-no { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--surface-2); font: 600 11.5px var(--font-mono); color: var(--ink2); }
+.tour-pill[aria-selected="true"] .tour-no { background: var(--accent); color: var(--on-accent); }
+.tour-pill.went .tour-no { background: var(--good-wash, var(--surface-2)); color: var(--good-ink, var(--ink)); box-shadow: inset 0 0 0 1px var(--good-ink, var(--c-axis)); }
+.tour-pill.went[aria-selected="true"] .tour-no { background: var(--accent); color: var(--on-accent); box-shadow: none; }
+.tour-pane { display: grid; gap: 10px; min-width: 0; margin-top: 4px; }
+.tour-pane p, .tour-pane ol { margin: 0; font-size: 14px; line-height: 1.75; color: var(--ink); max-width: 68ch; }
+.tour-pane ol { padding-left: 22px; display: grid; gap: 6px; }
+.tour-title { margin: 6px 0 0; font: 700 19px/1.35 var(--font-display); letter-spacing: 0.03em; }
+html[lang="en"] .tour-title { letter-spacing: 0; }
+.tour-act { margin-top: 4px; align-items: center; gap: 8px 12px; }
+.tour-chip { position: fixed; z-index: 55; left: calc(14px + env(safe-area-inset-left, 0px)); bottom: calc(14px + env(safe-area-inset-bottom, 0px)); display: flex; align-items: center; gap: 4px; background: var(--surface); border: 1px solid var(--accent); border-radius: 999px; padding: 4px 6px 4px 4px; box-shadow: var(--shadow); }
+.tour-chip .btn { border-radius: 999px; }
