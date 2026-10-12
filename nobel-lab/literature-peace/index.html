@@ -1,0 +1,2907 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="author" content="Zechen Bian">
+<meta name="copyright" content="© 2026 Zechen Bian. All rights reserved.">
+<meta name="robots" content="noai, noimageai">
+<meta name="description" content="诺贝尔文学奖与和平奖的互动体验：马尔克斯的“马孔多，一百年”，曼德拉与德克勒克的“从牢房到投票站”。">
+<style>
+:root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body { margin: 0; } img { max-width: 100%; } [hidden] { display: none !important; }
+.site-foot { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--muted); }
+.site-foot a { color: inherit; }
+</style>
+<title>文学与和平</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=Noto+Serif+SC:wght@600;900&family=Noto+Sans+SC:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout concept: a night-lit instrument room — an idea-lineage map as the hero, a ledger of ten prizes,
+   and per-prize pages that pair the argument (left) with a working bench instrument (right). */
+:root {
+  color-scheme: dark;
+  --bg: #0c1018; --bg2: #111724; --panel: #141b29; --fg: #e9e5da; --muted: #959daf; --line: #2a3447;
+  --grid: rgba(149,157,175,.15);
+  --accent: #dcb05a;               /* medal gold */
+  --phy: #8aabff; --chem: #5ccaae; --med: #ef8d9b; --econ: #c4a3ff;
+  --s1: #7fb3ff; --s2: #f2a65a; --s3: #8fd694; --s4: #d79bff; --good: #6fcf97; --warn: #ff8a65;
+  --display-font: "Newsreader", "Noto Serif SC", Georgia, serif;
+  --cjk-display: "Noto Serif SC", "Songti SC", serif;
+  --body-font: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  --mono-font: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --r: 10px;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    color-scheme: light;
+    --bg: #f2f4f8; --bg2: #e8ecf2; --panel: #ffffff; --fg: #151a25; --muted: #586174; --line: #d2d8e3;
+    --grid: rgba(88,97,116,.14); --accent: #946a10;
+    --phy: #2f58c8; --chem: #0d8468; --med: #c03852; --econ: #7944c8;
+    --s1: #1f66d1; --s2: #c4600c; --s3: #2e873b; --s4: #8a3fc4; --good: #2e873b; --warn: #c8452a;
+  }
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f2f4f8; --bg2: #e8ecf2; --panel: #ffffff; --fg: #151a25; --muted: #586174; --line: #d2d8e3;
+  --grid: rgba(88,97,116,.14); --accent: #946a10;
+  --phy: #2f58c8; --chem: #0d8468; --med: #c03852; --econ: #7944c8;
+  --s1: #1f66d1; --s2: #c4600c; --s3: #2e873b; --s4: #8a3fc4; --good: #2e873b; --warn: #c8452a;
+}
+
+* { box-sizing: border-box; }
+html, body { background: var(--bg); color: var(--fg); }
+body { font-family: var(--body-font); font-size: 15px; line-height: 1.75; -webkit-font-smoothing: antialiased; }
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+.wrap { overflow-x: clip; max-width: 1320px; margin: 0 auto; padding-inline: clamp(16px, 4vw, 40px); padding-block: 0 64px; }
+.mono { font-family: var(--mono-font); font-variant-numeric: tabular-nums; }
+.f-phy { --f: var(--phy); } .f-chem { --f: var(--chem); } .f-med { --f: var(--med); } .f-econ { --f: var(--econ); }
+.chip { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; letter-spacing: .06em; color: var(--f, var(--muted)); }
+.chip::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--f, var(--muted)); }
+
+/* ---------- top bar ---------- */
+.top { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding-block: 22px 8px; flex-wrap: wrap; }
+.brand { font-family: var(--cjk-display); font-weight: 900; font-size: 18px; letter-spacing: .08em; text-decoration: none; }
+.brand small { font-family: var(--mono-font); font-weight: 400; font-size: 11px; color: var(--muted); letter-spacing: .12em; margin-left: 10px; }
+.top nav { display: flex; gap: 18px; font-size: 13px; color: var(--muted); }
+.top nav a { text-decoration: none; } .top nav a:hover { color: var(--fg); }
+
+/* ---------- home: hero ---------- */
+.hero { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 18px clamp(20px, 4vw, 56px); align-items: end; padding-block: 28px 18px; }
+.hero .lineage { grid-column: 1 / -1; margin-top: 18px; }
+.hero .nw { white-space: nowrap; }
+.hero h1 { font-family: var(--cjk-display); font-weight: 900; font-size: clamp(30px, 5vw, 62px); line-height: 1.12; margin: 0 0 18px; text-wrap: balance; letter-spacing: .02em; }
+.hero h1 em { font-style: normal; color: var(--accent); }
+.hero p { color: var(--muted); max-width: 34em; margin: 0 0 12px; }
+.kicker { font-family: var(--mono-font); font-size: 12px; letter-spacing: .14em; color: var(--accent); text-transform: uppercase; margin-bottom: 14px; }
+.stats { display: flex; gap: 22px 36px; flex-wrap: wrap; justify-content: flex-start; padding-bottom: 14px; }
+.stats div { display: grid; }
+.stats b { font-family: var(--display-font); font-size: 30px; font-weight: 400; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.stats span { font-size: 12px; color: var(--muted); }
+.lineage { min-width: 0; }
+.lineage .cap { font-size: 12px; color: var(--muted); display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 6px; }
+.lineage-scroll { overflow-x: auto; overflow-y: hidden; }
+.lineage svg { display: block; width: 100%; min-width: 1100px; height: auto; }
+.lineage .edge { fill: none; stroke: var(--line); stroke-width: 1.4; transition: stroke .2s, opacity .2s; }
+.lineage .edge-label { font-size: 12px; fill: var(--muted); transition: opacity .2s; }
+.lineage .node circle { fill: var(--panel); stroke: var(--f); stroke-width: 1.6; transition: r .2s; }
+.lineage .node .yr { font-family: var(--mono-font); font-size: 11px; fill: var(--f); }
+.lineage .node .nm { font-family: var(--body-font); font-size: 13px; fill: var(--fg); font-weight: 500; }
+.lineage .node .gl { font-family: var(--display-font); font-size: 15px; fill: var(--fg); font-style: italic; }
+.lineage .node { cursor: pointer; }
+.lineage .axis { stroke: var(--line); }
+.lineage .era { font-family: var(--mono-font); font-size: 10px; fill: var(--muted); letter-spacing: .1em; }
+.lineage.hl .edge { opacity: .25; } .lineage.hl .edge-label { opacity: .2; }
+.lineage.hl .edge.on { opacity: 1; stroke: var(--accent); } .lineage.hl .edge-label.on { opacity: 1; fill: var(--fg); }
+.lineage .node:hover circle, .lineage .node:focus circle { stroke-width: 2.6; }
+
+/* ---------- home: ledger ---------- */
+.bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 36px 0 14px; border-top: 1px solid var(--line); padding-top: 18px; }
+.bar h2 { font-family: var(--cjk-display); font-size: 20px; margin: 0; letter-spacing: .06em; }
+.filters { display: flex; gap: 6px; flex-wrap: wrap; }
+.filters button { font: inherit; font-size: 13px; color: var(--muted); background: none; border: 1px solid var(--line); border-radius: 999px; padding: 4px 12px; cursor: pointer; }
+.filters button[aria-pressed="true"] { color: var(--fg); border-color: var(--fg); }
+.ledger { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
+.card { display: grid; align-content: start; gap: 6px; padding: 18px 18px 20px; background: var(--bg); text-decoration: none; min-width: 0; transition: background .2s; }
+.card:hover { background: var(--bg2); }
+.card .row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.card .yr { font-family: var(--display-font); font-size: 34px; line-height: 1; color: var(--accent); font-variant-numeric: lining-nums; }
+.card h3 { font-family: var(--cjk-display); font-size: 19px; margin: 6px 0 0; line-height: 1.35; }
+.card .who { font-size: 13px; color: var(--muted); }
+.card .eq { font-size: 15px; color: var(--fg); min-height: 30px; overflow-x: auto; overflow-y: hidden; }
+.card .one { font-size: 13.5px; color: var(--muted); line-height: 1.7; margin: 2px 0 0; }
+.card[hidden] { display: none !important; }
+.ledger-empty { padding: 12px 0; color: var(--muted); }
+
+.new26 { margin-top: 36px; display: grid; grid-template-columns: minmax(0, 220px) minmax(0, 1fr); gap: 18px 32px; border-top: 1px solid var(--line); padding-top: 18px; }
+.new26 h2 { font-family: var(--cjk-display); font-size: 20px; margin: 0; letter-spacing: .06em; }
+.new26 h2 small { display: block; font-family: var(--mono-font); font-size: 11px; font-weight: 400; color: var(--muted); letter-spacing: .1em; margin-top: 6px; }
+.new26 ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px 28px; }
+.new26 li { display: grid; gap: 2px; min-width: 0; }
+.new26 li b { font-weight: 500; }
+.new26 li span { color: var(--muted); font-size: 13.5px; }
+.new26 li a { font-size: 12.5px; color: var(--accent); text-decoration: none; }
+.foot { margin-top: 48px; color: var(--muted); font-size: 12.5px; max-width: 60em; }
+
+/* ---------- detail ---------- */
+.crumbs { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding-block: 8px 0; font-size: 13px; }
+.crumbs a { text-decoration: none; color: var(--muted); } .crumbs a:hover { color: var(--fg); }
+.crumbs .pn { display: flex; gap: 16px; }
+.dhead { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 28px; align-items: end; padding-block: 26px 22px; border-bottom: 1px solid var(--line); }
+.dhead .bigyr { font-family: var(--display-font); font-size: clamp(64px, 11vw, 132px); line-height: .85; color: var(--accent); font-variant-numeric: lining-nums; grid-row: span 2; letter-spacing: -.02em; }
+.dhead h1 { font-family: var(--cjk-display); font-weight: 900; font-size: clamp(28px, 4vw, 44px); line-height: 1.2; margin: 6px 0 0; text-wrap: balance; }
+.dhead .meta { display: flex; flex-wrap: wrap; gap: 6px 22px; align-items: baseline; }
+.dhead .awarded { font-size: 12px; color: var(--muted); }
+.laureates { display: flex; flex-wrap: wrap; gap: 8px 26px; margin-top: 12px; grid-column: 1 / -1; }
+.laureates div { display: grid; line-height: 1.4; }
+.laureates b { font-weight: 500; font-size: 16px; }
+.laureates span { font-size: 12.5px; color: var(--muted); font-family: var(--display-font); font-style: italic; }
+.laureates i { font-style: normal; font-family: var(--mono-font); font-size: 11px; color: var(--accent); }
+.cite { grid-column: 1 / -1; margin: 14px 0 0; font-size: 14px; color: var(--muted); }
+.cite b { color: var(--fg); font-weight: 500; }
+.lead { font-family: var(--cjk-display); font-weight: 600; font-size: clamp(18px, 2.1vw, 22px); line-height: 1.6; margin: 26px 0 0; max-width: 36em; text-wrap: pretty; }
+
+.dgrid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr); grid-template-areas: "a lab" "b lab"; gap: 0 clamp(24px, 4vw, 56px); margin-top: 8px; }
+.part-a { grid-area: a; min-width: 0; } .part-b { grid-area: b; min-width: 0; }
+.labcol { grid-area: lab; min-width: 0; align-self: start; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 14px); margin-top: 28px; max-height: calc(100vh - 28px); overflow-y: auto; overscroll-behavior: contain; }
+@media (max-width: 1020px) {
+  .dgrid { grid-template-columns: minmax(0, 1fr); grid-template-areas: "a" "lab" "b"; }
+  .labcol { position: static; max-height: none; overflow: visible; }
+}
+.sec { padding-block: 26px 4px; max-width: 42em; }
+.sec h2 { font-family: var(--mono-font); font-size: 12px; font-weight: 600; letter-spacing: .16em; color: var(--accent); margin: 0 0 10px; text-transform: uppercase; }
+.sec h2 span { font-family: var(--cjk-display); font-size: 19px; letter-spacing: .04em; color: var(--fg); margin-left: 10px; text-transform: none; }
+.sec p, .sec li { margin: 0 0 10px; }
+.sec ul, .sec ol { padding-left: 1.3em; margin: 0 0 10px; }
+.sec b { font-weight: 700; color: var(--fg); }
+.sec.math { max-width: none; }
+.sec.math .mbody { background: var(--bg2); border-radius: var(--r); padding: 16px 18px 6px; }
+mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width: 100%; padding-block: 2px; margin: .6em 0 !important; }
+mjx-container { color: var(--fg); }
+.myths li { list-style: none; position: relative; padding-left: 0; }
+.myths ul { padding-left: 0; }
+.myths li::before { content: "✕"; color: var(--warn); font-size: 12px; margin-right: 8px; }
+.papers li { font-size: 13.5px; color: var(--muted); }
+.papers i { color: var(--fg); }
+.links-list { display: grid; gap: 8px; }
+.links-list a { text-decoration: none; display: flex; gap: 10px; align-items: baseline; }
+.links-list a:hover b { text-decoration: underline; }
+.links-list .dir { font-family: var(--mono-font); font-size: 12px; color: var(--muted); width: 3.5em; flex: none; }
+.links-list small { color: var(--muted); }
+
+/* ---------- lab bench ---------- */
+.bench { border: 1px solid var(--line); border-radius: var(--r); background: var(--panel); }
+.bench-head { padding: 14px 16px 10px; border-bottom: 1px solid var(--line); }
+.bench-head .k { font-family: var(--mono-font); font-size: 11px; letter-spacing: .16em; color: var(--accent); }
+.bench-head h2 { font-family: var(--cjk-display); font-size: 18px; margin: 2px 0 4px; }
+.bench-head p { margin: 0; font-size: 13px; color: var(--muted); line-height: 1.65; }
+.lab { padding: 12px 14px 14px; display: grid; gap: 12px; min-width: 0; }
+.lab-stage { display: grid; gap: 8px; min-width: 0; }
+.lab > *, .lab-stage > * { min-width: 0; max-width: 100%; }
+.lab-canvas { display: block; border-radius: 6px; background: var(--panel); max-width: 100%; touch-action: pan-y; }
+.lab-controls { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px 16px; align-items: end; }
+.ctl { display: grid; gap: 4px; min-width: 0; font-size: 13px; }
+.ctl-lab { display: flex; justify-content: space-between; gap: 8px; font-size: 12.5px; color: var(--muted); }
+.ctl-val { font-family: var(--mono-font); font-variant-numeric: tabular-nums; color: var(--fg); font-size: 12px; }
+.ctl input[type=range] { width: 100%; accent-color: var(--accent); margin: 0; }
+.ctl input[type=text] { font: inherit; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; }
+.ctl-choice { grid-column: 1 / -1; }
+.segs { display: flex; flex-wrap: wrap; gap: 4px; }
+.seg { font: inherit; font-size: 12.5px; color: var(--muted); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 3px 9px; cursor: pointer; }
+.seg[aria-pressed="true"] { color: var(--bg); background: var(--fg); border-color: var(--fg); }
+.ctl-toggle { display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--fg); }
+.ctl-toggle input { accent-color: var(--accent); width: 15px; height: 15px; margin: 0; }
+.btn { font: inherit; font-size: 13px; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 5px 12px; cursor: pointer; margin: 2px 4px 2px 0; }
+.btn:hover { border-color: var(--muted); }
+.btn-primary { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 600; }
+.btn:disabled { opacity: .45; cursor: default; }
+.lab-readout { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.ro { display: grid; gap: 1px; padding: 7px 10px; background: var(--panel); min-width: 0; }
+.ro-lab { font-size: 11.5px; color: var(--muted); }
+.ro-val { font-family: var(--mono-font); font-variant-numeric: tabular-nums; font-size: 13px; overflow-wrap: anywhere; }
+.lab-hint { margin: 0; font-size: 12.5px; color: var(--muted); line-height: 1.65; }
+.lab-missing { padding: 18px; color: var(--muted); }
+
+
+/* ---------- challenge (v2) ---------- */
+.pills { display: flex; flex-wrap: wrap; gap: 6px; padding: 12px 14px 0; }
+.pill { font: inherit; font-size: 12.5px; display: inline-flex; align-items: center; gap: 7px; padding: 4px 11px 4px 5px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg); color: var(--muted); cursor: pointer; }
+.pill-n { font-family: var(--mono-font); font-size: 11px; width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; border: 1px solid var(--line); }
+.pill[data-state="cur"] { color: var(--fg); border-color: var(--fg); }
+.pill[data-state="done"] { color: var(--fg); }
+.pill[data-state="done"] .pill-n { background: var(--good); border-color: var(--good); color: var(--bg); }
+.pill[data-state="cur"] .pill-n { border-color: var(--accent); color: var(--accent); }
+.pill:disabled { opacity: .45; cursor: default; }
+[hidden], .stage[hidden] { display: none !important; }
+.stage { padding: 14px; display: grid; gap: 12px; min-width: 0; }
+.stage > * { min-width: 0; max-width: 100%; }
+.stage-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.stage-k { font-family: var(--mono-font); font-size: 11px; letter-spacing: .14em; color: var(--accent); }
+.stage-head h3 { font-family: var(--cjk-display); font-size: 19px; margin: 0; }
+.stage-task { font-size: 14.5px; line-height: 1.75; max-width: 46em; }
+.stage-task p { margin: 0 0 8px; }
+.stage-body { display: grid; gap: 12px; min-width: 0; }
+.stage-body > * { min-width: 0; max-width: 100%; }
+.stage-fb { font-size: 13.5px; min-height: 0; }
+.stage-fb:empty { display: none; }
+.fb-good { color: var(--good); } .fb-bad { color: var(--warn); } .fb-info { color: var(--muted); }
+.stage-hints { display: grid; gap: 6px; }
+.stage-hints:empty { display: none; }
+.hint { margin: 0; font-size: 13.5px; padding: 8px 12px; border-radius: 6px; background: var(--bg2); }
+.hint b { color: var(--accent); font-weight: 600; margin-right: 4px; }
+.stage-ans { font-size: 13.5px; padding: 10px 12px; border-radius: 6px; border: 1px dashed var(--line); }
+.stage-ans b { color: var(--accent); }
+.stage-foot { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; border-top: 1px solid var(--line); padding-top: 10px; }
+.btn-ghost { background: none; color: var(--muted); }
+.ans { display: grid; gap: 5px; }
+.ans-lab { font-size: 13.5px; }
+.ans-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.ans-in { font: inherit; font-family: var(--mono-font); width: 10em; max-width: 100%; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; }
+.ans-unit { font-size: 13px; color: var(--muted); }
+.ans-msg { font-size: 13px; } .ans-msg.good { color: var(--good); } .ans-msg.bad { color: var(--warn); }
+.quiz { display: grid; gap: 8px; }
+.quiz-q { font-size: 14px; }
+.quiz-opts { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 6px; }
+.quiz-opt { font: inherit; font-size: 13.5px; text-align: left; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; cursor: pointer; line-height: 1.5; }
+.quiz-opt:hover { border-color: var(--muted); }
+.quiz-opt.picked[data-res="ok"] { border-color: var(--good); }
+.quiz-opt.picked[data-res="no"] { border-color: var(--warn); }
+.quiz-why { font-size: 13.5px; } .quiz-why.good { color: var(--good); } .quiz-why.bad { color: var(--warn); }
+.dtable { overflow-x: auto; }
+.dtable table { border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
+.dtable th, .dtable td { padding: 5px 10px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+.dtable th { color: var(--muted); font-weight: 500; text-align: right; }
+.dtable td:first-child, .dtable th:first-child { text-align: left; }
+
+
+/* ---------- v2: progress, scenario, reveal ---------- */
+.card h3 { font-size: 18px; }
+.card .prog { display: flex; gap: 4px; margin-top: 4px; }
+.card .prog i { flex: 1; height: 4px; border-radius: 2px; background: var(--line); }
+.card .prog i.on { background: var(--good); }
+.card .st { font-size: 12px; font-family: var(--mono-font); color: var(--muted); }
+.card .st.st-done { color: var(--good); }
+.card .st.st-mid { color: var(--accent); }
+.card .one b { color: var(--fg); font-weight: 600; }
+.lineage .edge.lit { stroke: var(--muted); }
+.lineage .node.solved circle { fill: var(--f); }
+.lineage .node.solved .yr { fill: var(--bg); font-weight: 600; }
+.linkbtn { font: inherit; font-size: 12.5px; color: var(--muted); background: none; border: 0; padding: 0; text-decoration: underline; cursor: pointer; }
+.dhead h1 small { display: block; font-family: var(--body-font); font-weight: 400; font-size: 14px; color: var(--muted); margin-top: 6px; letter-spacing: 0; }
+.scenario { max-width: 46em; padding-block: 24px 8px; }
+.scenario .k, .reveal .k { font-family: var(--mono-font); font-size: 11px; letter-spacing: .16em; color: var(--accent); margin-bottom: 8px; }
+.scen-body p { margin: 0 0 10px; }
+.chbench { margin-top: 18px; max-width: 1000px; }
+.reveal { margin-top: 44px; border-top: 1px solid var(--line); padding-top: 22px; }
+.reveal-bar { display: grid; gap: 6px; justify-items: start; }
+.reveal-bar h2 { font-family: var(--cjk-display); font-size: 24px; margin: 0; }
+.reveal-note { margin: 0; color: var(--muted); font-size: 13.5px; }
+.reveal-head { padding-top: 14px; }
+.reveal-head h2 { font-family: var(--cjk-display); font-weight: 900; font-size: clamp(24px, 3vw, 34px); margin: 8px 0 0; }
+.reveal-head .lead { margin-top: 14px; }
+
+
+/* ---------- v3: 50-entry lineage map, filters ---------- */
+.lineage .lane { fill: color-mix(in srgb, var(--f) 6%, transparent); stroke: color-mix(in srgb, var(--f) 22%, transparent); stroke-width: 1; }
+.lineage .lane-label { font-family: var(--body-font); font-size: 14px; font-weight: 500; fill: var(--f); }
+.lineage .decade { stroke: var(--grid); stroke-width: 1; }
+.lineage .edge { stroke-width: 1.2; opacity: .55; }
+.lineage .edge.lit { opacity: .9; }
+.lineage .edge-label { opacity: 0; pointer-events: none; font-size: 12px; paint-order: stroke; stroke: var(--bg); stroke-width: 4px; }
+.lineage.hl .edge-label.on { opacity: 1; }
+.lineage .node circle { r: 9; fill: var(--bg); stroke: var(--f); stroke-width: 2; }
+.lineage .node.mid circle { fill: color-mix(in srgb, var(--f) 40%, var(--bg)); }
+.lineage .node.solved circle { fill: var(--f); }
+.lineage .node .yr { font-family: var(--mono-font); font-size: 10px; fill: var(--muted); }
+.lineage .node.cur circle, .lineage .node:focus circle { stroke-width: 3.5; }
+.lineage .node.cur .yr { fill: var(--fg); }
+.lin-info { font-size: 13.5px; min-height: 1.8em; margin-top: 8px; display: flex; flex-wrap: wrap; gap: 4px 6px; align-items: baseline; color: var(--muted); }
+.lin-info b { color: var(--fg); font-weight: 600; }
+.lin-info .st.st-done { color: var(--good); } .lin-info .st.st-mid { color: var(--accent); }
+.filters-wrap { display: grid; gap: 8px; justify-items: end; }
+@media (max-width: 760px) { .filters-wrap { justify-items: start; } }
+.humlink .hl-body { display: grid; gap: 10px; justify-items: start; max-width: 46em; }
+.humlink .hl-body p { margin: 0; color: var(--muted); font-size: 14px; }
+.humlink a.btn { text-decoration: none; }
+.ledger-empty { margin: 10px 0 0; }
+
+@media (max-width: 760px) {
+  .hero { grid-template-columns: minmax(0, 1fr); }
+  .new26 { grid-template-columns: minmax(0, 1fr); }
+  .dhead { grid-template-columns: minmax(0, 1fr); }
+  .dhead .bigyr { grid-row: auto; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['$', '$']], displayMath: [['$$', '$$']] },
+  svg: { fontCache: 'global' },
+  options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'canvas', 'svg'] },
+};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js"></script>
+<style><style>
+.f-lit { --f: var(--s4); } .f-peace { --f: var(--good); }
+.hum-hero { grid-template-columns: minmax(0, 1fr); }
+.hgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; margin-top: 18px; }
+.hcard { display: grid; align-content: start; gap: 8px; padding: 24px 22px 26px; background: var(--bg); text-decoration: none; min-width: 0; transition: background .2s; }
+.hcard:hover { background: var(--bg2); }
+.hcard .row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.hcard .yr { font-family: var(--display-font); font-size: 44px; line-height: 1; color: var(--accent); }
+.hcard h3 { font-family: var(--cjk-display); font-size: 22px; line-height: 1.4; margin: 8px 0 0; text-wrap: balance; }
+.hcard .who { font-size: 13px; color: var(--muted); }
+.hcard .one { font-size: 14px; color: var(--muted); line-height: 1.75; margin: 4px 0 0; }
+.hcard .go { font-size: 13px; color: var(--f); margin-top: 6px; }
+.humroot { margin-top: 18px; min-width: 0; }
+</style>
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top"><a class="brand" href="#">诺奖思想实验室<small>LITERATURE · PEACE</small></a>
+<nav><a href="../">科学奖还原挑战</a><a href="#marquez">文学 · 马尔克斯</a><a href="#mandela">和平 · 曼德拉与德克勒克</a></nav></header>
+<main id="app"></main>
+<footer class="site-foot">© 2026 Zechen Bian · 保留所有权利 / All rights reserved · <a href="https://github.com/ZechenBian/zechenbian.github.io/blob/main/LICENSE">LICENSE</a></footer>
+</div>
+<script>/* core.js */
+/* ===== core.js — shared helpers for every lab =====
+ * Contract for a lab file (src/labs/<id>.js):
+ *
+ *   LABS.<id> = {
+ *     title: '中文实验名',
+ *     mount(root, ctx) { ...build DOM inside root...; return { destroy() {...} }; }
+ *   };
+ *
+ * ctx = {
+ *   color(name)   -> current value of a CSS token, e.g. ctx.color('--fg'). Theme can change at
+ *                    any time, so read colors inside your draw function, not once at mount.
+ *   reduced       -> true if the viewer prefers reduced motion (skip/slow ambient animation)
+ *   h             -> the helpers below
+ * }
+ */
+window.LABS = window.LABS || {};
+
+const H = (() => {
+  function el(tag, attrs = {}, children = []) {
+    const e = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs || {})) {
+      if (v == null || v === false) continue;
+      if (k === 'class') e.className = v;
+      else if (k === 'text') e.textContent = v;
+      else if (k === 'html') e.innerHTML = v;
+      else if (k.startsWith('on') && typeof v === 'function') e.addEventListener(k.slice(2), v);
+      else e.setAttribute(k, v === true ? '' : v);
+    }
+    for (const c of [].concat(children)) {
+      if (c == null || c === false) continue;
+      e.append(c.nodeType ? c : document.createTextNode(String(c)));
+    }
+    return e;
+  }
+
+  let uid = 0;
+  const nid = (p) => `${p}-${++uid}`;
+
+  /* Slider: returns {el, get(), set(v)}. format(v) -> string shown next to label. */
+  function slider({ label, min, max, step = 1, value, format = (v) => v, onInput, id }) {
+    id = id || nid('s');
+    const out = el('output', { class: 'ctl-val', for: id });
+    const input = el('input', { type: 'range', id, min, max, step, value });
+    const wrap = el('div', { class: 'ctl ctl-slider' }, [
+      el('label', { for: id, class: 'ctl-lab' }, [el('span', { text: label }), out]),
+      input,
+    ]);
+    const show = () => (out.textContent = format(+input.value));
+    input.addEventListener('input', () => { show(); onInput && onInput(+input.value); });
+    show();
+    return { el: wrap, input, get: () => +input.value, set: (v) => { input.value = v; show(); } };
+  }
+
+  /* Segmented choice: options = [{value,label}]. returns {el, get(), set(v)} */
+  function choice({ label, options, value, onChange }) {
+    let cur = value ?? options[0].value;
+    const btns = options.map((o) =>
+      el('button', { type: 'button', class: 'seg', 'aria-pressed': String(o.value === cur), text: o.label,
+        onclick: () => { set(o.value); onChange && onChange(cur); } }));
+    function set(v) { cur = v; btns.forEach((b, i) => b.setAttribute('aria-pressed', String(options[i].value === v))); }
+    const wrap = el('div', { class: 'ctl ctl-choice' }, [
+      label ? el('span', { class: 'ctl-lab', text: label }) : null,
+      el('div', { class: 'segs', role: 'group' }, btns),
+    ]);
+    return { el: wrap, get: () => cur, set };
+  }
+
+  /* Checkbox toggle. returns {el, get(), set(b)} */
+  function toggle({ label, value = false, onChange, id }) {
+    id = id || nid('t');
+    const input = el('input', { type: 'checkbox', id });
+    input.checked = !!value;
+    input.addEventListener('change', () => onChange && onChange(input.checked));
+    const wrap = el('label', { class: 'ctl ctl-toggle', for: id }, [input, el('span', { text: label })]);
+    return { el: wrap, get: () => input.checked, set: (b) => (input.checked = !!b) };
+  }
+
+  /* Button. kind: 'primary' | undefined */
+  function button({ label, onClick, kind }) {
+    return el('button', { type: 'button', class: 'btn' + (kind ? ' btn-' + kind : ''), text: label, onclick: onClick });
+  }
+
+  /* Readout row: returns {el, set(text)} */
+  function readout(label, initial = '—') {
+    const v = el('span', { class: 'ro-val', text: initial });
+    return { el: el('div', { class: 'ro' }, [el('span', { class: 'ro-lab', text: label }), v]), set: (t) => (v.textContent = t) };
+  }
+
+  /* Hi-DPI canvas that tracks its container width.
+   * aspect = height / width (e.g. 0.6). minH/maxH clamp CSS height in px.
+   * returns { canvas, g (2d ctx in CSS px units), get w(), get h(), onResize(cb), destroy() } */
+  function canvas(parent, { aspect = 0.6, minH = 180, maxH = 460, cls = '' } = {}) {
+    const c = el('canvas', { class: 'lab-canvas ' + cls });
+    parent.append(c);
+    const g = c.getContext('2d');
+    let W = 300, Hh = 180; const cbs = [];
+    function fit() {
+      const r = c.parentElement.getBoundingClientRect();
+      W = Math.max(200, Math.floor(r.width));
+      Hh = Math.round(Math.min(maxH, Math.max(minH, W * aspect)));
+      const d = Math.min(window.devicePixelRatio || 1, 2);
+      c.width = W * d; c.height = Hh * d; c.style.width = W + 'px'; c.style.height = Hh + 'px';
+      g.setTransform(d, 0, 0, d, 0, 0);
+      cbs.forEach((f) => f(W, Hh));
+    }
+    const ro = new ResizeObserver(() => fit());
+    ro.observe(c.parentElement);
+    fit();
+    return {
+      canvas: c, g,
+      get w() { return W; }, get h() { return Hh; },
+      onResize(f) { cbs.push(f); },
+      destroy() { ro.disconnect(); },
+    };
+  }
+
+  /* rAF loop: cb(dtSeconds, tSeconds). returns {stop(), start(), running} */
+  function loop(cb) {
+    let id = 0, last = 0, t = 0, running = false;
+    function frame(ts) {
+      const dt = last ? Math.min(0.05, (ts - last) / 1000) : 0; last = ts; t += dt;
+      cb(dt, t); if (running) id = requestAnimationFrame(frame);
+    }
+    const api = {
+      start() { if (!running) { running = true; last = 0; id = requestAnimationFrame(frame); } return api; },
+      stop() { running = false; cancelAnimationFrame(id); return api; },
+      get running() { return running; },
+    };
+    return api;
+  }
+
+  /* Simple axis helper for plots. Returns mapping functions and draws frame+ticks.
+   * opts: {x0,x1,y0,y1, pad:{l,r,t,b}, xTicks:[...], yTicks:[...], xLabel, yLabel, fmtX, fmtY, logY} */
+  function axes(g, W, Hh, o, color) {
+    const p = Object.assign({ l: 46, r: 14, t: 14, b: 34 }, o.pad || {});
+    const iw = W - p.l - p.r, ih = Hh - p.t - p.b;
+    const X = (x) => p.l + ((x - o.x0) / (o.x1 - o.x0)) * iw;
+    const Y = o.logY
+      ? (y) => p.t + ih - ((Math.log10(Math.max(y, 1e-300)) - Math.log10(o.y0)) / (Math.log10(o.y1) - Math.log10(o.y0))) * ih
+      : (y) => p.t + ih - ((y - o.y0) / (o.y1 - o.y0)) * ih;
+    g.save();
+    g.font = '11px ' + (color('--mono-font') || 'monospace');
+    g.strokeStyle = color('--grid'); g.lineWidth = 1; g.fillStyle = color('--muted');
+    g.textAlign = 'center'; g.textBaseline = 'top';
+    (o.xTicks || []).forEach((t) => { const x = X(t); g.beginPath(); g.moveTo(x, p.t); g.lineTo(x, p.t + ih); g.stroke(); g.fillText((o.fmtX || String)(t), x, p.t + ih + 6); });
+    g.textAlign = 'right'; g.textBaseline = 'middle';
+    (o.yTicks || []).forEach((t) => { const y = Y(t); g.beginPath(); g.moveTo(p.l, y); g.lineTo(p.l + iw, y); g.stroke(); g.fillText((o.fmtY || String)(t), p.l - 6, y); });
+    g.strokeStyle = color('--line'); g.strokeRect(p.l + 0.5, p.t + 0.5, iw, ih);
+    g.fillStyle = color('--muted'); g.textAlign = 'center'; g.textBaseline = 'bottom';
+    if (o.xLabel) g.fillText(o.xLabel, p.l + iw / 2, Hh - 1);
+    if (o.yLabel) { g.save(); g.translate(11, p.t + ih / 2); g.rotate(-Math.PI / 2); g.textBaseline = 'middle'; g.fillText(o.yLabel, 0, 0); g.restore(); }
+    g.restore();
+    return { X, Y, p, iw, ih };
+  }
+
+  /* Wavelength (nm, 380–780) -> approximate visible sRGB string; outside range returns null */
+  function wavelengthRGB(nm, alpha = 1) {
+    let r = 0, gg = 0, b = 0;
+    if (nm < 380 || nm > 780) return null;
+    if (nm < 440) { r = -(nm - 440) / 60; b = 1; }
+    else if (nm < 490) { gg = (nm - 440) / 50; b = 1; }
+    else if (nm < 510) { gg = 1; b = -(nm - 510) / 20; }
+    else if (nm < 580) { r = (nm - 510) / 70; gg = 1; }
+    else if (nm < 645) { r = 1; gg = -(nm - 645) / 65; }
+    else { r = 1; }
+    let f = nm < 420 ? 0.3 + 0.7 * (nm - 380) / 40 : nm > 700 ? 0.3 + 0.7 * (780 - nm) / 80 : 1;
+    const c = (v) => Math.round(255 * Math.pow(v * f, 0.8));
+    return `rgba(${c(r)},${c(gg)},${c(b)},${alpha})`;
+  }
+
+  return { el, slider, choice, toggle, button, readout, canvas, loop, axes, wavelengthRGB };
+})();
+
+/* ===== Challenge framework (v2) =====
+ * Contract for a challenge file (src/challenges/<id>.js):
+ *   CHALLENGES.<id> = { title: '中文名', mount(root, ctx) { return H.stages(root, ctx, [ ...stages ]); } };
+ * A stage: { title, task (HTML, may contain $TeX$), hints: [HTML,...], answer: HTML (shown on give-up),
+ *            build(body, api) -> optional { destroy() } }
+ * api: done(msgHTML)        mark this stage solved (shows success + "下一关" button). Idempotent.
+ *      say(html, kind)      feedback line under the body; kind: 'info' | 'good' | 'bad'
+ *      typeset(node)        render $TeX$ inside node (call after inserting HTML that contains TeX)
+ *      solved()             -> bool
+ * ctx (from the page): color(), reduced, h, typeset(node), progress: {get() -> Set of solved indices, mark(i)}, onComplete()
+ */
+window.CHALLENGES = window.CHALLENGES || {};
+
+H.stages = function (root, ctx, stages) {
+  const el = H.el;
+  const solved = new Set(ctx.progress ? ctx.progress.get() : []);
+  const built = new Map(); // i -> {wrap, handle}
+  let cur = 0;
+  const pills = stages.map((s, i) => el('button', { type: 'button', class: 'pill', onclick: () => open(i) }, [el('span', { class: 'pill-n', text: String(i + 1) }), el('span', { class: 'pill-t', text: s.title })]));
+  const strip = el('div', { class: 'pills', role: 'tablist' }, pills);
+  const host = el('div', { class: 'stage-host' });
+  root.append(strip, host);
+  const ts = (n) => { if (ctx.typeset) ctx.typeset(n); };
+
+  function refresh() {
+    pills.forEach((p, i) => {
+      const reachable = i === 0 || solved.has(i - 1) || solved.has(i);
+      p.disabled = !reachable;
+      p.setAttribute('aria-selected', String(i === cur));
+      p.dataset.state = solved.has(i) ? 'done' : i === cur ? 'cur' : reachable ? 'open' : 'locked';
+    });
+  }
+  function build(i) {
+    const s = stages[i];
+    const fb = el('div', { class: 'stage-fb', 'aria-live': 'polite' });
+    const body = el('div', { class: 'stage-body' });
+    const hintBox = el('div', { class: 'stage-hints' });
+    const ansBox = el('div', { class: 'stage-ans', hidden: true });
+    const next = el('button', { type: 'button', class: 'btn btn-primary', hidden: true, text: i < stages.length - 1 ? '下一关 →' : '揭晓完整故事 ↓', onclick: () => { if (i < stages.length - 1) open(i + 1); else if (ctx.onComplete) ctx.onComplete(true); } });
+    let shown = 0;
+    const hintBtn = el('button', { type: 'button', class: 'btn', text: s.hints && s.hints.length ? `提示 (0/${s.hints.length})` : '没有提示', disabled: !(s.hints && s.hints.length) });
+    hintBtn.addEventListener('click', () => {
+      if (shown >= s.hints.length) return;
+      const p = el('p', { class: 'hint', html: `<b>提示 ${shown + 1}</b>　${s.hints[shown]}` });
+      hintBox.append(p); ts(p); shown++;
+      hintBtn.textContent = `提示 (${shown}/${s.hints.length})`; if (shown >= s.hints.length) hintBtn.disabled = true;
+    });
+    const giveUp = el('button', { type: 'button', class: 'btn btn-ghost', text: '放弃，看答案' });
+    giveUp.addEventListener('click', () => { ansBox.hidden = false; ansBox.innerHTML = '<b>答案</b>　' + (s.answer || ''); ts(ansBox); api.done(null, true); giveUp.disabled = true; });
+    const wrap = el('section', { class: 'stage', 'aria-label': s.title }, [
+      el('div', { class: 'stage-head' }, [el('span', { class: 'stage-k', text: `第 ${i + 1} 关 / ${stages.length}` }), el('h3', { text: s.title })]),
+      el('div', { class: 'stage-task', html: s.task }),
+      body, fb, hintBox, ansBox,
+      el('div', { class: 'stage-foot' }, [hintBtn, giveUp, next]),
+    ]);
+    const api = {
+      done(msg, viaGiveUp) {
+        if (!solved.has(i)) { solved.add(i); if (ctx.progress) ctx.progress.mark(i, !!viaGiveUp); }
+        if (msg) api.say(msg, 'good');
+        next.hidden = false; refresh();
+        if (solved.size === stages.length && ctx.onComplete) ctx.onComplete(false);
+      },
+      say(html, kind = 'info') { fb.className = 'stage-fb fb-' + kind; fb.innerHTML = html; ts(fb); },
+      typeset: ts,
+      solved: () => solved.has(i),
+    };
+    if (solved.has(i)) { next.hidden = false; }
+    host.append(wrap);
+    let handle = null;
+    try { handle = s.build(body, api) || null; } catch (e) { console.error(e); body.append(el('p', { class: 'lab-missing', text: '这一关加载失败。' })); }
+    ts(wrap);
+    built.set(i, { wrap, handle });
+  }
+  function open(i) {
+    cur = i;
+    if (!built.has(i)) build(i);
+    built.forEach((b, k) => { b.wrap.hidden = k !== i; });
+    refresh();
+  }
+  // start at first unsolved stage
+  let start = 0; while (start < stages.length - 1 && solved.has(start)) start++;
+  open(start);
+  return { destroy() { built.forEach((b) => { try { b.handle && b.handle.destroy && b.handle.destroy(); } catch (e) {} }); } };
+};
+
+/* Numeric answer box. check(v) -> {ok:bool, msg:HTML}. Returns {el, input} */
+H.answer = function ({ label, unit = '', placeholder = '', check, onOk, id }) {
+  const el = H.el;
+  id = id || 'ans-' + Math.random().toString(36).slice(2, 8);
+  const input = el('input', { type: 'text', inputmode: 'decimal', id, placeholder, autocomplete: 'off', class: 'ans-in' });
+  const msg = el('span', { class: 'ans-msg', 'aria-live': 'polite' });
+  const go = () => {
+    const raw = input.value.trim().replace(/×\s*10\^?/i, 'e').replace(/[，,]/g, '.');
+    const v = Number(raw);
+    if (raw === '' || !isFinite(v)) { msg.className = 'ans-msg bad'; msg.textContent = '请输入一个数字'; return; }
+    const r = check(v) || {};
+    msg.className = 'ans-msg ' + (r.ok ? 'good' : 'bad'); msg.innerHTML = r.msg || (r.ok ? '对了' : '不对，再想想');
+    if (r.ok && onOk) onOk(v);
+  };
+  input.addEventListener('keydown', (e) => { if (e.key === 'Enter') go(); });
+  const wrap = el('div', { class: 'ans' }, [el('label', { for: id, class: 'ans-lab', html: label }), el('div', { class: 'ans-row' }, [input, unit ? el('span', { class: 'ans-unit', html: unit }) : null, H.button({ label: '检查', onClick: go })]), msg]);
+  return { el: wrap, input };
+};
+
+/* Multiple-choice question. options: [{label(HTML), ok:bool, why(HTML)}]. Returns {el} */
+H.quiz = function ({ question, options, onOk }) {
+  const el = H.el;
+  const why = el('div', { class: 'quiz-why', 'aria-live': 'polite' });
+  const btns = options.map((o) => {
+    const b = el('button', { type: 'button', class: 'quiz-opt', html: o.label });
+    b.addEventListener('click', () => {
+      btns.forEach((x) => x.classList.remove('picked'));
+      b.classList.add('picked'); b.dataset.res = o.ok ? 'ok' : 'no';
+      why.className = 'quiz-why ' + (o.ok ? 'good' : 'bad'); why.innerHTML = o.why || (o.ok ? '对。' : '不对。');
+      if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise([why]).catch(() => {});
+      if (o.ok && onOk) onOk();
+    });
+    return b;
+  });
+  return { el: el('div', { class: 'quiz' }, [question ? el('div', { class: 'quiz-q', html: question }) : null, el('div', { class: 'quiz-opts' }, btns), why]) };
+};
+
+</script>
+<script>/* marquez.js */
+/* humanities/marquez.js — 马孔多，一百年
+ * Gabriel García Márquez, Nobel Prize in Literature 1982.
+ * Five chapters: magical realism as a change of viewpoint; cyclical time & names; the insomnia plague
+ * (memory and language); the banana company and the 1928 massacre (history and erasure); solitude,
+ * the Nobel lecture and the book's afterlife (incl. China).
+ * Copyright: no quotations from the novel or from the Nobel lecture — every scene and argument below
+ * is paraphrased in our own words. */
+(() => {
+  window.HUM = window.HUM || {};
+  const ID = 'marquez';
+
+  const CSS = `
+.marquez { display: grid; min-width: 0; }
+.marquez [hidden] { display: none !important; }
+.marquez > * { min-width: 0; }
+.marquez-banner { border-bottom: 1px solid var(--line); padding: 0 16px 14px; display: grid; gap: 4px; }
+.marquez-bcv { height: 64px; margin: 0 -16px; position: relative; overflow: hidden; }
+.marquez-kick { font-family: var(--mono-font); font-size: 11px; letter-spacing: .16em; color: var(--accent); }
+.marquez-title { font-family: var(--cjk-display); font-weight: 900; font-size: clamp(22px, 3.2vw, 30px); margin: 0; line-height: 1.25; letter-spacing: .04em; }
+.marquez-sub { margin: 0; font-size: 13.5px; color: var(--muted); line-height: 1.75; max-width: 46em; }
+.marquez-ch { padding: 14px; display: grid; gap: 14px; min-width: 0; }
+.marquez-ch > * { min-width: 0; max-width: 100%; }
+.marquez-chead { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.marquez-k { font-family: var(--mono-font); font-size: 11px; letter-spacing: .14em; color: var(--accent); }
+.marquez-chead h3 { font-family: var(--cjk-display); font-size: 21px; margin: 0; letter-spacing: .03em; }
+.marquez-frame { font-size: 14.5px; line-height: 1.85; max-width: 46em; }
+.marquez-frame p { margin: 0 0 8px; }
+.marquez-body { display: grid; gap: 12px; min-width: 0; }
+.marquez-body > * { min-width: 0; max-width: 100%; }
+.marquez-refl { border-left: 2px solid var(--accent); background: var(--bg2); padding: 12px 16px; border-radius: 0 8px 8px 0; font-size: 14px; line-height: 1.85; }
+.marquez-refl h4 { margin: 0 0 6px; font-family: var(--cjk-display); font-size: 16px; letter-spacing: .06em; }
+.marquez-refl p { margin: 0 0 8px; max-width: 46em; }
+.marquez-refl-lock { font-size: 13px; color: var(--muted); border: 1px dashed var(--line); border-radius: 8px; padding: 8px 12px; }
+.marquez-foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px; border-top: 1px solid var(--line); padding-top: 10px; }
+.marquez-note-s { font-size: 12px; color: var(--muted); }
+.marquez-tagline { font-family: var(--mono-font); font-size: 11px; letter-spacing: .1em; color: var(--muted); }
+/* ch1 sorting */
+.marquez-pool { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr)); gap: 8px; }
+.marquez-pool:empty { display: none; }
+.marquez-bins { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 10px; }
+.marquez-bin { border: 1px dashed var(--line); border-radius: 10px; padding: 8px; min-height: 90px; display: grid; gap: 6px; align-content: start; }
+.marquez-bin.over { border-color: var(--accent); background: var(--bg2); }
+.marquez-bin h5 { margin: 0; font-size: 13px; font-weight: 600; display: flex; justify-content: space-between; gap: 8px; }
+.marquez-bin h5 span { font-family: var(--mono-font); font-weight: 400; color: var(--muted); font-size: 12px; }
+.marquez-card { border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; background: var(--bg); display: grid; gap: 4px; cursor: grab; }
+.marquez-card:active { cursor: grabbing; }
+.marquez-card[data-inv="1"] { border-color: var(--accent); }
+.marquez-ct { font-weight: 600; font-size: 14px; }
+.marquez-cd { margin: 0; font-size: 13px; color: var(--muted); line-height: 1.65; }
+.marquez-acts { display: flex; gap: 4px; flex-wrap: wrap; }
+.marquez-mac { font-size: 13px; line-height: 1.7; border-top: 1px dotted var(--line); padding-top: 5px; margin-top: 2px; }
+.marquez-mac b { font-weight: 600; color: var(--accent); margin-right: 4px; }
+.marquez-sum { font-size: 14px; padding: 8px 12px; border-radius: 8px; background: var(--bg2); }
+.marquez-real { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: 8px; margin-top: 8px; }
+.marquez-rc { border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; background: var(--panel); display: grid; gap: 6px; align-content: start; font-size: 13.5px; }
+.marquez-rc p { margin: 0; }
+.marquez-rc .marquez-ans { font-size: 13px; color: var(--muted); }
+.marquez-rc .marquez-ans b { color: var(--fg); }
+/* ch2 spiral */
+.marquez-split { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 14px; align-items: start; }
+@media (max-width: 720px) { .marquez-split { grid-template-columns: minmax(0, 1fr); } }
+.marquez-cvbox { min-width: 0; }
+.marquez-who { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; display: grid; gap: 6px; background: var(--bg); }
+.marquez-who h4 { margin: 0; font-family: var(--cjk-display); font-size: 17px; }
+.marquez-who p { margin: 0; font-size: 13.5px; line-height: 1.75; }
+.marquez-who .marquez-par { color: var(--muted); font-size: 12.5px; }
+.marquez-verdict { font-size: 13px; font-weight: 600; }
+.marquez-verdict.ok { color: var(--good); } .marquez-verdict.no { color: var(--warn); } .marquez-verdict.mid { color: var(--accent); }
+.marquez-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: var(--muted); }
+.marquez-legend i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; vertical-align: 0; }
+.marquez-fam { margin: 0; padding-left: 1.6em; font-size: 13px; line-height: 1.7; color: var(--muted); max-height: 260px; overflow-y: auto; }
+.marquez-fam li.cur { color: var(--fg); }
+.marquez-fam b { color: var(--fg); font-weight: 500; }
+.marquez-twist { border: 1px solid var(--accent); border-radius: 10px; padding: 10px 12px; font-size: 13.5px; line-height: 1.75; }
+.marquez-twist p { margin: 0 0 6px; }
+/* ch3 insomnia */
+.marquez-house { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 130px), 1fr)); gap: 8px; }
+.marquez-obj { font: inherit; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 10px 6px 8px; cursor: pointer; display: grid; justify-items: center; gap: 4px; min-height: 118px; align-content: start; }
+.marquez-obj[aria-pressed="true"] { border-color: var(--accent); }
+.marquez-obj svg { transition: opacity .3s; }
+.marquez-obj[data-gone="1"] svg { opacity: .22; }
+.marquez-lab { font-size: 12px; line-height: 1.45; text-align: center; padding: 2px 6px; border-radius: 4px; background: var(--bg2); border: 1px solid var(--line); min-height: 1.45em; max-width: 100%; overflow-wrap: anywhere; }
+.marquez-bar { width: 80%; height: 3px; border-radius: 2px; background: var(--line); overflow: hidden; }
+.marquez-bar i { display: block; height: 100%; background: var(--accent); }
+.marquez-opts { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); gap: 6px; }
+.marquez-opts .quiz-opt { font-size: 13px; }
+.marquez-phase { font-size: 13px; color: var(--muted); }
+.marquez-sign { display: grid; justify-items: center; gap: 0; padding: 8px 0 4px; }
+.marquez-sign svg { width: min(100%, 360px); height: auto; }
+/* ch4 banana */
+.marquez-steps { display: flex; flex-wrap: wrap; gap: 4px; }
+.marquez-steps .seg { font-size: 12px; }
+.marquez-story { font-size: 14px; line-height: 1.85; max-width: 46em; }
+.marquez-story p { margin: 0 0 8px; }
+.marquez-demands { display: grid; gap: 6px; }
+.marquez-reply { font-size: 13.5px; border-left: 2px solid var(--line); padding: 4px 10px; margin: 4px 0; color: var(--muted); }
+.marquez-reply b { color: var(--fg); font-weight: 500; }
+.marquez-asks { display: flex; flex-wrap: wrap; gap: 4px; }
+.marquez-note { background: var(--bg2); border-radius: 8px; padding: 10px 14px; font-size: 14px; line-height: 1.9; display: grid; gap: 2px; }
+.marquez-note h5 { margin: 0 0 4px; font-size: 12px; font-family: var(--mono-font); letter-spacing: .12em; color: var(--muted); font-weight: 400; }
+.marquez-nl { display: block; }
+.marquez-nl.ov { color: var(--muted); }
+.marquez-nl.ov::before { content: "官方版本 · "; font-family: var(--mono-font); font-size: 11px; color: var(--warn); }
+.marquez-in { font: inherit; font-size: 13.5px; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; width: 100%; max-width: 30em; }
+.marquez-hist { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; background: var(--bg); display: grid; gap: 8px; font-size: 13.5px; line-height: 1.8; }
+.marquez-hist .marquez-k { color: var(--warn); }
+.marquez-hist p { margin: 0; }
+.marquez-hist ul { margin: 0; padding-left: 1.2em; }
+/* ch5 */
+.marquez-tl { list-style: none; margin: 0; padding: 0 0 0 16px; border-left: 1px solid var(--line); display: grid; gap: 10px; }
+.marquez-tl li { position: relative; transition: opacity .35s; }
+.marquez-tl li::before { content: ""; position: absolute; left: -21px; top: .55em; width: 9px; height: 9px; border-radius: 50%; background: var(--panel); border: 1.5px solid var(--muted); }
+.marquez-tl li[data-on="1"]::before { background: var(--accent); border-color: var(--accent); }
+.marquez-tl li[data-on="0"] { opacity: .32; }
+.marquez-tl li[data-on="0"] .marquez-tlt { display: none; }
+.marquez-tly { font-family: var(--mono-font); font-size: 12px; color: var(--accent); margin-right: 8px; }
+.marquez-tlh { font-weight: 600; font-size: 14px; }
+.marquez-tlt { margin: 2px 0 0; font-size: 13px; color: var(--muted); line-height: 1.75; }
+.marquez-facts { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: 8px; }
+.marquez-fact { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; background: var(--bg); display: grid; gap: 4px; align-content: start; }
+.marquez-fact h5 { margin: 0; font-size: 13.5px; font-weight: 600; }
+.marquez-fact p { margin: 0; font-size: 13px; line-height: 1.75; }
+.marquez-facts[data-view="in"] .marquez-fact { border-color: var(--accent); }
+.marquez-final { font-family: var(--cjk-display); font-weight: 600; font-size: clamp(16px, 2vw, 19px); line-height: 1.75; margin: 0; max-width: 34em; }
+`;
+
+  const SVGI = (d) => `<svg viewBox="0 0 48 48" width="46" height="46" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+
+  /* ---------- butterflies (drawn in --accent) ---------- */
+  function butterfly(g, x, y, s, flap, rot, col, alpha) {
+    g.save(); g.translate(x, y); g.rotate(rot); g.globalAlpha = alpha; g.fillStyle = col;
+    const k = 0.22 + 0.78 * Math.abs(Math.cos(flap));
+    for (const sg of [-1, 1]) {
+      g.save(); g.scale(sg * k, 1);
+      g.beginPath(); g.ellipse(s * 0.55, -s * 0.3, s * 0.58, s * 0.42, -0.55, 0, Math.PI * 2); g.fill();
+      g.beginPath(); g.ellipse(s * 0.42, s * 0.36, s * 0.36, s * 0.28, 0.6, 0, Math.PI * 2); g.fill();
+      g.restore();
+    }
+    g.globalAlpha = alpha * 0.9; g.fillRect(-s * 0.06, -s * 0.55, s * 0.12, s * 1.05);
+    g.restore();
+  }
+  function flock(n, W, Hh, seed) {
+    let r = seed || 7; const rnd = () => ((r = (r * 9301 + 49297) % 233280) / 233280);
+    return Array.from({ length: n }, () => ({ x: rnd() * W, y: rnd() * Hh, a: -Math.PI / 2 + (rnd() - 0.5) * 2, ph: rnd() * 6.28, s: 5 + rnd() * 4, v: 16 + rnd() * 14 }));
+  }
+  function stepFlock(F, dt, W, Hh, rise) {
+    F.forEach((b) => {
+      b.a += (Math.random() - 0.5) * dt * 3;
+      if (rise) b.a += (-Math.PI / 2 - b.a) * dt * 0.6;
+      b.x += Math.cos(b.a) * b.v * dt; b.y += Math.sin(b.a) * b.v * dt * 0.7;
+      b.ph += dt * (8 + b.s);
+      if (b.x < -12) b.x = W + 10; if (b.x > W + 12) b.x = -10;
+      if (b.y < -12) { b.y = Hh + 10; b.x = Math.random() * W; } if (b.y > Hh + 12) b.y = -10;
+    });
+  }
+
+  /* ================= data ================= */
+  const SORT = [
+    { id: 'ice', t: '冰块', k: 'tech', d: '吉卜赛人的帐篷里摆着一大块透明、冒着寒气的东西。想摸一下，得先付钱。',
+      m: '族长付了钱，把手按上去，激动得像见证了神迹。整部小说正是从这块冰开始的——它是奥雷里亚诺上校一生里最早、也最顽固的记忆之一。' },
+    { id: 'mag', t: '磁铁', k: 'tech', d: '两块铁锭被拖过街道，各家的铁锅、铁钉、门闩纷纷从屋里滚出来，跟在后面跑。',
+      m: '全村目瞪口呆。族长当场拿一头骡子和两只山羊换下了磁铁，打算用它把埋在地下的金子吸出来。' },
+    { id: 'dag', t: '银版照相', k: 'tech', d: '一个人在木盒子前一动不动站了好几分钟，然后一块金属板上出现了他的脸。',
+      m: '这台新奇的机器让族长着了迷：他后来想用它拍下上帝，好一劳永逸地证明祂存在与否。' },
+    { id: 'train', t: '火车', k: 'tech', d: '一个冒着烟、拖着一长串车厢的铁家伙，沿着两条铁轨开进了小镇。',
+      m: '第一个看见它的女人尖叫着跑过街道。火车带来了电灯、电影、留声机和外国人——也带来了第四幕的香蕉公司。' },
+    { id: 'film', t: '电影', k: 'tech', d: '幕布上，一个人在上一部片子里死了，到下一部片子里又活生生地出现，还换了个身份。',
+      m: '观众觉得被愚弄了——他们刚为他流过眼泪——愤怒地砸了座椅。镇长只好出面解释：那只是一台制造幻觉的机器。' },
+    { id: 'teeth', t: '假牙', k: 'tech', d: '一个满脸皱纹、牙齿掉光的老人装上一副新牙，第二天看上去年轻了几十岁。',
+      m: '镇上的人以为亲眼见到了返老还童的魔法，吓得不轻。' },
+    { id: 'rem', t: '升天的姑娘', k: 'magic', d: '一个美得出奇的姑娘在院子里收床单，一阵风把她连同床单一起托上了天空，再也没有回来。',
+      m: '镇上很快就接受了。最念念不忘的那个人，惦记的其实是被一起卷走的那几条上好的亚麻床单。' },
+    { id: 'bfly', t: '黄蝴蝶', k: 'magic', d: '一个年轻机修工走到哪里，一群黄色的蝴蝶就跟到哪里。',
+      m: '姑娘的母亲起初只把它们当成恼人的飞虫。对恋爱中的梅梅来说，蝴蝶只是“他来了”的信号。' },
+    { id: 'blood', t: '一道血', k: 'magic', d: '一个男人在自己屋里中了枪。一道血从门下流出，穿过街道、拐过街角、沿着墙根绕开地毯，一路流进他母亲的厨房。',
+      m: '叙述者像记账一样平静地写下这条路线；母亲顺着血迹找到了儿子。没有人追问血为什么会认路。' },
+    { id: 'mel', t: '回来的死者', k: 'magic', d: '一个据说已经死在远方的吉卜赛人回来了——他说，死后的孤独实在受不了。',
+      m: '没有人尖叫。布恩迪亚家给他收拾出一间屋子，他接着做他的实验、写他的羊皮卷。' },
+    { id: 'rain', t: '长雨', k: 'magic', d: '一场雨，下了四年十一个月零两天。',
+      m: '人们抱怨的是潮湿、发霉的衣服、无事可做的漫长日子——没有人怀疑这件事是否可能。' },
+    { id: 'lev', t: '悬空的神父', k: 'magic', d: '神父喝下一杯热巧克力，身体便离地升起十来厘米。',
+      m: '这被当成了布道和募捐的手段：为了给教堂筹钱，他一次次当众表演。' },
+  ];
+  const REAL = [
+    { t: '一位随麦哲伦环球航行的意大利人在航海记里写道：南美洲尽头有一种骡子脑袋、骆驼身子、鹿的腿、像马一样嘶叫的动物；还有一个当地巨人第一次照镜子，被自己的影子吓得魂飞魄散。', real: true,
+      w: '安东尼奥·皮加费塔（Antonio Pigafetta）对 1519–1522 年那次航行的记录。马尔克斯的诺奖演讲就从这本书讲起——那头“怪兽”多半是原驼。' },
+    { t: '一位墨西哥将军在战争中失去一条腿，后来为这条腿举行了隆重的葬礼。', real: true,
+      w: '安东尼奥·洛佩斯·德圣安纳（Santa Anna）在 1838 年对法国的“糕点战争”中失去一条腿，1842 年为它举行了盛大的军礼葬仪。演讲里也提到了他。' },
+    { t: '一位独裁者为了对付一场猩红热，下令用红纸把全城的路灯包起来。', real: true,
+      w: '萨尔瓦多的马克西米利亚诺·埃尔南德斯·马丁内斯（1931–1944 年间掌权），演讲所举的例子。演讲同时提到，正是此人主导了 1932 年对农民起义的血腥镇压（史家的估计从一万到三四万不等）。' },
+    { t: '一位上校发动了三十二次武装起义，全部失败；晚年他每天做小金鱼，攒够了就熔掉重做。', real: false,
+      w: '这是小说里的奥雷里亚诺·布恩迪亚上校。但他有真实的影子：哥伦比亚“千日战争”（1899–1902）里的自由党将领，常被提到的是拉斐尔·乌里韦·乌里韦；马尔克斯的外祖父就是那场战争的老兵。' },
+  ];
+
+  // cat: JA (José Arcadio names) · A (Aureliano names) · F (women) · X (adopted)
+  const FAM = [
+    { id: 'jab', n: '何塞·阿尔卡蒂奥·布恩迪亚', s: 0, cat: 'JA', par: '第一代 · 马孔多的创建者',
+      out: '痴迷吉卜赛人带来的科学：磁铁、放大镜、星盘、炼金术。晚年神志错乱，被家人绑在院子里的栗树下度过余生。' },
+    { id: 'urs', n: '乌尔苏拉·伊瓜兰', s: 0.25, cat: 'F', par: '第一代 · 他的妻子，也是他的表亲',
+      out: '两人是近亲，她一直害怕生下长猪尾巴的孩子。她活了一百多岁，是全书里真正撑起这个家的人，也是第一个看出“名字的规律”的人。' },
+    { id: 'ja2', n: '何塞·阿尔卡蒂奥', s: 1.0, cat: 'JA', pred: true, act: 'imp', par: '族长与乌尔苏拉的长子',
+      out: '体格巨大、欲望旺盛。少年时跟着吉卜赛人出走，多年后带着满身刺青回来，娶了丽贝卡；后来在自己屋里离奇地中枪身亡——就是第一幕那道认路的血。' },
+    { id: 'col', n: '奥雷里亚诺·布恩迪亚上校', s: 1.5, cat: 'A', pred: true, act: 'luc', par: '族长与乌尔苏拉的次子',
+      out: '沉默、内向，从小就有预感。他发动了三十二次起义，全部失败，和十七个女人生了十七个儿子；晚年把自己关在作坊里，一遍遍做小金鱼。' },
+    { id: 'ama', n: '阿玛兰妲', s: 1.25, cat: 'F', par: '族长与乌尔苏拉的女儿',
+      out: '一生拒绝所有求爱者，晚年不紧不慢地为自己织寿衣。' },
+    { id: 'reb', n: '丽贝卡', s: 1.75, cat: 'X', par: '被收养的孤女（虚线表示非血亲）',
+      out: '背着一袋父母的遗骨来到马孔多，有偷偷吃土的习惯——第三幕的失眠症就是跟着她进的门。后来嫁给了何塞·阿尔卡蒂奥。' },
+    { id: 'arc', n: '阿尔卡蒂奥', s: 2.0, cat: 'JA', pred: true, act: 'imp', par: '何塞·阿尔卡蒂奥与皮拉尔·特尔内拉之子',
+      out: '战争中被任命管理马孔多，很快变成一个暴虐的小独裁者；政权更替后被行刑队枪决。' },
+    { id: 'aj', n: '奥雷里亚诺·何塞', s: 2.5, cat: 'A', pred: true, act: 'imp', par: '上校与皮拉尔·特尔内拉之子',
+      out: '迷恋自己的姑姑阿玛兰妲，为了忘掉她去打仗，回来后在街头被士兵打死。热烈、冲动——活得更像一个“何塞·阿尔卡蒂奥”。' },
+    { id: 'a17', n: '十七个奥雷里亚诺', s: 2.6, cat: 'A', many: true, par: '上校在战争年代与十七个女人所生',
+      out: '他们额头上都带着一个洗不掉的灰十字；后来几乎全被逐一追杀。同一个名字，被成批地发放，也被成批地收回。（小说的族谱里还有很多这样的“侧枝”，这里只画主干。）' },
+    { id: 'rem', n: '美人儿蕾梅黛丝', s: 3.25, cat: 'F', par: '阿尔卡蒂奥与圣索菲亚·德拉佩德之女',
+      out: '美得让追求她的男人一个个送命，自己却对世事浑然不觉——第一幕里随床单升天的就是她。' },
+    { id: 'jas', n: '何塞·阿尔卡蒂奥第二', s: 3.0, cat: 'JA', pred: true, act: 'luc', twin: true, par: '阿尔卡蒂奥与圣索菲亚·德拉佩德之子（孪生兄弟之一）',
+      out: '瘦削、孤僻、清醒。他成了香蕉工人罢工的领头人，是大屠杀之后唯一坚持说出真相的证人；晚年把自己关在梅尔基亚德斯的房间里研读羊皮卷。' },
+    { id: 'as', n: '奥雷里亚诺第二', s: 3.5, cat: 'A', pred: true, act: 'imp', twin: true, par: '孪生兄弟之二',
+      out: '高大、喧闹、爱狂欢。和情人佩特拉·科特斯在一起时，他家的牲畜就疯狂繁殖，他便通宵宴饮，甚至拿钞票糊墙。' },
+    { id: 'ja5', n: '何塞·阿尔卡蒂奥', s: 4.0, cat: 'JA', pred: true, act: 'mix', par: '奥雷里亚诺第二与费尔南达·德尔·卡皮奥之子',
+      out: '被送去罗马念神学院（乌尔苏拉盼着他当教皇），回来时却慵懒、讲究、沉溺享乐；最后被他自己招进家里的几个孩子淹死在浴池里，藏着的金子也被他们拿走。他既不“强壮敢闯”，也谈不上“清醒”——但名字附带的悲剧记号照样应验。' },
+    { id: 'meme', n: '雷纳塔·雷梅黛丝（梅梅）', s: 4.25, cat: 'F', par: '奥雷里亚诺第二与费尔南达之女',
+      out: '爱上了总有黄蝴蝶跟着的机修工马乌里西奥·巴比洛尼亚。母亲以防偷鸡贼为由请人守夜，他夜里潜入时中枪，终身瘫痪；梅梅从此再不开口，被送进远方的修道院。' },
+    { id: 'au', n: '阿玛兰妲·乌尔苏拉', s: 4.36, cat: 'F', par: '奥雷里亚诺第二与费尔南达之女',
+      out: '在布鲁塞尔读书，后来回到衰败的马孔多，想凭一己之力让这座老房子重新活过来。' },
+    { id: 'ab', n: '奥雷里亚诺·巴比洛尼亚', s: 5.5, cat: 'A', pred: true, act: 'luc', par: '梅梅与马乌里西奥·巴比洛尼亚之子（被当作弃婴送回家）',
+      out: '从小关在梅尔基亚德斯的房间里，沉默、博学，一点点破译那些羊皮卷。他并不知道阿玛兰妲·乌尔苏拉是自己的姨母——两人相爱了。' },
+    { id: 'pig', n: '奥雷里亚诺', s: 6.5, cat: 'A', par: '奥雷里亚诺·巴比洛尼亚与阿玛兰妲·乌尔苏拉之子',
+      out: '一百年来唯一在爱里孕育的孩子——却长着一条猪尾巴。乌尔苏拉怕了一辈子的事，在最后一代应验了。母亲产后死去，孩子没能活下来。' },
+  ];
+  const URS_END = 5.62; // Úrsula dies after the rain, while Aureliano Babilonia is a child
+  const EXPECT = { JA: 'imp', A: 'luc' };
+  const TEMPER = { imp: '冲动、强壮、敢闯（带着悲剧记号）', luc: '孤僻、沉默、头脑清醒' };
+
+  const OBJ = [
+    { id: 'cow', n: '牛', f: '每天早上要挤奶', icon: '<path d="M9 20h23c2-4 6-6 10-4l-2 6h-2v3c0 3-2 6-5 6H14c-3 0-5-3-5-6z"/><path d="M14 31v8M19 31v8M28 31v8M33 31v8"/><path d="M35 15l-2-4M41 16l3-3"/><path d="M9 21c-3 1-4 4-4 7"/>' },
+    { id: 'pot', n: '锅', f: '架在火上煮饭', icon: '<path d="M8 20h32v7a11 11 0 0 1-11 11H19A11 11 0 0 1 8 27z"/><path d="M4 20h40M20 15h8"/><path d="M16 44c2-2 2-3 0-5M24 44c2-2 2-3 0-5M32 44c2-2 2-3 0-5"/>' },
+    { id: 'clock', n: '钟', f: '告诉你现在几点', icon: '<circle cx="24" cy="24" r="16"/><path d="M24 14v10l7 5"/><path d="M24 9v2M39 24h-2M24 39v-2M9 24h2"/>' },
+    { id: 'door', n: '门', f: '推开能出去，关上能挡风', icon: '<rect x="13" y="6" width="22" height="36" rx="1"/><circle cx="30" cy="25" r="1.6"/><path d="M8 42h32"/>' },
+    { id: 'bed', n: '床', f: '躺下睡觉（如果还睡得着）', icon: '<path d="M5 37V14M5 29h38v8M43 37v-8"/><path d="M9 29v-5a3 3 0 0 1 3-3h8a3 3 0 0 1 3 3v5"/>' },
+    { id: 'tree', n: '香蕉树', f: '结的果子可以吃', icon: '<path d="M24 44V20"/><path d="M24 20c-6-8-14-8-18-6 6 0 12 2 18 6zM24 20c6-8 14-8 18-6-6 0-12 2-18 6zM24 20c-2-8 0-14 4-16-2 5-3 10-4 16z"/><path d="M27 26c3 1 5 4 5 8M27 30c2 1 3 3 3 6"/>' },
+    { id: 'table', n: '桌子', f: '吃饭时把碗放在上面', icon: '<path d="M6 18h36M9 18v22M39 18v22M6 23h36"/>' },
+    { id: 'ink', n: '墨水', f: '用来写这些标签', icon: '<path d="M16 25h16v15H16zM19 25v-4h10v4"/><path d="M25 22L40 5c-1 7-5 12-12 17"/>' },
+  ];
+
+  const STEPS = [
+    { tab: '火车', pop: '几百户人家', plant: '无', mgr: '0', wage: '—', houses: 7, rows: 0, cmp: false, sold: false,
+      html: '<p>上校十七个儿子中的一个——奥雷里亚诺·特里斯特——把铁路修到了马孔多。第一列火车开进小镇时，第一个看见它的女人吓得尖叫。</p><p>火车带来了电灯、电影、留声机，也带来了源源不断的外地人。</p>' },
+    { tab: '香蕉', pop: '外来者增多', plant: '试种', mgr: '1（赫伯特先生）', wage: '—', houses: 9, rows: 1, cmp: false, sold: false,
+      html: '<p>一位外国先生在布恩迪亚家的饭桌上吃了一串香蕉，然后开始测量、称重、计算。不久之后，工程师、律师、农艺师、测量员接踵而来，在镇外勘察了很多天。</p>' },
+    { tab: '公司', pop: '数千外地人涌入', plant: '沿铁路扩张', mgr: '数十人及家属', wage: '现金', houses: 14, rows: 3, cmp: true, sold: false,
+      html: '<p>香蕉公司来了。河道被改，种植园沿着铁路一直铺开；外国管理者住进铁丝网围起来的整洁住宅区，有草坪、有泳池。小镇人口暴涨，“外地人”成了多数，老居民在自己的街上认不出路人。</p>' },
+    { tab: '代金券', pop: '数千', plant: '一望无际', mgr: '数十人及家属', wage: '公司代金券', houses: 14, rows: 4, cmp: true, sold: false,
+      html: '<p>工资不再发现金，而是发公司印的代金券——只能在公司自己的商店里换东西。工人宿舍没有像样的卫生设施；公司的医生给每个病人开同一种药丸。</p>' },
+    { tab: '罢工', pop: '数千', plant: '一望无际', mgr: '数十人及家属', wage: '公司代金券', houses: 14, rows: 4, cmp: true, sold: false, demands: true,
+      html: '<p>何塞·阿尔卡蒂奥第二成了工人里的领头人。罢工开始了。勾选你认为合理的诉求，把请愿书递给公司：</p>' },
+    { tab: '军队', pop: '数千', plant: '停工', mgr: '数十人及家属', wage: '停发', houses: 14, rows: 4, cmp: true, sold: true,
+      html: '<p>军队开进马孔多，宣布戒严。官方把罢工者定性为一伙作乱的人。士兵们接管了码头和铁路，替罢工者去砍香蕉、装车皮。</p>' },
+    { tab: '车站广场', pop: '数千', plant: '停工', mgr: '数十人及家属', wage: '停发', houses: 14, rows: 4, cmp: true, sold: true, square: true, html: '' },
+    { tab: '第二天', pop: '?', plant: '?', mgr: '?', wage: '?', houses: 14, rows: 4, cmp: true, sold: true, ask: true,
+      html: '<p>第二天早上，镇子一切如常。去问问镇上的人昨晚发生了什么（每问一个人，看看你的笔记本）：</p>' },
+    { tab: '真实的 1928', pop: '—', plant: '—', mgr: '—', wage: '—', houses: 14, rows: 4, cmp: true, sold: false, hist: true, html: '' },
+    { tab: '雨', pop: '人口流散', plant: '荒废', mgr: '0（公司撤走）', wage: '—', houses: 8, rows: 1, cmp: false, sold: false, rain: true,
+      html: '<p>回到小说。然后开始下雨，一下就是四年十一个月零两天。公司停了工、撤走了，种植园变回荒地，外地人陆续离开。雨停的时候，马孔多只剩一副被泡烂的空壳，再也没有恢复元气。</p>' },
+  ];
+  const SQUARE = [
+    '<p>官方通知工人们到车站广场集合，说省里的长官要来调停。广场上聚了几千人——男人、女人，还有被大人举过头顶的孩子。</p>',
+    '<p>来的不是调停的人。一名军官宣读了戒严令，限人群在几分钟内散开。人群没有散。</p>',
+    '<p>（这里我们不画。小说写了，而且写得很具体；我们只留下一片空白。）</p>',
+    '<p>何塞·阿尔卡蒂奥第二在一列长得望不到头的火车上醒来，满车都是遇难者，火车正在夜里开往海边。他跳下车，沿着铁轨走回马孔多。趁还记得，在笔记本上写下你看到的。</p>',
+  ];
+  const NOTE0 = ['车站广场上挤满了罢工的工人和他们的家人。', '士兵向人群开了枪。', '夜里，一列很长的火车开往海边，车厢都关着。', '我亲眼看见了。'];
+  const ASKS = [
+    { who: '卖甜食的女人', say: '死人？那天晚上我睡得很好，什么动静也没听见。', line: '车站广场上很平静，工人们听了劝告就散了。' },
+    { who: '巡逻的军官', say: '您一定是太累了。回家睡一觉吧，镇上一切都好。', line: '那天夜里一切如常，没有人受伤。' },
+    { who: '镇公所的告示', say: '（墙上新贴的公告）工人们已经得到满意的答复，各自回家了；公司将在雨季结束后恢复生产。', line: '火车只是照常运香蕉。' },
+    { who: '一个孩子', say: '火车？火车每天晚上都开呀，运的是香蕉。', line: '你记错了。' },
+  ];
+
+  const TL = [
+    { y: 1899, h: '“千日战争”（1899–1902）', t: '哥伦比亚自由党与保守党之间的内战，死者以万计。马尔克斯的外祖父尼古拉斯·马尔克斯上校在自由党一方参战——奥雷里亚诺上校身上有他和那一代将领的影子。' },
+    { y: 1927, h: '生于阿拉卡塔卡', t: '3 月 6 日，加西亚·马尔克斯出生在加勒比海岸香蕉区的小镇阿拉卡塔卡，由外祖父母带大到八岁左右。外祖母讲鬼怪和预兆时面不改色，外祖父讲战争和屠杀。' },
+    { y: 1928, h: '香蕉园大屠杀', t: '12 月 5–6 日，谢纳加车站广场。（见第四幕）' },
+    { y: 1955, h: '马孔多第一次出现', t: '第一部小说《枯枝败叶》出版，故事就发生在一个叫马孔多的小镇——名字取自他童年时火车路过的一处香蕉庄园。' },
+    { y: 1963, h: '“爆炸”', t: '科塔萨尔《跳房子》、巴尔加斯·略萨《城市与狗》相继问世，加上富恩特斯等人，拉丁美洲小说在六十年代突然被全世界看见，史称“文学爆炸”（Boom）。' },
+    { y: 1967, h: '《百年孤独》出版', t: '在布宜诺斯艾利斯由南美出版社出版，首印约八千册很快售罄。此后译成数十种语言，据估计累计销量达数千万册。' },
+    { y: 1982, h: '诺贝尔文学奖', t: '12 月在斯德哥尔摩领奖时，他没穿燕尾服，而是一身白色的加勒比传统服装 liqui-liqui。12 月 8 日的演讲题为《拉丁美洲的孤独》（见下）。' },
+    { y: 1984, h: '来到中国', t: '1984 年前后，国内出现了多个从西班牙文或英文转译的中译本。当时中国尚未加入国际版权公约（1992 年加入），这些译本都没有得到作者授权。' },
+    { y: 1985, h: '寻根文学', t: '韩少功发表《文学的“根”》，一批作家转向乡土、地方传说与民族记忆。马孔多让很多人意识到：写自己村子的鬼魂和祖先，也可以是世界文学。' },
+    { y: 1986, h: '莫言', t: '莫言多次谈到八十年代初读《百年孤独》的震撼，也写文章把马尔克斯和福克纳比作两座灼热的高炉——提醒自己必须逃开，否则会被烤化。他的高密东北乡常被拿来与马孔多相比；2012 年他获得诺贝尔文学奖。' },
+    { y: 2011, h: '第一个授权中译本', t: '新经典 / 南海出版公司推出范晔从西班牙文译出的授权版本，此后在中国再次成为长销书。' },
+    { y: 2014, h: '逝世', t: '4 月 17 日在墨西哥城去世，享年 87 岁。' },
+    { y: 2024, h: '剧集', t: '他生前一直拒绝把这本书拍成影视；2024 年底，经家人授权的西班牙语剧集在哥伦比亚拍摄完成并上线。' },
+  ];
+  const FACTS = [
+    { h: '智利，1973',
+      out: '圣地亚哥发生军事政变，总统阿连德身亡，军政府宣布恢复秩序。此后执政十七年。',
+      in: '演讲引用的估计：之后约有一百万人离开智利，差不多每十个人里就有一个。很多家庭的餐桌，从此常年空着一把椅子。' },
+    { h: '阿根廷，1976–1983',
+      out: '军政府执政期间，部分人员“下落不明”。',
+      in: '1984 年官方委员会（CONADEP）记录了近九千名失踪者，人权组织估计可达三万。被关押孕妇在狱中生下的孩子被送走、改名——直到今天，“五月广场祖母”仍在寻找长大成人的孙辈。' },
+    { h: '乌拉圭，1973–1985',
+      out: '一个小国经历了十二年的军人统治。',
+      in: '演讲说：这个约两百五十万人口的国家，每五个公民中就有一人流亡在外。' },
+    { h: '萨尔瓦多，1979 起',
+      out: '内战爆发，局势动荡（战争持续到 1992 年）。',
+      in: '演讲说：自 1979 年以来，平均大约每二十分钟就有一个萨尔瓦多人沦为难民。这个国家的人还记得 1932 年那场由第一幕里“红纸路灯”的独裁者主导的镇压。' },
+    { h: '整个大陆',
+      out: '军事政变频繁，政权更替不稳定。',
+      in: '演讲列举：五场战争、十七次军事政变；因国家镇压而失踪的人近十二万；被迫离乡的流亡者加起来，比挪威的人口还多。（均为演讲引用的 1982 年估计）' },
+    { h: '孩子',
+      out: '地区婴儿死亡率偏高。',
+      in: '演讲说：1970 年代以来，有约两千万拉丁美洲儿童没活过一岁——比同期欧洲出生的孩子还多。他随即指出，这片土地对这一切的回答，是出生的人始终多于死去的人。' },
+  ];
+
+  /* ================= mount ================= */
+  HUM.marquez = {
+    title: '马孔多，一百年',
+    mount(root, ctx) {
+      const h = ctx.h, el = h.el, C = (n) => ctx.color(n);
+      const reduced = !!ctx.reduced;
+      if (!document.getElementById('st-' + ID)) document.head.append(el('style', { id: 'st-' + ID, text: CSS }));
+      const cleanups = [];
+      const redraws = new Set();
+      const redrawAll = () => redraws.forEach((f) => { try { f(); } catch (e) { console.error(e); } });
+      const mo = new MutationObserver(redrawAll);
+      mo.observe(document.documentElement, { attributes: true });
+      const mq = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+      if (mq && mq.addEventListener) mq.addEventListener('change', redrawAll);
+      cleanups.push(() => { mo.disconnect(); if (mq && mq.removeEventListener) mq.removeEventListener('change', redrawAll); });
+      const font = (px, fam) => `${px}px ${C(fam || '--body-font') || 'sans-serif'}`;
+      const shuffle = (a) => { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; };
+
+      const wrapEl = el('div', { class: 'marquez' });
+      root.append(wrapEl);
+
+      /* ---------- banner with butterflies ---------- */
+      const bcv = el('div', { class: 'marquez-bcv', 'aria-hidden': 'true' });
+      const banner = el('header', { class: 'marquez-banner' }, [
+        bcv,
+        el('div', { class: 'marquez-kick', text: '1982 · 诺贝尔文学奖 · 加夫列尔·加西亚·马尔克斯（Gabriel García Márquez，1927–2014）' }),
+        el('h2', { class: 'marquez-title', text: '马孔多，一百年' }),
+        el('p', { class: 'marquez-sub', text: '瑞典学院的授奖理由大意是：他的长篇和短篇小说把奇幻与现实交织进一个丰富的想象世界，映照出一整个大陆的生活与冲突。核心作品《百年孤独》（Cien años de soledad，1967）讲布恩迪亚家族七代人在虚构小镇马孔多的一百年。下面五幕，每一幕先动手，再读“这一幕想说的”。' }),
+      ]);
+      wrapEl.append(banner);
+      const bc = h.canvas(bcv, { aspect: 0.08, minH: 64, maxH: 64 });
+      bc.canvas.style.display = 'block';
+      let bfl = flock(7, 600, 64, 11);
+      const drawBanner = () => {
+        const g = bc.g, W = bc.w, Hh = bc.h; g.fillStyle = C('--panel'); g.fillRect(0, 0, W, Hh);
+        const col = C('--accent');
+        bfl.forEach((b) => butterfly(g, ((b.x % (W + 24)) + W + 24) % (W + 24) - 12, b.y, b.s, b.ph, b.a + Math.PI / 2, col, 0.75));
+      };
+      bc.onResize((W, Hh) => { bfl = flock(Math.max(4, Math.round(W / 110)), W, Hh, 11); drawBanner(); });
+      bfl = flock(Math.max(4, Math.round(bc.w / 110)), bc.w, bc.h, 11);
+      drawBanner(); redraws.add(drawBanner);
+      const bLoop = h.loop((dt) => { stepFlock(bfl, dt, bc.w, bc.h, false); drawBanner(); });
+      let bannerVisible = true;
+      const io = ('IntersectionObserver' in window) ? new IntersectionObserver((es) => {
+        bannerVisible = es[0].isIntersecting; if (!reduced) { if (bannerVisible) bLoop.start(); else bLoop.stop(); }
+      }) : null;
+      if (io) io.observe(bcv);
+      if (!reduced) bLoop.start();
+      cleanups.push(() => { bLoop.stop(); bc.destroy(); if (io) io.disconnect(); });
+
+      /* ---------- chapter framework ---------- */
+      const CH = [
+        { title: '颠倒的惊奇', build: ch1, intro: '<p>魔幻现实主义常被误解成“往现实里撒一把魔法”。其实它做的是一件更根本的事：<b>换一双眼睛</b>。在马孔多，什么东西让人目瞪口呆，什么东西被当成家常便饭？</p><p>先凭<b>你自己</b>的直觉，把下面十二张牌分进两栏（拖动，或点牌上的按钮）。分完之后，再翻到马孔多人的视角。</p>' },
+        { title: '名字的轮回', build: ch2, intro: '<p>布恩迪亚家族七代人，男孩子几乎只叫两个名字：<b>何塞·阿尔卡蒂奥</b>和<b>奥雷里亚诺</b>。活了一百多岁的乌尔苏拉看出一个规律：叫奥雷里亚诺的，往往内向、沉默，却有一种清醒的洞察；叫何塞·阿尔卡蒂奥的，往往冲动、强壮、敢闯，却总像被打上了悲剧的记号。</p><p>在螺旋上让孩子一个个出生。每当一个男孩被取名，先按乌尔苏拉的规律猜猜他的性情，再看小说怎么写。螺旋每转一圈是一代人；同名的人落在同一条辐线上。</p>' },
+        { title: '失眠症', build: ch3, intro: '<p>马孔多曾染上一场失眠症。没人觉得累，起初甚至很高兴——直到人们发现，失眠的真正症状是<b>遗忘</b>：先忘掉童年，再忘掉东西的名字，最后连东西是干什么用的都忘了。</p><p>布恩迪亚家想出的办法，是给每样东西贴上写着名字的标签；后来标签上还得写明用途。现在轮到你守住这间屋子：点一样东西，再选出正确的标签贴回去。标签会慢慢褪色——而且越来越快。</p>' },
+        { title: '香蕉公司', build: ch4, intro: '<p>小说里最“魔幻”的一段，偏偏写的是真事。下面是一个<b>示意</b>的马孔多：一步步推进，看铁路、外国资本和香蕉怎样改变一个小镇，看一场罢工怎样结束——以及结束之后，记忆怎样被改写。</p><p>（场景和数字是简化示意，小说本身没有给出具体数字；第 9 步是真实历史。）</p>' },
+        { title: '孤独与第二次机会', build: ch5, intro: '<p>最后，把书放回它所在的世界：它从哪里来，1982 年的奖和演讲说了什么，又怎样改变了拉丁美洲看自己的方式——包括远在中国的读者和作家。</p><p>拖动年份，沿时间线往前走；然后在“外部视角 / 内部视角”之间切换，读同一组拉丁美洲的事实。</p>' },
+      ];
+      const pills = CH.map((c, i) => el('button', { type: 'button', class: 'pill', onclick: () => open(i) }, [el('span', { class: 'pill-n', text: String(i + 1) }), el('span', { class: 'pill-t', text: c.title })]));
+      const strip = el('div', { class: 'pills', role: 'tablist', 'aria-label': '五幕' }, pills);
+      const host = el('div');
+      wrapEl.append(strip, host);
+      const built = new Map(); const done = new Set(); let cur = 0;
+
+      function refreshPills() {
+        pills.forEach((p, i) => { p.setAttribute('aria-selected', String(i === cur)); p.dataset.state = i === cur ? 'cur' : done.has(i) ? 'done' : 'open'; });
+      }
+      function buildCh(i) {
+        const c = CH[i];
+        const body = el('div', { class: 'marquez-body' });
+        const reflLock = el('div', { class: 'marquez-refl-lock', text: '先完成上面的互动，“这一幕想说的”就会出现在这里。' });
+        const refl = el('div', { class: 'marquez-refl', hidden: true }, [el('h4', { text: '这一幕想说的' })]);
+        const prev = h.button({ label: '← 上一幕', onClick: () => open(i - 1) }); prev.disabled = i === 0;
+        const next = h.button({ label: i < CH.length - 1 ? '下一幕 →' : '回到开头 ↑', kind: 'primary', onClick: () => open(i < CH.length - 1 ? i + 1 : 0) });
+        const sec = el('section', { class: 'marquez-ch', 'aria-label': c.title }, [
+          el('div', { class: 'marquez-chead' }, [el('span', { class: 'marquez-k', text: `第 ${i + 1} 幕 / ${CH.length}` }), el('h3', { text: c.title })]),
+          el('div', { class: 'marquez-frame', html: c.intro }),
+          body, reflLock, refl,
+          el('div', { class: 'marquez-foot' }, [prev, next]),
+        ]);
+        host.append(sec);
+        const api = {
+          unlock() { if (!refl.hidden) return; refl.hidden = false; reflLock.hidden = true; done.add(i); refreshPills(); if (ctx.typeset) ctx.typeset(refl); },
+          refl,
+        };
+        let handle = null;
+        try { handle = c.build(body, api, refl) || null; } catch (e) { console.error(e); body.append(el('p', { class: 'lab-missing', text: '这一幕加载失败。' })); }
+        built.set(i, { sec, handle });
+      }
+      function open(i) {
+        if (i < 0 || i >= CH.length) return;
+        const old = built.get(cur); if (old && old.handle && old.handle.hide && cur !== i) old.handle.hide();
+        cur = i;
+        if (!built.has(i)) buildCh(i);
+        built.forEach((b, k) => { b.sec.hidden = k !== i; });
+        const b = built.get(i); if (b.handle && b.handle.show) b.handle.show();
+        refreshPills();
+      }
+      const reflP = (refl, htmls) => htmls.forEach((x) => refl.append(el('p', { html: x })));
+
+      /* ===== Chapter 1: inverted wonder ===== */
+      function ch1(body, api, refl) {
+        const place = {}; let flipped = false; let view = 'you';
+        const cards = {};
+        const pool = el('div', { class: 'marquez-pool' });
+        const mkBin = (key, label) => {
+          const list = el('div', { class: 'marquez-pool' });
+          const cnt = el('span', { text: '0' });
+          const bin = el('div', { class: 'marquez-bin', 'data-bin': key }, [el('h5', {}, [label, cnt]), list]);
+          bin.addEventListener('dragover', (e) => { if (flipped) return; e.preventDefault(); bin.classList.add('over'); });
+          bin.addEventListener('dragleave', () => bin.classList.remove('over'));
+          bin.addEventListener('drop', (e) => { e.preventDefault(); bin.classList.remove('over'); const id = e.dataTransfer.getData('text/plain'); if (cards[id]) put(id, key); });
+          return { bin, list, cnt };
+        };
+        const bins = { wow: mkBin('wow', '让人惊奇'), norm: mkBin('norm', '理所当然') };
+        const prog = el('div', { class: 'marquez-note-s', 'aria-live': 'polite' });
+        const flipBtn = h.button({ label: '翻到马孔多人的视角 ↻', kind: 'primary', onClick: () => flip() });
+        flipBtn.disabled = true;
+        const viewCh = h.choice({ options: [{ value: 'you', label: '你的分法' }, { value: 'mac', label: '马孔多人的分法' }], value: 'you', onChange: (v) => { view = v; layout(); } });
+        viewCh.el.hidden = true;
+        const sum = el('div', { class: 'marquez-sum', hidden: true, 'aria-live': 'polite' });
+
+        shuffle(SORT).forEach((c) => {
+          const bW = el('button', { type: 'button', class: 'seg', text: '惊奇', 'aria-pressed': 'false', onclick: () => put(c.id, 'wow') });
+          const bN = el('button', { type: 'button', class: 'seg', text: '理所当然', 'aria-pressed': 'false', onclick: () => put(c.id, 'norm') });
+          const mac = el('div', { class: 'marquez-mac', hidden: true }, [el('b', { text: c.k === 'tech' ? '马孔多：惊奇！' : '马孔多：理所当然' }), c.m]);
+          const node = el('div', { class: 'marquez-card', draggable: 'true', 'data-id': c.id }, [
+            el('div', { class: 'marquez-ct', text: c.t }), el('p', { class: 'marquez-cd', text: c.d }),
+            el('div', { class: 'marquez-acts', role: 'group', 'aria-label': '归类：' + c.t }, [bW, bN]), mac,
+          ]);
+          node.addEventListener('dragstart', (e) => { e.dataTransfer.setData('text/plain', c.id); e.dataTransfer.effectAllowed = 'move'; });
+          cards[c.id] = { c, node, bW, bN, mac };
+          pool.append(node);
+        });
+        function put(id, key) {
+          if (flipped) return;
+          place[id] = key; const k = cards[id];
+          k.bW.setAttribute('aria-pressed', String(key === 'wow')); k.bN.setAttribute('aria-pressed', String(key === 'norm'));
+          bins[key].list.append(k.node);
+          count();
+        }
+        function count() {
+          const n = Object.keys(place).length;
+          bins.wow.cnt.textContent = String(bins.wow.list.children.length); bins.norm.cnt.textContent = String(bins.norm.list.children.length);
+          prog.textContent = n < SORT.length ? `已分 ${n} / ${SORT.length} 张` : '全部分好了。现在换一双眼睛看看。';
+          flipBtn.disabled = n < SORT.length || flipped;
+        }
+        const macOf = (c) => (c.k === 'tech' ? 'wow' : 'norm');
+        function layout() {
+          SORT.forEach((c) => { const k = cards[c.id]; const key = view === 'mac' ? macOf(c) : place[c.id]; bins[key].list.append(k.node); });
+          bins.wow.cnt.textContent = String(bins.wow.list.children.length); bins.norm.cnt.textContent = String(bins.norm.list.children.length);
+        }
+        function flip() {
+          flipped = true; flipBtn.disabled = true; view = 'mac'; viewCh.set('mac'); viewCh.el.hidden = false;
+          let inv = 0;
+          SORT.forEach((c) => { const k = cards[c.id]; const isInv = place[c.id] !== macOf(c); if (isInv) inv++; k.node.dataset.inv = isInv ? '1' : '0'; k.mac.hidden = false; k.node.draggable = false; k.bW.disabled = true; k.bN.disabled = true; });
+          layout();
+          sum.hidden = false;
+          sum.innerHTML = `你有 <b>${inv} / ${SORT.length}</b> 张牌和马孔多人的判断相反（金色边框的那些）。` + (inv >= 9
+            ? '几乎整个颠倒了：我们觉得平常的技术，马孔多人目瞪口呆；我们觉得不可能的事，他们眼皮都不抬。'
+            : '你的直觉已经有点“马孔多化”了——不过请注意，小说是怎样让你做到这一点的。');
+          prog.textContent = '';
+          api.unlock();
+        }
+        body.append(pool, el('div', { class: 'marquez-bins' }, [bins.wow.bin, bins.norm.bin]), el('div', { style: 'display:flex;flex-wrap:wrap;gap:8px;align-items:center' }, [flipBtn, prog]), viewCh.el, sum);
+        count();
+
+        reflP(refl, [
+          '“现实主义”不是现实本身，而是一种约定：<b>谁的日常算“正常”</b>。在欧洲小说的约定里，火车和电影是背景，升天和死而复生是奇迹；马孔多把这把尺子倒过来拿。冰块被当作神迹，一个姑娘被风卷上天却只换来对床单的惋惜——惊奇被放在了“我们”的东西上，平静留给了“我们”以为不可能的东西。',
+          '关键在叙述者的语气。马尔克斯多次说过，他是从外祖母那里学会这种讲法的：她讲最离奇的事情时，脸上没有一丝惊讶，于是听的人也就信了。那种不动声色，本身就是一种立场——拒绝用别人的尺子来量自己的世界。',
+          '他在 1982 年的诺奖演讲里更进一步：拉丁美洲的问题不是想象太多，而是<b>现实本身就过于庞大</b>，缺的是让别人相信它的常规手段。下面四件事，哪些是史书里的，哪些是小说里的？',
+        ]);
+        const realBox = el('div', { class: 'marquez-real' });
+        REAL.forEach((r) => {
+          const ans = el('p', { class: 'marquez-ans', hidden: true });
+          const pick = (guess) => {
+            ans.hidden = false;
+            ans.innerHTML = `<b>${guess === r.real ? '猜对了。' : '其实是' + (r.real ? '真事' : '小说') + '。'}</b>${r.w}`;
+            bR.setAttribute('aria-pressed', String(guess)); bF.setAttribute('aria-pressed', String(!guess));
+          };
+          const bR = el('button', { type: 'button', class: 'seg', text: '史书里的', 'aria-pressed': 'false', onclick: () => pick(true) });
+          const bF = el('button', { type: 'button', class: 'seg', text: '小说里的', 'aria-pressed': 'false', onclick: () => pick(false) });
+          realBox.append(el('div', { class: 'marquez-rc' }, [el('p', { text: r.t }), el('div', { class: 'marquez-acts' }, [bR, bF]), ans]));
+        });
+        refl.append(realBox, el('p', { class: 'marquez-note-s', style: 'margin-top:8px', text: '演讲内容此处均为转述，不是引文。' }));
+        return null;
+      }
+
+      /* ===== Chapter 2: names in a circle ===== */
+      function ch2(body, api, refl) {
+        const split = el('div', { class: 'marquez-split' });
+        const cvBox = el('div', { class: 'marquez-cvbox' });
+        const side = el('div', { style: 'display:grid;gap:10px;min-width:0' });
+        split.append(cvBox, side); body.append(split);
+        const cv = h.canvas(cvBox, { aspect: 0.92, minH: 300, maxH: 460 });
+        const legend = el('div', { class: 'marquez-legend' });
+        const colOf = (cat) => ({ JA: '--s2', A: '--s1', F: '--s3', X: '--s4' })[cat];
+        [['JA', '何塞·阿尔卡蒂奥们'], ['A', '奥雷里亚诺们'], ['F', '女儿们'], ['X', '养女']].forEach(([c, t]) => {
+          const i = el('i'); legend.append(el('span', {}, [i, t])); i.dataset.cat = c;
+        });
+        const paintLegend = () => legend.querySelectorAll('i').forEach((i) => (i.style.background = C(colOf(i.dataset.cat))));
+        paintLegend();
+        const ursNote = el('span', {}, [el('i', { style: 'border-radius:1px;height:3px;width:14px;vertical-align:3px' }), '乌尔苏拉的一生']);
+        legend.append(ursNote);
+        const paintUrs = () => (ursNote.querySelector('i').style.background = C('--accent'));
+        paintUrs();
+        cvBox.append(legend);
+
+        const who = el('div', { class: 'marquez-who', 'aria-live': 'polite' });
+        const predBox = el('div', { class: 'quiz', hidden: true });
+        const nextBtn = h.button({ label: '下一个孩子出生 →', kind: 'primary', onClick: () => advance() });
+        const windBtn = h.button({ label: '让风吹过马孔多', onClick: () => wind() }); windBtn.hidden = true;
+        const roN = h.readout('已预测', '0'), roHit = h.readout('你猜中', '0'), roRule = h.readout('规律成立（按名字）', '—');
+        const ros = el('div', { class: 'lab-readout' }, [roN.el, roHit.el, roRule.el]);
+        const twist = el('div', { class: 'marquez-twist', hidden: true });
+        const famList = el('ol', { class: 'marquez-fam', 'aria-label': '已出生的家族成员（简化族谱）' });
+        side.append(who, predBox, el('div', {}, [nextBtn, windBtn]), ros, twist, el('div', { class: 'marquez-tagline', text: '族谱（简化，只画主干）' }), famList);
+
+        let shown = 2; let pending = null; let current = 1; let nPred = 0, nHit = 0, nFit = 0, nMis = 0, nMid = 0; let twinsDone = 0;
+        let fade = 1, windT = -1; let finished = false;
+        const guesses = {};
+        const wl = h.loop((dt) => { if (windT >= 0) { windT += dt; fade = Math.max(0.1, 1 - windT / 3.2); draw(); if (fade <= 0.1) { wl.stop(); } } });
+
+        function renderList() {
+          famList.innerHTML = '';
+          FAM.slice(0, shown).forEach((m, k) => {
+            famList.append(el('li', { class: k === current ? 'cur' : '' }, [el('b', { text: m.n }), ' — ' + m.par]));
+          });
+          famList.scrollTop = famList.scrollHeight;
+        }
+        function showWho(m, withOut) {
+          who.innerHTML = '';
+          who.append(el('h4', { text: m.n }), el('p', { class: 'marquez-par', text: m.par }));
+          if (withOut) who.append(el('p', { text: m.out }));
+          if (withOut && m.pred) {
+            const exp = EXPECT[m.cat];
+            let cls, txt;
+            if (m.act === 'mix') { cls = 'mid'; txt = '说不清：两种性情都不像，但悲剧记号应验了。'; }
+            else if (m.act === exp) { cls = 'ok'; txt = '规律成立：' + TEMPER[m.act] + '。'; }
+            else { cls = 'no'; txt = '规律失灵：名字是“' + (m.cat === 'JA' ? '何塞·阿尔卡蒂奥' : '奥雷里亚诺') + '”，性情却是“' + TEMPER[m.act] + '”。'; }
+            who.append(el('div', { class: 'marquez-verdict ' + cls, text: txt }));
+          }
+        }
+        function tally() {
+          roN.set(String(nPred)); roHit.set(nPred ? `${nHit} / ${nPred}` : '0');
+          const swapped = twinsDone === 2 ? `；孪生子按“换过身份”算：${nFit + 2} 成立 · ${nMis - 2} 失灵` : '';
+          roRule.set(nPred ? `${nFit} 成立 · ${nMis} 失灵 · ${nMid} 说不清${swapped}` : '—');
+        }
+        function advance() {
+          if (pending || shown >= FAM.length) return;
+          const m = FAM[shown]; current = shown; shown++;
+          renderList();
+          if (m.pred) {
+            pending = m; nextBtn.disabled = true;
+            showWho(m, false);
+            predBox.hidden = false; predBox.innerHTML = '';
+            predBox.append(el('div', { class: 'quiz-q', html: `这个孩子取名<b>${m.n}</b>。按乌尔苏拉的规律，你猜他会是：` }));
+            const opts = el('div', { class: 'quiz-opts' });
+            ['imp', 'luc'].forEach((t) => opts.append(el('button', { type: 'button', class: 'quiz-opt', text: TEMPER[t], onclick: () => guess(t) })));
+            predBox.append(opts);
+            const first = opts.querySelector('button'); if (first && document.activeElement === nextBtn) first.focus();
+          } else {
+            showWho(m, true);
+          }
+          if (shown >= FAM.length) { nextBtn.disabled = true; nextBtn.textContent = '第七代，最后一个'; windBtn.hidden = false; finished = true; api.unlock(); }
+          draw();
+        }
+        function guess(t) {
+          const m = pending; if (!m) return;
+          guesses[m.id] = t; nPred++;
+          if (t === m.act) nHit++;
+          if (m.act === 'mix') nMid++; else if (m.act === EXPECT[m.cat]) nFit++; else nMis++;
+          if (m.twin) twinsDone++;
+          pending = null; predBox.hidden = true; predBox.innerHTML = ''; nextBtn.disabled = false;
+          showWho(m, true);
+          if (twinsDone === 2 && twist.hidden) {
+            twist.hidden = false;
+            twist.innerHTML = '';
+            [
+              '<b>孪生子之谜。</b>这对双胞胎正好反了过来：叫何塞·阿尔卡蒂奥的那个瘦削、清醒、孤独；叫奥雷里亚诺的那个高大、喧闹、纵情。',
+              '小说给了一个解释：两人小时候长得一模一样，常常互换衣服和名字捉弄大人，乌尔苏拉怀疑他们在某次游戏里换过之后就再也没换回来。两人在同一时刻死去；下葬那天，醉醺醺的送葬者搞混了棺材，各自被埋进了对方的墓穴。',
+              '如果承认他们换过身份，规律又成立了——例外反而成了规律最有力的证据。',
+            ].forEach((x) => twist.append(el('p', { html: x })));
+          }
+          tally(); draw(); nextBtn.focus();
+        }
+        function wind() {
+          windBtn.disabled = true;
+          who.innerHTML = '';
+          who.append(el('h4', { text: '羊皮卷' }), el('p', { text: '吉卜赛人梅尔基亚德斯一百年前写下的羊皮卷，终于被最后一个奥雷里亚诺破译：上面用梵文和密码，提前写好了这个家族的全部历史，一直写到他此刻正在读它的这一瞬间。他越读越快，屋外起了一阵越来越猛的风，把马孔多从地面、也从人们的记忆里一点点抹掉。' }));
+          if (reduced) { fade = 0.12; draw(); } else { windT = 0; wl.start(); }
+        }
+
+        function draw() {
+          const g = cv.g, W = cv.w, Hh = cv.h;
+          g.fillStyle = C('--panel'); g.fillRect(0, 0, W, Hh);
+          const cx = W / 2, cy = Hh / 2 + 4, R = Math.min(W, Hh) / 2 - 22, r0 = R * 0.07;
+          const rad = (s) => r0 + (R - r0) * s / 7;
+          const drift = (1 - fade) * 26;
+          const pt = (s) => { const a = 2 * Math.PI * s, r = rad(s) + drift * (s / 7); return [cx + r * Math.cos(a), cy + r * Math.sin(a)]; };
+          g.save(); g.globalAlpha = Math.max(fade, 0.35);
+          // spokes
+          g.setLineDash([3, 4]); g.strokeStyle = C('--grid'); g.lineWidth = 1;
+          [[0, '--s2'], [Math.PI, '--s1']].forEach(([a]) => { g.beginPath(); g.moveTo(cx, cy); g.lineTo(cx + (R + 8) * Math.cos(a), cy + (R + 8) * Math.sin(a)); g.stroke(); });
+          g.setLineDash([]);
+          g.font = font(11); g.textBaseline = 'bottom';
+          g.textBaseline = 'top';
+          g.fillStyle = C('--s2'); g.textAlign = 'right'; g.fillText('何塞·阿尔卡蒂奥们 → 右侧辐线', W - 4, 4);
+          g.fillStyle = C('--s1'); g.textAlign = 'left'; g.fillText('左侧辐线 ← 奥雷里亚诺们', 4, 4);
+          // spiral
+          g.strokeStyle = C('--line'); g.lineWidth = 1; g.beginPath();
+          for (let s = 0; s <= 7.0001; s += 0.01) { const [x, y] = pt(s); if (s === 0) g.moveTo(x, y); else g.lineTo(x, y); }
+          g.stroke();
+          // generation marks
+          g.font = font(10, '--mono-font'); g.fillStyle = C('--muted'); g.textAlign = 'center'; g.textBaseline = 'middle';
+          for (let k = 1; k <= 7; k++) { const [x, y] = pt(k - 1 + 0.875); g.fillText(String(k), x, y - 8); }
+          g.restore();
+          // Úrsula's life
+          const sCur = FAM[Math.min(current, FAM.length - 1)].s;
+          const sEnd = Math.min(URS_END, Math.max(0.26, shown > 2 ? Math.max(...FAM.slice(0, shown).map((m) => m.s)) : 0.26));
+          g.save(); g.globalAlpha = 0.55 * fade + 0.1; g.strokeStyle = C('--accent'); g.lineWidth = 3; g.lineCap = 'round'; g.beginPath();
+          for (let s = 0.25; s <= sEnd + 1e-6; s += 0.01) { const [x, y] = pt(s); if (s === 0.25) g.moveTo(x, y); else g.lineTo(x, y); }
+          g.stroke(); g.restore();
+          // twins swap
+          if (twinsDone === 2) {
+            const a = pt(3.0), b = pt(3.5);
+            g.save(); g.globalAlpha = fade; g.setLineDash([4, 4]); g.strokeStyle = C('--accent'); g.lineWidth = 1.2;
+            g.beginPath(); g.moveTo(a[0], a[1]); g.quadraticCurveTo(cx, cy - R * 0.25, b[0], b[1]); g.stroke(); g.setLineDash([]);
+            g.fillStyle = C('--accent'); g.font = font(11); g.textAlign = 'center'; g.textBaseline = 'bottom'; g.fillText('互换？', cx, cy - R * 0.12 - 2);
+            g.restore();
+          }
+          // nodes
+          FAM.slice(0, shown).forEach((m, k) => {
+            const isCur = k === current;
+            const col = C(colOf(m.cat));
+            g.save(); g.globalAlpha = fade;
+            if (m.many) {
+              for (let j = 0; j < 17; j++) { const [x, y] = pt(m.s + j * 0.009); g.fillStyle = col; g.beginPath(); g.arc(x, y, 2.2, 0, Math.PI * 2); g.fill(); }
+              g.restore(); return;
+            }
+            const [x, y] = pt(m.s); const r = isCur ? 9 : 6.5;
+            const unknown = pending && pending.id === m.id;
+            g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2);
+            if (m.cat === 'X') { g.setLineDash([2, 2]); g.strokeStyle = col; g.lineWidth = 1.6; g.fillStyle = C('--panel'); g.fill(); g.stroke(); g.setLineDash([]); }
+            else if (unknown) { g.fillStyle = C('--panel'); g.fill(); g.strokeStyle = col; g.lineWidth = 1.6; g.stroke(); }
+            else { g.fillStyle = col; g.fill(); }
+            if (isCur) { g.strokeStyle = C('--fg'); g.lineWidth = 1.4; g.beginPath(); g.arc(x, y, r + 3, 0, Math.PI * 2); g.stroke(); }
+            if (unknown) { g.fillStyle = C('--fg'); g.font = font(11); g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('?', x, y + 0.5); }
+            if (m.id === 'pig') { g.strokeStyle = C('--fg'); g.lineWidth = 1.2; g.beginPath(); g.moveTo(x + r, y); g.bezierCurveTo(x + r + 6, y - 6, x + r + 10, y + 6, x + r + 14, y - 2); g.stroke(); }
+            g.restore();
+          });
+          // current label
+          const m = FAM[Math.min(current, shown - 1)];
+          if (m && !m.many && fade > 0.5) {
+            const [x, y] = pt(m.s); const a = 2 * Math.PI * m.s;
+            g.font = font(12.5); const tw = g.measureText(m.n).width;
+            let lx = x + Math.cos(a) * 16, ly = y + Math.sin(a) * 16 + (Math.abs(Math.sin(a)) < 0.3 ? 16 : 0);
+            lx = Math.cos(a) >= 0 ? lx : lx - tw; lx = Math.max(4, Math.min(W - tw - 4, lx));
+            ly = Math.max(14, Math.min(Hh - 6, ly));
+            g.fillStyle = C('--panel'); g.globalAlpha = 0.85; g.fillRect(lx - 3, ly - 12, tw + 6, 17); g.globalAlpha = 1;
+            g.fillStyle = C('--fg'); g.textAlign = 'left'; g.textBaseline = 'alphabetic'; g.fillText(m.n, lx, ly + 1);
+          }
+          if (fade < 0.6) {
+            g.fillStyle = C('--muted'); g.font = font(12); g.textAlign = 'center'; g.textBaseline = 'bottom';
+            g.fillText('（马孔多被风抹去）', W / 2, Hh - 4);
+          }
+          void sCur;
+        }
+        cv.onResize(draw); redraws.add(draw); redraws.add(paintLegend); redraws.add(paintUrs);
+        current = 1; renderList(); showWho(FAM[0], true); who.append(el('p', { class: 'marquez-par', text: '族长与乌尔苏拉已在螺旋中心。点“下一个孩子出生”。' }));
+        tally(); draw();
+
+        reflP(refl, [
+          '<b>孤独</b>在这本书里不是“一个人待着”，而是这个家族世代相传的病：没有能力真正去爱、去和别人连接。上校打了一辈子仗，最后只信得过自己手里的小金鱼；阿玛兰妲拒绝所有人，给自己织寿衣；每个人都关进自己的房间、自己的执念。名字一样，孤独也一样。',
+          '<b>时间在这里不是直线，而是圆。</b>名字回来，性格回来，甚至错误也回来——近亲相爱、长猪尾巴的恐惧，从第一代一直绕到第七代才应验。乌尔苏拉晚年说过类似的感慨：时间好像没有往前走，只是在原地打转。读者在螺旋上能看见的这种重复，正是小说的结构。',
+          '结尾，梅尔基亚德斯的羊皮卷原来早已写下了全部历史；最后一个奥雷里亚诺读到自己的那一刻，风把马孔多抹去。小说最后的判决是：这样一个被孤独困住的家族，<b>没有重来一次的机会</b>。记住这一点——第五幕里，马尔克斯会在诺奖讲台上把这个判决翻转过来。',
+        ]);
+        return { destroy() { wl.stop(); cv.destroy(); } };
+      }
+
+      /* ===== Chapter 3: insomnia ===== */
+      function ch3(body, api, refl) {
+        const st = {}; let t = 0, running = false, over = false, sel = null, best = 0, phase = 1;
+        const house = el('div', { class: 'marquez-house' });
+        const nodes = {};
+        OBJ.forEach((o) => {
+          const lab = el('span', { class: 'marquez-lab' }); const bar = el('i');
+          const b = el('button', { type: 'button', class: 'marquez-obj', 'aria-pressed': 'false', html: SVGI(o.icon) });
+          b.append(lab, el('span', { class: 'marquez-bar' }, [bar]));
+          b.addEventListener('click', () => choose(o.id));
+          nodes[o.id] = { b, lab, bar }; house.append(b);
+        });
+        const phaseEl = el('div', { class: 'marquez-phase', 'aria-live': 'polite' });
+        const opts = el('div', { class: 'marquez-opts', role: 'group', 'aria-label': '可选的标签' });
+        const startBtn = h.button({ label: '开始：失眠症来了', kind: 'primary', onClick: () => start() });
+        const nightBtn = h.button({ label: '又过了一夜 →', onClick: () => tick(2.2) }); nightBtn.hidden = true;
+        const roT = h.readout('第几夜', '—'), roK = h.readout('还记得的东西', '8 / 8'), roB = h.readout('最多同时记得', '—');
+        const end = el('div', { hidden: true });
+        body.append(house, phaseEl, opts, el('div', {}, [startBtn, nightBtn]), el('div', { class: 'lab-readout' }, [roT.el, roK.el, roB.el]), end,
+          el('p', { class: 'lab-hint', text: reduced ? '（已按“减少动态效果”设置改为逐夜推进：每点一次“又过了一夜”，时间前进一步；每贴一张标签也会过去一点时间。）' : '游戏机制是简化的示意：遗忘的速度会不断加快。' }));
+
+        function reset() {
+          OBJ.forEach((o, i) => { st[o.id] = 0.75 + 0.25 * ((i * 37) % 11) / 10; });
+          t = 0; over = false; sel = null; best = 0; phase = 1; end.hidden = true; end.innerHTML = '';
+          render();
+        }
+        const rate = (tt) => 0.034 * (1 + Math.pow(tt / 16, 2));
+        function scramble(s, frac) {
+          if (frac <= 0) return s;
+          return [...s].map((ch, i) => (ch === ' ' || ch === '·' ? ch : ((Math.sin(i * 12.9898 + s.length * 78.233) * 43758.5453) % 1 + 1) % 1 < frac ? '□' : ch)).join('');
+        }
+        function labelText(o) { return phase === 1 ? o.n : `${o.n} · ${o.f}`; }
+        function render() {
+          let keep = 0;
+          OBJ.forEach((o) => {
+            const m = st[o.id], n = nodes[o.id];
+            n.lab.style.opacity = String(m <= 0 ? 1 : 0.15 + 0.85 * m);
+            n.lab.textContent = m <= 0 ? '？' : labelText(o);
+            n.bar.style.width = Math.max(0, m * 100) + '%';
+            n.b.dataset.gone = m <= 0 ? '1' : '0';
+            n.b.setAttribute('aria-label', m <= 0 ? '一样已经想不起名字的东西' : '标签：' + labelText(o) + '（清晰度 ' + Math.round(m * 100) + '%）');
+            n.b.setAttribute('aria-pressed', String(sel === o.id));
+            if (m > 0) keep++;
+          });
+          if (running) best = Math.max(best, keep);
+          roT.set(running || over ? `第 ${Math.floor(t / 2.2) + 1} 夜` : '—');
+          roK.set(`${keep} / ${OBJ.length}`); roB.set(best ? String(best) : '—');
+          phaseEl.textContent = !running && !over ? '屋里的东西还都贴着清楚的标签。' :
+            phase === 1 ? '第一阶段：人们开始忘记东西的名字。' :
+            phase === 2 ? '第二阶段：名字还在，用途却忘了——标签上必须写明这东西是干什么用的。' :
+            '第三阶段：连标签上的字也开始认不出来了。';
+          return keep;
+        }
+        function showOpts() {
+          opts.innerHTML = '';
+          if (!sel || over) return;
+          const o = OBJ.find((x) => x.id === sel);
+          let list;
+          if (phase === 1) list = [o.n, ...shuffle(OBJ.filter((x) => x.id !== o.id)).slice(0, 3).map((x) => x.n)];
+          else list = [`${o.n} · ${o.f}`, ...shuffle(OBJ.filter((x) => x.id !== o.id)).slice(0, 3).map((x) => `${o.n} · ${x.f}`)];
+          const frac = phase === 3 ? Math.min(0.75, (t - 36) / 40 + 0.2) : 0;
+          shuffle(list.map((s, i) => ({ s, ok: i === 0 }))).forEach((it) => {
+            opts.append(el('button', { type: 'button', class: 'quiz-opt', text: scramble(it.s, frac), onclick: (e) => pick(it.ok, e.currentTarget) }));
+          });
+        }
+        function choose(id) { if (!running || over) return; sel = id; render(); showOpts(); const f = opts.querySelector('button'); if (f) f.focus(); }
+        function pick(ok, btn) {
+          if (!sel || over) return;
+          if (ok) { st[sel] = 1; const id = sel; sel = null; opts.innerHTML = ''; render(); nodes[id].b.focus(); }
+          else { btn.classList.add('picked'); btn.dataset.res = 'no'; btn.disabled = true; }
+          if (reduced) tick(0.6);
+        }
+        function tick(dt) {
+          if (!running || over) return;
+          t += dt;
+          const np = t < 18 ? 1 : t < 36 ? 2 : 3;
+          if (np !== phase) { phase = np; if (sel) showOpts(); }
+          OBJ.forEach((o) => { if (st[o.id] > 0) st[o.id] = Math.max(0, st[o.id] - rate(t) * dt * (0.85 + 0.3 * ((o.id.length * 7) % 5) / 4)); });
+          const keep = render();
+          if (keep === 0 || t > 95) finish();
+        }
+        let acc = 0, lastShown = -1;
+        const lp = h.loop((dt) => { tick(dt); acc += dt; if (phase === 3 && sel && Math.floor(t / 3) !== lastShown) { lastShown = Math.floor(t / 3); showOpts(); } });
+        function start() {
+          reset(); running = true; startBtn.hidden = true; nightBtn.hidden = !reduced; render();
+          if (!reduced) lp.start();
+          nodes[OBJ[0].id].b.focus();
+        }
+        function finish() {
+          over = true; running = false; lp.stop(); sel = null; opts.innerHTML = ''; nightBtn.hidden = true;
+          startBtn.hidden = false; startBtn.textContent = '再来一次'; render();
+          end.hidden = false; end.innerHTML = '';
+          end.append(el('div', { class: 'marquez-sum', html: `你守了 <b>${Math.floor(t / 2.2) + 1}</b> 夜，最多同时记得 <b>${best}</b> 样东西。最后，屋里每样东西都只剩一个问号。这不是你手慢——游戏就是这样设计的：遗忘只会越来越快，而贴标签的手永远只有一双。` }));
+          end.append(el('div', { class: 'marquez-sign', html: signSVG() }));
+          end.append(el('p', { class: 'marquez-note-s', style: 'margin:0', text: '小说里，镇口立起写着镇名的牌子，主街上还有一块更大的牌子，宣告上帝存在。可是当人们忘了文字本身的意思，牌子也就只剩下木头和墨迹。' }));
+          api.unlock();
+        }
+        function signSVG() {
+          return `<svg viewBox="0 0 360 170" role="img" aria-label="镇口的两块木牌：一块写着马孔多，一块宣告上帝存在">
+            <g fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round">
+              <path d="M70 60v100M250 40v120"/><path d="M10 160h340" stroke="var(--line)"/></g>
+            <rect x="22" y="34" width="96" height="34" rx="3" fill="var(--bg2)" stroke="var(--muted)"/>
+            <text x="70" y="57" text-anchor="middle" font-size="16" fill="var(--fg)" font-family="var(--cjk-display)">马孔多</text>
+            <rect x="178" y="10" width="144" height="40" rx="3" fill="var(--bg2)" stroke="var(--muted)"/>
+            <text x="250" y="37" text-anchor="middle" font-size="19" fill="var(--fg)" font-family="var(--cjk-display)">上帝存在</text>
+          </svg>`;
+        }
+        reset();
+
+        reflP(refl, [
+          '布恩迪亚家的标签是一个绝妙的寓言：<b>文字是外置的记忆</b>。我们把记不住的东西写下来、贴出去、存进档案——但标签只有在有人还能读懂它的时候才有用。一个忘了“牛”和“挤奶”是什么意思的人，面对一张写着“牛·每天早上要挤奶”的纸，什么也想不起来。',
+          '小说里，失眠症是靠一个外人治好的：从死亡里回来的吉卜赛人梅尔基亚德斯带来一剂药水，人们一喝，记忆才回来。也就是说，单靠这个镇子自己，是守不住记忆的。',
+          '这一幕是第四幕的预演。个人会忘记，<b>集体也会忘记</b>——而且集体的遗忘有时并非疾病，而是被安排的。下一幕，马孔多将面对一件被官方要求忘掉的事。',
+        ]);
+        return { hide() { lp.stop(); }, show() { if (running && !over && !reduced) lp.start(); }, destroy() { lp.stop(); } };
+      }
+
+      /* ===== Chapter 4: the banana company ===== */
+      function ch4(body, api, refl) {
+        let step = 0, sub = 0, submitted = false, asked = 0, maxStep = 0;
+        let animT = 0; let anim = null; // {kind, t0, dur}
+        const tabs = el('div', { class: 'marquez-steps', role: 'group', 'aria-label': '步骤' });
+        const tabBtns = STEPS.map((s, i) => { const b = el('button', { type: 'button', class: 'seg', text: `${i + 1} ${s.tab}`, 'aria-pressed': 'false', onclick: () => go(i) }); tabs.append(b); return b; });
+        const sceneBox = el('div');
+        const cv = h.canvas(sceneBox, { aspect: 0.48, minH: 210, maxH: 340 });
+        const tagS = el('div', { class: 'marquez-tagline', text: '示意场景 · 非比例' });
+        const roP = h.readout('人口（示意）'), roPl = h.readout('种植园'), roM = h.readout('外国管理者'), roW = h.readout('工资形式');
+        const ros = el('div', { class: 'lab-readout' }, [roP.el, roPl.el, roM.el, roW.el]);
+        const story = el('div', { class: 'marquez-story', 'aria-live': 'polite' });
+        const extra = el('div', { style: 'display:grid;gap:8px;min-width:0' });
+        const note = el('div', { class: 'marquez-note', hidden: true }, [el('h5', { text: '你的笔记本' })]);
+        const noteLines = NOTE0.map((s) => { const sp = el('span', { class: 'marquez-nl', text: s }); note.append(sp); return sp; });
+        const myIn = el('input', { type: 'text', class: 'marquez-in', maxlength: '60', placeholder: '可选：用你自己的话补一句（最多 60 字）', 'aria-label': '在笔记本上补一句你自己的话' });
+        myIn.addEventListener('input', () => { if (asked < 4) noteLines[3].textContent = myIn.value.trim() || NOTE0[3]; });
+        const prevB = h.button({ label: '← 上一步', onClick: () => go(step - 1, true) });
+        const nextB = h.button({ label: '下一步 →', kind: 'primary', onClick: () => onNext() });
+        body.append(tabs, sceneBox, tagS, ros, story, extra, note, el('div', {}, [prevB, nextB]));
+
+        // demands
+        const DEM = ['宿舍要有像样的卫生设施', '要有真正的医疗服务，而不是人人一样的药丸', '发现金，不发代金券', '承认我们是公司的雇员'];
+        const demToggles = DEM.map((d) => h.toggle({ label: d, value: false }));
+        const demReply = el('div', { class: 'marquez-reply', hidden: true });
+        const demBtn = h.button({ label: '把请愿书递给公司', onClick: () => {
+          const n = demToggles.filter((x) => x.get()).length;
+          submitted = true; demBtn.disabled = true; demToggles.forEach((x) => (x.el.querySelector('input').disabled = true));
+          demReply.hidden = false;
+          demReply.innerHTML = `你勾选了 <b>${n}</b> 条。公司的律师们在法庭上证明了一件事：这些工人<b>根本不存在</b>——他们只是零散雇来的临时工，算不上公司的雇员。法庭照此裁决，请愿书一条也没有被回应。<br><span class="marquez-note-s">（小说情节，转述。真实的 1928 年请愿书见第 9 步。）</span>`;
+          updNav();
+        } });
+        const demBox = el('div', { class: 'marquez-demands' }, [...demToggles.map((x) => x.el), el('div', {}, [demBtn]), demReply]);
+        // asks
+        const askReplies = el('div');
+        const askBtns = ASKS.map((a, i) => h.button({ label: '问：' + a.who, onClick: (e) => {
+          e.currentTarget.disabled = true; asked++;
+          askReplies.append(el('div', { class: 'marquez-reply', html: `<b>${a.who}：</b>${a.say}` }));
+          overwrite(noteLines[i], a.line);
+          updNav();
+        } }));
+        const askBox = el('div', {}, [el('div', { class: 'marquez-asks' }, askBtns), askReplies]);
+        function overwrite(sp, txt) {
+          sp.classList.add('ov');
+          if (reduced) { sp.textContent = txt; return; }
+          const from = sp.textContent; let k = 0; const L = Math.max(from.length, txt.length);
+          const id = setInterval(() => {
+            k++; sp.textContent = txt.slice(0, k) + from.slice(k, L).replace(/[^，。]/g, (c, j) => (j % 2 ? '▒' : c));
+            if (k >= L) { clearInterval(id); sp.textContent = txt; }
+          }, 45);
+          timers.push(id);
+        }
+        const timers = [];
+        // history panel
+        const estBox = el('div');
+        const hist = el('div', { class: 'marquez-hist' });
+        hist.append(
+          el('div', { class: 'marquez-k', text: '历史 · 哥伦比亚 · 1928' }),
+          el('p', { html: '1928 年 11 月 12 日起，哥伦比亚加勒比海岸马格达莱纳省香蕉区的数万名工人（常见说法在 2.5 万以上）对<b>联合果品公司</b>（United Fruit Company）及其承包商发起罢工。' }),
+          el('p', { text: '他们的请愿书共九条，内容包括：用现金而不是代金券发工资、按周发薪、取消公司商店、改善宿舍卫生、提供医院服务、工伤赔偿、集体保险，以及不再通过承包商雇人——公司借承包制主张这些工人不是它的雇员，从而规避劳工法。' }),
+          el('p', { html: '政府宣布香蕉区戒严，任命<b>卡洛斯·科尔特斯·巴尔加斯</b>将军为军事长官。12 月 5 日深夜至 6 日凌晨，军队在<b>谢纳加</b>（Ciénaga）车站广场向聚集的罢工者及其家属开枪。' }),
+          el('p', { text: '死了多少人，至今没有定论：' }),
+          estBox,
+          el('p', { class: 'marquez-note-s', text: '图注：军方指挥官承认 47 人死亡；美国驻波哥大使馆 1928 年 12 月的电报引用公司法律顾问的说法“500–600 人”，1929 年 1 月的电报引用公司驻波哥大代表的说法“超过 1000 人”；历史学者汇集的各方估计从 47 到约 2000 不等。小说的“约三千”是文学数字。' }),
+          el('p', { html: '1929 年 9 月，年轻的自由党议员<b>豪尔赫·埃列塞尔·盖坦</b>在国会就此事发起了持续数日的辩论，指控军方与公司的责任；他事前到香蕉区搜集了证词。此事让他成为全国性的政治人物。' }),
+          el('p', { html: '加西亚·马尔克斯 1927 年生在同一片香蕉区的<b>阿拉卡塔卡</b>，就在谢纳加附近。他出生的第二年发生了这一切；他是听着大人们对这件事的讲述——以及沉默——长大的。' }),
+          el('p', { html: '小说里“约三千人”的数字是文学性的，不是统计。但对世界上许多读者、甚至许多哥伦比亚人来说，小说里的那个版本后来<b>成了这件事被记住的样子</b>。这本身也引发争议：2017 年一位哥伦比亚议员公开称这场屠杀是被夸大的“神话”，随即遭到众多历史学者以档案证据反驳。虚构、记忆与史实之间的张力至今仍在。' }),
+        );
+        const est = h.canvas(estBox, { aspect: 0.42, minH: 190, maxH: 250 });
+        function drawEst() {
+          const g = est.g, W = est.w, Hh = est.h; g.fillStyle = C('--panel'); g.fillRect(0, 0, W, Hh);
+          const L = Math.min(130, W * 0.34), Rr = 16, top = 10, bot = 30;
+          const lo = Math.log10(10), hi = Math.log10(5000);
+          const X = (v) => L + (Math.log10(v) - lo) / (hi - lo) * (W - L - Rr);
+          const rows = [
+            { t: '军方承认', a: 47, b: 47, c: '--s1' },
+            { t: '美使馆 1928.12', a: 500, b: 600, c: '--s2' },
+            { t: '美使馆 1929.1', a: 1000, b: 1000, c: '--s2', more: true },
+            { t: '学者汇集的估计', a: 47, b: 2000, c: '--muted' },
+            { t: '小说（非统计）', a: 3000, b: 3000, c: '--accent', lit: true },
+          ];
+          const rh = (Hh - top - bot) / rows.length;
+          g.strokeStyle = C('--grid'); g.lineWidth = 1; g.font = font(10, '--mono-font'); g.fillStyle = C('--muted'); g.textAlign = 'center'; g.textBaseline = 'top';
+          [10, 30, 100, 300, 1000, 3000].forEach((v) => { const x = X(v); g.beginPath(); g.moveTo(x, top); g.lineTo(x, Hh - bot); g.stroke(); g.fillText(String(v), x, Hh - bot + 4); });
+          g.textBaseline = 'bottom'; g.fillText('死亡人数（对数刻度）', L + (W - L - Rr) / 2, Hh - 1);
+          rows.forEach((r, i) => {
+            const y = top + rh * (i + 0.5);
+            g.font = font(W < 420 ? 10 : 11); g.fillStyle = C('--fg'); g.textAlign = 'right'; g.textBaseline = 'middle';
+            let t = r.t; while (g.measureText(t).width > L - 8 && t.length > 4) t = t.slice(0, -2) + '…';
+            g.fillText(t, L - 8, y);
+            g.strokeStyle = C(r.c); g.fillStyle = C(r.c); g.lineWidth = 4; g.lineCap = 'round';
+            if (r.a !== r.b) { g.beginPath(); g.moveTo(X(r.a), y); g.lineTo(X(r.b), y); g.stroke(); }
+            g.beginPath(); g.arc(X(r.a), y, 4, 0, Math.PI * 2); g.fill();
+            if (r.a !== r.b) { g.beginPath(); g.arc(X(r.b), y, 4, 0, Math.PI * 2); g.fill(); }
+            if (r.more) { g.lineWidth = 1.5; g.beginPath(); g.moveTo(X(r.a) + 6, y); g.lineTo(X(r.a) + 18, y); g.moveTo(X(r.a) + 14, y - 4); g.lineTo(X(r.a) + 18, y); g.lineTo(X(r.a) + 14, y + 4); g.stroke(); }
+            if (r.lit) { g.setLineDash([2, 3]); g.lineWidth = 1; g.beginPath(); g.moveTo(X(r.a), y - rh * 0.4); g.lineTo(X(r.a), y + rh * 0.4); g.stroke(); g.setLineDash([]); }
+          });
+          g.lineCap = 'butt';
+        }
+        est.onResize(drawEst); redraws.add(drawEst);
+
+        function setStoryHTML(x) { story.innerHTML = x; }
+        function updNav() {
+          prevB.disabled = step === 0 && sub === 0;
+          let ok = true;
+          if (STEPS[step].demands && !submitted) ok = false;
+          if (STEPS[step].ask && asked < ASKS.length) ok = false;
+          if (step === STEPS.length - 1) ok = false;
+          nextB.disabled = !ok;
+          nextB.textContent = STEPS[step].square && sub < 3 ? (sub === 1 ? '（几分钟过去了）→' : '继续 →') : step === 7 ? '切到真实历史 →' : '下一步 →';
+          tabBtns.forEach((b, i) => { b.setAttribute('aria-pressed', String(i === step)); b.disabled = i > maxStep; });
+        }
+        function onNext() {
+          if (STEPS[step].square && sub < 3) { sub++; enterSub(); return; }
+          go(step + 1);
+        }
+        function enterSub() {
+          setStoryHTML(SQUARE[sub]);
+          extra.innerHTML = '';
+          if (sub === 2) startAnim('fade', 2.6);
+          if (sub === 3) { startAnim('train', 7); note.hidden = false; extra.append(myIn); }
+          draw(); updNav();
+        }
+        function go(i, back) {
+          if (i < 0 || i >= STEPS.length) return;
+          if (back && STEPS[step].square && sub > 0) { sub--; enterSub(); return; }
+          step = i; maxStep = Math.max(maxStep, i);
+          const S = STEPS[i];
+          sub = S.square ? (back ? 3 : 0) : 0;
+          roP.set(S.pop); roPl.set(S.plant); roM.set(S.mgr); roW.set(S.wage);
+          extra.innerHTML = '';
+          sceneBox.hidden = !!S.hist; tagS.hidden = !!S.hist; ros.hidden = !!S.hist;
+          note.hidden = !(i > 6 || (S.square && sub === 3));
+          if (S.square) { enterSub(); }
+          else {
+            setStoryHTML(S.html);
+            if (S.demands) extra.append(demBox);
+            if (S.ask) extra.append(askBox);
+            if (S.hist) { extra.append(hist); }
+          }
+          if (i === 0) startAnim('arrive', 3.5);
+          else if (S.rain) { startAnim('rain', 1e9); api.unlock(); }
+          else if (!S.square) stopAnim();
+          draw(); updNav();
+        }
+
+        // scene
+        function startAnim(kind, dur) { anim = { kind, dur }; animT = 0; if (reduced) { animT = kind === 'rain' ? 0 : dur; lp.stop(); } else lp.start(); }
+        function stopAnim() { anim = null; lp.stop(); }
+        const lp = h.loop((dt) => { animT += dt; draw(); if (anim && animT > anim.dur) { lp.stop(); } });
+        function house(g, x, y, w, hh, col) { g.strokeStyle = col; g.lineWidth = 1.2; g.strokeRect(x, y - hh, w, hh); g.beginPath(); g.moveTo(x - 2, y - hh); g.lineTo(x + w / 2, y - hh - w * 0.45); g.lineTo(x + w + 2, y - hh); g.stroke(); }
+        function trainAt(g, x, y, cars, col, closed) {
+          g.fillStyle = col; g.strokeStyle = col; g.lineWidth = 1.2;
+          g.fillRect(x, y - 13, 26, 13); g.fillRect(x + 4, y - 20, 6, 7);
+          for (let k = 0; k < cars; k++) { const cx = x + 30 + k * 24; if (closed) g.strokeRect(cx, y - 11, 20, 11); else g.fillRect(cx, y - 11, 20, 11); }
+        }
+        function draw() {
+          const g = cv.g, W = cv.w, Hh = cv.h; const S = STEPS[step];
+          g.fillStyle = C('--panel'); g.fillRect(0, 0, W, Hh);
+          const G = Hh * 0.7, T = Hh * 0.84;
+          const muted = C('--muted'), fg = C('--fg'), line = C('--line');
+          let wash = 1;
+          if (S.rain) wash = reduced ? 0.45 : Math.max(0.35, 1 - animT / 12);
+          g.save(); g.globalAlpha = wash;
+          // ground & track
+          g.strokeStyle = line; g.lineWidth = 1; g.beginPath(); g.moveTo(0, G); g.lineTo(W, G); g.stroke();
+          g.strokeStyle = muted; g.beginPath(); g.moveTo(0, T); g.lineTo(W, T); g.moveTo(0, T + 4); g.lineTo(W, T + 4); g.stroke();
+          for (let x = 4; x < W; x += 12) { g.beginPath(); g.moveTo(x, T - 1); g.lineTo(x, T + 5); g.stroke(); }
+          // houses (town, left)
+          const hw = Math.max(14, Math.min(20, W / 34));
+          for (let k = 0; k < S.houses; k++) {
+            const row = k % 2, col = Math.floor(k / 2);
+            const x = 10 + col * (hw + 8) + row * 8; const y = G - row * 0; if (x > W * 0.36) continue;
+            house(g, x, y - (row ? 26 : 0), hw, hw * 0.75, row ? line : muted);
+          }
+          // station
+          const sx = W * 0.42; g.strokeStyle = fg; g.lineWidth = 1.2; g.strokeRect(sx, G - 22, 34, 22); g.beginPath(); g.moveTo(sx - 4, G - 22); g.lineTo(sx + 38, G - 22); g.stroke();
+          g.fillStyle = muted; g.font = font(10); g.textAlign = 'center'; g.textBaseline = 'top'; g.fillText('车站', sx + 17, G + 3);
+          // plantation (right)
+          const px0 = W * 0.6, px1 = W - 10;
+          for (let r = 0; r < S.rows; r++) {
+            const y = G - 8 - r * 16;
+            for (let x = px0 + (r % 2) * 7; x < px1; x += 14) {
+              g.strokeStyle = C('--s3'); g.lineWidth = 1.2; g.beginPath(); g.moveTo(x, y); g.lineTo(x, y - 9);
+              g.moveTo(x, y - 9); g.quadraticCurveTo(x - 6, y - 12, x - 7, y - 7); g.moveTo(x, y - 9); g.quadraticCurveTo(x + 6, y - 12, x + 7, y - 7); g.stroke();
+            }
+          }
+          if (S.rows) { g.fillStyle = muted; g.font = font(10); g.textAlign = 'right'; g.textBaseline = 'top'; g.fillText('香蕉种植园', px1, G + 3); }
+          // compound
+          if (S.cmp) {
+            const cx0 = W * 0.6, cy0 = Hh * 0.06, cw = W * 0.36, ch = Hh * 0.22;
+            g.setLineDash([2, 3]); g.strokeStyle = C('--s4'); g.lineWidth = 1; g.strokeRect(cx0, cy0, cw, ch); g.setLineDash([]);
+            for (let k = 0; k < 3; k++) house(g, cx0 + 10 + k * (cw - 20) / 3, cy0 + ch - 6, Math.min(18, cw / 6), 10, C('--s4'));
+            g.fillStyle = muted; g.font = font(10); g.textAlign = 'left'; g.textBaseline = 'top'; g.fillText('铁丝网后的外国人住宅区', cx0, cy0 + ch + 3);
+          }
+          // soldiers
+          if (S.sold || (S.square && sub < 3)) {
+            g.strokeStyle = fg; g.lineWidth = 1.6;
+            const n = 9; for (let k = 0; k < n; k++) { const x = W * 0.38 + k * 6, y = G - 30; g.beginPath(); g.moveTo(x, y); g.lineTo(x, y - 9); g.stroke(); g.beginPath(); g.arc(x, y - 11, 1.6, 0, Math.PI * 2); g.stroke(); }
+          }
+          // crowd in square
+          if (S.square && sub <= 2) {
+            let a = 1; if (sub === 2) a = Math.max(0, 1 - animT / (anim ? anim.dur : 1));
+            g.fillStyle = C('--s1'); g.globalAlpha = wash * a;
+            const x0 = W * 0.36, x1 = W * 0.58, y0 = G - 64, y1 = G - 36;
+            const hs = (n) => { const v = Math.sin(n * 127.1 + 311.7) * 43758.5453; return v - Math.floor(v); };
+            for (let k = 0; k < 120; k++) { const x = x0 + hs(k) * (x1 - x0), y = y0 + hs(k + 500) * (y1 - y0); g.beginPath(); g.arc(x, y, 1.6, 0, Math.PI * 2); g.fill(); }
+            g.globalAlpha = wash;
+            if (sub === 2 && a <= 0.01) { g.fillStyle = muted; g.font = font(12); g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('（空白）', (x0 + x1) / 2, (y0 + y1) / 2); }
+          }
+          // trains
+          if (step === 0) {
+            const p = anim ? Math.min(1, animT / anim.dur) : 1; const e = 1 - Math.pow(1 - p, 3);
+            trainAt(g, W + 10 - e * (W * 0.62), T - 2, 4, C('--accent'), false);
+          } else if (S.square && sub === 3) {
+            const p = anim ? Math.min(1, animT / anim.dur) : 1;
+            const cars = 40; const len = 30 + cars * 24;
+            const x = reduced ? -len * 0.35 : -len + p * (W + len * 0.9);
+            trainAt(g, Math.max(-len, x) + len - 26, T - 2, 0, fg, true);
+            for (let k = 0; k < cars; k++) { const cx = x + k * 24; if (cx > -24 && cx < W) { g.strokeStyle = fg; g.lineWidth = 1.2; g.strokeRect(cx, T - 13, 20, 11); } }
+            g.fillStyle = muted; g.font = font(10); g.textAlign = 'right'; g.textBaseline = 'bottom'; g.fillText('开往海边 →', W - 6, T - 18);
+          } else if (step >= 1 && step <= 3) {
+            trainAt(g, W * 0.38 + 0, T - 2, 4, C('--accent'), false);
+          }
+          g.restore();
+          // rain
+          if (S.rain) {
+            g.strokeStyle = C('--s1'); g.globalAlpha = 0.45; g.lineWidth = 1;
+            const off = reduced ? 0 : (animT * 220);
+            for (let k = 0; k < Math.round(W / 6); k++) {
+              const x = (k * 53) % W; const y = ((k * 97 + off) % (Hh + 20)) - 20;
+              g.beginPath(); g.moveTo(x, y); g.lineTo(x - 3, y + 12); g.stroke();
+            }
+            g.globalAlpha = 1; g.fillStyle = fg; g.font = font(13); g.textAlign = 'left'; g.textBaseline = 'top';
+            g.fillText('4 年 11 个月零 2 天', 10, 8);
+          }
+        }
+        cv.onResize(draw); redraws.add(draw);
+        go(0);
+
+        reflP(refl, [
+          '小说写的不只是一场屠杀，更是<b>第二重暴力：抹除</b>。枪声之后，官方版本一遍遍重复，直到唯一记得的人显得像个疯子——何塞·阿尔卡蒂奥第二后来把自己关进梅尔基亚德斯的房间，一遍遍对来访者念叨那个数字。你的笔记本被改写的过程，就是这件事的缩影：并不需要有人撕掉它，只需要每个人都换一种说法。',
+          '在这里，魔幻现实主义倒转了方向：第一幕里，不可能的事被说得像家常；这一幕里，<b>真实发生的事被说成了不可能</b>。官方否认本身，比任何升天的姑娘都更“魔幻”。',
+          '而文学填补了档案的空白。几十年后，对世界上许多读者来说，“香蕉园大屠杀”首先就是小说里的那一段——这是虚构的力量，也是它的风险：它能让一件被埋的事重新被看见，但它的数字不是史学的数字。好的读者两样都要记得。',
+        ]);
+        return { hide() { lp.stop(); }, show() { if (anim && !reduced && (STEPS[step].rain || animT < anim.dur)) lp.start(); draw(); }, destroy() { lp.stop(); timers.forEach(clearInterval); cv.destroy(); est.destroy(); } };
+      }
+
+      /* ===== Chapter 5: solitude and a second chance ===== */
+      function ch5(body, api, refl) {
+        const items = TL.map((x) => {
+          const li = el('li', { 'data-on': '0' }, [el('span', { class: 'marquez-tly', text: String(x.y) }), el('span', { class: 'marquez-tlh', text: x.h }), el('p', { class: 'marquez-tlt', text: x.t })]);
+          return { x, li };
+        });
+        const tl = el('ol', { class: 'marquez-tl', 'aria-label': '时间线' }, items.map((i) => i.li));
+        const yr = h.slider({ label: '年份', min: 1899, max: 2024, step: 1, value: 1928, format: (v) => String(v), onInput: (v) => setYear(v) });
+        function setYear(v) { items.forEach(({ x, li }) => (li.dataset.on = x.y <= v ? '1' : '0')); }
+        setYear(1928);
+        body.append(el('div', { class: 'lab-controls' }, [yr.el]), tl);
+
+        body.append(el('div', { class: 'marquez-frame', html: '<p><b>同一组事实，两种读法。</b>下面是 1970–80 年代拉丁美洲的几件事，大多取自马尔克斯在诺奖演讲中列举的内容（数字为他当时引用的估计，个别补充了今天的史料）。先用“外部视角”读——像一个隔着大洋翻报纸的人；再切到“内部视角”。</p>' }));
+        const facts = el('div', { class: 'marquez-facts', 'data-view': 'out' });
+        const fps = FACTS.map((f) => { const p = el('p', { text: f.out }); facts.append(el('div', { class: 'marquez-fact' }, [el('h5', { text: f.h }), p])); return { f, p }; });
+        let toggled = false;
+        const vc = h.choice({ label: '视角', options: [{ value: 'out', label: '外部视角' }, { value: 'in', label: '内部视角' }], value: 'out', onChange: (v) => {
+          facts.dataset.view = v; fps.forEach(({ f, p }) => (p.textContent = v === 'in' ? f.in : f.out));
+          if (v === 'in' && !toggled) { toggled = true; api.unlock(); }
+        } });
+        body.append(vc.el, facts, el('p', { class: 'marquez-note-s', style: 'margin:0', text: '这是一个阅读练习，不是对任何国家或政治立场的评判；“外部视角”是对一种距离感的模拟，并非引自任何具体的报道。' }));
+
+        reflP(refl, [
+          '这正是 1982 年 12 月 8 日那篇演讲——《拉丁美洲的孤独》——的论证。转述其大意：欧洲的理性头脑习惯用衡量自己的尺子来衡量拉丁美洲，忘了他们自己的历史也曾漫长而血腥；用别人的尺子解读我们的现实，只会让我们更不为人知、更不自由、<b>更孤独</b>。他也拒绝把这片大陆的暴力简单归结为外来的阴谋，认为它扎根于积累了几个世纪的不公；他希望远方的同情能变成实际的支持。',
+          '演讲的结尾，他提到老师福克纳当年拒绝接受“人类的末日”，又承认核毁灭在今天已是科学上的可能。但他说，面对压迫、掠夺和遗弃，这片大陆的回答始终是生命本身；现在开始建造一种新的、以生命为中心的乌托邦还不算太晚——在那里，没有人能替别人决定怎样死去，爱和幸福真正可能，而那些被判处百年孤独的族群，终于能在世上得到<b>第二次机会</b>。这正是把第二幕里小说的最后判决，在讲台上翻转了过来。',
+          '这本书也改变了拉丁美洲看自己的方式：本地的传说、祖父母的故事、被官方抹掉的事件，不再是“落后”的标记，而是可以进入世界文学的材料。这种启示远远传到了别处——托妮·莫里森、萨尔曼·拉什迪等作家都谈到过他的影响；在八十年代的中国，它和“寻根”的冲动相遇，让一代作家回头去写自己的高密、自己的湘西、自己的村庄。',
+        ]);
+        const closeBox = el('div');
+        const cvc = h.canvas(closeBox, { aspect: 0.22, minH: 110, maxH: 170 });
+        let F = flock(14, cvc.w, cvc.h, 3);
+        const drawClose = () => {
+          const g = cvc.g, W = cvc.w, Hh = cvc.h; g.fillStyle = C('--panel'); g.fillRect(0, 0, W, Hh);
+          const col = C('--accent'); F.forEach((b) => butterfly(g, b.x, b.y, b.s, b.ph, b.a + Math.PI / 2, col, 0.8));
+        };
+        cvc.onResize((W, Hh) => { F = flock(Math.max(8, Math.round(W / 50)), W, Hh, 3); drawClose(); }); redraws.add(drawClose);
+        const cl = h.loop((dt) => { stepFlock(F, dt, cvc.w, cvc.h, true); drawClose(); });
+        refl.append(closeBox, el('p', { class: 'marquez-final', text: '马孔多是虚构的。但一个大陆的人在这个虚构的小镇里认出了自己的祖父母、自己的战争、自己被要求忘掉的那一夜——这件事是真的。孤独没有被治好；它只是第一次被讲成了一个所有人都听得懂的故事。' }));
+        drawClose();
+        const unlocked = () => !refl.hidden;
+        const watch = setInterval(() => { if (unlocked() && !reduced && visible && !cl.running) cl.start(); }, 400);
+        let visible = true;
+        return { show() { visible = true; }, hide() { visible = false; cl.stop(); }, destroy() { clearInterval(watch); cl.stop(); cvc.destroy(); } };
+      }
+
+      open(0);
+      return {
+        destroy() {
+          built.forEach((b) => { try { b.handle && b.handle.destroy && b.handle.destroy(); } catch (e) {} });
+          cleanups.forEach((f) => { try { f(); } catch (e) {} });
+          redraws.clear();
+          root.innerHTML = '';
+        },
+      };
+    },
+  };
+})();
+
+</script>
+<script>/* mandela.js */
+/* 从牢房到投票站 — Nobel Peace Prize 1993: Nelson Mandela & F. W. de Klerk
+ * "for their work for the peaceful termination of the apartheid regime, and for laying the foundations
+ *  for a new democratic South Africa" (announced 15 Oct 1993).
+ * Five chapters: (1) apartheid as a legal machine (dot grid), (2) the negotiation game (simplified model),
+ * (3) the TRC amnesty criteria (composite cases), (4) political vs economic equality afterwards, (5) why two laureates.
+ */
+(() => {
+  window.HUM = window.HUM || {};
+
+  /* ---------------- seeded RNG ---------------- */
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = (a + 0x6d2b79f5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  const clamp = (v, a = 0, b = 100) => Math.max(a, Math.min(b, v));
+
+  /* =====================================================================
+   * Chapter 2 engine — a deliberately simple model (简化模型).
+   * State (0–100): trust 双方信任, anc 非国大基本盘支持, np 国民党基本盘支持, viol 暴力水平, prog 谈判进展.
+   * Each choice: d = [Δtrust, Δanc, Δnp, Δviol, Δprog], rec = how much it invites reciprocity (−1..1),
+   * hist = true for what actually happened. fx = special effects.
+   * ===================================================================== */
+  const KEYS = ['trust', 'anc', 'np', 'viol', 'prog'];
+  const START = { trust: 20, anc: 65, np: 60, viol: 35, prog: 5 };
+
+  const ROUNDS = [
+    {
+      date: '1990 年 2 月', title: '开局',
+      ctx: {
+        M: '2 月 2 日，德克勒克在议会宣布解除对非国大、泛非大和南非共产党的禁令。2 月 11 日，你在坐牢 27 年后走出维克多·韦斯特监狱。全世界在等你出狱后的第一次表态；身后数以万计的支持者，有许多人认为政府只是在耍花招。',
+        D: '你 1989 年 9 月就任总统。紧急状态已持续数年，制裁和资本外流在掏空经济，冷战结束也让"共产主义威胁"这张牌不再好用。2 月 2 日议会开幕，你要发表讲话。党内和安全部门里不少人认为放出曼德拉等于引火烧身。',
+      },
+      M: [
+        { t: '支持谈判，但声明武装斗争的理由仍在，不会立即放弃', d: [3, 6, -3, 0, 6], rec: 0.1, hist: true },
+        { t: '立即单方面宣布停止武装斗争，以示诚意', d: [9, -14, 4, -2, 6], rec: 0.6 },
+        { t: '拒绝在现行宪法下谈判，要求政府先交出权力', d: [-12, 5, 4, 6, -4], rec: -0.7 },
+      ],
+      D: [
+        { t: '全面解禁三个组织，宣布无条件释放曼德拉', d: [14, 3, -8, 0, 12], rec: 0.7, hist: true },
+        { t: '只放人不解禁：非国大须先放弃武装斗争才能合法化', d: [-3, 2, 3, 2, 4], rec: -0.2 },
+        { t: '维持紧急状态，先找"温和"黑人领袖谈', d: [-12, 4, 4, 8, 0], rec: -0.7 },
+      ],
+      hist: '2 月 2 日德克勒克在议会宣布解禁三个组织、释放曼德拉；2 月 11 日曼德拉获释。他当天在开普敦的讲话一方面支持谈判，一方面表示武装斗争的理由依然存在——对两边的听众各说了一半。',
+      lesson: '双层博弈：每位领导人同时面对谈判对手和自己身后的人。对外的每一句让步，都要在对内的账本上付账。',
+    },
+    {
+      date: '1990 年 8 月 6 日', title: '比勒陀利亚备忘录',
+      ctx: {
+        M: '政府要求非国大放下武器才谈实质问题；"民族之矛"（非国大武装）的许多成员和地下网络则认为，枪是手里唯一的筹码。',
+        D: '非国大愿意谈"暂停"武装行动，但要你在政治犯和流亡者问题上给出东西。警察和军方担心被出卖。',
+      },
+      M: [
+        { t: '宣布暂停武装行动（不是解散"民族之矛"）', d: [12, -7, 5, -4, 10], rec: 0.6, hist: true },
+        { t: '坚持武装斗争直到制宪会议召开', d: [-9, 4, -4, 4, -2], rec: -0.6 },
+        { t: '宣布永久放弃武装斗争并解散"民族之矛"', d: [15, -18, 6, -4, 10], rec: 0.8 },
+      ],
+      D: [
+        { t: '交换：承诺分阶段释放政治犯、安排流亡者回国', d: [10, 4, -5, -3, 10], rec: 0.6, hist: true },
+        { t: '先交出武器库位置，否则不放政治犯', d: [-8, -2, 5, 2, -2], rec: -0.6 },
+        { t: '把"暂停"当作前提条件收下，不给任何回报', d: [-4, -3, 3, 0, 3], rec: -0.2 },
+      ],
+      hist: '8 月 6 日双方签署《比勒陀利亚备忘录》：非国大宣布暂停武装行动；政府承诺推进释放政治犯、为流亡者回国作出安排，并检讨安全立法。非国大内部不少人认为让步太早。',
+      lesson: '可信的姿态：暂停而不是解散，是给对方看的承诺，也给自己人留了退路。',
+    },
+    {
+      date: '1991 年 7 月', title: '"因卡塔门"',
+      ctx: {
+        M: '一年多来，非国大与因卡塔自由党支持者在纳塔尔和德兰士瓦的冲突造成数千人死亡。7 月，媒体披露警方秘密资助因卡塔的集会。许多人怀疑存在一支挑动黑人互斗的"第三势力"。',
+        D: '媒体披露警方秘密资助因卡塔的集会，你的执法部长和国防部长都被牵连。非国大指责政府一边谈判一边打代理战争。',
+      },
+      M: [
+        { t: '公开施压：要求撤换部长、停止秘密行动，但留在谈判进程里', d: [-2, 6, -3, 0, 4], rec: 0.0, hist: true },
+        { t: '以此为由退出一切谈判，直到政府下台', d: [-12, 5, -3, 6, -8], rec: -0.8 },
+        { t: '低调处理，私下与德克勒克沟通', d: [5, -9, 2, 0, 3], rec: 0.5 },
+      ],
+      D: [
+        { t: '把两名部长调到次要职位，停止秘密资助', d: [6, 2, -4, -2, 4], rec: 0.3, hist: true },
+        { t: '否认、拖延调查', d: [-10, 3, 2, 5, -2], rec: -0.6 },
+        { t: '全面公开安全部门的秘密行动，成立独立调查', d: [12, 3, -12, -4, 4], rec: 0.7 },
+      ],
+      hist: '7 月媒体（《每周邮报》等）披露警方秘密资助因卡塔。德克勒克把执法部长弗洛克和国防部长马兰调到次要职位，但否认知道更深的暴力行动。"第三势力"之争持续多年；后来的调查（包括真相与和解委员会）认定部分安全部门人员参与或纵容了暴力。',
+      lesson: '搅局者不一定在场外：对方阵营内部的人也会用暴力改变谈判的筹码。',
+    },
+    {
+      date: '1991 年 12 月 20 日', title: 'CODESA 开幕',
+      ctx: {
+        M: '"民主南非大会"（CODESA）在约翰内斯堡附近的肯普顿公园开幕。根本分歧：新宪法由谁来写？你主张由普选产生的制宪议会起草；国民党想在选举前就把少数群体的保护写死。',
+        D: 'CODESA 开幕。你的党希望在普选之前通过谈判把权力分享和少数否决权锁进宪法；非国大要由选举产生的制宪议会来写。',
+      },
+      M: [
+        { t: '坚持宪法由选举产生的机构起草，但同意先在 CODESA 谈出约束性的原则', d: [3, 4, 0, 0, 8], rec: 0.3, hist: true },
+        { t: '接受由各党派协商直接制定最终宪法', d: [8, -13, 5, 0, 10], rec: 0.7 },
+        { t: '拒绝任何过渡安排，要求立即普选', d: [-7, 4, -5, 2, -3], rec: -0.6 },
+      ],
+      D: [
+        { t: '提出少数否决、轮值总统等长期保护方案', d: [-3, -2, 5, 0, 4], rec: -0.2, hist: true },
+        { t: '接受选举产生的制宪机构，换取宪法原则先行锁定', d: [8, 3, -7, 0, 10], rec: 0.6 },
+        { t: '拖延，等党内意见统一再说', d: [-4, -2, 1, 1, 1], rec: -0.3 },
+      ],
+      hist: '12 月 20 日 CODESA 第一次全体会议召开，约 19 个政党和团体参加；保守党和泛非大缺席，因卡塔领导人布特莱齐本人也没有到场。会议最后，德克勒克批评非国大没有解散武装，曼德拉当场严厉回击——双方在开幕当天就公开交锋。',
+      lesson: '承诺问题：交出权力的一方害怕"赢家通吃"，掌权的一方害怕对方拖到自己更弱时再谈。分歧的核心是：谁来保证承诺被遵守？',
+    },
+    {
+      date: '1992 年 3 月 17 日', title: '白人公投',
+      ctx: {
+        M: '2 月，保守党在波切夫斯特鲁姆补选中击败国民党。德克勒克宣布举行只有白人参加的公投，问白人选民是否支持继续改革。如果输了，他很可能下台，谈判也会随之停摆。',
+        D: '2 月，保守党在波切夫斯特鲁姆补选中击败你的党。右翼说你没有授权去"出卖白人"。你可以把政治生命押在一次白人公投上。',
+      },
+      M: [
+        { t: '反对只限白人的投票方式，但公开呼吁白人投赞成票', d: [5, -3, 4, 0, 2], rec: 0.4, fx: 'refBoost', hist: true },
+        { t: '谴责公投是种族主义表演，号召大规模抗议', d: [-6, 4, -4, 4, 0], rec: -0.4, fx: 'refDrag' },
+        { t: '不表态，置身事外', d: [0, 0, 0, 0, 0], rec: 0 },
+      ],
+      D: [
+        { t: '举行白人公投，赌上政治生命', d: [2, 0, 0, 0, 0], rec: 0.2, fx: 'referendum', hist: true },
+        { t: '不公投，靠议会多数继续推进', d: [0, 0, -9, 0, 3], rec: 0.1 },
+        { t: '暂停改革，安抚右翼', d: [-12, -2, 8, 4, -6], rec: -0.6 },
+      ],
+      hist: '3 月 17 日，约 85% 的登记白人选民投票，68.73% 支持继续改革。德克勒克以此宣称获得授权，保守党的挑战暂时被压下。',
+      lesson: '双层博弈：德克勒克用一次对内的赌博，换来对外谈判时的底气——赢了，右翼就不能再说他没有授权。',
+    },
+    {
+      date: '1992 年 6 月 17 日', title: '博伊帕通',
+      ctx: {
+        M: '5 月 CODESA 第二次会议在通过宪法所需的特别多数（约 70% 还是 75%）以及参议院否决权上卡住。6 月 17 日夜，博伊帕通 45 人遇害，袭击者来自附近一个与因卡塔有关的宿舍区，有人指控警方参与或纵容。愤怒的支持者要你做点什么。',
+        D: 'CODESA 第二次会议陷入僵局。6 月 17 日夜，博伊帕通 45 人遇害，袭击者来自与因卡塔有关的宿舍区，有指控称警方卷入。非国大支持者的怒火对准了你的政府。',
+      },
+      M: [
+        { t: '退出谈判，转向"群众行动"，向政府开出复谈条件', d: [-8, 12, -3, 5, -8], rec: -0.3, fx: 'walkout', hist: true },
+        { t: '留在谈判桌，只发表谴责声明', d: [3, -15, 2, 0, 2], rec: 0.3 },
+        { t: '宣布恢复武装斗争', d: [-20, 8, -10, 18, -15], rec: -1 },
+      ],
+      D: [
+        { t: '前往现场慰问并承诺调查', d: [0, -2, 0, 0, -2], rec: 0.0, hist: true },
+        { t: '立即管控宿舍区、禁止公开携带"传统武器"（非国大的要求）', d: [10, 4, -7, -6, 2], rec: 0.6 },
+        { t: '指责非国大煽动暴力，扩大紧急状态', d: [-14, 4, 6, 8, -8], rec: -0.8 },
+      ],
+      hist: '非国大随即退出谈判，发起罢工和"群众行动"，并向政府提出一系列复谈条件。德克勒克前往博伊帕通，被愤怒的人群逼离。后来的司法调查对警方是否卷入结论不一，这至今仍有争议。',
+      lesson: '代价信号：退出谈判本身很昂贵（暴力可能上升、进展倒退），正因如此，它能可信地告诉对方"你的底线不是我的底线"，并重设复谈的条件。',
+    },
+    {
+      date: '1992 年 9 月', title: '比索之后',
+      ctx: {
+        M: '9 月 7 日，非国大支持者游行进入西斯凯"家园"首府比索，西斯凯部队开枪，28 名游行者和 1 名士兵死亡。局势像是在滑向深渊。政府方面传话：可以谈。',
+        D: '9 月 7 日比索惨案后，各方都看到了深渊的边缘。非国大愿意谈复会，但要你在宿舍区、危险武器和政治犯问题上兑现。',
+      },
+      M: [
+        { t: '与政府签署《谅解记录》，重返谈判', d: [12, -2, -2, -4, 12], rec: 0.6, fx: 'resume', hist: true },
+        { t: '继续群众行动，向其他"家园"进军', d: [-8, 4, -4, 10, -4], rec: -0.6 },
+        { t: '绕开政府，先与因卡塔单独谈', d: [-2, -3, 0, -4, 2], rec: 0 },
+      ],
+      D: [
+        { t: '签《谅解记录》：接受选举产生的制宪机构、管控宿舍区、再放一批政治犯', d: [12, 3, -7, -4, 12], rec: 0.7, fx: 'resume', hist: true },
+        { t: '只同意恢复会谈，不做实质让步', d: [-3, -2, 1, 1, 2], rec: -0.3 },
+        { t: '与布特莱齐和各"家园"领导人结成"温和联盟"对抗非国大', d: [-12, 2, 4, 8, -4], rec: -0.8 },
+      ],
+      hist: '9 月 26 日，曼德拉与德克勒克签署《谅解记录》：同意由选举产生的机构制定宪法，政府承诺管控宿舍区、禁止公开携带危险武器并释放更多政治犯。谈判恢复；被排除在外的因卡塔则转而与政府疏远。',
+      lesson: '退出之后的复会：条件被重设了。双边协议也有代价——没被邀请的一方（因卡塔）成了新的潜在搅局者。',
+    },
+    {
+      date: '1992 年末 – 1993 年初', title: '落日条款',
+      ctx: {
+        M: '南非共产党领导人乔·斯洛沃提出"落日条款"：选举后组成为期五年的民族团结政府，保障现任公务员、军警的职位和养老金。你的许多同志认为这是向旧政权投降。',
+        D: '非国大内部有人提出"落日条款"：五年民族团结政府、保障公务员和军警的饭碗。代价是你要放弃永久性的少数否决权。',
+      },
+      M: [
+        { t: '支持"落日条款"：五年分权政府、保障公务员职位与养老金', d: [14, -8, 10, -2, 12], rec: 0.8, hist: true },
+        { t: '拒绝分权：胜者执政，旧官僚体系必须彻底清洗', d: [-12, 6, -12, 5, -4], rec: -0.8 },
+        { t: '只保障公务员养老金，不搞分权政府', d: [4, -2, 3, 0, 5], rec: 0.2 },
+      ],
+      D: [
+        { t: '接受：放弃永久否决权，换取有期限的分权和权利法案', d: [12, 3, -6, -2, 12], rec: 0.7, hist: true },
+        { t: '坚持永久少数否决和轮值总统', d: [-10, -3, 4, 2, -6], rec: -0.7 },
+        { t: '要求先以联邦制把权力下放到各省', d: [-2, -1, 2, 0, 4], rec: -0.1 },
+      ],
+      hist: '斯洛沃在党刊上提出"落日条款"，在非国大内部引起激烈争论，但很快成为谈判共识：选举后组成五年民族团结政府，保护公务员的职位与养老金。国民党则逐步放弃了永久否决权的要求，转而依靠权利法案和宪法法院。',
+      lesson: '承诺问题的解法：让交出权力的一方得到"有期限、写进法律、可被法院执行"的保障。不是信任对方的人品，而是让违约变得困难。',
+    },
+    {
+      date: '1993 年 4 月 10 日', title: '哈尼遇刺',
+      ctx: {
+        M: '南非共产党领导人、最受年轻人拥护的人物之一克里斯·哈尼，在家门外被极右翼分子枪杀。乡镇里的愤怒一触即发，你的年轻支持者要求报复或停止谈判。',
+        D: '克里斯·哈尼被极右翼分子枪杀。全国处在爆发边缘。你的政府掌握军警，但这一夜，黑人多数愿意听的人不是你。',
+      },
+      M: [
+        { t: '在国家电视台呼吁克制，同时要求尽快确定选举日期', d: [10, -4, 4, -12, 14], rec: 0.7, hist: true },
+        { t: '暂停谈判，组织全国哀悼与抗议', d: [-6, 6, -3, 8, -6], rec: -0.3 },
+        { t: '号召报复', d: [-25, 4, -12, 25, -20], rec: -1 },
+      ],
+      D: [
+        { t: '请曼德拉在国家电视台讲话，并同意加快确定选举日期', d: [10, 4, -6, -10, 12], rec: 0.7, hist: true },
+        { t: '宣布全国紧急状态，部署军队', d: [-10, -4, 6, 6, -6], rec: -0.6 },
+        { t: '迅速抓捕凶手，但谈判节奏不变', d: [2, 0, 2, -2, 2], rec: 0.1 },
+      ],
+      hist: '凶手雅努什·瓦卢什（波兰移民，极右翼）很快因一名白人邻居记下车牌而被捕；保守党人克莱夫·德比-刘易斯被判参与策划。曼德拉当晚在国家电视台讲话呼吁克制。此后谈判各方在 1993 年年中把选举日期定为 1994 年 4 月 27 日。',
+      lesson: '不让搅局者定议程：刺杀的目的就是让谈判停下来。用"更快确定选举日期"来回应，等于告诉搅局者：暴力只会加速你想阻止的事。',
+      after: 'awb',
+    },
+    {
+      date: '1994 年 3 – 4 月', title: '最后的缺席者',
+      ctx: {
+        M: '选举还剩几周。博普塔茨瓦纳"家园"领导人曼戈普拒绝参选，当地公务员和警察哗变；因卡塔仍在抵制，纳塔尔暴力不断。是等所有人都上船，还是按期开船？',
+        D: '博普塔茨瓦纳陷入混乱，右翼武装扬言支援曼戈普；因卡塔仍在抵制。你仍是总统，军队听你调遣。',
+      },
+      M: [
+        { t: '接受国际调解：承认祖鲁王室的宪法地位，换取因卡塔参选', d: [6, -4, 2, -12, 10], rec: 0.6, hist: true },
+        { t: '不再等因卡塔，按期选举，靠安全部队压住夸祖鲁', d: [-2, 2, -2, 8, 6], rec: -0.2 },
+        { t: '推迟选举，直到所有方都同意', d: [2, -12, 2, 4, -10], rec: 0.1 },
+      ],
+      D: [
+        { t: '派军队恢复博普秩序，并支持国际调解劝因卡塔参选', d: [6, 3, -2, -10, 10], rec: 0.6, hist: true },
+        { t: '与布特莱齐另立协议，承诺推迟选举', d: [-15, -4, 2, 6, -12], rec: -0.8 },
+        { t: '不干预"家园"，让它们自己解决', d: [-2, -2, 0, 10, 2], rec: -0.2 },
+      ],
+      hist: '3 月，数百名白人右翼武装人员进入博普塔茨瓦纳支援曼戈普，行动失控；三名 AWB 成员在镜头前被当地警察打死。南非军队接管，曼戈普被撤职，右翼武装威胁就此瓦解，维尔容将军转而登记"自由阵线"参选。4 月 19 日——投票前一周——因卡塔在肯尼亚调解人华盛顿·奥库姆斡旋下同意参选，选票上临时贴上了因卡塔的标签。',
+      lesson: '一个选举日期本身就是承诺工具：日期越不可动摇，留在场外的代价越高，抵制者越倾向于最后时刻上船。',
+    },
+  ];
+
+  const ENDINGS = {
+    win: { k: 'win', t: '选举如期举行', d: '1994 年 4 月 26–29 日（主投票日 27 日），近 2000 万人投票，许多人排队数小时。非国大约 62.6%，国民党约 20.4%，因卡塔约 10.5%。5 月 10 日曼德拉就任总统，德克勒克成为副总统之一。' },
+    war: { k: 'war', t: '谈判破裂，暴力螺旋', d: '在这个模型里，信任耗尽或暴力失控，谈判桌被掀翻。真实历史并不遥远：从 1990 年年中到 1994 年选举，约有 1.4 万人死于政治暴力（真相与和解委员会报告引用的估计）。' },
+    coup: { k: 'coup', t: '右翼政变', d: '在这个模型里，暴力高企而白人选民对改革失去信心，安全部门和右翼武装中的强硬派越过了政府。这一风险在当时被认真对待过——1994 年博普塔茨瓦纳的右翼武装行动就是一次失控的预演。' },
+    ousted: { k: 'ousted', t: '被自己的基本盘推翻', d: '' },
+    stall: { k: 'stall', t: '选举日期定不下来', d: '在这个模型里，到 1994 年春谈判进展仍不足以举行选举：没有破裂，但也没有终点。拖延本身会给搅局者更多时间。' },
+  };
+
+  function newGame(role, seed) {
+    return { role, seed, rng: mulberry32(seed), r: 0, s: Object.assign({}, START), leverage: false, over: null, picks: [], track: [Object.assign({}, START)] };
+  }
+
+  /* Play choice ci in the current round. Returns an outcome record for the UI. */
+  function play(g, ci) {
+    const R = ROUNDS[g.r], role = g.role, other = role === 'M' ? 'np' : 'anc', mine = role === 'M' ? 'anc' : 'np';
+    const ch = R[role][ci], s = g.s, rng = g.rng, before = Object.assign({}, s);
+    const notes = [];
+    g.picks.push(ci);
+    ch.d.forEach((v, i) => { s[KEYS[i]] += v; });
+
+    // special effects
+    const refHappens = (role === 'M' && g.r === 4) || ch.fx === 'referendum';
+    if (ch.fx === 'walkout') g.leverage = true;
+    if (ch.fx === 'resume' && g.leverage) { s.prog += 6; s.anc += 4; notes.push({ k: 'info', t: '此前退出谈判的代价没有白付：复会的条件对非国大更有利（进展 +6，非国大基本盘 +4）。' }); }
+    if (role === 'D' && g.r === 5) { // Boipatong: does the ANC walk out?
+      const stay = ci === 1 && s.trust >= 50;
+      if (!stay) { g.leverage = true; s.prog -= 6; s.anc += 6; s.trust -= 4; notes.push({ k: 'bad', t: '非国大宣布退出谈判，发起群众行动（进展 −6，信任 −4）。' }); }
+      else notes.push({ k: 'good', t: '你满足了对方的核心要求，非国大谴责屠杀但没有退出谈判。' });
+    }
+    if (refHappens) {
+      let p = 0.72 + (s.np - 45) / 60 - (s.viol - 30) / 250;
+      if (role === 'M') { const st = R.M[ci].fx; p += st === 'refBoost' ? 0.1 : st === 'refDrag' ? -0.12 : 0; }
+      p = clamp(p, 0.05, 0.97);
+      const ok = rng() < p;
+      if (ok) { s.np = Math.max(s.np, 50) + 14; s.prog += 6; s.trust += 3; notes.push({ k: 'good', t: `白人公投通过（模型中成功概率约 ${Math.round(p * 100)}%）：德克勒克的授权得到确认，国民党基本盘 +14。` }); }
+      else { s.np -= 22; s.prog -= 10; notes.push({ k: 'bad', t: `白人公投失败（模型中成功概率约 ${Math.round(p * 100)}%）：右翼宣称改革没有授权，国民党基本盘 −22，进展 −10。` }); }
+    }
+    if (role === 'D' && g.r === 4 && ci === 1) notes.push({ k: 'info', t: '没有公投，保守党的挑战继续发酵。' });
+
+    // the other side responds (rule: trust, its own base security, violence, how reciprocal your move was, noise)
+    const w = 0.5 * s.trust / 100 + 0.5 * (s[other] - 35) / 65 - 0.3 * s.viol / 100 + 0.2 * ch.rec + (rng() - 0.5) * 0.3;
+    let resp;
+    if (w > 0.3) { s.prog += 5; s.trust += 3; resp = { k: 'good', t: '对方回应积极，愿意在下一步上相向而行（进展 +5，信任 +3）。' }; }
+    else if (w > 0.05) { s.prog += 1; resp = { k: 'info', t: '对方观望：口头欢迎，但没有拿出新东西（进展 +1）。' }; }
+    else { s.prog -= 3; s.trust -= 3; s[other] += 2; resp = { k: 'bad', t: '对方转向强硬，向自己的基本盘表态（进展 −3，信任 −3，对方基本盘 +2）。' }; }
+
+    // spoilers: more likely when progress jumps or violence is already high
+    const dProg = s.prog - before.prog;
+    const pSpoil = clamp(0.12 + 0.02 * Math.max(0, dProg) + s.viol / 400, 0, 0.8);
+    let spoiler = null;
+    if (rng() < pSpoil) {
+      const half = s.trust >= 50;
+      s.viol += half ? 4 : 8; s.trust -= half ? 1 : 4;
+      spoiler = { k: 'bad', p: pSpoil, t: half
+        ? '随机事件：某地发生针对平民的袭击，凶手身份不明。双方迅速共同谴责，伤害被控制住（暴力 +4）。'
+        : '随机事件：某地发生针对平民的袭击，凶手身份不明，双方互相指责（暴力 +8，信任 −4）。' };
+    }
+    // drift: low trust feeds violence, high trust calms it
+    if (s.trust < 25) s.viol += 3; else if (s.trust > 55) s.viol -= 3;
+    KEYS.forEach((k) => (s[k] = clamp(Math.round(s[k]))));
+
+    // interludes after the Hani round: AWB storming Kempton Park, then the interim constitution
+    const events = [];
+    if (R.after === 'awb' && !check(g)) {
+      s.viol = clamp(s.viol + 6);
+      if (s.trust >= 40) events.push({ k: 'info', h: '1993 年 6 月 25 日', t: 'AWB 右翼武装分子开着装甲车撞破肯普顿公园谈判会场的玻璃墙。在这个模型里，双方信任足够（≥40），谈判照常继续（暴力 +6）。' });
+      else { s.trust = clamp(s.trust - 6); s.prog = clamp(s.prog - 4); events.push({ k: 'bad', h: '1993 年 6 月 25 日', t: 'AWB 右翼武装分子开着装甲车撞进谈判会场。信任不足，双方互相指责安保失职，谈判停摆数周（暴力 +6，信任 −6，进展 −4）。' }); }
+      if (s.prog >= 55) { s.trust = clamp(s.trust + 5); s.prog = clamp(s.prog + 6); events.push({ k: 'good', h: '1993 年 11 – 12 月', t: '临时宪法通过：权利法案、宪法法院、34 条约束最终宪法的原则——把"落日条款"式的保障写进了法律（信任 +5，进展 +6）。' }); }
+      else events.push({ k: 'bad', h: '1993 年底', t: '进展不足，临时宪法没能按期谈成。' });
+    }
+
+    const out = { round: g.r, ci, ch, before, after: Object.assign({}, s), resp, spoiler, notes, events };
+    g.r++;
+    g.over = check(g) || (g.r >= ROUNDS.length ? (s.prog >= 75 && s.viol < 75 ? 'win' : 'stall') : null);
+    g.track.push(Object.assign({}, s));
+    return out;
+  }
+  function check(g) {
+    const s = g.s;
+    if (s.anc <= 15 || s.np <= 15) return 'ousted';
+    if (s.viol >= 85 || (s.trust <= 3 && s.viol >= 50)) return 'war';
+    if (s.viol >= 70 && s.np <= 35) return 'coup';
+    return null;
+  }
+  function ousterText(g) {
+    const who = g.s.anc <= 15 ? 'anc' : 'np';
+    const self = (who === 'anc') === (g.role === 'M');
+    const leader = who === 'anc' ? '曼德拉' : '德克勒克';
+    const base = who === 'anc' ? '非国大基层与武装派' : '白人选民与国民党议员';
+    return `${self ? '你' : '对手'}（${leader}）失去了${base}的支持，被党内强硬派取代${self ? '' : '，新的谈判对手不再认可之前的承诺'}。在这个模型里，基本盘支持跌到 15 以下就意味着下台：领导人能在谈判桌上走多远，取决于身后的人愿不愿跟。`;
+  }
+
+  /* ---------------- module ---------------- */
+  window.HUM.mandela = {
+    title: '从牢房到投票站',
+    _engine: { ROUNDS, newGame, play, check, START },
+    mount(root, ctx) {
+      const H = ctx.h, el = H.el, col = (n) => ctx.color(n), reduced = !!ctx.reduced;
+      const cleanups = [];
+      if (!document.getElementById('st-mandela')) {
+        document.head.append(el('style', { id: 'st-mandela', text: CSS }));
+      }
+      // theme change → redraw registered canvases
+      const redraws = new Set();
+      const redrawAll = () => redraws.forEach((f) => { try { f(); } catch (e) { console.error(e); } });
+      const mo = new MutationObserver(redrawAll);
+      mo.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'class', 'style'] });
+      const mq = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+      if (mq) mq.addEventListener('change', redrawAll);
+      cleanups.push(() => { mo.disconnect(); if (mq) mq.removeEventListener('change', redrawAll); });
+
+      const CH = [
+        { t: '如果南非是 100 个人', build: ch1 },
+        { t: '谈判桌', build: ch2 },
+        { t: '真相与和解', build: ch3 },
+        { t: '之后', build: ch4 },
+        { t: '为什么颁给两个人', build: ch5 },
+      ];
+      const wrap = el('div', { class: 'bench mandela' });
+      const head = el('div', { class: 'bench-head' }, [
+        el('div', { class: 'k', text: '1993 诺贝尔和平奖 · 互动体验' }),
+        el('h2', { text: '从牢房到投票站' }),
+        el('p', { text: '1993 年 10 月 15 日，挪威诺贝尔委员会把和平奖同时授予纳尔逊·曼德拉和 F. W. 德克勒克，表彰他们为和平结束种族隔离制度、为新的民主南非奠定基础所做的工作。一个坐了 27 年牢的人，和曾经维护那座监狱的政府的首脑。五幕，看清他们谈的是什么，为什么那么难。' }),
+      ]);
+      const visited = new Set([0]);
+      const pills = CH.map((c, i) => el('button', { type: 'button', class: 'pill', onclick: () => open(i) }, [el('span', { class: 'pill-n', text: String(i + 1) }), el('span', { class: 'pill-t', text: c.t })]));
+      const strip = el('div', { class: 'pills mandela-nav', role: 'tablist', 'aria-label': '章节' }, pills);
+      const host = el('div', { class: 'mandela-host' });
+      wrap.append(head, strip, host);
+      root.append(wrap);
+      const built = new Map();
+      let cur = 0;
+
+      function chapterShell(i) {
+        const c = CH[i];
+        const sec = el('section', { class: 'mandela-ch', 'aria-label': `第 ${i + 1} 幕 ${c.t}` });
+        const reflect = el('div', { class: 'mandela-reflect', hidden: true });
+        const prev = H.button({ label: '← 上一幕', onClick: () => open(i - 1) });
+        const next = H.button({ label: i < CH.length - 1 ? '下一幕 →' : '回到第一幕', kind: 'primary', onClick: () => open(i < CH.length - 1 ? i + 1 : 0) });
+        if (i === 0) prev.disabled = true;
+        const body = el('div', { class: 'mandela-body' });
+        sec.append(el('div', { class: 'mandela-chhead' }, [el('span', { class: 'mandela-k', text: `第 ${i + 1} 幕 / ${CH.length}` }), el('h3', { text: c.t })]), body, reflect,
+          el('div', { class: 'mandela-foot' }, [prev, next]));
+        const api = {
+          unlock(html) { if (!reflect.hidden) return; reflect.hidden = false; reflect.innerHTML = '<b>这一幕想说的</b>' + html; },
+          reflectEl: reflect,
+        };
+        return { sec, body, api };
+      }
+      function open(i) {
+        cur = i; visited.add(i);
+        if (!built.has(i)) {
+          const sh = chapterShell(i);
+          host.append(sh.sec);
+          let handle = null;
+          try { handle = CH[i].build(sh.body, sh.api) || null; } catch (e) { console.error(e); sh.body.append(el('p', { class: 'lab-missing', text: '这一幕加载失败。' })); }
+          built.set(i, { sec: sh.sec, handle });
+        }
+        built.forEach((b, k) => { b.sec.hidden = k !== i; });
+        pills.forEach((p, k) => { p.setAttribute('aria-selected', String(k === i)); p.dataset.state = k === i ? 'cur' : visited.has(k) ? 'done' : 'open'; });
+        const b = built.get(i); if (b.handle && b.handle.shown) b.handle.shown();
+        if (wrap.getBoundingClientRect().top < 0) wrap.scrollIntoView({ block: 'start', behavior: reduced ? 'auto' : 'smooth' });
+      }
+      const P = (html) => el('p', { class: 'mandela-p', html });
+
+      /* =================== Chapter 1: 100 people =================== */
+      function ch1(body, api) {
+        body.append(P('把 1990 年代初的南非缩成 100 个人。按种族隔离制度的官方分类（下面的颜色就是这套分类本身，不是对任何人的描述），大约 <b>75 个黑人、13 个白人、9 个"有色人"、3 个印度/亚裔</b>（近似值）。方框是全国的土地。逐条按下法律，看这些点被法律搬到哪里。'));
+        const CATS = [
+          { k: 'B', n: '黑人（非洲人）', c: '--s1', count: 75 },
+          { k: 'W', n: '白人', c: '--s2', count: 13 },
+          { k: 'C', n: '"有色人"（混血等）', c: '--s3', count: 9 },
+          { k: 'I', n: '印度/亚裔', c: '--s4', count: 3 },
+        ];
+        const LAWS = [
+          { y: '起点', n: '假想的起点', e: '先假设每个人都可以在任何地方买地、居住。（真实历史上，殖民征服早已造成大规模剥夺；这个起点只是为了看清后面的法律各自做了什么。）' },
+          { y: '1913', n: '《原住民土地法》', e: '黑人只能在划定的"保留地"内购买或租用土地，保留地约占国土的 7%。' },
+          { y: '1936', n: '《原住民信托与土地法》', e: '保留地上限提高到约 13%。约四分之三的人口，只能在约八分之一的土地上拥有土地。' },
+          { y: '1950', n: '《人口登记法》', e: '每个人被登记进一个"种族"类别，写进身份证件（图中每个点多了一个小标签）。此后住在哪、上什么学、和谁结婚、做什么工作，都由这一栏决定。' },
+          { y: '1950', n: '《集团住区法》', e: '城镇被划成按种族分开的住区，划错一边的家庭被强制迁走。例如开普敦第六区 1966 年被宣布为白人区后，约 6 万居民陆续被迁出。' },
+          { y: '1952', n: '通行证法', e: '通行证制度早已存在，1952 年的法律把它统一为人人随身携带的"参考簿"。黑人能否留在"白人区"的城市工作、居住，由官员按证件决定；高峰时每年有数十万人因违反通行证法被捕。图中一部分点住进城边的"乡镇"，每天往返于白人区做工。' },
+          { y: '1953', n: '《班图教育法》', e: '黑人学校改由国家按专门为黑人设定的低标准统一管理，人均教育经费只有白人学生的零头（见下方柱图）。' },
+          { y: '1959–81', n: '"家园"（班图斯坦）', e: '保留地被拆成 10 个"家园"。1970 年起每个黑人都被指定为某个家园的"公民"——即使一辈子住在城里。特兰斯凯（1976）、博普塔茨瓦纳（1977）、文达（1979）、西斯凯（1981）被宣布"独立"，被划给它们的数百万人随即失去南非国籍（空心点）。没有任何国际承认这些"国家"。' },
+          { y: '1986–94', n: '拆除', e: '1986 年废除通行证法；1991 年废除土地法、集团住区法和人口登记法；1994 年家园并回南非、国籍恢复。界线消失了，但点停在原地：土地、住房和学校的分布不会随一纸废令回到原位。' },
+        ];
+        const legend = el('div', { class: 'mandela-legend' }, CATS.map((c) => el('span', {}, [el('i', { style: `background:var(${c.c})` }), `${c.n} ≈${c.count}`])));
+        const stage = el('div', { class: 'lab-stage' });
+        body.append(legend, stage);
+        const cv = H.canvas(stage, { aspect: 0.62, minH: 280, maxH: 430 });
+        const lawBtns = LAWS.map((L, i) => el('button', { type: 'button', class: 'seg', 'aria-pressed': String(i === 0), onclick: () => go(i) }, [el('b', { text: L.y }), ' ', L.n]));
+        const effect = el('div', { class: 'mandela-effect', 'aria-live': 'polite' });
+        const nextBtn = H.button({ label: '下一条法律 →', kind: 'primary', onClick: () => go(Math.min(step + 1, LAWS.length - 1)) });
+        const resetBtn = H.button({ label: '回到起点', onClick: () => go(0) });
+        const roLand = H.readout('黑人可合法购地的范围'), roPass = H.readout('受通行证管控'), roCit = H.readout('被剥夺南非国籍（示意，点数）');
+        const edu = el('div', { class: 'mandela-edu', hidden: true });
+        body.append(el('div', { class: 'segs mandela-laws', role: 'group', 'aria-label': '法律' }, lawBtns), el('div', {}, [nextBtn, resetBtn]), effect,
+          el('div', { class: 'lab-readout' }, [roLand.el, roPass.el, roCit.el]), edu,
+          el('p', { class: 'lab-hint', text: '示意图：点的位置表示"法律允许他在哪里拥有土地或居住"，不是人口地理分布；人数比例为 1990 年代初的近似值，用于所有年份只是为了便于比较。区块大小除保留地比例外均为示意。' }));
+        // education bars (nominal rand per pupil per year)
+        const EDU = [{ y: '1953', w: 128, b: 17 }, { y: '1975–76', w: 644, b: 42 }];
+        edu.append(el('div', { class: 'mandela-edu-h', text: '人均教育经费（兰特/学生/年，名义值；各资料略有出入）' }),
+          ...EDU.map((r) => el('div', { class: 'mandela-edu-row' }, [
+            el('span', { class: 'mandela-edu-y', text: r.y }),
+            el('div', { class: 'mandela-edu-bars' }, [
+              el('div', { class: 'mandela-edu-bar', style: `width:${(r.w / 644) * 100}%;background:var(--s2)` }, [el('span', { text: `白人 ${r.w}` })]),
+              el('div', { class: 'mandela-edu-bar', style: `width:${Math.max(2, (r.b / 644) * 100)}%;background:var(--s1)` }, [el('span', { class: 'out', text: `黑人 ${r.b}（约 1/${Math.round(r.w / r.b)}）` })]),
+            ]),
+          ])));
+
+        // dots
+        const rng = mulberry32(1913);
+        const dots = [];
+        CATS.forEach((c) => { for (let i = 0; i < c.count; i++) dots.push({ cat: c.k, c: c.c, x: 0, y: 0, tx: 0, ty: 0, j: rng(), hx: rng(), hy: rng(), hollow: false, tag: false, shuttle: false }); });
+        const uni = dots.map(() => [0.03 + 0.94 * rng(), 0.05 + 0.9 * rng()]);
+        function pack(list, r, seed) {
+          if (!list.length) return;
+          const ar = (r.w * cv.w) / Math.max(1, r.h * cv.h);
+          const cols = Math.max(1, Math.round(Math.sqrt(list.length * ar))), rows = Math.ceil(list.length / cols);
+          list.forEach((d, i) => {
+            const cx = i % cols, cy = Math.floor(i / cols);
+            d.tx = r.x + (r.w * (cx + 0.5 + (d.hx - 0.5) * 0.25)) / cols;
+            d.ty = r.y + (r.h * (cy + 0.5 + (d.hy - 0.5) * 0.25)) / rows;
+          });
+        }
+        function scatter(list, r) { list.forEach((d) => { const u = uni[dots.indexOf(d)]; d.tx = r.x + r.w * (0.05 + 0.9 * u[0]); d.ty = r.y + r.h * (0.05 + 0.9 * u[1]); }); }
+        const B = dots.filter((d) => d.cat === 'B'), W = dots.filter((d) => d.cat === 'W'), C = dots.filter((d) => d.cat === 'C'), I = dots.filter((d) => d.cat === 'I');
+        const townIdx = new Set(B.filter((_, i) => i % 3 === 1).map((d) => dots.indexOf(d))); // 25 of 75 live in townships
+        let zones = [];
+        function layout(st) {
+          dots.forEach((d) => { d.hollow = false; d.tag = st >= 3 && st < 8; d.shuttle = false; });
+          zones = [];
+          if (st === 0) { scatter(dots, { x: 0, y: 0, w: 1, h: 1 }); return; }
+          const rw = st === 1 ? 0.07 : 0.13;
+          const rest = { x: rw + 0.02, y: 0, w: 1 - rw - 0.02, h: 1 };
+          const fade = st === 8;
+          if (st < 4) {
+            zones.push({ x: 0, y: 0, w: rw, h: 1, lab: `保留地 ${st === 1 ? '7' : '13'}%`, kind: 'res', fade });
+            pack(B, { x: 0.004, y: 0.01, w: rw - 0.008, h: 0.98 });
+            scatter([...W, ...C, ...I], rest);
+            return;
+          }
+          const town = st >= 5;
+          const urbanB = B.filter((d) => townIdx.has(dots.indexOf(d))), ruralB = B.filter((d) => !townIdx.has(dots.indexOf(d)));
+          const resB = town ? ruralB : B;
+          // white zone, then small coloured / indian / township zones along the bottom
+          zones.push({ x: 0.15, y: 0, w: 0.85, h: 1, lab: '白人区', kind: 'W', fade });
+          zones.push({ x: 0.17, y: 0.78, w: 0.17, h: 0.2, lab: '有色人区', kind: 'C', fade });
+          zones.push({ x: 0.36, y: 0.78, w: 0.08, h: 0.2, lab: '印度区', kind: 'I', fade });
+          if (town) zones.push({ x: 0.47, y: 0.74, w: 0.17, h: 0.24, lab: '乡镇', kind: 'T', fade });
+          if (st >= 7) {
+            // 10 homelands as fragments within the 13% strip; 4 "independent" (TBVC)
+            const n = 10, gap = 0.012, hh = (1 - gap * (n - 1)) / n;
+            const indep = new Set([1, 4, 6, 8]);
+            const per = Math.ceil(resB.length / n);
+            for (let k = 0; k < n; k++) {
+              const z = { x: 0, y: k * (hh + gap), w: 0.13, h: hh, lab: k === 0 ? '10 个"家园"' : '', kind: indep.has(k) ? 'TB' : 'res', fade };
+              zones.push(z);
+              const grp = resB.slice(k * per, (k + 1) * per);
+              pack(grp, { x: 0.004, y: z.y + 0.005, w: 0.122, h: hh - 0.01 });
+              if (indep.has(k) && st === 7) grp.forEach((d) => (d.hollow = true));
+            }
+            if (st === 7) urbanB.forEach((d, i) => { if (i % 3 === 0) d.hollow = true; });
+          } else {
+            zones.push({ x: 0, y: 0, w: 0.13, h: 1, lab: '保留地 13%', kind: 'res', fade });
+            pack(resB, { x: 0.004, y: 0.01, w: 0.122, h: 0.98 });
+          }
+          pack(W, { x: 0.2, y: 0.06, w: 0.76, h: 0.62 });
+          pack(C, { x: 0.18, y: 0.8, w: 0.15, h: 0.16 });
+          pack(I, { x: 0.37, y: 0.8, w: 0.06, h: 0.16 });
+          if (town) { pack(urbanB, { x: 0.48, y: 0.76, w: 0.15, h: 0.2 }); if (st < 8) urbanB.forEach((d) => (d.shuttle = true)); }
+        }
+        let step = 0, anim = null, t0 = 0;
+        const land = () => ({ x: 10, y: 26, w: cv.w - 20, h: cv.h - 34 });
+        function draw(t = 0) {
+          const g = cv.g, Wd = cv.w, Hd = cv.h, L = land();
+          g.clearRect(0, 0, Wd, Hd);
+          g.fillStyle = col('--panel'); g.fillRect(0, 0, Wd, Hd);
+          g.strokeStyle = col('--line'); g.lineWidth = 1; g.strokeRect(L.x + 0.5, L.y + 0.5, L.w, L.h);
+          g.font = `11px ${col('--body-font') || 'sans-serif'}`; g.textBaseline = 'alphabetic';
+          g.fillStyle = col('--muted'); g.textAlign = 'right'; g.fillText(step === 0 ? '全国土地（示意）' : LAWS[step].y + ' · ' + LAWS[step].n, Wd - 10, 16);
+          zones.forEach((z) => {
+            const x = L.x + z.x * L.w, y = L.y + z.y * L.h, w = z.w * L.w, h = z.h * L.h;
+            const c = z.kind === 'res' || z.kind === 'TB' ? '--s1' : z.kind === 'W' ? '--s2' : z.kind === 'C' ? '--s3' : z.kind === 'I' ? '--s4' : '--muted';
+            g.save();
+            g.globalAlpha = z.fade ? 0.05 : z.kind === 'W' ? 0.06 : 0.14; g.fillStyle = col(c); g.fillRect(x, y, w, h);
+            g.globalAlpha = z.fade ? 0.35 : 0.8; g.strokeStyle = col(c); g.setLineDash(z.fade ? [3, 4] : []); g.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
+            if (z.kind === 'TB' && !z.fade) { g.globalAlpha = 0.35; g.beginPath(); for (let k = -h; k < w; k += 6) { g.moveTo(x + k, y + h); g.lineTo(x + k + h, y); } g.save(); g.rect(x, y, w, h); g.clip(); g.stroke(); g.restore(); }
+            g.restore();
+            if (z.lab) {
+              g.fillStyle = col('--fg'); g.textAlign = 'left';
+              if (z.kind === 'res') { g.fillText(z.lab, L.x, L.y - 6); }
+              else if (z.kind === 'W') { g.fillText(z.lab, x + 6, y + 14); }
+              else { g.save(); g.font = `10px ${col('--body-font') || 'sans-serif'}`; g.fillStyle = col('--muted'); g.textAlign = 'center'; g.fillText(z.lab, x + w / 2, y - 3); g.restore(); }
+            }
+          });
+          if (step === 7) { g.fillStyle = col('--muted'); g.textAlign = 'left'; g.font = `10px ${col('--body-font') || 'sans-serif'}`; g.fillText('斜线 = 宣布"独立"的家园', L.x + 0.15 * L.w + 6, L.y + 30); }
+          const r = Math.max(2.2, Math.min(4.2, L.w / 120));
+          dots.forEach((d) => {
+            let x = L.x + d.x * L.w, y = L.y + d.y * L.h;
+            if (d.shuttle && !reduced) { const ph = (Math.sin(t * 0.9 + d.j * 6.28) + 1) / 2; const k = Math.max(0, Math.min(1, (ph - 0.25) * 2)); x += k * (0.5 + 0.25 * d.hx) * L.w * 0.42; y -= k * (0.42 + 0.2 * d.hy) * L.h; }
+            const c = col(d.c);
+            g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2);
+            if (d.hollow) { g.strokeStyle = c; g.lineWidth = 1.3; g.stroke(); }
+            else { g.fillStyle = c; g.globalAlpha = step >= 3 || step === 0 ? 1 : 0.85; g.fill(); g.globalAlpha = 1; }
+            if (d.tag) { g.fillStyle = col('--fg'); g.fillRect(x + r - 0.5, y - r - 1.5, 2.2, 2.2); }
+          });
+          if (step >= 5 && step < 8 && reduced) {
+            const z = zones.find((q) => q.kind === 'T'); if (z) {
+              const x = L.x + (z.x + z.w / 2) * L.w, y = L.y + z.y * L.h;
+              g.strokeStyle = col('--muted'); g.setLineDash([4, 3]); g.beginPath(); g.moveTo(x, y - 2); g.lineTo(x + 0.2 * L.w, L.y + 0.45 * L.h); g.stroke(); g.setLineDash([]);
+              g.fillStyle = col('--muted'); g.textAlign = 'right'; g.fillText(L.w < 420 ? '每天往返做工' : '每天往返做工（凭通行证）', L.x + L.w - 6, L.y + 0.45 * L.h - 10);
+            }
+          }
+        }
+        let loopT = 0;
+        const lp = H.loop((dt, t) => {
+          loopT = t;
+          let moving = false;
+          dots.forEach((d) => {
+            const k = Math.min(1, dt * 4.5);
+            const dx = d.tx - d.x, dy = d.ty - d.y;
+            if (Math.abs(dx) + Math.abs(dy) > 0.0005) { moving = true; d.x += dx * k; d.y += dy * k; } else { d.x = d.tx; d.y = d.ty; }
+          });
+          draw(t);
+          const shuttling = step >= 5 && step < 8;
+          if (!moving && !shuttling) lp.stop();
+        });
+        function settle() { if (reduced) { dots.forEach((d) => { d.x = d.tx; d.y = d.ty; }); draw(); } else lp.start(); }
+        let interactions = 0;
+        function go(i) {
+          step = i; layout(i);
+          lawBtns.forEach((b, k) => b.setAttribute('aria-pressed', String(k === i)));
+          const L = LAWS[i];
+          effect.innerHTML = `<b>${L.y} · ${L.n}</b>　${L.e}`;
+          roLand.set(i === 0 ? '不限（假想）' : i === 1 ? '约 7% 的国土' : i < 8 ? '约 13% 的国土' : '法律限制已废除');
+          roPass.set(i >= 5 && i < 8 ? '是（图中乡镇里的点）' : i >= 8 ? '1986 年废除' : '—');
+          roCit.set(String(dots.filter((d) => d.hollow).length));
+          edu.hidden = !(i >= 6);
+          nextBtn.disabled = i >= LAWS.length - 1;
+          settle();
+          if (i > 0) interactions++;
+          if (i >= 4 || interactions >= 3) api.unlock('<p>种族隔离常被理解为"偏见"。但把这些法律一条条叠上去，看到的是一台<b>分配机器</b>：它决定谁能拥有土地、谁能在哪里居住和走动、谁能受什么样的教育，最后连谁算这个国家的公民都由它决定。偏见是燃料，法律是机器。</p><p>这也解释了后面几幕的难题：废除法律只需要议会投一次票，可机器运转了几十年留下的分布——谁住在哪里、谁拥有什么、谁受过什么教育——不会跟着消失。而要拆掉机器，必须和掌管机器的人谈。</p>');
+        }
+        cv.onResize(() => { layout(step); dots.forEach((d) => { d.x = d.tx; d.y = d.ty; }); draw(loopT); });
+        redraws.add(() => draw(loopT));
+        layout(0); dots.forEach((d) => { d.x = d.tx; d.y = d.ty; });
+        go(0); interactions = 0;
+        return { destroy() { lp.stop(); cv.destroy(); }, shown() { draw(loopT); if (step >= 5 && step < 8 && !reduced) lp.start(); } };
+      }
+
+      /* =================== Chapter 2: the negotiation game =================== */
+      function ch2(body, api) {
+        body.append(P('1990–1994 年，南非的命运在谈判桌上，也在谈判桌外的街头。选一个角色，走过 10 个真实的节点。每回合你从 2–3 个选项里选一个；对方会按简单规则回应（取决于双方信任、对方自己的基本盘、暴力水平），还有随机发生的搅局事件。每回合之后可以看历史上实际发生了什么。'),
+          el('p', { class: 'mandela-tagline', html: '<span class="mandela-badge">简化模型</span> 数值和规则是为了让机制可感，而不是对历史的量化重建。历史上的那条路在这里能走通，但不是唯一的路，也不保证每次都走通。' }));
+        const game = el('div', { class: 'mandela-game' });
+        body.append(game);
+        let g = null, seed = 1000 + Math.floor(Math.random() * 9000), ended = 0;
+        const NAMES = { trust: '双方信任', viol: '暴力水平', prog: '谈判进展' };
+        function baseName(k) { return k === 'anc' ? '非国大支持者' : '国民党 / 白人选民'; }
+        function meters(s, prev) {
+          const mine = g.role === 'M' ? 'anc' : 'np', oth = g.role === 'M' ? 'np' : 'anc';
+          const rows = [
+            ['trust', NAMES.trust, '--accent'], [mine, '我方基本盘支持（' + baseName(mine) + '）', '--s1'], [oth, '对方基本盘支持（' + baseName(oth) + '）', '--s2'],
+            ['viol', NAMES.viol, '--warn'], ['prog', NAMES.prog, '--good'],
+          ];
+          return el('div', { class: 'mandela-meters' }, rows.map(([k, n, c]) => {
+            const v = s[k], dv = prev ? v - prev[k] : 0;
+            const danger = (k === mine || k === oth) ? v <= 25 : k === 'viol' ? v >= 65 : k === 'trust' ? v <= 10 : false;
+            return el('div', { class: 'mandela-meter' + (danger ? ' danger' : '') }, [
+              el('span', { class: 'mandela-meter-n', text: n }),
+              el('span', { class: 'mandela-meter-bar', role: 'meter', 'aria-valuemin': '0', 'aria-valuemax': '100', 'aria-valuenow': String(v), 'aria-label': n }, [el('i', { style: `width:${v}%;background:var(${c})` })]),
+              el('span', { class: 'mandela-meter-v', text: String(v) + (dv ? ` (${dv > 0 ? '+' : ''}${dv})` : '') }),
+            ]);
+          }));
+        }
+        function timeline() {
+          return el('ol', { class: 'mandela-tl', 'aria-label': '回合' }, ROUNDS.map((R, i) => el('li', { class: i < g.r ? 'done' : i === g.r ? 'cur' : '', title: R.date + ' ' + R.title }, [el('span', { text: String(i + 1) })])));
+        }
+        function roleSelect() {
+          game.innerHTML = '';
+          const seedRo = el('span', { class: 'mono', text: '#' + seed });
+          const card = (role, name, sub, desc) => el('button', { type: 'button', class: 'mandela-role', onclick: () => start(role) }, [el('b', { text: name }), el('span', { class: 'mandela-role-sub', text: sub }), el('span', { text: desc })]);
+          game.append(el('div', { class: 'mandela-roles' }, [
+            card('M', '曼德拉', '非洲人国民大会（ANC）', '你代表多数，但手里没有国家机器。基层和武装派要成果，也怕你被"收买"。'),
+            card('D', '德克勒克', '国民党（NP）政府', '你掌握军警和国家，但时间不站在你这边。白人选民和安全部门怕你交出一切。'),
+          ]), el('div', { class: 'mandela-seed' }, ['随机种子 ', seedRo, ' ', H.button({ label: '换一个', onClick: () => { seed = 1000 + Math.floor(Math.random() * 9000); seedRo.textContent = '#' + seed; } })]));
+        }
+        function start(role) { g = newGame(role, seed); renderRound(null); }
+        function renderRound(prevOut) {
+          game.innerHTML = '';
+          const R = ROUNDS[g.r];
+          game.append(el('div', { class: 'mandela-gtop' }, [timeline(), el('span', { class: 'mandela-gmeta', text: `${g.role === 'M' ? '你是曼德拉' : '你是德克勒克'} · 种子 #${g.seed}` })]),
+            meters(g.s, prevOut ? prevOut.before : null));
+          const opts = R[g.role];
+          const card = el('div', { class: 'mandela-round' }, [
+            el('div', { class: 'mandela-date', text: `第 ${g.r + 1} 回合 · ${R.date}` }), el('h4', { text: R.title }), el('p', { text: R.ctx[g.role] }),
+            el('div', { class: 'mandela-choices' }, opts.map((o, i) => el('button', { type: 'button', class: 'mandela-choice', onclick: () => choose(i) }, [el('span', { class: 'mandela-choice-k', text: 'ABC'[i] }), el('span', { text: o.t })]))),
+          ]);
+          game.append(card);
+        }
+        function chip(o) { return el('div', { class: 'mandela-note ' + o.k, html: o.h ? `<b>${o.h}</b>　${o.t}` : o.t }); }
+        function choose(i) {
+          const out = play(g, i);
+          game.innerHTML = '';
+          game.append(el('div', { class: 'mandela-gtop' }, [timeline(), el('span', { class: 'mandela-gmeta', text: `${g.role === 'M' ? '你是曼德拉' : '你是德克勒克'} · 种子 #${g.seed}` })]), meters(g.s, out.before));
+          const R = ROUNDS[out.round];
+          const resBox = el('div', { class: 'mandela-round' }, [
+            el('div', { class: 'mandela-date', text: `第 ${out.round + 1} 回合 · ${R.date} · ${R.title}` }),
+            el('p', { class: 'mandela-picked', html: `你选择了：<b>${out.ch.t}</b>${out.ch.hist ? ' <span class="mandela-badge">与历史相同</span>' : ''}` }),
+            ...out.notes.map(chip), chip(out.resp), out.spoiler ? chip(out.spoiler) : null,
+            el('div', { class: 'mandela-lesson', html: `<b>机制</b>　${R.lesson}` }),
+            el('details', { class: 'mandela-hist', open: true }, [el('summary', { text: '历史上实际发生了什么' }), el('p', { text: R.hist })]),
+            ...out.events.map(chip),
+          ]);
+          game.append(resBox);
+          const nextBtn = g.over ? H.button({ label: '看结局 →', kind: 'primary', onClick: ending }) : H.button({ label: `下一回合：${ROUNDS[g.r].date} →`, kind: 'primary', onClick: () => renderRound(out) });
+          game.append(el('div', { class: 'mandela-gnav' }, [nextBtn]));
+          nextBtn.focus({ preventScroll: true });
+        }
+        function ending() {
+          ended++;
+          const E = ENDINGS[g.over], same = g.picks.filter((ci, r) => ROUNDS[r][g.role][ci].hist).length;
+          game.innerHTML = '';
+          const box = el('div', { class: 'mandela-ending ' + E.k }, [
+            el('div', { class: 'mandela-date', text: `结局 · ${g.r} 回合后` }), el('h4', { text: E.t }),
+            el('p', { text: g.over === 'ousted' ? ousterText(g) : E.d }),
+            g.over !== 'win' && g.over !== 'stall' ? null : null,
+            el('p', { class: 'mandela-small', text: `你的 ${g.picks.length} 次选择中有 ${same} 次与历史相同。` }),
+          ]);
+          if (g.over === 'win') box.append(el('p', { class: 'mandela-small', text: '真实的路径同样险象环生：模型里你可以重来，1990 年代的人们只有一次机会。' }));
+          const traj = el('div', { class: 'lab-stage' });
+          game.append(meters(g.s, null), box, el('div', { class: 'mandela-traj-h', text: '你这一局的轨迹' }), traj,
+            el('div', { class: 'mandela-gnav' }, [H.button({ label: '同一角色、新种子再来', kind: 'primary', onClick: () => { seed = 1000 + Math.floor(Math.random() * 9000); start(g.role); } }), H.button({ label: '换个角色', onClick: () => roleSelect() })]));
+          drawTraj(traj, g.track);
+          api.unlock('<p>这个小模型想让你感到四件事。<b>承诺问题</b>：要交出权力的一方，最怕的是对方赢了以后翻脸；"落日条款"、临时宪法、权利法案和宪法法院的作用，就是把承诺做成"违约很难"的制度。<b>搅局者</b>：暴力往往恰好在谈判接近突破时出现，目的就是让领导人停下来；哈尼遇刺后的选择——呼吁克制并锁定选举日期——拒绝了让搅局者定议程。<b>双层博弈</b>：德克勒克的白人公投、曼德拉的暂停武装斗争，都是在对内付账，以换取对外的空间。<b>代价信号</b>：博伊帕通后的退出看起来是倒退，却让复会的条件变了。</p><p>真实历史也提醒我们，"和平过渡"不等于没有流血：1990–1994 年的政治暴力夺走了上万条生命。</p>');
+        }
+        function drawTraj(parent, track) {
+          const cv = H.canvas(parent, { aspect: 0.42, minH: 180, maxH: 260 });
+          const mine = g.role === 'M' ? 'anc' : 'np', oth = g.role === 'M' ? 'np' : 'anc';
+          const series = [['trust', '--accent', '信任'], [mine, '--s1', '我方基本盘'], [oth, '--s2', '对方基本盘'], ['viol', '--warn', '暴力'], ['prog', '--good', '进展']];
+          function draw() {
+            const gg = cv.g, W = cv.w, Hh = cv.h;
+            gg.clearRect(0, 0, W, Hh); gg.fillStyle = col('--panel'); gg.fillRect(0, 0, W, Hh);
+            const n = ROUNDS.length;
+            const ax = H.axes(gg, W, Hh, { x0: 0, x1: n, y0: 0, y1: 100, pad: { l: 34, r: 10, t: 26, b: 28 }, xTicks: Array.from({ length: n + 1 }, (_, i) => i), yTicks: [0, 50, 100], xLabel: '回合' }, col);
+            series.forEach(([k, c], si) => {
+              gg.strokeStyle = col(c); gg.lineWidth = 2; gg.beginPath();
+              track.forEach((s, i) => { const x = ax.X(i), y = ax.Y(s[k]); i ? gg.lineTo(x, y) : gg.moveTo(x, y); }); gg.stroke();
+            });
+            gg.font = `11px ${col('--body-font') || 'sans-serif'}`; gg.textBaseline = 'middle'; gg.textAlign = 'left';
+            let x = 36; series.forEach(([, c, lab]) => { gg.fillStyle = col(c); gg.fillRect(x, 8, 10, 3); gg.fillStyle = col('--muted'); gg.fillText(lab, x + 13, 10); x += 13 + gg.measureText(lab).width + 12; });
+          }
+          cv.onResize(draw); draw(); redraws.add(draw);
+          trajCv.push(cv);
+        }
+        const trajCv = [];
+        roleSelect();
+        return { destroy() { trajCv.forEach((c) => c.destroy()); } };
+      }
+
+      /* =================== Chapter 3: Truth and Reconciliation =================== */
+      function ch3(body, api) {
+        body.append(P('1995 年议会通过《促进民族团结与和解法》，设立真相与和解委员会（TRC），由德斯蒙德·图图大主教任主席，1996 年起公开听证。它最具争议的设计是<b>以真相换赦免</b>：为政治目的犯下罪行的人，只要完整披露，就可以申请大赦；获赦者不再承担刑事和民事责任。这一安排本身就是谈判的产物——临时宪法的结尾已经承诺了大赦。'),
+          P('下面是 5 个<b>虚构的综合案例</b>（参考了真实案件的类型，人物和细节均为虚构）。你是大赦委员会的一员：给，还是不给？'));
+        const CRIT = ['政治目的', '完整披露', '相称性', '非私利/私怨'];
+        const CASES = [
+          { t: '案例 A · 前安全警察', d: '1980 年代中期，他所在的警察秘密小组绑架并杀害了一名被怀疑为地下组织联络人的青年，尸体被秘密掩埋。听证会上他详细交代了指挥链、行动过程和埋尸地点；家属第一次知道了亲人的下落。他说当时相信自己是在保卫国家。',
+            c: ['✓', '✓', '有争议', '✓'], v: 'grant', why: '按委员会的标准，这类案件常常获赦：行为是在国家镇压政策框架下、为政治目的实施的，申请人完整披露了事实。相称性一项争议最大，但委员会对"执行上级命令"的案件通常并不因此拒绝。', fam: '家属终于找到遗骸、知道了真相；但凶手不再面临起诉，家属也失去了民事索赔的权利。' },
+          { t: '案例 B · 地下武装成员', d: '1980 年代，他在一处餐饮场所放置爆炸物，造成平民死伤。他完整承认了经过，说当时组织号召扩大斗争，他以为那里常有军警人员出入，情报后来被证明有误。',
+            c: ['✓', '✓', '有争议', '✓'], v: 'grant', why: '解放运动成员同样要申请大赦，同样适用这些标准。委员会在若干造成平民死亡的案件中给予了大赦，理由是行为与政治斗争相关且完整披露；但每一个这样的决定都受到受害者家属的强烈反对。', fam: '受害者家属认为，"政治目的"不能成为杀害平民的理由；委员会则认为它的任务是判断是否符合法律标准，而不是给行为辩护。' },
+          { t: '案例 C · 抢劫杀人', d: '1992 年，一名男子在持枪抢劫商店时杀死店主。申请时他说抢劫是为某政治组织筹措经费，但该组织否认授权，钱也被他个人花掉了。',
+            c: ['✗', '?', '—', '✗'], v: 'deny', why: '为个人利益实施的行为不在大赦范围内。"政治目的"不能靠事后声称，委员会会看组织是否授权、钱的去向、当时的背景。被拒的申请大多属于这一类：其实是普通刑事案件。', fam: '对受害者家属而言，拒绝意味着案件仍按普通刑事司法程序处理。' },
+          { t: '案例 D · 被拘留者之死', d: '一名前警官申请对一名被拘留者死亡的大赦，但只承认"推搡"，坚称死亡是意外。他的说法与法医证据和其他证人的证词矛盾，也说不清是谁下的命令。',
+            c: ['?', '✗', '—', '?'], v: 'deny', why: '没有完整披露就没有大赦——这是整个交换的核心。真实例子：1999 年，与黑人觉醒运动领袖斯蒂夫·比科 1977 年死于拘押有关的几名前警察的大赦申请被拒，理由之一就是没有完整披露。（被拒之后他们也没有被起诉。）', fam: '拒绝维护了"真相换赦免"的原则；但被拒之后起诉很少真的发生，许多家属最终既没有完整真相，也没有审判。' },
+          { t: '案例 E · 借冲突之名', d: '1990 年代初的政治冲突中，一名男子以"对方阵营支持者"为由杀死邻居。调查发现两人多年来有土地纠纷，他本人并非任何组织成员，也没有接到任何指示。',
+            c: ['✗', '✓', '—', '✗'], v: 'deny', why: '法律明确排除出于个人恶意、私怨或报复的行为。动荡年代里很多暴力夹杂着私人恩怨，委员会必须把它们和政治行为区分开来。', fam: '这类案件提醒人们：并不是所有冲突年代的暴力都是"政治暴力"。' },
+        ];
+        const host = el('div', { class: 'mandela-cases' });
+        const tally = el('p', { class: 'mandela-small', 'aria-live': 'polite' });
+        body.append(host, tally);
+        let done = 0, agree = 0;
+        CASES.forEach((cs, i) => {
+          const res = el('div', { class: 'mandela-case-res', hidden: true });
+          const btns = [['grant', '给予大赦'], ['deny', '拒绝']].map(([v, lab]) => el('button', { type: 'button', class: 'btn', text: lab, onclick: () => decide(v) }));
+          const box = el('div', { class: 'mandela-case' }, [el('div', { class: 'mandela-case-h' }, [el('b', { text: cs.t }), el('span', { class: 'mandela-badge', text: '虚构的综合案例' })]), el('p', { text: cs.d }), el('div', {}, btns), res]);
+          host.append(box);
+          function decide(v) {
+            if (res.hidden) { done++; if (v === cs.v) agree++; }
+            btns.forEach((b) => (b.disabled = true));
+            res.hidden = false;
+            res.innerHTML = '';
+            res.append(
+              el('div', { class: 'mandela-crit' }, CRIT.map((c, k) => el('span', { class: cs.c[k] === '✓' ? 'ok' : cs.c[k] === '✗' ? 'no' : 'q' }, [el('b', { text: cs.c[k] }), ' ', c]))),
+              el('p', { html: `你选择了<b>${v === 'grant' ? '给予大赦' : '拒绝'}</b>。按委员会的标准，这类案件通常会被<b>${cs.v === 'grant' ? '给予大赦' : '拒绝'}</b>。${cs.why}` }),
+              el('p', { class: 'mandela-fam', html: `<b>另一边</b>　${cs.fam}` }));
+            tally.textContent = `已判 ${done}/5，其中 ${agree} 个与委员会的标准一致。`;
+            if (done >= 3) unlockStats();
+          }
+        });
+        const stats = el('div', { class: 'mandela-stats', hidden: true });
+        body.append(stats);
+        function unlockStats() {
+          if (!stats.hidden) return;
+          stats.hidden = false;
+          // waffle: one common count — 7,116 applications: 1,167 granted, 145 partly granted, 5,143 refused, rest other
+          const parts = [['全部赦免 ≈1,167', 1167, '--good'], ['部分赦免 ≈145', 145, '--accent'], ['拒绝 ≈5,143', 5143, '--warn'], ['其他（撤回、不予受理等）', 7116 - 1167 - 145 - 5143, '--muted']];
+          const cells = []; let acc = 0;
+          parts.forEach(([, n, c], pi) => { const k = Math.round(((acc + n) / 7116) * 100) - Math.round((acc / 7116) * 100); acc += n; for (let j = 0; j < k; j++) cells.push(c); });
+          stats.append(el('h4', { text: '真实的数字（约数）' }),
+            el('div', { class: 'mandela-waffle', role: 'img', 'aria-label': '约 7,100 份大赦申请中，约 16% 获全部赦免，约 2% 部分赦免，约 72% 被拒' }, cells.map((c) => el('i', { style: `background:var(${c})` }))),
+            el('div', { class: 'mandela-legend' }, parts.map(([lab, , c]) => el('span', {}, [el('i', { style: `background:var(${c})` }), lab]))),
+            el('ul', { class: 'mandela-list' }, [
+              el('li', { text: '约 7,100 份大赦申请（一种常见统计为 7,116 份），每格约 71 份。获全部或部分赦免的约 1,100–1,300 份；不同资料、不同统计时点的数字有出入，也有资料给出更低的获赦数。大多数被拒的申请其实不是政治案件。' }),
+              el('li', { text: '约 2.1 万名受害者向委员会提交了陈述，许多人在公开听证中讲述了亲人的遭遇——对很多家庭来说，这是国家第一次正式承认发生过什么。' }),
+              el('li', { text: '1996 年，斯蒂夫·比科的家人等向宪法法院起诉，认为大赦剥夺了他们诉诸法院的权利；法院裁定大赦条款合宪，理由是它是政治过渡的一部分，并有宪法依据。' }),
+              el('li', { text: '1998 年 10 月提交的报告认定国家是严重侵犯人权的主要责任方，同时也认定非国大等解放运动犯有侵权行为。德克勒克和非国大都曾试图阻止报告中涉及自己的内容发表；德克勒克通过诉讼使报告中关于他的一段在出版时被涂黑。' }),
+              el('li', { text: '委员会建议的赔偿远比政府后来支付的多：2003 年政府向约两万名受害者每人一次性发放约 3 万兰特，许多人认为来得太晚、太少。被拒赦免者后来很少被起诉。' }),
+            ]));
+          api.unlock('<p>真相与和解委员会做了一个艰难的交换：<b>用一部分正义换真相</b>。审判需要证据，而许多罪行的证据被销毁或从未存在；大赦的诱因让一些加害者自己说出了埋尸地点和指挥链。代价是：获赦者不再受审，受害者失去了诉讼权。</p><p>批评来自两边：许多受害者家属认为这是"用他们的痛苦换取国家的平静"；另一些人则认为委员会对旧政权的追究不够深。它没有带来普遍的和解，但它让否认变得困难——在许多转型国家，连这一步都没有走到。</p>');
+        }
+        return {};
+      }
+
+      /* =================== Chapter 4: what changed and what didn't =================== */
+      function ch4(body, api) {
+        body.append(P('1994 年之后，"一人一票"一夜之间实现了。可第一幕里那些点的位置——土地、住房、教育、工作——要慢得多。切换下面的两条时间线，看看两种平等之间的距离。'));
+        // political milestones (示意 level 0–100) and economic data
+        const POL = [[1990, 15], [1993.99, 15], [1994, 100], [2025, 100]];
+        const MILES = [
+          [1994, '首次全民普选，约 2000 万人投票'], [1996, '新宪法通过（含权利法案），宪法法院运行'], [1999, '曼德拉只做一届即卸任，和平交接'],
+          [2004, '第三次全国大选'], [2009, '第四次全国大选'], [2014, '第五次全国大选'], [2019, '第六次全国大选'], [2024, '非国大首次失去议会多数（约 40%），组成多党联合政府'],
+        ];
+        const GINI = [[1993, 59.3], [2000, 57.8], [2005, 65.0], [2008, 62.5], [2010, 60.9], [2014, 59.6], [2022, 54.1]];
+        const UNEMP = [[2000, 23.3], [2001, 26.2], [2002, 26.6], [2003, 24.8], [2004, 23.0], [2005, 23.5], [2006, 22.1], [2007, 21.0], [2008, 22.5], [2009, 23.7], [2010, 24.9], [2011, 24.8], [2012, 24.9], [2013, 24.7], [2014, 25.1], [2015, 25.4], [2016, 26.7], [2017, 27.5], [2018, 27.1], [2019, 28.7], [2020, 29.2], [2021, 34.3], [2022, 33.5], [2023, 32.4], [2024, 32.6], [2025, 32.4]];
+        let mode = 'both', year = 1994, touched = 0;
+        const ch = H.choice({ label: '显示', options: [{ value: 'pol', label: '政治平等' }, { value: 'eco', label: '经济平等' }, { value: 'both', label: '两者叠加' }], value: 'both', onChange: (v) => { mode = v; touched++; draw(); maybeUnlock(); } });
+        const stage = el('div', { class: 'lab-stage' });
+        body.append(el('div', { class: 'lab-controls' }, [ch.el]), stage);
+        const cv = H.canvas(stage, { aspect: 0.56, minH: 290, maxH: 400 });
+        const sl = H.slider({ label: '年份', min: 1990, max: 2025, step: 1, value: 1994, format: (v) => String(v), onInput: (v) => { year = v; touched++; draw(); info(); maybeUnlock(); } });
+        const roP = H.readout('政治'), roG = H.readout('基尼系数（世界银行，最近的调查年）'), roU = H.readout('官方失业率');
+        sl.el.style.gridColumn = '1 / -1';
+        body.append(el('div', { class: 'lab-controls' }, [sl.el]), el('div', { class: 'lab-readout' }, [roP.el, roG.el, roU.el]),
+          el('p', { class: 'lab-hint', text: '"政治平等"线是示意：1994 年前全国议会选举只对白人开放（1984–94 年有色人和印度裔另设议院，黑人多数始终没有全国投票权），1994 年后所有成年公民一人一票。经济平等线 = 100 − 基尼系数，基尼来自世界银行各年调查（0–100 表示），各年调查口径不完全一致，只宜看量级；世界银行 2018 年报告给出约 0.63（2015），称为世界最高之一。失业率为 15 岁以上官方口径（国际劳工组织估算），2000 年前口径不同，未画出。' }));
+        const land = el('div', { class: 'mandela-landbox' }, [
+          el('h4', { text: '土地：法律废除之后' }),
+          el('div', { class: 'mandela-landrow' }, [el('span', { text: '个人名下的农地中白人所占比例（2017 年政府土地审计，按估算的种族归属）' }), el('div', { class: 'mandela-hbar' }, [el('i', { style: 'width:72%;background:var(--s2)' }), el('b', { text: '约 72%' })])]),
+          el('div', { class: 'mandela-landrow' }, [el('span', { text: '1994 年定下的再分配目标（30% 商业农地）完成度：到 2010 年代末经再分配与归还约 820 万公顷' }), el('div', { class: 'mandela-hbar' }, [el('i', { style: 'width:33%;background:var(--s1)' }), el('b', { text: '约三分之一' })])]),
+          el('p', { class: 'lab-hint', text: '审计的种族数据是间接推算的，可能有偏差；白人约占人口 7–8%（2020 年代）。' }),
+        ]);
+        const people = el('div', { class: 'mandela-people' }, [
+          el('div', {}, [el('h4', { text: '曼德拉之后' }), el('p', { text: '1994–1999 年任总统，只做一届就交出权力，这在当时的非洲和世界都引人注目。卸任后投入艾滋病防治和儿童事务。2013 年 12 月去世，终年 95 岁。他的遗产在南非国内也有争论：有人认为他在经济问题上对旧秩序让步太多。' })]),
+          el('div', {}, [el('h4', { text: '德克勒克之后' }), el('p', { text: '1994 年任副总统；1996 年新宪法通过后，他带领国民党退出民族团结政府，次年退出政坛。他在真相与和解委员会为种族隔离道歉，但否认知情或授权安全部门的杀戮，委员会对此不予采信。2020 年他在采访中否认种族隔离属于"反人类罪"，引起强烈批评，随后道歉撤回。2021 年 11 月去世，生前录制的视频再次为种族隔离道歉。1993 年的联合授奖当时就有批评者认为，暴力仍在其政府治下持续，不应与曼德拉并列。' })]),
+        ]);
+        body.append(land, people);
+        function nearest(arr, y) { let best = null; arr.forEach((p) => { if (p[0] <= y) best = p; }); return best; }
+        function info() {
+          roP.set(year < 1994 ? '黑人多数没有全国投票权' : (MILES.filter((m) => m[0] <= year).pop() || [0, ''])[1]);
+          const gg = nearest(GINI, year); roG.set(gg ? `${(gg[1] / 100).toFixed(2)}（${gg[0]}）` : '—');
+          const u = UNEMP.find((p) => p[0] === year); roU.set(u ? u[1].toFixed(1) + '%' : '—（口径不同）');
+        }
+        function draw() {
+          const g = cv.g, W = cv.w, Hh = cv.h;
+          g.clearRect(0, 0, W, Hh); g.fillStyle = col('--panel'); g.fillRect(0, 0, W, Hh);
+          const narrow = W < 520;
+          const showP = mode !== 'eco', showE = mode !== 'pol';
+          // legend layout first, so the plot leaves room for it
+          g.font = `11px ${col('--body-font') || 'sans-serif'}`; g.textBaseline = 'middle'; g.textAlign = 'left';
+          const items = [];
+          if (showP) items.push(['--s1', '政治平等：投票权（示意，0–100）']);
+          if (showE) items.push(['--s4', '经济平等：100 − 基尼系数（越高越平等）'], ['--s2', '官方失业率 %']);
+          if (showP && showE) items.push(['--warn', '两者之间的差距']);
+          const pos = []; let lx = 36, ly = 10;
+          items.forEach(([c, lab]) => { const w = 16 + g.measureText(lab).width + 12; if (lx + w > W - 6 && lx > 36) { lx = 36; ly += 15; } pos.push([c, lab, lx, ly]); lx += w; });
+          const ax = H.axes(g, W, Hh, { x0: 1990, x1: 2025, y0: 0, y1: 100, pad: { l: 34, r: 12, t: ly + 16, b: 30 }, xTicks: narrow ? [1990, 2000, 2010, 2020] : [1990, 1995, 2000, 2005, 2010, 2015, 2020, 2025], yTicks: [0, 25, 50, 75, 100] }, col);
+          g.strokeStyle = col('--muted'); g.setLineDash([3, 3]); g.beginPath(); g.moveTo(ax.X(year), ax.p.t); g.lineTo(ax.X(year), ax.p.t + ax.ih); g.stroke(); g.setLineDash([]);
+          const EQ = GINI.map((p) => [p[0], 100 - p[1]]);
+          if (showP && showE) { // gap between political equality (100 after 1994) and economic equality (100 − Gini)
+            const pts = EQ.map((p) => [Math.max(1994, p[0]), p[1]]); pts.push([2025, pts[pts.length - 1][1]]);
+            g.save(); g.globalAlpha = 0.13; g.fillStyle = col('--warn'); g.beginPath();
+            g.moveTo(ax.X(1994), ax.Y(100)); g.lineTo(ax.X(2025), ax.Y(100));
+            for (let i = pts.length - 1; i >= 0; i--) g.lineTo(ax.X(pts[i][0]), ax.Y(pts[i][1]));
+            g.closePath(); g.fill(); g.restore();
+            const xm = ax.X(2009), ym = (ax.Y(100) + ax.Y(EQ[4][1])) / 2;
+            g.fillStyle = col('--warn'); g.textAlign = 'center'; g.fillText('差距', xm, ym);
+          }
+          if (showP) {
+            g.strokeStyle = col('--s1'); g.lineWidth = 2.5; g.beginPath(); POL.forEach((p, i) => { const x = ax.X(p[0]), y = ax.Y(p[1]); i ? g.lineTo(x, y) : g.moveTo(x, y); }); g.stroke();
+            MILES.forEach((m) => { g.fillStyle = col('--panel'); g.strokeStyle = col('--s1'); g.lineWidth = 1.5; g.beginPath(); g.arc(ax.X(m[0]), ax.Y(100), 3.5, 0, 7); g.fill(); g.stroke(); });
+          }
+          if (showE) {
+            g.strokeStyle = col('--s2'); g.lineWidth = 2; g.beginPath(); UNEMP.forEach((p, i) => { const x = ax.X(p[0]), y = ax.Y(p[1]); i ? g.lineTo(x, y) : g.moveTo(x, y); }); g.stroke();
+            g.strokeStyle = col('--s4'); g.lineWidth = 1.5; g.setLineDash([3, 3]); g.beginPath(); EQ.forEach((p, i) => { const x = ax.X(p[0]), y = ax.Y(p[1]); i ? g.lineTo(x, y) : g.moveTo(x, y); }); g.stroke(); g.setLineDash([]);
+            g.fillStyle = col('--s4'); EQ.forEach((p) => { g.beginPath(); g.arc(ax.X(p[0]), ax.Y(p[1]), 4, 0, 7); g.fill(); });
+          }
+          g.textAlign = 'left';
+          pos.forEach(([c, lab, x, y]) => { g.fillStyle = col(c); g.fillRect(x, y - 2, 11, 4); g.fillStyle = col('--muted'); g.fillText(lab, x + 15, y); });
+        }
+        function maybeUnlock() {
+          if (touched >= 2) api.unlock('<p>政治平等是一个<b>开关</b>：1994 年 4 月 27 日之前没有，之后有，此后三十年的定期选举和 2024 年的和平权力重组说明这个开关至今仍然打开着。经济平等则是一个<b>存量</b>：它由几代人的土地、住房、教育和资本积累决定，种族隔离的法律可以一天废除，它留下的存量却只能一点一点改变。</p><p>这也是谈判的一部分代价与逻辑：为了让旧政权交出政治权力，新宪法保护了既有财产权，并承诺公务员的饭碗。这个交换避免了内战，也让经济结构的改变注定缓慢。如何评价这笔交易，南非社会至今争论不休。</p>');
+        }
+        cv.onResize(draw); redraws.add(draw);
+        draw(); info();
+        return { destroy() { cv.destroy(); }, shown() { draw(); } };
+      }
+
+      /* =================== Chapter 5: why two people =================== */
+      function ch5(body, api) {
+        body.append(P('诺贝尔委员会没有说两人在道德上等量齐观。和平奖奖励的是一种行为：<b>和敌人谈判，并且把谈判坚持到底</b>。值得注意的是，奖项在 1993 年 10 月颁出，比选举早半年——它既是表彰，也是在为一个尚未完成的过程押注。'));
+        const STEPS = [
+          { y: '1990 年以前', t: '一方在牢里，一方在台上；一方被政府称为恐怖分子，一方被对方视为压迫者。中间隔着一堵墙。', L: 30, R: 570, rotL: 0, rotR: 0, wall: 1 },
+          { y: '1990 年 2 月', t: '解禁与释放。两把椅子第一次搬进同一个房间，但离桌子还很远。', L: 90, R: 510, rotL: 0, rotR: 0 },
+          { y: '1991 年 12 月', t: 'CODESA。坐到了同一张桌边——开幕当天就当众争吵。', L: 190, R: 410, rotL: 0, rotR: 0 },
+          { y: '1992 年 6 月', t: '博伊帕通之后，一方离席。桌子还在，椅子空了一把。', L: 70, R: 410, rotL: 0, rotR: 0 },
+          { y: '1992 年 9 月 – 1993 年', t: '《谅解记录》、落日条款、确定选举日期：回到桌边，谈的不再是要不要交接，而是怎么交接。', L: 200, R: 400, rotL: 0, rotR: 0 },
+          { y: '1993 年 10 月', t: '诺贝尔委员会把和平奖同时授予两人。领奖时两人各自发表演讲，彼此之间仍然冷淡。', L: 200, R: 400, rotL: 0, rotR: 0, medal: 1 },
+          { y: '1994 年 4 月', t: '桌子换成了投票箱。两人都站到了选民面前。', L: 200, R: 400, rotL: 0, rotR: 0, medal: 1, ballot: 1 },
+        ];
+        const NS = 'http://www.w3.org/2000/svg';
+        const svg = document.createElementNS(NS, 'svg');
+        svg.setAttribute('viewBox', '0 0 600 230'); svg.setAttribute('class', 'mandela-svg'); svg.setAttribute('role', 'img');
+        const mk = (tag, attrs, parent = svg) => { const e = document.createElementNS(NS, tag); Object.entries(attrs).forEach(([k, v]) => e.setAttribute(k, v)); parent.append(e); return e; };
+        mk('line', { x1: 10, y1: 190, x2: 590, y2: 190, class: 'm-floor' });
+        const wall = mk('rect', { x: 296, y: 30, width: 8, height: 160, class: 'm-wall' });
+        const table = mk('g', { class: 'm-table' });
+        mk('rect', { x: 245, y: 120, width: 110, height: 8, rx: 2 }, table); mk('rect', { x: 255, y: 128, width: 6, height: 62 }, table); mk('rect', { x: 339, y: 128, width: 6, height: 62 }, table);
+        const ballot = mk('g', { class: 'm-ballot' });
+        mk('rect', { x: 265, y: 120, width: 70, height: 70, rx: 3 }, ballot); mk('rect', { x: 285, y: 126, width: 30, height: 4, class: 'm-slot' }, ballot);
+        mk('rect', { x: 290, y: 104, width: 22, height: 26, class: 'm-paper' }, ballot);
+        function chair(cls, label, facing) {
+          const g = mk('g', { class: 'm-chair ' + cls });
+          const inner = mk('g', {}, g);
+          // seat, back (on the outer side), legs; drawn around x=0
+          mk('rect', { x: -22, y: 140, width: 44, height: 7, rx: 2 }, inner);
+          mk('rect', { x: facing > 0 ? -22 : 16, y: 92, width: 6, height: 55, rx: 2 }, inner);
+          mk('rect', { x: -20, y: 147, width: 5, height: 43 }, inner); mk('rect', { x: 15, y: 147, width: 5, height: 43 }, inner);
+          const medal = mk('circle', { cx: 0, cy: 118, r: 9, class: 'm-medal' }, g);
+          const t = mk('text', { x: 0, y: 212, 'text-anchor': 'middle', class: 'm-lab' }, g); t.textContent = label;
+          return { g, inner, medal };
+        }
+        const cL = chair('l', '曼德拉 · 非国大', 1), cR = chair('r', '德克勒克 · 国民党', -1);
+        const cap = el('div', { class: 'mandela-effect', 'aria-live': 'polite' });
+        let si = 0, seen = new Set([0]);
+        const range = el('input', { type: 'range', min: 0, max: STEPS.length - 1, step: 1, value: 0, 'aria-label': '时间', class: 'mandela-range' });
+        range.addEventListener('input', () => setStep(+range.value));
+        const prevB = H.button({ label: '←', onClick: () => setStep(Math.max(0, si - 1)) }), nextB = H.button({ label: '下一步 →', kind: 'primary', onClick: () => setStep(Math.min(STEPS.length - 1, si + 1)) });
+        const stage = el('div', { class: 'mandela-svgwrap' + (reduced ? ' still' : '') }, [svg]);
+        body.append(stage, el('div', { class: 'mandela-svgctl' }, [prevB, range, nextB]), cap);
+        function setStep(i) {
+          si = i; seen.add(i); range.value = i;
+          const S = STEPS[i];
+          cL.g.style.transform = `translate(${S.L}px,0)`; cR.g.style.transform = `translate(${S.R}px,0)`;
+          cL.g.classList.toggle('empty', i === 3);
+          wall.style.opacity = S.wall ? 1 : 0; table.style.opacity = S.ballot ? 0 : 1; ballot.style.opacity = S.ballot ? 1 : 0;
+          [cL, cR].forEach((c) => (c.medal.style.opacity = S.medal ? 1 : 0));
+          cap.innerHTML = `<b>${S.y}</b>　${S.t}`;
+          svg.setAttribute('aria-label', S.y + '：' + S.t);
+          prevB.disabled = i === 0; nextB.disabled = i === STEPS.length - 1;
+          if (seen.size >= STEPS.length - 1) unlockCmp();
+        }
+        // comparison of joint prizes to former adversaries
+        const PAIRS = [
+          { k: '1973', who: '基辛格 与 黎德寿', what: '1973 年 1 月《巴黎和平协定》（越南战争）', after: ['黎德寿拒绝领奖，理由是和平尚未实现', '战事继续，1975 年 4 月西贡陷落'], now: '协定未能带来持久和平' },
+          { k: '1978', who: '萨达特 与 贝京', what: '1978 年戴维营协议；1979 年埃及–以色列和约', after: ['1982 年西奈半岛归还埃及', '1981 年萨达特遇刺'], now: '和约延续至今（常被称为"冷和平"）' },
+          { k: '1993', who: '曼德拉 与 德克勒克', what: '1990–93 年谈判；1993 年临时宪法', after: ['1994 年首次全民普选', '1996 年新宪法；此后定期选举与和平交接'], now: '宪政民主延续；经济不平等仍是核心问题' },
+          { k: '1994', who: '阿拉法特、佩雷斯 与 拉宾', what: '1993 年奥斯陆协议', after: ['1994 年巴勒斯坦权力机构成立', '1995 年拉宾遇刺；2000 年最终地位谈判失败，第二次因提法达爆发'], now: '最终地位协议从未达成' },
+          { k: '1998', who: '休姆 与 特林布尔', what: '1998 年贝尔法斯特（耶稣受难日）协议（北爱尔兰）', after: ['分权政府多次停摆（如 2002–07、2017–20、2022–24 年）', '准军事组织的大规模暴力基本结束'], now: '协议框架延续至今' },
+        ];
+        const cmp = el('div', { class: 'mandela-cmpwrap', hidden: true });
+        body.append(cmp);
+        function unlockCmp() {
+          if (!cmp.hidden) return;
+          cmp.hidden = false;
+          const panel = el('div', { class: 'mandela-cmp', 'aria-live': 'polite' });
+          const sel = H.choice({ label: '其他颁给昔日对手的和平奖', options: PAIRS.map((p) => ({ value: p.k, label: p.k })), value: '1993', onChange: (v) => show(v) });
+          const tbl = el('div', { class: 'dtable' }, [el('table', {}, [
+            el('thead', {}, [el('tr', {}, ['年份', '获奖者', '之后', '现状'].map((h) => el('th', { text: h })))]),
+            el('tbody', {}, PAIRS.map((p) => el('tr', {}, [el('td', { text: p.k }), el('td', { text: p.who }), el('td', { text: p.after[0] }), el('td', { text: p.now })]))),
+          ])]);
+          cmp.append(el('h4', { text: '把和平奖颁给昔日对手：结果各不相同' }), sel.el, panel, tbl);
+          function show(k) {
+            const p = PAIRS.find((q) => q.k === k);
+            panel.innerHTML = '';
+            panel.append(el('div', { class: 'mandela-cmp-h' }, [el('b', { text: `${p.k} · ${p.who}` })]), el('p', { text: p.what }), el('ul', { class: 'mandela-list' }, p.after.map((a) => el('li', { text: a }))), el('p', { class: 'mandela-small', text: '现状：' + p.now }));
+            api.unlock('<p>把奖同时颁给两个昔日的敌人，从来都有争议：它看起来像是在说双方同样值得赞扬。1993 年的批评者正是这样看的。但委员会表彰的不是人品，而是一个结构性的事实：<b>只有一方愿意，和平谈判就不可能</b>。曼德拉必须说服一个被压迫了几十年的多数暂时放下枪，德克勒克必须说服一个享有特权的少数交出权力；两人都冒着被自己人抛弃的风险。</p><p>表格里的结果提醒人们，这样的奖是一种押注。有的押中了，有的没有——差别往往不在颁奖那一刻，而在之后：承诺有没有变成制度，搅局者有没有被孤立，基本盘有没有跟上。南非的过渡之所以被记住，是因为选举真的如期举行，权力真的和平交接，而这一切在 1993 年 10 月时还远未确定。</p>');
+          }
+          show('1993');
+        }
+        setStep(0);
+        return {};
+      }
+
+      open(0);
+      return { destroy() { built.forEach((b) => { try { b.handle && b.handle.destroy && b.handle.destroy(); } catch (e) {} }); cleanups.forEach((f) => f()); } };
+    },
+  };
+
+  const CSS = `
+.mandela [hidden] { display: none !important; }
+.mandela .lab-readout { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
+.mandela .mandela-host { min-width: 0; }
+.mandela-ch { padding: 14px; display: grid; gap: 12px; min-width: 0; }
+.mandela-ch > * { min-width: 0; max-width: 100%; }
+.mandela-chhead { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.mandela-k { font-family: var(--mono-font); font-size: 11px; letter-spacing: .14em; color: var(--accent); }
+.mandela-chhead h3 { font-family: var(--cjk-display); font-size: 20px; margin: 0; }
+.mandela-body { display: grid; gap: 12px; min-width: 0; }
+.mandela-body > * { min-width: 0; max-width: 100%; }
+.mandela-p { margin: 0; font-size: 14.5px; line-height: 1.8; max-width: 46em; }
+.mandela-p b { color: var(--fg); }
+.mandela-reflect { border-left: 3px solid var(--accent); background: var(--bg2); border-radius: 0 8px 8px 0; padding: 10px 14px; font-size: 14px; line-height: 1.8; }
+.mandela-reflect > b { display: block; font-family: var(--cjk-display); color: var(--accent); margin-bottom: 4px; }
+.mandela-reflect p { margin: 0 0 8px; } .mandela-reflect p:last-child { margin: 0; }
+.mandela-foot { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px; border-top: 1px solid var(--line); padding-top: 10px; }
+.mandela-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12.5px; color: var(--muted); }
+.mandela-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.mandela-legend i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.mandela-laws .seg { text-align: left; }
+.mandela-laws .seg b { font-family: var(--mono-font); font-weight: 600; }
+.mandela-effect { font-size: 14px; line-height: 1.75; padding: 10px 12px; border-radius: 8px; background: var(--bg2); min-height: 3.6em; }
+.mandela-effect b { color: var(--accent); }
+.mandela-edu { display: grid; gap: 6px; }
+.mandela-edu-h { font-size: 12.5px; color: var(--muted); }
+.mandela-edu-row { display: grid; grid-template-columns: 4.6em minmax(0, 1fr); gap: 8px; align-items: center; font-size: 12px; }
+.mandela-edu-y { font-family: var(--mono-font); color: var(--muted); }
+.mandela-edu-bars { display: grid; gap: 3px; }
+.mandela-edu-bar { height: 16px; border-radius: 3px; position: relative; min-width: 4px; }
+.mandela-edu-bar span { position: absolute; left: 6px; top: 0; line-height: 16px; color: var(--bg); font-size: 11px; white-space: nowrap; font-weight: 600; }
+.mandela-edu-bar span.out { left: calc(100% + 6px); color: var(--fg); font-weight: 400; }
+.mandela-tagline { margin: 0; font-size: 13px; color: var(--muted); }
+.mandela-badge { display: inline-block; font-size: 11px; font-family: var(--body-font); padding: 0 7px; border-radius: 999px; border: 1px solid var(--accent); color: var(--accent); line-height: 1.6; vertical-align: 1px; white-space: nowrap; }
+.mandela-game { display: grid; gap: 12px; min-width: 0; }
+.mandela-game > * { min-width: 0; }
+.mandela-roles { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px; }
+.mandela-role { font: inherit; text-align: left; display: grid; gap: 4px; padding: 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); cursor: pointer; font-size: 13.5px; line-height: 1.6; }
+.mandela-role:hover { border-color: var(--accent); }
+.mandela-role b { font-family: var(--cjk-display); font-size: 20px; }
+.mandela-role-sub { color: var(--accent); font-size: 12.5px; }
+.mandela-seed { font-size: 12.5px; color: var(--muted); }
+.mandela-gtop { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 6px 12px; }
+.mandela-gmeta { font-size: 12px; color: var(--muted); }
+.mandela-tl { list-style: none; display: flex; gap: 4px; padding: 0; margin: 0; flex-wrap: wrap; }
+.mandela-tl li { width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--line); display: grid; place-items: center; font-family: var(--mono-font); font-size: 10.5px; color: var(--muted); }
+.mandela-tl li.done { background: var(--muted); color: var(--bg); border-color: var(--muted); }
+.mandela-tl li.cur { border-color: var(--accent); color: var(--accent); border-width: 2px; }
+.mandela-meters { display: grid; gap: 5px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); }
+.mandela-meter { display: grid; grid-template-columns: minmax(0, 18em) minmax(60px, 1fr) 5.4em; gap: 8px; align-items: center; font-size: 12.5px; }
+.mandela-meter-n { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mandela-meter-bar { height: 9px; border-radius: 5px; background: var(--grid); overflow: hidden; display: block; }
+.mandela-meter-bar i { display: block; height: 100%; border-radius: 5px; transition: width .5s; }
+.mandela-meter-v { font-family: var(--mono-font); font-variant-numeric: tabular-nums; font-size: 12px; text-align: right; white-space: nowrap; }
+.mandela-meter.danger .mandela-meter-n, .mandela-meter.danger .mandela-meter-v { color: var(--warn); }
+@media (max-width: 560px) {
+  .mandela-meter { grid-template-columns: minmax(0, 1fr) 5.4em; }
+  .mandela-meter-bar { grid-column: 1 / -1; grid-row: 2; }
+}
+.mandela-round, .mandela-ending { display: grid; gap: 8px; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--line); }
+.mandela-round > *, .mandela-ending > * { min-width: 0; }
+.mandela-round h4, .mandela-ending h4 { font-family: var(--cjk-display); font-size: 19px; margin: 0; }
+.mandela-round p, .mandela-ending p { margin: 0; font-size: 14px; line-height: 1.75; }
+.mandela-date { font-family: var(--mono-font); font-size: 11.5px; color: var(--accent); letter-spacing: .06em; }
+.mandela-choices { display: grid; gap: 6px; }
+.mandela-choice { font: inherit; font-size: 14px; text-align: left; display: flex; gap: 10px; align-items: flex-start; padding: 9px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); cursor: pointer; line-height: 1.55; }
+.mandela-choice:hover { border-color: var(--accent); }
+.mandela-choice-k { font-family: var(--mono-font); color: var(--accent); font-weight: 600; flex: none; }
+.mandela-picked b { color: var(--fg); }
+.mandela-note { font-size: 13.5px; line-height: 1.65; padding: 6px 10px; border-radius: 6px; border-left: 3px solid var(--muted); background: var(--bg2); }
+.mandela-note.good { border-left-color: var(--good); } .mandela-note.bad { border-left-color: var(--warn); }
+.mandela-note b { color: var(--accent); font-family: var(--mono-font); font-weight: 600; font-size: 12px; }
+.mandela-lesson { font-size: 13.5px; line-height: 1.7; }
+.mandela-lesson b { color: var(--accent); }
+.mandela-hist { border: 1px dashed var(--line); border-radius: 8px; padding: 6px 12px; }
+.mandela-hist summary { cursor: pointer; font-size: 13px; color: var(--accent); }
+.mandela-hist p { margin: 6px 0 4px; font-size: 13.5px; }
+.mandela-gnav { display: flex; flex-wrap: wrap; gap: 6px; }
+.mandela-ending { border-width: 2px; }
+.mandela-ending.win { border-color: var(--good); } .mandela-ending.war, .mandela-ending.coup, .mandela-ending.ousted { border-color: var(--warn); } .mandela-ending.stall { border-color: var(--muted); }
+.mandela-small { font-size: 12.5px !important; color: var(--muted); margin: 0; }
+.mandela-traj-h { font-size: 12.5px; color: var(--muted); }
+.mandela-cases { display: grid; gap: 10px; }
+.mandela-case { display: grid; gap: 8px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; }
+.mandela-case > * { min-width: 0; }
+.mandela-case p { margin: 0; font-size: 14px; line-height: 1.75; }
+.mandela-case-h { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: baseline; }
+.mandela-case-h b { font-family: var(--cjk-display); font-size: 16px; }
+.mandela-case-res { display: grid; gap: 6px; border-top: 1px solid var(--line); padding-top: 8px; }
+.mandela-crit { display: flex; flex-wrap: wrap; gap: 6px; }
+.mandela-crit span { font-size: 12.5px; padding: 2px 9px; border-radius: 999px; border: 1px solid var(--line); }
+.mandela-crit span.ok { border-color: var(--good); } .mandela-crit span.no { border-color: var(--warn); } .mandela-crit span.q { border-style: dashed; }
+.mandela-crit span.ok b { color: var(--good); } .mandela-crit span.no b { color: var(--warn); } .mandela-crit span.q b { color: var(--muted); }
+.mandela-fam { color: var(--muted); font-size: 13.5px !important; }
+.mandela-fam b { color: var(--fg); }
+.mandela-stats { display: grid; gap: 10px; }
+.mandela-stats h4, .mandela-landbox h4, .mandela-people h4, .mandela-cmpwrap h4 { font-family: var(--cjk-display); font-size: 16px; margin: 0; }
+.mandela-waffle { display: grid; grid-template-columns: repeat(20, 1fr); gap: 3px; max-width: 420px; }
+.mandela-waffle i { aspect-ratio: 1; border-radius: 2px; display: block; }
+.mandela-legend span i { border-radius: 2px; }
+.mandela-list { margin: 0; padding-left: 1.2em; font-size: 13.5px; line-height: 1.75; }
+.mandela-list li { margin-bottom: 4px; }
+.mandela-landbox { display: grid; gap: 8px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; }
+.mandela-landrow { display: grid; gap: 4px; font-size: 13px; }
+.mandela-hbar { display: flex; align-items: center; gap: 8px; height: 14px; }
+.mandela-hbar i { display: block; height: 100%; border-radius: 3px; }
+.mandela-hbar b { font-family: var(--mono-font); font-size: 12px; font-weight: 600; white-space: nowrap; }
+.mandela-people { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; }
+.mandela-people > div { padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; }
+.mandela-people p { margin: 6px 0 0; font-size: 13.5px; line-height: 1.75; }
+.mandela-svgwrap { border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
+.mandela-svg { display: block; width: 100%; height: auto; }
+.mandela-svg .m-floor { stroke: var(--line); stroke-width: 2; }
+.mandela-svg .m-wall { fill: var(--muted); transition: opacity .6s; }
+.mandela-svg .m-table rect { fill: var(--muted); }
+.mandela-svg .m-table, .mandela-svg .m-ballot { transition: opacity .6s; }
+.mandela-svg .m-ballot rect { fill: var(--accent); }
+.mandela-svg .m-ballot .m-slot { fill: var(--panel); }
+.mandela-svg .m-ballot .m-paper { fill: var(--fg); }
+.mandela-svg .m-chair { transition: transform .8s cubic-bezier(.4,.1,.2,1); }
+.mandela-svg .m-chair.l rect { fill: var(--s1); } .mandela-svg .m-chair.r rect { fill: var(--s2); }
+.mandela-svg .m-chair.empty rect { fill: none; stroke: var(--s1); stroke-dasharray: 3 3; }
+.mandela-svg .m-medal { fill: var(--accent); transition: opacity .6s; }
+.mandela-svg .m-lab { fill: var(--fg); font-size: 13px; font-family: var(--body-font); }
+.mandela-svgwrap.still .m-chair, .mandela-svgwrap.still .m-wall, .mandela-svgwrap.still .m-table, .mandela-svgwrap.still .m-ballot, .mandela-svgwrap.still .m-medal { transition: none; }
+.mandela-svgctl { display: flex; align-items: center; gap: 8px; }
+.mandela-range { flex: 1; min-width: 0; accent-color: var(--accent); }
+.mandela-cmpwrap { display: grid; gap: 10px; }
+.mandela-cmp { padding: 10px 12px; border-radius: 8px; background: var(--bg2); display: grid; gap: 4px; }
+.mandela-cmp p { margin: 0; font-size: 13.5px; }
+.mandela-cmp-h b { font-family: var(--cjk-display); font-size: 15px; }
+.mandela-cmpwrap .dtable td, .mandela-cmpwrap .dtable th { text-align: left; white-space: normal; min-width: 7em; vertical-align: top; }
+.mandela-cmpwrap .dtable td:first-child { min-width: 3em; font-family: var(--mono-font); }
+.mandela-cmpwrap .dtable table { min-width: 560px; }
+`;
+})();
+
+</script>
+<script>/* hum_app.js */
+/* hum_app.js — standalone preview shell for the Literature & Peace experiences */
+(() => {
+  const el = H.el;
+  const app = document.getElementById('app');
+  const css = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const typeset = (node) => { const mj = window.MathJax; if (mj && mj.typesetPromise) mj.typesetPromise([node]).catch(() => {}); };
+  let handle = null;
+
+  const ITEMS = [
+    {
+      id: 'marquez', field: 'lit', fieldName: '文学奖', year: 1982,
+      who: [{ zh: '加夫列尔·加西亚·马尔克斯', en: 'Gabriel García Márquez' }],
+      teaser: '一个虚构的小镇，怎样装下一整片大陆的百年？',
+      blurb: '五幕：颠倒的惊奇、名字的轮回、失眠症、香蕉公司、孤独与第二次机会。你会分拣奇迹、预言一个家族的命运、和遗忘赛跑，并亲眼看着一段历史被抹掉。',
+      cite: '瑞典学院表彰他的长篇与短篇小说，其中幻想与现实交织成一个丰富的想象世界，映照出一片大陆的生活与冲突。',
+    },
+    {
+      id: 'mandela', field: 'peace', fieldName: '和平奖', year: 1993,
+      who: [{ zh: '纳尔逊·曼德拉', en: 'Nelson Mandela' }, { zh: '弗雷德里克·威廉·德克勒克', en: 'F. W. de Klerk' }],
+      teaser: '两个敌人，怎样在四年里把一个国家从种族隔离谈到一人一票？',
+      blurb: '五幕：先看种族隔离怎样用法律分配土地、居所与公民身份；再坐上谈判桌扮演其中一方，在暗杀、屠杀与右翼冲击中把选举谈下来；然后审理真相与和解委员会的案子，看 30 年后什么变了、什么没变。',
+      cite: '挪威诺贝尔委员会表彰两人为和平结束种族隔离制度、为一个新的民主南非奠定基础所做的工作。',
+    },
+  ];
+  const byId = Object.fromEntries(ITEMS.map((x) => [x.id, x]));
+
+  function home() {
+    document.title = '文学与和平';
+    const cards = ITEMS.map((x) => el('a', { class: 'hcard f-' + x.field, href: '#' + x.id }, [
+      el('div', { class: 'row' }, [el('span', { class: 'yr', text: x.year }), el('span', { class: 'chip', text: '诺贝尔' + x.fieldName })]),
+      el('h3', { text: x.teaser }),
+      el('div', { class: 'who', text: x.who.map((w) => w.zh).join('、') }),
+      el('p', { class: 'one', text: x.blurb }),
+      el('span', { class: 'go', text: '进入 →' }),
+    ]));
+    app.replaceChildren(
+      el('section', { class: 'hero hum-hero' }, [
+        el('div', {}, [
+          el('div', { class: 'kicker', text: 'Nobel · 文学 / 和平' }),
+          el('h1', { html: '<span class="nw">不是读懂，</span><br><span class="nw">而是<em>走进去</em></span>' }),
+          el('p', { text: '科学奖可以被还原，文学奖和和平奖不行：它们没有标准答案。这里用小游戏和互动动画，让你站进作品和那段历史里，体会它背后的意义，以及它带来的社会与文化变迁。' }),
+        ]),
+      ]),
+      el('div', { class: 'hgrid' }, cards),
+      el('p', { class: 'foot', text: '内容由 Claude 整理，史实已核对，有争议的数字给出范围；标注“简化模型”“示意”“虚构的综合案例”的部分是为了互动而做的简化。作品原文受版权保护，页面中只有转述，没有引文。' }),
+    );
+  }
+
+  function detail(x) {
+    document.title = `${x.year} · ${HUM[x.id] ? HUM[x.id].title : x.teaser}`;
+    const root = el('div', { class: 'humroot' });
+    app.replaceChildren(
+      el('div', { class: 'crumbs' }, [el('a', { href: '#', text: '← 文学与和平' }), el('div', { class: 'pn' }, ITEMS.filter((o) => o !== x).map((o) => el('a', { href: '#' + o.id, text: `${o.year} ${o.fieldName} →` })))]),
+      el('header', { class: 'dhead f-' + x.field }, [
+        el('div', { class: 'bigyr', text: x.year }),
+        el('div', { class: 'meta' }, [el('span', { class: 'chip', text: '诺贝尔' + x.fieldName })]),
+        el('h1', { text: x.teaser }),
+        el('div', { class: 'laureates' }, x.who.map((w) => el('div', {}, [el('b', { text: w.zh }), el('span', { text: w.en })]))),
+      ]),
+      root,
+    );
+    if (HUM[x.id]) {
+      try { handle = HUM[x.id].mount(root, { color: css, reduced, h: H, typeset }); }
+      catch (err) { console.error(err); root.replaceChildren(el('p', { class: 'lab-missing', text: '加载失败，请刷新页面重试。' })); }
+    }
+    typeset(app);
+  }
+
+  function route() {
+    if (handle) { try { handle.destroy(); } catch (e) {} handle = null; }
+    const x = byId[location.hash.replace(/^#/, '')];
+    if (x) detail(x); else home();
+    window.scrollTo(0, 0);
+  }
+  window.addEventListener('hashchange', route);
+  route();
+})();
+
+</script>
+</body>
+</html>
