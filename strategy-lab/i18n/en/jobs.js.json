@@ -1,0 +1,7 @@
+[
+{"zh":"没有这种任务：§0§","en":"Unknown kind of job: §0§"},
+{"zh":"这件任务超过 §0§ 秒没有动静，已经停掉：多半是哪一段代码里有死循环。","en":"This job showed no progress for more than §0§ seconds and has been stopped: most likely some piece of code contains an infinite loop."},
+{"zh":"这个环境不允许创建后台线程，这件事做不了。","en":"This environment does not allow background threads to be created, so this cannot be done."},
+{"zh":"这个浏览器开不了隔离环境，所以不运行别人写的代码。换一个新一点的浏览器再试。","en":"This browser cannot start the isolated environment, so code written by other people is not run. Try again with a newer browser."},
+{"zh":"脚本错误","en":"Script error"}
+]

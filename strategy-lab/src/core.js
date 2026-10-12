@@ -674,7 +674,7 @@ function makeBatch(cfg, ext, batchId, part) {
       var idx = rng.int(nsrc);
       for (t = 0; t < T; t++) { if (rng.u() < pb) idx = rng.int(nsrc); else if (++idx >= nsrc) idx = 0; r[t] = src[idx]; }
     } else if (sim) {
-      var out = sim(T, rng, cfg.params);
+      var out = sim(T, rng, cfg.params, K);   // 第四个参数是每年几步，写世界的人可以不用
       if (!out || typeof out.length !== "number" || out.length < T + 1) throw new Error("simulate 必须返回长度为 T+1 的价格数组（现在返回的长度是 " + (out && out.length) + "）");
       for (t = 0; t <= T; t++) {
         var x = +out[t];

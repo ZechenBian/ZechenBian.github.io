@@ -216,6 +216,14 @@ var App = (function () {
   function extFor() { var ds = A.wdef().needsData ? A.dataset() : null; return ds ? { series: ds.v } : null; }
   A.worldKey = function () { return curWorldKey(); };
   A.worldCode = worldCode; A.extFor = extFor;
+  /** 这段规则代码（连同世界代码）是不是别人写的：从大家的榜上、世界工坊里载入的东西带着 foreign 标记，它们在隔离环境里跑（sandbox.js）。
+   *  眼下用的就是别人的规则时，由它改出来的代码也按别人的算 */
+  A.isForeignCode = function (sc, wc) {
+    if (wc && S.custom && S.custom.foreign && wc === S.custom.code) return true;
+    if (A.strat().foreign) return true;
+    var c = String(sc || ""); return A.my.some(function (m) { return m.foreign && c.indexOf(m.code) === 0; });
+  };
+  QLEngine.needSandbox = A.isForeignCode;
   function curWorldKey() { var ds = A.wdef().needsData ? A.dataset() : null; return JSON.stringify(A.worldCfg()) + "|" + (ds ? ds.id + ":" + ds.v.length : ""); }
   A.fitKeys = function (st) { st = st || A.strat(); return st.fitKeys || null; };
   A.hasFit = function (st) { st = st || A.strat(); return /\bfunction\s+fit\s*\(/.test(st.code || ""); };

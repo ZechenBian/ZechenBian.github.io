@@ -1,5 +1,6 @@
 [
 {"zh":"这个环境不允许创建后台线程，无法运行回测（§0§）","en":"This environment does not allow background threads to be created, so the backtest cannot run (§0§)"},
+{"zh":"这个浏览器开不了隔离环境，所以不运行别人写的代码。换一个新一点的浏览器再试。","en":"This browser cannot start the isolated environment, so code written by other people is not run. Try again with a newer browser."},
 {"zh":"世界代码","en":"World code"},
 {"zh":"脚本错误","en":"Script error"},
 {"zh":"代码里没有定义 decide(s, p, st) 函数","en":"the code does not define a decide(s, p, st) function"},
