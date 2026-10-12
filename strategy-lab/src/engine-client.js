@@ -30,14 +30,17 @@ var QLEngine = (function () {
     this.ready = new Promise(function (resolve, reject) { self._ready = resolve; self._fail = reject; });
     this.ready.catch(function () {});
     try {
-      this.url = URL.createObjectURL(new Blob([built.src], { type: "text/javascript" }));
-      this.worker = new Worker(this.url);
+      // 别人写的代码（规则或世界）：线程开在隔离环境里（sandbox.js）。是不是别人的，由页面那一侧说了算（api.needSandbox）
+      this.sandboxed = this.hooks.sandbox != null ? !!this.hooks.sandbox : !!(api.needSandbox && api.needSandbox(stratCode, worldCode || ""));
+      if (this.sandboxed) this.worker = QLSandbox.spawn(built.src);
+      else { this.url = URL.createObjectURL(new Blob([built.src], { type: "text/javascript" })); this.worker = new Worker(this.url); }
     } catch (e) {
       this.dead = true; this._fail({ message: "这个环境不允许创建后台线程，无法运行回测（" + (e && e.message || e) + "）", fatal: true });
       return;
     }
     this.worker.onmessage = function (ev) { self.onMsg(ev.data); };
     this.worker.onerror = function (ev) {
+      if (ev.sandbox === "nostart") { var e0 = { message: "这个浏览器开不了隔离环境，所以不运行别人写的代码。换一个新一点的浏览器再试。", fatal: true }; self.kill(e0); self._fail(e0); return; }
       // 脚本加载阶段的错误：多半是策略代码的语法错误
       var ln = ev.lineno || 0, where = "", line = 0;
       if (ln >= built.stratStart && ln < built.stratStart + built.stratLines) { where = "策略代码"; line = ln - built.stratStart + 1; }
@@ -92,7 +95,7 @@ var QLEngine = (function () {
   Engine.prototype.kill = function (err) {
     if (this.dead) return; this.dead = true; clearTimeout(this.startTimer);
     try { this.worker.terminate(); } catch (e) {}
-    try { URL.revokeObjectURL(this.url); } catch (e) {}
+    if (this.url) { try { URL.revokeObjectURL(this.url); } catch (e) {} }
     var ps = this.pending; this.pending = {};
     Object.keys(ps).forEach(function (k) { clearTimeout(ps[k].timer); ps[k].reject(err || { message: "已停止", dead: true }); });
     if (err && this.hooks.onDeath) this.hooks.onDeath(err);
@@ -176,5 +179,6 @@ var QLEngine = (function () {
     if (this.url) { try { URL.revokeObjectURL(this.url); } catch (e) {} }
   };
 
-  return { Engine: Engine, buildSource: buildSource, Pool: Pool, poolSource: poolSource };
+  var api = { Engine: Engine, buildSource: buildSource, Pool: Pool, poolSource: poolSource, needSandbox: null };
+  return api;
 })();

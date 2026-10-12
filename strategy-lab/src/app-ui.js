@@ -188,6 +188,7 @@
     if (mine.length) sel.appendChild(h("optgroup", { label: "我的策略" }, mine.map(function (x) { return h("option", { value: x.id, text: x.name, selected: x.id === st.id }); })));
     host.appendChild(sel);
     host.appendChild(h("p", { class: "blurb" }, A.tierBadge(st.explain && st.explain.tier || st.tier), " ", st.summary || ""));
+    if (st.foreign) host.appendChild(h("p", { class: "note", id: "stratForeign" }, "这条规则是别人写的", st.from && st.from.user ? ["（", h("a", { href: st.from.url, target: "_blank", rel: "noopener", text: "@" + st.from.user }), "）"] : null, "，在隔离环境里运行：它碰不到这张页面里的东西，也连不了网。"));
     var ph = h("div", { class: "fields" }); host.appendChild(ph);
     // 需要重新训练模型的参数：拖动时不重算，松手才算
     A.renderParams(ph, A.sschema(st), vals, function (k) { if (!(st.fitKeys && st.fitKeys.indexOf(k) >= 0)) A.requestRun("live"); }, function (k, structural) { if (structural) A.renderStrat(); A.requestRun("commit"); }, "s");

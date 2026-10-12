@@ -673,7 +673,6 @@ table.db-tab th:nth-child(2) { text-align: left; padding-left: 0; }
 .rm-code b { font: 600 24px/1.2 var(--font-mono); letter-spacing: 0.14em; }
 .rm-code .sp, .rm-foot .sp { flex: 1; }
 .rm-game select { width: auto; max-width: 100%; }
-table.rm-list td:first-child { display: flex; flex-wrap: wrap; gap: 4px 6px; align-items: baseline; }
 .rm-field { max-width: 320px; }
 .rm-field input, #rmJoinCode { padding: 4px 8px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 4px; min-width: 0; }
 .rm-field input { grid-column: 1 / -1; width: 100%; }
@@ -694,6 +693,62 @@ table.rm-list td:first-child { display: flex; flex-wrap: wrap; gap: 4px 6px; ali
 .rm-chip.done i { background: var(--c-good); }
 .rm-chip.off { opacity: 0.55; }
 html[lang="en"] .rm-opt h3 { letter-spacing: 0.01em; }
+
+/* ---------- 交到 GitHub（src/app-share.js） ---------- */
+.modal-box.pdm-box { width: min(640px, 100%); }
+pre.pd-body { max-height: 230px; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12px; }
+#stratForeign { margin: 0 0 8px; }
+#stratForeign a { color: var(--accent-ink); }
+
+/* ---------- 十项全能（src/app-deca.js） ---------- */
+.modal-box.dcm-box { width: min(860px, 100%); }
+.dc-host, .dc-out, .dc-refs { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; min-width: 0; }
+.dc-out:empty, .dc-refs:empty { display: none; }
+.dc-host .gref { padding: 0; }
+.dc-host .warn { border: 1px solid var(--line); border-radius: 5px; }
+.dc-top .sp { flex: 1; }
+.dc-pick select { width: auto; max-width: min(100%, 320px); flex: 1 1 180px; }
+table.dc-tab td:first-child .tag, table.rm-list td:first-child .tag { margin-left: 8px; }
+table.dc-tab tr.worst td { background: var(--crit-wash); }
+table.dc-tab td.dc-bar { width: 26%; min-width: 90px; padding-left: 12px; }
+.dc-track { position: relative; display: block; height: 10px; background: linear-gradient(to right, transparent calc(50% - 0.5px), var(--c-axis) calc(50% - 0.5px), var(--c-axis) calc(50% + 0.5px), transparent calc(50% + 0.5px)); }
+.dc-track i { position: absolute; top: 1px; bottom: 1px; border-radius: 2px; }
+.dc-track i.up { left: 50%; background: var(--c-s1); }
+.dc-track i.down { right: 50%; background: var(--c-s2); }
+.dc-track i.over.up { border-right: 3px solid var(--c-ink); border-radius: 2px 0 0 2px; }
+.dc-track i.over.down { border-left: 3px solid var(--c-ink); border-radius: 0 2px 2px 0; }
+table.dc-reftab th:nth-child(4), table.dc-reftab td:nth-child(4), table.dc-boardtab th:nth-child(4), table.dc-boardtab td:nth-child(4) { text-align: left; padding-left: 14px; }
+table.dc-boardtab td:last-child { text-align: right; }
+@media (max-width: 560px) { table.dc-tab td.dc-bar, table.dc-tab th:last-child { display: none; } }
+
+/* ---------- 规则同场（src/app-arena.js） ---------- */
+.modal-box.arm-box { width: min(900px, 100%); }
+.modal-box.are-box { width: min(760px, 100%); }
+.ar-host, .ar-out { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; min-width: 0; }
+.ar-out:empty { display: none; }
+.ar-host .gref { padding: 0; }
+.ar-host .warn { border: 1px solid var(--line); border-radius: 5px; }
+.ar-host > .note { margin: 0; max-width: 84ch; line-height: 1.6; }
+.ar-sets { gap: 8px 14px; align-items: flex-end; }
+.ar-set { display: grid; gap: 2px; font-size: 12px; color: var(--ink2); min-width: 0; }
+.ar-set input[type="number"] { width: 84px; padding: 2px 6px; }
+.ar-set select { width: auto; max-width: 100%; }
+.ar-list { display: grid; gap: 4px; }
+.ar-rule { display: flex; align-items: flex-start; gap: 8px; border: 1px solid var(--line); border-radius: 5px; padding: 6px 10px; min-width: 0; }
+.ar-rule input[type="checkbox"] { margin-top: 3px; flex: none; }
+.ar-rtxt { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; gap: 2px 8px; align-items: baseline; cursor: pointer; }
+.ar-rtxt .note { flex-basis: 100%; overflow-wrap: anywhere; }
+.ar-acts .sp { flex: 1; }
+.ar-form { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px 10px; align-items: center; }
+.ar-form label { font-size: 12.5px; color: var(--ink2); }
+.ar-form input { padding: 4px 8px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 4px; min-width: 0; width: 100%; }
+.are .codeedit { min-height: 220px; }
+ul.ar-marks { margin: 4px 0 0; padding-left: 18px; font-size: 12.5px; color: var(--ink2); display: grid; gap: 2px; }
+.ar-found { display: flex; align-items: flex-start; gap: 10px; border: 1px solid var(--line); border-radius: 5px; padding: 7px 10px; min-width: 0; }
+.ar-ftxt { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.ar-ftxt a { color: var(--accent-ink); text-decoration: none; }
+table.ar-tab td:nth-child(2) { overflow-wrap: anywhere; }
+@media (max-width: 560px) { table.ar-tab th:nth-child(5), table.ar-tab td:nth-child(5), table.ar-tab th:nth-child(6), table.ar-tab td:nth-child(6) { display: none; } }
 
 </style>
 <style>
@@ -4484,7 +4539,7 @@ function makeBatch(cfg, ext, batchId, part) {
       var idx = rng.int(nsrc);
       for (t = 0; t < T; t++) { if (rng.u() < pb) idx = rng.int(nsrc); else if (++idx >= nsrc) idx = 0; r[t] = src[idx]; }
     } else if (sim) {
-      var out = sim(T, rng, cfg.params);
+      var out = sim(T, rng, cfg.params, K);   // 第四个参数是每年几步，写世界的人可以不用
       if (!out || typeof out.length !== "number" || out.length < T + 1) throw new Error("simulate 必须返回长度为 T+1 的价格数组（现在返回的长度是 " + (out && out.length) + "）");
       for (t = 0; t <= T; t++) {
         var x = +out[t];
@@ -6793,6 +6848,238 @@ return { daily: DAILY };
 }
 if (typeof module !== "undefined" && module.exports) module.exports = QL_SOCIAL_INSTALL;
 
+/* ===== deca.js ===== */
+/* 策略实验室 · 十项全能（引擎这一半）
+ * 一条规则走遍十个世界。每个世界都用它的默认参数、同一组交易设定（默认的成本和仓位上下限），生成 N 条路径，
+ * 规则和买入持有在同一批路径上各跑一遍，比的是长期增长率（每年的对数增长率）之差：正数表示比买入持有好。
+ * 十项全能的得分 = 十个差里最小的那一个。所以想拿高分，不是在哪个世界里大赚，而是在每个世界里都不比买入持有差。
+ * 有一条路径破产，那一项的增长率就是负无穷，整个得分也是负无穷。
+ * 每个星期（周一 UTC 0 点起）换一个种子：这个星期大家用的是同一批路径，下个星期换一批，针对种子调参数的规则到时候会现原形。
+ * 这个文件在后台线程里执行（jobs.js 把它编进去），主线程里只用到赛季和项目的清单。 */
+function QL_DECA_INSTALL(QL) {
+"use strict";
+var WORLDS = QL.WORLDS;
+// 十个项目：四个没有可预测性的（只有漂移；偶发大跌；波动自己在动；波动聚集）、三个有记忆的、一个均值回复的、两个确定性混沌的
+var EVENTS = ["gbm", "jump", "heston", "garch", "regime", "ar1", "fbm", "ou", "logistic", "lorenz"];
+var N = 1000;
+function hs(s) { var x = 2166136261; s = String(s); for (var i = 0; i < s.length; i++) { x ^= s.charCodeAt(i); x = Math.imul(x, 16777619); } return QL.hash32(x); }
+QL.DECA = { events: EVENTS.slice(), N: N, ver: 1 };
+/** 这一刻属于哪个赛季：{ id: 这个星期一的日期（UTC）, seed, next: 下个星期一 0 点的毫秒时间戳 } */
+QL.decaSeason = function (ms) {
+  var d = Math.floor(ms / 864e5), mon = d - ((d + 3) % 7), id = new Date(mon * 864e5).toISOString().slice(0, 10);   // 1970-01-01 是星期四
+  return { id: id, seed: hs("deca|" + QL.DECA.ver + "|" + id) % 1000000, next: (mon + 7) * 864e5 };
+};
+QL.decaCfg = function (type, seed, n) { var d = WORLDS[type].defaults; return { type: type, params: QL.worldDefaults(type), N: n || N, T: d.T, K: d.K, seed: seed, S0: 100 }; };
+QL.decaSet = function () { return Object.assign({}, QL.DEFAULT_SET); };
+/** 一个项目用到的东西，同一件任务里各条规则共用：路径、买入持有在上面的结果 */
+function stage(cache, type, seed, n) {
+  if (cache[type]) return cache[type];
+  var cfg = QL.decaCfg(type, seed, n), set = QL.decaSet(), B = QL.makeBatch(cfg, null, 0);
+  var s2 = { costBps: set.costBps, rf: set.rf, fmin: Math.min(set.fmin, 0), fmax: Math.max(set.fmax, 1), lam: 1 };
+  var bench = QL.runBatch(B, QL.benchFor(type), {}, s2, {});
+  return (cache[type] = { cfg: cfg, set: set, B: B, bench: bench, benchSum: QL.summarize(bench, set), fitD: null });
+}
+/** 一条规则在一个项目上：{ id, growth, bench, d, dse, sharpe, pRuin, bad, turnover, N, T }。d 是比买入持有每年多出来的对数增长率 */
+QL.decaEvent = function (type, seed, strat, p, n, cache) {
+  var S = stage(cache || {}, type, seed, n), model;
+  if (strat.fit) {   // 带训练的规则：模型在另外生成的一批路径上学，计分用的这批它没见过
+    if (!S.fitD) S.fitD = QL.makeData(QL.makeBatch(S.cfg, null, 0, "fit"));
+    model = strat.fit(S.fitD, p, QL.ml, new QL.RNG(S.cfg.seed, -3, -3));
+  }
+  var res = QL.runBatch(S.B, strat, p, S.set, {}, model), sum = QL.summarize(res, S.set, S.bench), ruined = sum.growth === -Infinity;
+  return { id: type, growth: sum.growth, bench: S.benchSum.growth, d: ruined ? -Infinity : sum.dGrowth, dse: ruined ? NaN : sum.dGrowthSE, sharpe: sum.sharpe, pRuin: sum.pRuin, bad: sum.badFrac, turnover: sum.turnover, N: S.B.N, T: S.B.T };
+};
+/** 十项的得分：最差的那一项。{ score, worst } */
+QL.decaScore = function (rows) {
+  var score = Infinity, worst = "";
+  rows.forEach(function (r) { var v = r.d === r.d ? r.d : -Infinity; if (v < score) { score = v; worst = r.id; } });
+  return { score: rows.length ? score : NaN, worst: worst };
+};
+/** 任务：几条规则各走一遍十项。m: { seed, n, entries: [{ id, p }] }；CODE[id] 是那条规则编好的代码 */
+QL.jobs = QL.jobs || {};
+QL.jobs.deca = function (m, CODE, progress) {
+  var cache = {}, out = [], seed = m.seed | 0, n = Math.max(20, Math.min(4000, m.n | 0 || N));
+  (m.entries || []).forEach(function (en) {
+    var S = CODE[en.id], rows = [], err = "", i;
+    if (!S || typeof S.decide !== "function") { var r0 = { id: en.id, err: "代码里没有定义 decide(s, p, st) 函数", rows: [] }; out.push(r0); progress({ id: en.id, done: true, result: r0 }); return; }
+    var strat = { decide: S.decide, init: S.init || null, fit: S.fit || null }, p = QL.jobParams(en.p);
+    for (i = 0; i < EVENTS.length && !err; i++) {
+      progress({ id: en.id, event: EVENTS[i], i: i, n: EVENTS.length });
+      try { rows.push(QL.decaEvent(EVENTS[i], seed, strat, p, n, cache)); } catch (e) { err = String(e && e.message || e); }
+    }
+    var r = err ? { id: en.id, err: err, at: EVENTS[rows.length], rows: rows } : Object.assign({ id: en.id, rows: rows }, QL.decaScore(rows));
+    out.push(r); progress({ id: en.id, done: true, result: r });
+  });
+  return { seed: seed, n: n, entries: out };
+};
+}
+if (typeof module !== "undefined" && module.exports) module.exports = QL_DECA_INSTALL;
+
+/* ===== arena.js ===== */
+/* 策略实验室 · 规则同场（引擎这一半）
+ * 别处的规则都是各打各的：对手是裁判手里的随机数。这里把几条规则放进同一个市场，互相当对手，一条规则赚多少取决于别的规则怎么出手。
+ * 两种市场，信息结构是同一个（Kagel–Levin 1986 的共同价值拍卖实验）：
+ *   每一回合有一件东西，真实价值 V 在 [lo, hi] 上均匀分布，谁也看不到；每条规则各自看到一个带误差的估计 x = V + U(−ε, ε)，互相独立。
+ *   竞价（auction）：各出一个价，出价最高的买走。第一价格：付自己出的价；第二价格：付第二高的出价（只有一个人出价时付 0）。买到的人赚 V − 付的钱。
+ *   做市（mm）：各报一个半价差 h，等于同时挂出卖价 x + h 和买价 x − h。来一位客人：
+ *       不知情的（概率 1 − π）随机想买或想卖，在最好的那个报价上成交，只要它离 V 不超过 R；
+ *       知情的（概率 π）知道 V，只在有便宜可占时出手：最低卖价低于 V 就买，最高买价高于 V 就卖，挑便宜大的那一边。
+ *     成交的那条规则：卖出去赚 卖价 − V，买进来赚 V − 买价。
+ * 每回合结束，V、成交价、谁成交了都公布，规则可以边打边学。得分 = 平均每回合的盈亏；比很多场（每场换一批随机数），报均值和标准误。
+ * 已知的结论（信号离边界不太近时）：
+ *   · 信号是多少就出多少：出价最高的人拿到的恰恰是最乐观的那个估计，E[V − 最高的信号] = −ε(N−1)/(N+1)，这就是赢家诅咒。
+ *   · 让 ε(N−1)/(N+1) 刚好保本；第一价格下的均衡出价是 x − ε + Y，Y = 2ε/(N+1)·exp(−N(x − lo − ε)/(2ε))，
+ *     全场都这样出时，赢的人期望赚 2ε/(N+1) − Y。第二价格下的均衡出价是 x − ε(N−2)/N。
+ *   · 做市是反过来的同一件事：挂出最低卖价的人，手里是最悲观的那个估计。人越多，越要多让。
+ * 规则拿到的 s：t, T, n（场上几条规则）, x（这一回合我的估计）, g（常数：market, lo, hi, eps, fmt, pi, R）,
+ *   last（上一回合我的盈亏）, lastA（上一回合我报的数）, won（上一回合我成交了没有，1 / 0）, v（上一回合的真实价值）,
+ *   win（上一回合的成交价，没成交是 NaN）, side（做市：上一回合客人是买 +1、卖 −1、没成交 0）, total（我到目前为止的累计盈亏）, rnd()（均匀随机数）。
+ *   每回合给的是一个新的、冻住的对象。返回一个数：竞价里是出价（不大于 0 或者不是数 = 这一回合不出价），做市里是半价差（不是数 = 这一回合不报价，负数按 0 算）。
+ * 这个文件在后台线程里执行（jobs.js 把它编进去）；主线程里只用到市场的清单、自带的规则和理论值。 */
+function QL_ARENA_INSTALL(QL) {
+"use strict";
+var RNG = QL.RNG;
+var MARKETS = {
+  auction: { name: "竞价", defaults: { lo: 50, hi: 250, eps: 20, fmt: "first", pi: 0, R: 0 } },
+  mm: { name: "做市", defaults: { lo: 50, hi: 250, eps: 20, fmt: "first", pi: 0.2, R: 60 } }
+};
+/* 自带的规则：代码就是给人看、给人改的样板 */
+var LIB = [
+  { id: "a_face", market: "auction", name: "信号是多少出多少", summary: "把自己的估计当真：出价 = x。", p: {},
+    code: "// 信号是多少就出多少。\n// 出价最高的人，手里是全场最乐观的那个估计：平均每次买贵 ε(N−1)/(N+1)。\nfunction decide(s, p) {\n  return s.x;\n}" },
+  { id: "a_even", market: "auction", name: "保本价", summary: "让掉赢家诅咒那一截：出价 = x − ε(N−1)/(N+1)。", p: {},
+    code: "// 假如我的估计是全场最高的，V 平均比它低 ε(N−1)/(N+1)。让掉这一截，买到手的时候平均不赚不亏。\nfunction decide(s, p) {\n  return s.x - s.g.eps * (s.n - 1) / (s.n + 1);\n}" },
+  { id: "a_eq", market: "auction", name: "均衡出价", summary: "所有人都这样出时，谁单独改主意都占不到便宜（Kagel–Levin 1986）。", p: {},
+    code: "// 风险中性的对称均衡。\n// 第一价格：x − ε + Y，Y = 2ε/(N+1)·exp(−N(x − lo − ε)/(2ε))；信号比 lo + ε 还低时是 lo + (x + ε − lo)/(N+1)。\n// 第二价格：x − ε(N−2)/N（假如第二高的估计和我的一样，V 的期望值）。\n// 信号贴近上边界 hi 时这只是近似。\nfunction decide(s, p) {\n  var g = s.g, n = s.n, e = g.eps;\n  if (g.fmt === \"second\") return s.x - e * (n - 2) / n;\n  if (s.x < g.lo + e) return g.lo + (s.x + e - g.lo) / (n + 1);\n  return s.x - e + 2 * e / (n + 1) * Math.exp(-n * (s.x - g.lo - e) / (2 * e));\n}" },
+  { id: "a_cut", market: "auction", name: "固定让价", summary: "出价 = x − d，d 是一个固定的数。", p: { d: 10 },
+    code: "// 每次都比自己的估计少出 d。d 太小会中赢家诅咒，太大又总是买不到。\nfunction decide(s, p) {\n  return s.x - p.d;\n}" },
+  { id: "a_learn", market: "auction", name: "边打边调", summary: "不用公式：买贵了就多让一点，很久买不到就少让一点。", p: { d0: 5, up: 2, down: 0.5, wait: 8 },
+    code: "// 从盈亏里学让价 d。\n// 上一回合买到了而且亏了：d 加 up。连着 wait 个回合没买到：d 减 down。\nfunction init(p) {\n  return { d: p.d0, dry: 0 };\n}\nfunction decide(s, p, st) {\n  if (s.t > 0) {\n    if (s.won) { st.dry = 0; if (s.last < 0) st.d += p.up; }\n    else if (++st.dry >= p.wait) { st.dry = 0; st.d = Math.max(0, st.d - p.down); }\n  }\n  return s.x - st.d;\n}" },
+  { id: "m_fix", market: "mm", name: "固定价差", summary: "半价差永远是 h。", p: { h: 6 },
+    code: "// 卖价 = x + h，买价 = x − h。\n// h 小：总能抢到单，但抢到的多半是自己估错的那些。h 大：安全，可是没人找你成交。\nfunction decide(s, p) {\n  return p.h;\n}" },
+  { id: "m_even", market: "mm", name: "保本价差", summary: "半价差 = ε(N−1)/(N+1)：对不知情的客人刚好保本。", p: {},
+    code: "// 卖价全场最低的那条规则，手里是最悲观的估计：V 平均比它高 ε(N−1)/(N+1)。\n// 半价差取这么大，卖给不知情的客人平均不赚不亏；碰上知情的客人还是要亏。\nfunction decide(s, p) {\n  return s.g.eps * (s.n - 1) / (s.n + 1);\n}" },
+  { id: "m_safe", market: "mm", name: "保本再加一点", summary: "半价差 = ε(N−1)/(N+1) + m，多出来的 m 用来垫知情客人那一头。", p: { m: 4 },
+    code: "// 在保本价差上再加 m。知情的客人越多（s.g.pi 越大），m 就该越大。\nfunction decide(s, p) {\n  return s.g.eps * (s.n - 1) / (s.n + 1) + p.m;\n}" },
+  { id: "m_learn", market: "mm", name: "边做边调", summary: "成交了却亏钱就把价差放宽，很久没人成交就收窄。", p: { h0: 8, up: 1.5, down: 0.4, wait: 6 },
+    code: "// 从盈亏里学半价差 h。\nfunction init(p) {\n  return { h: p.h0, dry: 0 };\n}\nfunction decide(s, p, st) {\n  if (s.t > 0) {\n    if (s.won) { st.dry = 0; if (s.last < 0) st.h += p.up; }\n    else if (++st.dry >= p.wait) { st.dry = 0; st.h = Math.max(0, st.h - p.down); }\n  }\n  return st.h;\n}" }
+];
+function consts(market, over) {
+  var d = MARKETS[market].defaults, o = over || {}, lo = +o.lo, hi = +o.hi, eps = +o.eps, pi = +o.pi, R = +o.R;
+  lo = isFinite(lo) ? lo : d.lo; hi = isFinite(hi) && hi > lo ? hi : lo + (d.hi - d.lo);
+  return Object.freeze({ market: market, lo: lo, hi: hi, eps: isFinite(eps) && eps > 0 ? Math.min(eps, 1e6) : d.eps, fmt: o.fmt === "second" ? "second" : "first",
+    pi: market === "mm" ? Math.min(1, Math.max(0, isFinite(pi) ? pi : d.pi)) : 0, R: market === "mm" ? (isFinite(R) && R > 0 ? R : d.R) : 0 });
+}
+/** 这个市场、这么多条规则时的几个理论值：[{ id, name, value }]，都是"平均每回合每条规则的盈亏" */
+function marks(g, n) {
+  var e = g.eps, out = [];
+  if (n < 2) return out;
+  if (g.market === "auction") {
+    out.push({ id: "face", name: "全场都\"信号是多少出多少\"", value: -e * (n - 1) / (n + 1) / n });
+    out.push({ id: "even", name: "全场都出保本价", value: 0 });
+    if (g.fmt === "first") out.push({ id: "eq", name: "全场都按均衡出价（信号不贴边界时的近似）", value: 2 * e / (n + 1) / n });
+  } else if (!(g.pi > 0)) {
+    out.push({ id: "even", name: "全场都报保本价差", value: 0 });
+  }
+  return out;
+}
+QL.ARENA = { markets: MARKETS, lib: LIB, consts: consts, marks: marks, ver: 1 };
+
+/** 打一场。players: [{ decide, init, p }]；返回 { pnl[], fills[], edge[], act[], nact[], bad[], err[], trace }。
+ *  trace 为真时记下每回合之后各条规则的累计盈亏 */
+QL.arenaMatch = function (g, T, players, seed, k, trace) {
+  var n = players.length, rng = new RNG(seed, k, 9001), i, t, auction = g.market === "auction", second = g.fmt === "second";
+  var st = [], rnds = [], tot = new Float64Array(n), last = new Float64Array(n).fill(NaN), lastA = new Float64Array(n).fill(NaN), won = new Uint8Array(n);
+  var fills = new Float64Array(n), edge = new Float64Array(n), act = new Float64Array(n), nact = new Float64Array(n), bad = new Float64Array(n), err = [], x = new Float64Array(n), a = new Float64Array(n);
+  var pv = NaN, pwin = NaN, pside = 0, cum = trace ? players.map(function () { return new Float32Array(T + 1); }) : null;
+  for (i = 0; i < n; i++) {
+    err.push("");
+    (function (r) { rnds.push(function () { return r.u(); }); })(new RNG(seed, k * 64 + i, 9002));
+    try { st.push(players[i].init ? players[i].init(players[i].p) || {} : {}); } catch (e) { st.push({}); err[i] = String(e && e.message || e); }
+  }
+  for (t = 0; t < T; t++) {
+    var V = g.lo + (g.hi - g.lo) * rng.u();
+    for (i = 0; i < n; i++) x[i] = V + g.eps * (2 * rng.u() - 1);
+    for (i = 0; i < n; i++) {
+      var r = NaN;
+      if (!err[i]) {
+        try { r = players[i].decide(Object.freeze({ t: t, T: T, n: n, x: x[i], g: g, last: last[i], lastA: lastA[i], won: won[i], v: pv, win: pwin, side: pside, total: tot[i], rnd: rnds[i] }), players[i].p, st[i]); }
+        catch (e2) { err[i] = String(e2 && e2.message || e2); r = NaN; }   // 抛过一次错的规则，这一场余下的回合不再问它
+      }
+      if (typeof r !== "number" || r !== r || r === Infinity || r === -Infinity) { if (!err[i]) bad[i]++; r = NaN; }
+      a[i] = r; lastA[i] = r; last[i] = 0; won[i] = 0;
+    }
+    var w = -1, price = NaN, side = 0, ties, u;
+    if (auction) {
+      var best = 0, sec = 0;
+      for (i = 0; i < n; i++) { var b = a[i] > 0 ? a[i] : 0; if (b > 0) { act[i] += x[i] - b; nact[i]++; } if (b > best) { if (best > sec) sec = best; best = b; } else if (b > sec) sec = b; }
+      if (best > 0) {
+        ties = []; for (i = 0; i < n; i++) if (a[i] === best) ties.push(i);
+        w = ties.length > 1 ? ties[Math.floor(rng.u() * ties.length)] : ties[0];
+        if (second && ties.length > 1) sec = best;
+        price = second ? sec : best; side = 1;
+        last[w] = V - price;
+      }
+    } else {
+      var ask = Infinity, bid = -Infinity;
+      for (i = 0; i < n; i++) { if (a[i] !== a[i]) continue; var hh = a[i] > 0 ? a[i] : 0; a[i] = hh; act[i] += hh; nact[i]++; if (x[i] + hh < ask) ask = x[i] + hh; if (x[i] - hh > bid) bid = x[i] - hh; }
+      if (ask < Infinity) {
+        u = rng.u();
+        if (u < g.pi) { var gb = V - ask, gs = bid - V; side = gb > 0 && gb >= gs ? 1 : gs > 0 ? -1 : 0; }
+        else { side = rng.u() < 0.5 ? 1 : -1; if (side > 0 ? ask > V + g.R : bid < V - g.R) side = 0; }
+        if (side) {
+          ties = []; for (i = 0; i < n; i++) if (a[i] === a[i] && (side > 0 ? x[i] + a[i] === ask : x[i] - a[i] === bid)) ties.push(i);
+          w = ties.length > 1 ? ties[Math.floor(rng.u() * ties.length)] : ties[0];
+          price = side > 0 ? ask : bid;
+          last[w] = side > 0 ? price - V : V - price;
+        }
+      }
+    }
+    if (w >= 0) { won[w] = 1; fills[w]++; edge[w] += last[w]; tot[w] += last[w]; }
+    pv = V; pwin = price; pside = w >= 0 ? side : 0;
+    if (cum) for (i = 0; i < n; i++) cum[i][t + 1] = tot[i];
+  }
+  return { pnl: tot, fills: fills, edge: edge, act: act, nact: nact, bad: bad, err: err, trace: cum };
+};
+/** 比 K 场，汇总成每条规则一行：{ id, mean, se, fill, edge, act, bad, err } */
+QL.arenaRun = function (g, T, K, players, seed, progress) {
+  var n = players.length, s1 = new Float64Array(n), s2 = new Float64Array(n), fills = new Float64Array(n), edge = new Float64Array(n), act = new Float64Array(n), nact = new Float64Array(n), bad = new Float64Array(n), err = players.map(function () { return ""; }), trace = null, k, i;
+  for (k = 0; k < K; k++) {
+    var m = QL.arenaMatch(g, T, players, seed, k, k === 0);
+    if (k === 0) trace = m.trace;
+    for (i = 0; i < n; i++) { var v = m.pnl[i] / T; s1[i] += v; s2[i] += v * v; fills[i] += m.fills[i]; edge[i] += m.edge[i]; act[i] += m.act[i]; nact[i] += m.nact[i]; bad[i] += m.bad[i]; if (m.err[i] && !err[i]) err[i] = m.err[i]; }
+    if (progress && (k % 10 === 9 || k === K - 1)) progress({ done: k + 1, total: K });
+  }
+  return {
+    rows: players.map(function (pl, j) {
+      var mean = s1[j] / K, va = K > 1 ? Math.max(0, (s2[j] - s1[j] * s1[j] / K) / (K - 1)) : 0;
+      return { id: pl.id, mean: mean, se: K > 1 ? Math.sqrt(va / K) : NaN, fill: fills[j] / (K * T), edge: fills[j] ? edge[j] / fills[j] : NaN, act: nact[j] ? act[j] / nact[j] : NaN, bad: bad[j] / (K * T), err: err[j] };
+    }),
+    trace: trace ? trace.map(function (c) { return Array.prototype.slice.call(c); }) : null
+  };
+};
+/** 任务：m: { market, params, T, K, seed, entries: [{ id, p }] }。先让每条规则单独走几步（卡死的话外面知道是哪一条），再正式比 */
+QL.jobs = QL.jobs || {};
+QL.jobs.arena = function (m, CODE, progress) {
+  var market = MARKETS[m.market] ? m.market : "auction", g = consts(market, m.params), T = Math.max(5, Math.min(2000, m.T | 0 || 200)), K = Math.max(1, Math.min(5000, m.K | 0 || 200)), seed = m.seed | 0;
+  var players = [], skipped = [];
+  (m.entries || []).slice(0, 8).forEach(function (en) {
+    var S = CODE[en.id];
+    if (!S || typeof S.decide !== "function") { skipped.push({ id: en.id, err: "代码里没有定义 decide(s, p, st) 函数" }); return; }
+    var pl = { id: en.id, decide: S.decide, init: S.init || null, p: QL.jobParams(en.p) };
+    progress({ id: en.id, warm: true });
+    var w = QL.arenaMatch(g, 12, [pl, { id: "_", decide: function (s) { return s.x; }, init: null, p: {} }], seed, 4000000, false);   // 体检：单独走 12 个回合
+    if (w.err[0]) { skipped.push({ id: en.id, err: w.err[0] }); return; }
+    players.push(pl);
+  });
+  if (players.length < 2) return { market: market, g: g, T: T, K: K, n: players.length, rows: [], skipped: skipped, trace: null, marks: [] };
+  progress({ id: "", start: true });
+  var out = QL.arenaRun(g, T, K, players, seed, function (p) { progress(p); });
+  return { market: market, g: g, T: T, K: K, n: players.length, rows: out.rows, skipped: skipped, trace: out.trace, marks: marks(g, players.length) };
+};
+}
+if (typeof module !== "undefined" && module.exports) module.exports = QL_ARENA_INSTALL;
+
 /* ===== charts.js ===== */
 /* 图表层：只用 Canvas 2D，不依赖外部库。
  * 一张图 = 共享 x 轴的若干面板（每个面板只有一条 y 轴，绝不做双轴）或一张热力图。
@@ -7274,6 +7561,66 @@ var QLChart = (function () {
   };
 })();
 
+/* ===== sandbox.js ===== */
+/* 策略实验室 · 隔离环境：别人写的代码在这里面跑
+ * 自己写的、AI 替你写的代码，出的错是无心之失，后台线程里遮住几个名字（engine-client.js 的 SHADOW）就够了。
+ * 别人上传的代码不能这样假设。它在一个"沙箱页"里的后台线程中运行：
+ *   · 沙箱页是一个 sandbox="allow-scripts" 的 iframe，没有 allow-same-origin：它的来源是一个独一无二的空来源，
+ *     读不到这张页面的任何东西（存档、接入 AI 用的密钥、Cookie、IndexedDB），也碰不到这张页面的 DOM。
+ *   · 沙箱页自带一条内容安全策略：default-src 'none'。里面的线程发不出任何网络请求（fetch、XHR、WebSocket、importScripts 都不行），
+ *     也不能用 eval / new Function 现造代码。
+ *   · 沙箱页自己只有下面这十几行转发用的代码；别人的代码只在它开的线程里，和这张页面之间只隔着 postMessage 传数。
+ * 卡死了怎么办：外面的人（jobs.js、engine-client.js）到时间没等到结果，就把整个沙箱页拿掉，里面的线程跟着没了。
+ * 用法和 Worker 一样：var w = QLSandbox.spawn(源码); w.onmessage = …; w.onerror = …; w.postMessage(…); w.terminate(); */
+var QLSandbox = (function () {
+  "use strict";
+  var CSP = "default-src 'none'; script-src 'unsafe-inline'; worker-src blob:";
+  /* 沙箱页里的全部代码。它被写成一个函数只是为了好读：真正用的是它的源码文本 */
+  function boot() {
+    var w = null;
+    function up(m) { parent.postMessage(m, "*"); }
+    addEventListener("message", function (e) {
+      if (e.source !== parent) return;
+      var m = e.data; if (!m || typeof m !== "object") return;
+      if (m.__sb === "start" && !w) {
+        try { w = new Worker(URL.createObjectURL(new Blob([m.src], { type: "text/javascript" }))); }
+        catch (err) { up({ __sb: "fail", message: String(err && err.message || err) }); return; }
+        w.onmessage = function (ev) { up({ __sb: "msg", data: ev.data }); };
+        w.onerror = function (ev) { if (ev.preventDefault) ev.preventDefault(); up({ __sb: "error", message: String(ev.message || ""), lineno: ev.lineno || 0 }); };
+        up({ __sb: "started" });
+      } else if (m.__sb === "post" && w) w.postMessage(m.data);
+    });
+    up({ __sb: "boot" });
+  }
+  var DOC = "<!doctype html><meta charset=\"utf-8\"><meta http-equiv=\"Content-Security-Policy\" content=\"" + CSP + "\"><script>(" + boot.toString() + ")();<\/script>";
+
+  /** 开一个沙箱页，在里面用 src 起一个后台线程。opt.bootMs：多久没起来算失败（默认 6 秒） */
+  function spawn(src, opt) {
+    opt = opt || {};
+    var frame = document.createElement("iframe"), api = { onmessage: null, onerror: null, dead: false, sandboxed: true }, queue = [], started = false, timer = 0;
+    function fail(msg, lineno, kind) { if (api.onerror) api.onerror({ message: msg, lineno: lineno || 0, sandbox: kind || "", preventDefault: function () {} }); }
+    function onMsg(e) {
+      if (api.dead || e.source !== frame.contentWindow) return;
+      var m = e.data; if (!m || typeof m !== "object") return;
+      if (m.__sb === "boot") frame.contentWindow.postMessage({ __sb: "start", src: src }, "*");
+      else if (m.__sb === "started") { started = true; clearTimeout(timer); queue.splice(0).forEach(function (d) { frame.contentWindow.postMessage({ __sb: "post", data: d }, "*"); }); }
+      else if (m.__sb === "msg") { if (api.onmessage) api.onmessage({ data: m.data }); }
+      else if (m.__sb === "error") fail(String(m.message || ""), m.lineno | 0, "");
+      else if (m.__sb === "fail") { clearTimeout(timer); fail(String(m.message || ""), 0, "nostart"); }
+    }
+    frame.setAttribute("sandbox", "allow-scripts"); frame.setAttribute("aria-hidden", "true"); frame.setAttribute("tabindex", "-1"); frame.setAttribute("title", "sandbox");
+    frame.style.cssText = "position:absolute;width:0;height:0;border:0;visibility:hidden;pointer-events:none";
+    frame.srcdoc = DOC;
+    window.addEventListener("message", onMsg);
+    try { document.body.appendChild(frame); } catch (e) { setTimeout(function () { fail(String(e && e.message || e), 0, "nostart"); }, 0); }
+    timer = setTimeout(function () { if (!started && !api.dead) fail("timeout", 0, "nostart"); }, opt.bootMs || 6000);
+    api.postMessage = function (d) { if (api.dead) return; if (started) frame.contentWindow.postMessage({ __sb: "post", data: d }, "*"); else queue.push(d); };
+    api.terminate = function () { if (api.dead) return; api.dead = true; clearTimeout(timer); window.removeEventListener("message", onMsg); try { frame.remove(); } catch (e) {} };
+    return api;
+  }
+  return { spawn: spawn, CSP: CSP };
+})();
+
 /* ===== engine-client.js ===== */
 /* 主线程这一侧：把内核源码和策略代码拼成一个后台线程，并把消息包装成 Promise。
  * 策略代码不经过 eval：它直接成为 Worker 脚本的一部分。 */
@@ -7305,14 +7652,17 @@ var QLEngine = (function () {
     this.ready = new Promise(function (resolve, reject) { self._ready = resolve; self._fail = reject; });
     this.ready.catch(function () {});
     try {
-      this.url = URL.createObjectURL(new Blob([built.src], { type: "text/javascript" }));
-      this.worker = new Worker(this.url);
+      // 别人写的代码（规则或世界）：线程开在隔离环境里（sandbox.js）。是不是别人的，由页面那一侧说了算（api.needSandbox）
+      this.sandboxed = this.hooks.sandbox != null ? !!this.hooks.sandbox : !!(api.needSandbox && api.needSandbox(stratCode, worldCode || ""));
+      if (this.sandboxed) this.worker = QLSandbox.spawn(built.src);
+      else { this.url = URL.createObjectURL(new Blob([built.src], { type: "text/javascript" })); this.worker = new Worker(this.url); }
     } catch (e) {
       this.dead = true; this._fail({ message: "这个环境不允许创建后台线程，无法运行回测（" + (e && e.message || e) + "）", fatal: true });
       return;
     }
     this.worker.onmessage = function (ev) { self.onMsg(ev.data); };
     this.worker.onerror = function (ev) {
+      if (ev.sandbox === "nostart") { var e0 = { message: "这个浏览器开不了隔离环境，所以不运行别人写的代码。换一个新一点的浏览器再试。", fatal: true }; self.kill(e0); self._fail(e0); return; }
       // 脚本加载阶段的错误：多半是策略代码的语法错误
       var ln = ev.lineno || 0, where = "", line = 0;
       if (ln >= built.stratStart && ln < built.stratStart + built.stratLines) { where = "策略代码"; line = ln - built.stratStart + 1; }
@@ -7367,7 +7717,7 @@ var QLEngine = (function () {
   Engine.prototype.kill = function (err) {
     if (this.dead) return; this.dead = true; clearTimeout(this.startTimer);
     try { this.worker.terminate(); } catch (e) {}
-    try { URL.revokeObjectURL(this.url); } catch (e) {}
+    if (this.url) { try { URL.revokeObjectURL(this.url); } catch (e) {} }
     var ps = this.pending; this.pending = {};
     Object.keys(ps).forEach(function (k) { clearTimeout(ps[k].timer); ps[k].reject(err || { message: "已停止", dead: true }); });
     if (err && this.hooks.onDeath) this.hooks.onDeath(err);
@@ -7451,8 +7801,126 @@ var QLEngine = (function () {
     if (this.url) { try { URL.revokeObjectURL(this.url); } catch (e) {} }
   };
 
-  return { Engine: Engine, buildSource: buildSource, Pool: Pool, poolSource: poolSource };
+  var api = { Engine: Engine, buildSource: buildSource, Pool: Pool, poolSource: poolSource, needSandbox: null };
+  return api;
 })();
+
+/* ===== jobs.js ===== */
+/* 策略实验室 · 一次性的计算任务（十项全能、规则同场、世界工坊的试玩台都走这里）
+ * 一件任务 = 一个新开的后台线程：装上内核，把这次要用到的几段代码（规则、世界、裁判）编进去，算完就扔。
+ * 只要任务里有别人写的代码，线程就开在隔离环境里（sandbox.js）；全是自己的代码而隔离环境又开不了时，退回普通的后台线程。
+ *
+ * 上半个文件（QL_JOBS_INSTALL）在线程里执行：
+ *   · harden()  在别人的代码执行之前，把内置对象（Math、Array.prototype、Float64Array.prototype……）、随机数发生器和模型库冻住。
+ *               不冻的话，一条规则可以改掉 Math.log，让之后的计分都算错。
+ *   · jobMain() 一个线程只接一件任务，接了之后不再理会别的消息。
+ *   别人的代码拿不到线程的全局对象（名字被遮住，eval 和 new Function 被内容安全策略禁掉），所以自己发不出"算完了"的假结果。
+ * 这些办法防的是常见的捣乱。JavaScript 没法在同一个线程里做到滴水不漏：别人的规则和你的规则同场时，
+ * 结果只当作娱乐，不要当作证明。数据安全不靠这些，靠的是隔离环境本身。
+ * 下半个文件（QLJobs）在页面里执行：拼源码、开线程、等结果、超时了就掐掉。 */
+function QL_JOBS_INSTALL(QL) {
+"use strict";
+QL.jobs = QL.jobs || {};
+function deepFreeze(o, depth) {
+  if (!o || (typeof o !== "object" && typeof o !== "function") || Object.isFrozen(o) || depth > 4) return;
+  Object.freeze(o);
+  Object.getOwnPropertyNames(o).forEach(function (k) { var d = Object.getOwnPropertyDescriptor(o, k); if (d && "value" in d) deepFreeze(d.value, depth + 1); });
+}
+/** 冻住内置对象。要在别人的代码执行之前调用（它们的顶层语句在编进线程时就会执行） */
+QL.harden = function () {
+  var TA = Object.getPrototypeOf(Float64Array), list = [Object, Object.prototype, Function.prototype, Array, Array.prototype, Math, JSON, Number, Number.prototype, String, String.prototype, Boolean, Boolean.prototype,
+    Symbol, Symbol.prototype, Date, Date.prototype, RegExp, RegExp.prototype, Error, Error.prototype, TypeError.prototype, RangeError.prototype, Promise, Promise.prototype, Map, Map.prototype, Set, Set.prototype, WeakMap, WeakMap.prototype,
+    ArrayBuffer, ArrayBuffer.prototype, DataView, DataView.prototype, Reflect, TA, TA.prototype, Object.getPrototypeOf([][Symbol.iterator]()), Object.getPrototypeOf(Object.getPrototypeOf([][Symbol.iterator]()))];
+  [Float64Array, Float32Array, Int8Array, Uint8Array, Uint8ClampedArray, Int16Array, Uint16Array, Int32Array, Uint32Array].forEach(function (C) { list.push(C, C.prototype); });
+  list.forEach(function (o) { try { Object.freeze(o); } catch (e) {} });
+  try { Object.freeze(QL.RNG); Object.freeze(QL.RNG.prototype); deepFreeze(QL.ml, 0); } catch (e) {}
+  QL.hardened = true;
+};
+/** 给规则看的参数：每条规则各拿各的一份，冻住（改不了，也传不到别的规则手里） */
+QL.jobParams = function (p) { var o = {}; Object.keys(p || {}).forEach(function (k) { var v = p[k]; if (typeof v === "number" || typeof v === "string" || typeof v === "boolean") o[k] = v; }); return Object.freeze(o); };
+/** 线程的主循环：只接一件任务。CODE：{ 编号: { init, decide, fit, simulate, deal, show, referee } }，是编进线程的那几段代码 */
+QL.jobMain = function (scope, CODE) {
+  var post = scope.postMessage.bind(scope), used = false;
+  scope.onmessage = function (ev) {
+    var m = ev && ev.data;
+    if (used || !m || m.type !== "job") return;
+    used = true;
+    try {
+      var f = QL.jobs[m.kind]; if (typeof f !== "function") throw new Error("没有这种任务：" + m.kind);
+      var out = f(m, CODE, function (p) { post(Object.assign({ type: "progress" }, p)); });
+      post({ type: "done", result: out });
+    } catch (e) { post({ type: "error", message: String(e && e.message || e) }); }
+  };
+  post({ type: "ready" });
+};
+}
+var QLJobs = (function () {
+  "use strict";
+  // 编进线程的代码里碰不到这些名字。比 engine-client.js 的那一份多：别人的代码连"给自己发消息""再开一个线程"的门也不留
+  var SHADOW = "var self, globalThis, postMessage, onmessage, onerror, onmessageerror, addEventListener, removeEventListener, dispatchEvent, importScripts, fetch, XMLHttpRequest, WebSocket, EventSource, WebTransport, BroadcastChannel, MessageChannel, MessageEvent, Worker, SharedWorker, URL, Blob, FileReader, close, navigator, location, indexedDB, caches, crypto, setTimeout, setInterval, queueMicrotask, requestAnimationFrame, reportError, structuredClone, QL, __CODE, QL_CORE, QL_ML_INSTALL, QL_GAMES_INSTALL, QL_OBS_INSTALL, QL_LIVE_INSTALL, QL_JOBS_INSTALL, QL_DECA_INSTALL, QL_ARENA_INSTALL, QL_SHOP_INSTALL;";
+  var RET = "\n;return { init: typeof init === \"function\" ? init : null, decide: typeof decide === \"function\" ? decide : null, fit: typeof fit === \"function\" ? fit : null, simulate: typeof simulate === \"function\" ? simulate : null, deal: typeof deal === \"function\" ? deal : null, show: typeof show === \"function\" ? show : null, referee: typeof referee === \"function\" ? referee : null };\n})();";
+  function lines(s) { var n = 0, i = -1; while ((i = s.indexOf("\n", i + 1)) >= 0) n++; return n; }
+  function fns() {
+    var base = [typeof QL_ML_INSTALL === "function" ? QL_ML_INSTALL : null, typeof QL_GAMES_INSTALL === "function" ? QL_GAMES_INSTALL : null, typeof QL_OBS_INSTALL === "function" ? QL_OBS_INSTALL : null, typeof QL_LIVE_INSTALL === "function" ? QL_LIVE_INSTALL : null].filter(Boolean).map(function (f) { return f.toString(); }).join("\n");
+    var extra = [QL_JOBS_INSTALL, typeof QL_DECA_INSTALL === "function" ? QL_DECA_INSTALL : null, typeof QL_ARENA_INSTALL === "function" ? QL_ARENA_INSTALL : null, typeof QL_SHOP_INSTALL === "function" ? QL_SHOP_INSTALL : null].filter(Boolean).map(function (f) { return "(" + f.toString() + ")(QL);"; }).join("\n");
+    return base + "\nvar QL = (" + QL_CORE.toString() + ")(self);\n" + extra + "\nQL.harden();\nvar __CODE = {};\n";
+  }
+  /** 拼出线程的源码。codes: [{ id, code }]；返回 { src, spans: [{ id, from, to }] }（每段代码落在源码的哪几行，报错时用） */
+  function source(codes) {
+    var src = fns(), spans = [];
+    (codes || []).forEach(function (c) {
+      var pre = "__CODE[" + JSON.stringify(String(c.id)) + "] = (function () { \"use strict\"; " + SHADOW + "\n", from = lines(src + pre) + 1, body = String(c.code == null ? "" : c.code);
+      src += pre + body + RET + "\n";
+      spans.push({ id: String(c.id), from: from, to: from + lines(body) });
+    });
+    return { src: src + "QL.jobMain(self, __CODE);\n", spans: spans };
+  }
+  /** 一段代码能不能通过语法检查（只解析，不执行）。不许现造代码的环境里查不了，就当它没问题，留给线程去报 */
+  function syntax(code) {
+    try { new Function("\"use strict\";\n" + code + "\n"); return ""; }
+    catch (e) { return e instanceof SyntaxError ? String(e.message || e) : ""; }
+  }
+  /** 跑一件任务。job: { kind, codes: [{ id, code, mine }], data: {…任务自己的参数}, timeout（多久没动静算卡死，毫秒）, onProgress }
+   *  返回 { promise, cancel() }。promise 兑现为任务的结果；失败时是 { message, id（哪段代码出的事，知道的话）, line, timeout, nostart } */
+  function run(job) {
+    var built = source(job.codes), allMine = (job.codes || []).every(function (c) { return !!c.mine; }), w = null, done = false, timer = 0, last = null, cancelFn = function () {};
+    var promise = new Promise(function (resolve, reject) {
+      var limit = job.timeout || 30000;
+      function finish(err, val) { if (done) return; done = true; clearTimeout(timer); try { if (w) w.terminate(); } catch (e) {} if (err) reject(err); else resolve(val); }
+      function arm() { clearTimeout(timer); timer = setTimeout(function () { finish({ message: "这件任务超过 " + Math.round(limit / 1000) + " 秒没有动静，已经停掉：多半是哪一段代码里有死循环。", timeout: true, id: last && last.id != null ? String(last.id) : "" }); }, limit); }
+      function locate(ln) { for (var i = 0; i < built.spans.length; i++) if (ln >= built.spans[i].from && ln <= built.spans[i].to) return { id: built.spans[i].id, line: ln - built.spans[i].from + 1 }; return null; }
+      function wire(worker, plain) {
+        w = worker;
+        w.onmessage = function (ev) {
+          var m = ev.data; if (done || !m || typeof m !== "object") return;
+          if (m.type === "ready") { arm(); w.postMessage(Object.assign({ type: "job", kind: job.kind }, job.data || {})); }
+          else if (m.type === "progress") { arm(); last = m; if (job.onProgress) { try { job.onProgress(m); } catch (e) {} } }
+          else if (m.type === "done") finish(null, m.result);
+          else if (m.type === "error") finish({ message: String(m.message || "出错了"), id: last && last.id != null ? String(last.id) : "" });
+        };
+        w.onerror = function (ev) {
+          if (ev.preventDefault) ev.preventDefault();
+          if (ev.sandbox === "nostart" && !plain) {                       // 隔离环境没开起来
+            try { w.terminate(); } catch (e) {}
+            if (allMine) { try { wire(new Worker(URL.createObjectURL(new Blob([built.src], { type: "text/javascript" }))), true); arm(); return; } catch (e) {} }
+            finish({ message: allMine ? "这个环境不允许创建后台线程，这件事做不了。" : "这个浏览器开不了隔离环境，所以不运行别人写的代码。换一个新一点的浏览器再试。", nostart: true });
+            return;
+          }
+          var at = locate(ev.lineno | 0), msg = String(ev.message || "脚本错误").replace(/^Uncaught\s+/, "");
+          finish({ message: msg, id: at ? at.id : "", line: at ? at.line : 0, compile: true });
+        };
+      }
+      cancelFn = function () { finish({ cancelled: true, message: "已取消" }); };
+      arm();
+      try { wire(QLSandbox.spawn(built.src), false); }
+      catch (e) { finish({ message: String(e && e.message || e), nostart: true }); }
+    });
+    promise.catch(function () {});
+    return { promise: promise, cancel: function () { cancelFn(); } };
+  }
+  return { run: run, source: source, syntax: syntax, SHADOW: SHADOW };
+})();
+if (typeof module !== "undefined" && module.exports) { module.exports = QL_JOBS_INSTALL; module.exports.QLJobs = QLJobs; }
 
 /* ===== md.js ===== */
 /* 说明文字的渲染：一个很小的 Markdown 子集 + KaTeX 公式。
@@ -10788,6 +11256,14 @@ var App = (function () {
   function extFor() { var ds = A.wdef().needsData ? A.dataset() : null; return ds ? { series: ds.v } : null; }
   A.worldKey = function () { return curWorldKey(); };
   A.worldCode = worldCode; A.extFor = extFor;
+  /** 这段规则代码（连同世界代码）是不是别人写的：从大家的榜上、世界工坊里载入的东西带着 foreign 标记，它们在隔离环境里跑（sandbox.js）。
+   *  眼下用的就是别人的规则时，由它改出来的代码也按别人的算 */
+  A.isForeignCode = function (sc, wc) {
+    if (wc && S.custom && S.custom.foreign && wc === S.custom.code) return true;
+    if (A.strat().foreign) return true;
+    var c = String(sc || ""); return A.my.some(function (m) { return m.foreign && c.indexOf(m.code) === 0; });
+  };
+  QLEngine.needSandbox = A.isForeignCode;
   function curWorldKey() { var ds = A.wdef().needsData ? A.dataset() : null; return JSON.stringify(A.worldCfg()) + "|" + (ds ? ds.id + ":" + ds.v.length : ""); }
   A.fitKeys = function (st) { st = st || A.strat(); return st.fitKeys || null; };
   A.hasFit = function (st) { st = st || A.strat(); return /\bfunction\s+fit\s*\(/.test(st.code || ""); };
@@ -11286,6 +11762,7 @@ var App = (function () {
     if (mine.length) sel.appendChild(h("optgroup", { label: "我的策略" }, mine.map(function (x) { return h("option", { value: x.id, text: x.name, selected: x.id === st.id }); })));
     host.appendChild(sel);
     host.appendChild(h("p", { class: "blurb" }, A.tierBadge(st.explain && st.explain.tier || st.tier), " ", st.summary || ""));
+    if (st.foreign) host.appendChild(h("p", { class: "note", id: "stratForeign" }, "这条规则是别人写的", st.from && st.from.user ? ["（", h("a", { href: st.from.url, target: "_blank", rel: "noopener", text: "@" + st.from.user }), "）"] : null, "，在隔离环境里运行：它碰不到这张页面里的东西，也连不了网。"));
     var ph = h("div", { class: "fields" }); host.appendChild(ph);
     // 需要重新训练模型的参数：拖动时不重算，松手才算
     A.renderParams(ph, A.sschema(st), vals, function (k) { if (!(st.fitKeys && st.fitKeys.indexOf(k) >= 0)) A.requestRun("live"); }, function (k, structural) { if (structural) A.renderStrat(); A.requestRun("commit"); }, "s");
@@ -13614,6 +14091,88 @@ var App = (function () {
   };
 })(App);
 
+/* ===== app-share.js ===== */
+/* 应用主体（十）：把自己的东西交出去、把别人的东西拿进来。十项全能、规则同场、世界工坊共用。
+ * 交出去：页面不替人发帖。这里把要交的内容摆给人看，再给一条去 GitHub"新建 Issue"的链接（见 hub.js）。
+ * 拿进来：别人交的东西先过一遍筛子（名字、说明、参数表都只留认得的字段，长度有上限，数字必须是有限的），
+ *         放进"我的策略"时带着 foreign 标记：凡是带这个标记的代码，一律在隔离环境里运行（sandbox.js）。
+ * 别人写的名字和说明只当纯文字显示。 */
+(function (A) {
+  "use strict";
+  var h = A.h, QL = A.QL, S = A.state;
+  function str(x, n) { return typeof x === "string" ? x.replace(/[\u0000-\u0008\u000b-\u001f\u007f]/g, "").trim().slice(0, n) : ""; }
+  A.cleanText = str;
+  /** 别人交来的参数表：只留认得的字段 */
+  A.cleanSchema = function (L) {
+    if (!Array.isArray(L)) return [];
+    var out = [], seen = {};
+    L.slice(0, 16).forEach(function (q) {
+      if (!q || typeof q.key !== "string" || !/^[A-Za-z_][A-Za-z0-9_]{0,23}$/.test(q.key) || seen[q.key]) return;
+      var label = str(q.label, 40) || q.key;
+      if (q.type === "bool") { seen[q.key] = 1; out.push({ key: q.key, label: label, def: !!q.def, type: "bool" }); return; }
+      if (q.type === "select") {
+        var ops = Array.isArray(q.options) ? q.options.slice(0, 12).filter(function (o) { return Array.isArray(o) && typeof o[0] === "string" && o[0].length <= 24; }).map(function (o) { return [o[0], str(o[1], 40) || o[0]]; }) : [];
+        if (!ops.length) return;
+        seen[q.key] = 1; out.push({ key: q.key, label: label, def: ops.some(function (o) { return o[0] === q.def; }) ? q.def : ops[0][0], options: ops, type: "select" }); return;
+      }
+      var def = +q.def, min = +q.min, max = +q.max, step = +q.step;
+      if (![def, min, max, step].every(isFinite) || !(max > min) || !(step > 0)) return;
+      seen[q.key] = 1; out.push({ key: q.key, label: label, def: Math.min(max, Math.max(min, def)), min: min, max: max, step: step, type: "num" });
+    });
+    return out;
+  };
+  /** 按参数表把一组参数值收拾干净：缺的补默认值，超出范围的收回来 */
+  A.cleanParams = function (schema, p) {
+    var o = {};
+    schema.forEach(function (q) {
+      var v = p ? p[q.key] : undefined;
+      if (q.type === "bool") o[q.key] = v == null ? q.def : !!v;
+      else if (q.type === "select") o[q.key] = q.options.some(function (x) { return x[0] === v; }) ? v : q.def;
+      else { v = typeof v === "number" ? v : NaN; o[q.key] = isFinite(v) ? Math.min(q.max, Math.max(q.min, v)) : q.def; }
+    });
+    return o;
+  };
+  /** 一条规则写成要交上去的样子：{ meta, code } */
+  A.rulePack = function (st, p, kind, extra) {
+    var schema = (st.params || []).map(function (q) { var o = { key: q.key, label: q.label, def: q.def, type: q.type || "num" }; if (o.type === "num") { o.min = q.min; o.max = q.max; o.step = q.step; } if (q.options) o.options = q.options.map(function (x) { return [x[0], x[1]]; }); return o; });
+    return { meta: Object.assign({ kind: kind, name: st.name, summary: st.summary || "", params: schema, p: Object.assign({}, p), game: st.game || "" }, extra || {}), code: st.code };
+  };
+  /** 榜上的一条 → { st（可以放进"我的策略"的规则）, p（它交上来时用的参数）, item }；不合规矩的返回 null */
+  A.ruleFromItem = function (it) {
+    var m = it && it.meta, code = it && it.code;
+    if (!m || typeof code !== "string" || !code.trim() || code.length > 20000) return null;
+    var schema = A.cleanSchema(m.params), game = typeof m.game === "string" && QL.WORLDS[m.game] && QL.WORLDS[m.game].game ? m.game : "";
+    var st = { id: "hub-" + it.n, name: str(m.name, 40) || "没有名字的规则", group: "我的策略", summary: str(m.summary, 200), params: schema, code: code, src: "hub", foreign: true, from: { user: it.user, n: it.n, url: it.url } };
+    if (game) st.game = game;
+    return { st: st, p: A.cleanParams(schema, m.p), item: it };
+  };
+  /** 把榜上的一条规则载入"我的策略"并选用它 */
+  A.adoptRule = function (r) {
+    A.saveMy(r.st); S.sparams[r.st.id] = Object.assign({}, r.p);
+    if (r.st.game) { if (S.world.type !== r.st.game) A.setGame(r.st.game); } else if (A.isGame() && A.wdef().act !== "position") A.setGame("trade");
+    A.setStrat(r.st.id);
+    A.toast("已载入到\"我的策略\"：" + r.st.name + "。别人写的代码在隔离环境里运行。", 4200);
+  };
+  /** 一组参数写成一行："f = 1，n = 20"；没有参数时是空字符串 */
+  A.paramLine = function (schema, p) { return (schema || []).map(function (q) { var v = p[q.key]; return q.key + " = " + (typeof v === "number" ? +v.toFixed(6) : String(v)); }).join("，"); };
+
+  /** 把一份东西交到 GitHub。o: { kind, title, meta, code }。先给人看要交的是什么，再给去 GitHub 的链接 */
+  A.postDialog = function (o) {
+    var body; try { body = QLHub.pack(o.meta, o.code); } catch (e) { A.toast(e.message || String(e), 4200); return null; }
+    var u = QLHub.newUrl(o.kind, o.title, body), long = !!u.clip;
+    var steps = long
+      ? "内容比较长，放不进地址里，所以分两步：先点\"复制内容\"，再点\"去 GitHub 提交\"；在打开的页面里把正文整段换成刚复制的内容，然后点 Submit new issue。"
+      : "点\"去 GitHub 提交\"会打开 GitHub 的新建 Issue 页面，内容已经填好；在那里点 Submit new issue 就交上去了。";
+    var copy = h("button", { class: "btn" + (long ? " primary" : ""), type: "button", id: "pdCopy", text: "复制内容", onclick: function () { A.copy(body); } });
+    var go = A.outLink("去 GitHub 提交", u.url, !long, "pdGo");
+    return A.modal("交到 GitHub", [
+      h("p", { class: "lb-lead", id: "pdSteps", text: steps }),
+      h("pre", { class: "code pd-body", id: "pdBody", text: body }),
+      h("p", { class: "note", text: "需要一个 GitHub 账号。交上去的东西是公开的，署的是你的 GitHub 用户名；别人可以载入、运行和修改它。想撤下来，把那条 Issue 关掉就行。" })
+    ], { cls: "pdm", foot: [copy, go] });
+  };
+})(App);
+
 /* ===== app-daily.js ===== */
 /* 应用主体（八）：每日一局。全站每天打同一局（哪套玩法、哪个种子只由日期决定，见 social.js），打完看自己排在所有人的哪个位置。
  * 打：就是"亲手玩一局"里指定的那一局，一天只有这一局，打到一半关掉可以接着打。成绩存在这台设备上。
@@ -14066,6 +14625,464 @@ var App = (function () {
     blurb: "最多八个人同时打同一局。打的时候只看得到彼此的进度，所有人打完一起揭晓。不需要账号，把邀请链接发给朋友就行。",
     status: function () { return cur && cur.alive ? "你在房间 " + cur.code + " 里" : ""; },
     go: function (arg) { A.openRoom(arg); }
+  });
+})(App);
+
+/* ===== app-deca.js ===== */
+/* 应用主体（十一）：十项全能。一条规则走遍十个世界，每个世界里和买入持有比长期增长率，得分取最差的那一项（计分办法见 deca.js）。
+ * 我的规则：挑一条价格世界的规则，用它眼下的参数走一遍；可以再和内置规则排在一起看。
+ * 大家的榜：别人贴在 GitHub 上的规则（hub.js）。每一条都在你的浏览器里、隔离环境中现跑一遍，用的是这个星期的种子，
+ *           所以榜上的得分不是交的人报的，也没法针对种子事先调好：下个星期换了种子，它们要重新来过。
+ * 算的事都交给 jobs.js：一件任务一个线程，别人的代码在隔离环境里。 */
+(function (A) {
+  "use strict";
+  var h = A.h, clear = A.clear, QL = A.QL, S = A.state;
+  if (typeof QL_DECA_INSTALL !== "function" || typeof QLJobs === "undefined") return;
+  if (!QL.decaSeason) QL_DECA_INSTALL(QL);
+  A.decaOpt = { timeout: 45000, slow: 300000 };   // 一件任务多久没动静算卡死（毫秒）；带训练的规则放宽。测试里会调小
+  var mem = { mine: {}, refs: {}, board: {} };   // 这次打开页面期间算过的：同一个赛季、同一段代码、同一组参数不重算
+  function season() { return QL.decaSeason(Date.now()); }
+  function rate(v) { return v === -Infinity ? "破产" : v !== v || v == null ? "—" : A.pctS(v, 2); }
+  function num(v) { return v === "-inf" ? -Infinity : v; }
+  function wname(t) { return QL.WORLDS[t] ? QL.WORLDS[t].short : t; }
+  function hasFit(code) { return /\bfunction\s+fit\s*\(/.test(code || ""); }
+  function priceRules() { return A.allStrats().filter(function (s) { return !s.game; }); }
+  function builtins() { return QL_STRATS.filter(function (s) { return !s.game && !hasFit(s.code); }); }
+  function keyOf(code, p) { return season().id + "|" + A.hash(code) + "|" + JSON.stringify(p); }
+  /** 走十项。entries: [{ id, p }]；codes: [{ id, code, mine }]。返回 { promise, cancel } */
+  function runDeca(entries, codes, onProgress) {
+    var slow = codes.some(function (c) { return hasFit(c.code); });
+    return QLJobs.run({ kind: "deca", codes: codes, data: { seed: season().seed, n: QL.DECA.N, entries: entries }, timeout: slow ? A.decaOpt.slow : A.decaOpt.timeout, onProgress: onProgress });
+  }
+  A.decaRun = runDeca;
+  function errText(e) {
+    if (e.compile) return "代码有语法错误" + (e.line ? "（第 " + e.line + " 行）" : "") + "：" + e.message;
+    return e.message || "出错了";
+  }
+  /** 十项的明细表 */
+  function eventsTable(r) {
+    var tb = h("tbody"), CAP = 0.2;
+    r.rows.forEach(function (x) {
+      var d = num(x.d), w = d === -Infinity ? 50 : 50 * Math.min(1, Math.abs(d) / CAP), over = Math.abs(d) > CAP;
+      tb.appendChild(h("tr", { class: x.id === r.worst ? "worst" : "", "data-ev": x.id },
+        h("td", null, wname(x.id), x.id === r.worst ? h("span", { class: "tag", text: "最差的一项" }) : null),
+        h("td", { class: "num", text: rate(x.bench) }), h("td", { class: "num", text: rate(num(x.growth)) }),
+        h("td", { class: "num" }, h("b", { class: "verdict " + (d > 0 ? "up" : d < 0 ? "down" : "flat"), text: rate(d) }), x.dse === x.dse && x.dse != null && typeof x.dse === "number" ? h("span", { class: "note", text: " ± " + A.P(x.dse, 2) }) : null),
+        h("td", { class: "dc-bar" }, h("span", { class: "dc-track" }, h("i", { class: (d >= 0 ? "up" : "down") + (over ? " over" : ""), style: { width: w + "%" } })))));
+    });
+    return h("div", { class: "gref" }, h("table", { class: "gtab hp-tab dc-tab" },
+      h("caption", { text: "每个世界 " + (r.rows[0] ? r.rows[0].N : QL.DECA.N) + " 条路径，规则和买入持有走的是同一批。数字是每年的对数增长率；最后一栏的横条在 ±20% 处封顶。" }),
+      h("thead", null, h("tr", null, h("th", { text: "世界" }), h("th", { text: "买入持有" }), h("th", { text: "这条规则" }), h("th", { text: "比买入持有" }), h("th", { text: "" }))), tb));
+  }
+  function sayOf(r) {
+    var sc = num(r.score), wn = wname(r.worst);
+    if (sc === -Infinity) return "在「" + wn + "」里有路径破产了，所以得分是负无穷。";
+    if (sc > 0) return "十个世界里都比买入持有好。最差的一项是「" + wn + "」，在那里每年也高出 " + A.P(sc, 2) + "。";
+    if (sc === 0) return "最差的一项和买入持有打平。";
+    return "最差的一项是「" + wn + "」：这条规则在那里比买入持有每年低 " + A.P(-sc, 2) + "。";
+  }
+
+  A.openDeca = function (startTab) {
+    var se = season(), tab = startTab === "board" ? "board" : "mine", jobs = [], alive = true, host = h("div", { class: "dc-host" });
+    var def = A.strat(), list = priceRules(), stId = !def.game ? def.id : (S.last && S.last.price) || "voltarget";
+    if (!list.some(function (s) { return s.id === stId; })) stId = list[0].id;
+    function stop() { jobs.splice(0).forEach(function (j) { j.cancel(); }); }
+    var seg = h("div", { class: "seg", role: "group", "aria-label": "看哪一边" });
+    [["mine", "我的规则"], ["board", "大家的榜"]].forEach(function (x) { seg.appendChild(h("button", { type: "button", "data-tab": x[0], text: x[1], onclick: function () { if (tab !== x[0]) { tab = x[0]; stop(); draw(); } } })); });
+    var nextIn = Math.max(1, Math.ceil((se.next - Date.now()) / 864e5));
+    var m = A.modal("十项全能", [
+      h("p", { class: "lb-lead", text: "一条规则走遍十个世界。每个世界里，它和买入持有在同一批路径上比长期增长率；十个差里最小的那一个就是得分。想拿高分，靠的不是在哪个世界里大赚，而是在哪个世界里都不掉链子。" }),
+      h("div", { class: "row tight dc-top" }, seg, h("span", { class: "sp" }), h("span", { class: "note", id: "dcSeason", text: "赛季 " + se.id + " · 还有 " + nextIn + " 天换种子" })),
+      host
+    ], { cls: "dcm", onClose: function () { alive = false; stop(); } });
+
+    /* ---- 我的规则 ---- */
+    function drawMine() {
+      var st = A.strat(stId), p = Object.assign({}, A.sp(stId)), key = keyOf(st.code, p), out = h("div", { class: "dc-out", id: "dcOut" });
+      var sel = h("select", { id: "dcRule", "aria-label": "哪一条规则", onchange: function () { stId = sel.value; stop(); draw(); } }), groups = [];
+      list.forEach(function (s) { var g = s.src ? "我的策略" : s.group; if (groups.indexOf(g) < 0) groups.push(g); });
+      groups.forEach(function (g) { sel.appendChild(h("optgroup", { label: g }, list.filter(function (s) { return (s.src ? "我的策略" : s.group) === g; }).map(function (s) { return h("option", { value: s.id, text: s.name, selected: s.id === stId }); }))); });
+      var pl = A.paramLine(A.sschema(st), p), go = h("button", { class: "btn primary", type: "button", id: "dcRun", text: "走一遍十项", onclick: run });
+      host.appendChild(h("div", { class: "row tight dc-pick" }, h("span", { class: "note", text: "规则" }), sel, go));
+      host.appendChild(h("p", { class: "note", id: "dcParams", text: (pl ? "用它眼下的参数：" + pl + "。" : "这条规则没有参数。") + "要换参数，回到左栏调好再来。" + (st.foreign ? "这是别人写的规则，在隔离环境里运行。" : "") }));
+      host.appendChild(out);
+      function show(r) {
+        clear(out);
+        if (r.err) { out.appendChild(h("div", { class: "warn err", id: "dcErr", text: r.at ? "没走完：在「" + wname(r.at) + "」里出错了。" + r.err : "没走完：" + r.err })); return; }
+        out.appendChild(h("div", { class: "hp-vs" }, h("div", { class: "hp-side me" }, h("span", { class: "hp-lab", text: "十项全能得分 · 每年 · " + st.name }), h("b", { class: "hp-num num", id: "dcScore", text: rate(num(r.score)) }))));
+        out.appendChild(h("p", { class: "db-say", id: "dcSay", text: sayOf(r) }));
+        out.appendChild(eventsTable(r));
+        var acts = h("div", { class: "row tight" }), refHost = h("div", { class: "dc-refs", id: "dcRefs" });
+        acts.appendChild(h("button", { class: "btn", type: "button", id: "dcRefBtn", text: "和内置规则排在一起看", onclick: function () { refs(refHost, r); } }));
+        if (st.src && !st.foreign) acts.appendChild(h("button", { class: "btn", type: "button", id: "dcPost", text: "把这条规则贴到榜上", onclick: function () {
+          var pk = A.rulePack(st, p, "deca", { season: se.id, score: num(r.score) === -Infinity ? null : r.score });
+          A.postDialog({ kind: "deca", title: st.name + " " + rate(num(r.score)), meta: pk.meta, code: pk.code });
+        } }));
+        out.appendChild(acts);
+        if (!st.src) out.appendChild(h("p", { class: "note", text: "内置规则人人都有，不用贴。想上榜：在左栏这条规则下面点\"代码与说明\"，改一改另存成你自己的，或者让 " + A.AI + " 替你写一条，再回到这里。" }));
+        out.appendChild(refHost);
+        if (mem.refs[se.id]) refs(refHost, r);
+      }
+      function run() {
+        var err = QLJobs.syntax(st.code);
+        if (err) { clear(out); out.appendChild(h("div", { class: "warn err", id: "dcErr", text: "代码有语法错误：" + err })); return; }
+        go.disabled = true; clear(out);
+        var prog = h("p", { class: "note", id: "dcProg", text: "正在准备…" }); out.appendChild(prog);
+        var j = runDeca([{ id: "r", p: p }], [{ id: "r", code: st.code, mine: !st.foreign }], function (pm) { if (pm.event) prog.textContent = "第 " + (pm.i + 1) + " / " + pm.n + " 项：" + wname(pm.event) + "…"; });
+        jobs.push(j);
+        j.promise.then(function (res) { var r = res.entries[0]; mem.mine[key] = r; if (alive && tab === "mine") { go.disabled = false; show(r); } },
+          function (e) { if (e && e.cancelled) return; if (alive && tab === "mine") { go.disabled = false; clear(out); out.appendChild(h("div", { class: "warn err", id: "dcErr", text: errText(e || {}) })); } });
+      }
+      if (mem.mine[key]) show(mem.mine[key]);
+    }
+    /** 内置规则各走一遍十项（一个赛季只算一次），和眼下这条排在一起 */
+    function refs(refHost, mine) {
+      function show(rows) {
+        clear(refHost);
+        var all = rows.map(function (x) { return { name: x.name, score: num(x.score), worst: x.worst, err: x.err }; }).concat([{ name: A.strat(stId).name, score: num(mine.score), worst: mine.worst, me: true }]);
+        all.sort(function (a, b) { return (b.score === b.score ? b.score : -Infinity) - (a.score === a.score ? a.score : -Infinity) || (a.me ? -1 : 1); });
+        var tb = h("tbody");
+        all.forEach(function (x, i) { tb.appendChild(h("tr", { class: x.me ? "me" : "", "data-me": x.me ? "1" : null }, h("td", { class: "num", text: String(i + 1) }), h("td", null, x.me ? [h("b", { text: x.name }), "（眼下这条）"] : x.name), h("td", { class: "num", text: x.err ? "出错" : rate(x.score) }), h("td", { text: x.err ? "" : wname(x.worst) }))); });
+        refHost.appendChild(h("div", { class: "gref" }, h("table", { class: "gtab hp-tab db-tab dc-reftab", id: "dcRefTab" }, h("caption", { text: "内置规则用的是各自的默认参数；带训练的几条没有列进来。买入持有的得分按定义是 0。" }),
+          h("thead", null, h("tr", null, h("th", { text: "名次" }), h("th", { text: "规则" }), h("th", { text: "得分" }), h("th", { text: "最差的一项" }))), tb)));
+      }
+      if (mem.refs[se.id]) { show(mem.refs[se.id]); return; }
+      clear(refHost);
+      var L = builtins(), prog = h("p", { class: "note", id: "dcRefProg", text: "正在让 " + L.length + " 条内置规则各走一遍…" }), done = 0; refHost.appendChild(prog);
+      var j = runDeca(L.map(function (s) { var p = {}; (s.params || []).forEach(function (q) { p[q.key] = q.def; }); return { id: s.id, p: p }; }), L.map(function (s) { return { id: s.id, code: s.code, mine: true }; }), function (pm) { if (pm.done) { done++; prog.textContent = "正在让 " + L.length + " 条内置规则各走一遍…（" + done + " / " + L.length + "）"; } });
+      jobs.push(j);
+      j.promise.then(function (res) {
+        var rows = res.entries.map(function (e, i) { return { name: L[i].name, score: e.score, worst: e.worst, err: e.err || "" }; });
+        mem.refs[se.id] = rows; if (alive && tab === "mine") show(rows);
+      }, function (e) { if (e && e.cancelled) return; if (alive) { clear(refHost); refHost.appendChild(h("div", { class: "warn err", text: errText(e || {}) })); } });
+    }
+
+    /* ---- 大家的榜 ---- */
+    function drawBoard(fresh) {
+      var box = h("div", { class: "db dc-board", id: "dcBoard" }); host.appendChild(box);
+      var st = { loading: true, err: null, rows: [], left: 0 };
+      function paint() {
+        clear(box);
+        box.appendChild(h("div", { class: "row tight db-head" }, h("h3", { class: "db-title", text: "这个星期的榜" }), h("span", { class: "sp" }),
+          st.left ? h("span", { class: "note", id: "dcLeft", text: "还有 " + st.left + " 条在跑…" }) : null,
+          h("button", { class: "btn small", type: "button", id: "dcRefresh", disabled: st.loading, text: st.loading ? "正在取…" : "刷新", onclick: function () { stop(); clear(host); drawBoard(true); } })));
+        if (st.err) box.appendChild(h("div", { class: "warn", id: "dcBoardErr", text: st.err.limited ? "GitHub 限制了这个网络的访问次数（不登录每小时 60 次）。过一会儿再刷新。" : "连不上 GitHub，榜暂时看不了。" }));
+        if (!st.loading && !st.rows.length && !st.err) box.appendChild(h("p", { class: "db-say", id: "dcEmpty", text: "榜上还没有规则。在\"我的规则\"里走一遍十项，就可以把自己的贴上来。" }));
+        if (st.rows.length) {
+          var okRows = st.rows.filter(function (x) { return x.res && !x.res.err; }).sort(function (a, b) { return num(b.res.score) - num(a.res.score) || b.item.up - a.item.up || a.item.at - b.item.at; });
+          var rest = st.rows.filter(function (x) { return okRows.indexOf(x) < 0; }), tb = h("tbody");
+          okRows.concat(rest).forEach(function (x, i) {
+            var r = x.res, good = r && !r.err;
+            tb.appendChild(h("tr", { "data-n": x.item.n }, h("td", { class: "num", text: good ? String(i + 1) : "—" }),
+              h("td", null, h("b", { text: x.rule.st.name }), " ", h("a", { href: x.item.url, target: "_blank", rel: "noopener", text: "@" + x.item.user })),
+              h("td", { class: good ? "num" : "note", text: good ? rate(num(r.score)) : x.fail ? x.fail : r ? "没走完：" + r.err : "在排队…" }),
+              h("td", { text: good ? wname(r.worst) : "" }), h("td", { class: "num", text: x.item.up ? "👍 " + x.item.up : "" }),
+              h("td", null, h("button", { class: "btn small", type: "button", "data-adopt": x.item.n, text: "载入", title: "放进\"我的策略\"，可以看代码、改参数、自己跑", onclick: function () { m.close(); A.adoptRule(x.rule); } }))));
+          });
+          box.appendChild(h("div", { class: "gref" }, h("table", { class: "gtab hp-tab db-tab dc-boardtab" }, h("thead", null, h("tr", null, h("th", { text: "名次" }), h("th", { text: "规则" }), h("th", { text: "得分" }), h("th", { text: "最差的一项" }), h("th", { text: "" }), h("th", { text: "" }))), tb)));
+        }
+        box.appendChild(h("p", { class: "note db-how", text: "榜上的得分不是交的人报的：每条规则都在你的浏览器里现跑一遍，用的是这个星期的种子。别人写的代码在隔离环境里运行，碰不到这张页面里的任何东西，也连不了网。想给哪条规则打分，点它后面的用户名，去那条 Issue 上点 👍。" }));
+      }
+      paint();
+      QLHub.list({ kind: "deca", fresh: !!fresh }).then(function (res) {
+        if (!alive || tab !== "board") return;
+        st.loading = false; st.err = res.stale ? res.error : null;
+        var seen = {};
+        st.rows = res.items.map(function (it) { var rule = A.ruleFromItem(it); return rule && !rule.st.game ? { item: it, rule: rule, res: null, fail: "" } : null; }).filter(Boolean)
+          .sort(function (a, b) { return b.item.up - a.item.up || b.item.at - a.item.at; })
+          .filter(function (x) { seen[x.item.user] = (seen[x.item.user] || 0) + 1; return seen[x.item.user] <= 3; }).slice(0, 40);   // 每个账号最多看三条，一共最多 40 条
+        var queue = [];
+        st.rows.forEach(function (x) { var k = keyOf(x.rule.st.code, x.rule.p), c = mem.board[k]; if (c) x.res = c; else queue.push([x, k]); });
+        st.left = queue.length; paint();
+        (function next() {
+          if (!alive || tab !== "board") return;
+          var q = queue.shift(); if (!q) { st.left = 0; paint(); return; }
+          var x = q[0], bad = QLJobs.syntax(x.rule.st.code);
+          if (bad) { x.fail = "代码有语法错误"; st.left = queue.length; paint(); next(); return; }
+          var j = runDeca([{ id: "r", p: x.rule.p }], [{ id: "r", code: x.rule.st.code, mine: false }]);
+          jobs.push(j);
+          j.promise.then(function (out) { x.res = mem.board[q[1]] = out.entries[0]; }, function (e) { if (e && e.cancelled) return; x.fail = e && e.timeout ? "跑得太久，停掉了" : e && e.nostart ? "这个浏览器开不了隔离环境" : e && e.compile ? "代码有语法错误" : "出错了"; })
+            .then(function () { st.left = queue.length; if (alive && tab === "board") { paint(); next(); } });
+        })();
+      }, function (e) { if (!alive) return; st.loading = false; st.err = e || {}; paint(); });
+    }
+    function draw() {
+      clear(host);
+      Array.prototype.forEach.call(seg.children, function (b) { b.setAttribute("aria-pressed", b.getAttribute("data-tab") === tab ? "true" : "false"); });
+      if (tab === "mine") drawMine(); else drawBoard(false);
+    }
+    draw();
+    return m;
+  };
+
+  if (A.lobbyAdd) A.lobbyAdd({
+    id: "deca", order: 30, route: "deca", kicker: "规则对规则", title: "十项全能", label: "让一条规则走十项", keys: "decathlon 十项 全能 最差 稳健 榜 规则",
+    blurb: "一条规则走遍十个世界，按最差的那一项计分。看看你的规则是不是只在一种行情里好使；榜上别人的规则每个星期换一批新路径重跑。",
+    status: function () { var se = season(); return "赛季 " + se.id; },
+    go: function (arg) { A.openDeca(arg); }
+  });
+})(App);
+
+/* ===== app-arena.js ===== */
+/* 应用主体（十二）：规则同场。几条规则放进同一个市场互相当对手：竞价（共同价值拍卖）或者做市（抢同一批客人）。市场怎么结算见 arena.js。
+ * 上场的可以是自带的规则、你自己写的、从大家那里载入的。自己写的存在这台设备的浏览器里（和左栏的"我的策略"分开：这里的规则看到的东西不一样）。
+ * 比的事交给 jobs.js：全部规则编进同一个线程；只要里面有别人写的代码，线程就开在隔离环境里。
+ * 同一个线程里的规则互相之间没法做到完全隔绝（见 jobs.js 的说明），所以有别人的规则在场时，这里的结果只图个乐。 */
+(function (A) {
+  "use strict";
+  var h = A.h, clear = A.clear, QL = A.QL, F = A.F, P = A.P;
+  if (typeof QL_ARENA_INSTALL !== "function" || typeof QLJobs === "undefined") return;
+  if (!QL.ARENA) QL_ARENA_INSTALL(QL);
+  var AR = QL.ARENA, KEY = "ql.arena.v1", MAXN = 8;
+  A.arenaOpt = { timeout: 30000 };   // 一件任务多久没动静算卡死（毫秒）。测试里会调小
+  var DEF_PICK = { auction: ["a_face", "a_even", "a_eq", "a_learn"], mm: ["m_fix", "m_even", "m_safe", "m_learn"] };
+  var store = { v: 1, market: "auction", rules: [], pick: { auction: DEF_PICK.auction.slice(), mm: DEF_PICK.mm.slice() }, set: { auction: { eps: 20, fmt: "first", T: 200, K: 200, seed: 7 }, mm: { eps: 20, pi: 0.2, T: 200, K: 200, seed: 7 } } };
+  function okP(p) { var o = {}; if (p && typeof p === "object") Object.keys(p).slice(0, 12).forEach(function (k) { if (/^[A-Za-z_][A-Za-z0-9_]{0,23}$/.test(k) && typeof p[k] === "number" && isFinite(p[k])) o[k] = p[k]; }); return o; }
+  function okRule(r) {
+    if (!r || typeof r.id !== "string" || !/^[a-z0-9_-]{2,40}$/i.test(r.id) || !AR.markets[r.market] || typeof r.code !== "string" || !r.code.trim() || r.code.length > 20000) return null;
+    var o = { id: r.id, market: r.market, name: A.cleanText(r.name, 40) || "没有名字的规则", summary: A.cleanText(r.summary, 200), code: r.code, p: okP(r.p), src: r.src === "hub" ? "hub" : "mine" };
+    if (o.src === "hub") { o.foreign = true; o.from = r.from && typeof r.from === "object" ? { user: A.cleanText(r.from.user, 60), n: r.from.n | 0, url: QLHub.issueUrl(r.from.n | 0) } : null; }
+    return o;
+  }
+  try {
+    var o0 = JSON.parse(localStorage.getItem(KEY) || "null");
+    if (o0 && o0.v === 1) {
+      if (AR.markets[o0.market]) store.market = o0.market;
+      if (Array.isArray(o0.rules)) store.rules = o0.rules.map(okRule).filter(Boolean).slice(0, 40);
+      ["auction", "mm"].forEach(function (mk) {
+        if (o0.pick && Array.isArray(o0.pick[mk])) store.pick[mk] = o0.pick[mk].filter(function (x) { return typeof x === "string"; }).slice(0, MAXN);
+        var s = o0.set && o0.set[mk], d = store.set[mk]; if (!s || typeof s !== "object") return;
+        ["eps", "pi", "T", "K", "seed"].forEach(function (k) { if (typeof s[k] === "number" && isFinite(s[k]) && k in d) d[k] = s[k]; });
+        if (mk === "auction" && (s.fmt === "first" || s.fmt === "second")) d.fmt = s.fmt;
+      });
+    }
+  } catch (e) {}
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} }
+  function libRules(mk) { return AR.lib.filter(function (r) { return r.market === mk; }).map(function (r) { return { id: r.id, market: r.market, name: r.name, summary: r.summary, code: r.code, p: Object.assign({}, r.p), src: "" }; }); }
+  function allRules(mk) { return libRules(mk).concat(store.rules.filter(function (r) { return r.market === mk; })); }
+  function ruleOf(id, mk) { return allRules(mk).filter(function (r) { return r.id === id; })[0] || null; }
+  A.arenaStore = function () { return store; };
+  function pLine(p) { return Object.keys(p).map(function (k) { return k + " = " + +(+p[k]).toFixed(6); }).join(", "); }
+  /** "d = 10, up = 2" → { d: 10, up: 2 }；写法不对时返回 null */
+  function parseP(text) {
+    var o = {}, parts = String(text || "").split(/[,，;；\n]+/).map(function (s) { return s.trim(); }).filter(Boolean), i;
+    if (parts.length > 12) return null;
+    for (i = 0; i < parts.length; i++) { var m = /^([A-Za-z_][A-Za-z0-9_]{0,23})\s*[=＝:：]\s*(-?(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?)$/i.exec(parts[i]); if (!m || !isFinite(+m[2])) return null; o[m[1]] = +m[2]; }
+    return o;
+  }
+  var MK = { auction: "竞价", mm: "做市" };
+  function apiDoc(mk) {
+    return [
+      "function decide(s, p, st)   必须有。每个回合调用一次，返回一个数。",
+      mk === "auction" ? "    返回这一回合的出价。不大于 0，或者返回的不是数 = 这一回合不出价。出价最高的买走；买到的人赚 V − 付的钱。" : "    返回这一回合的半价差 h（负数按 0 算；不是数 = 这一回合不报价）。等于同时挂出卖价 s.x + h 和买价 s.x − h。",
+      "function init(p)            可以没有。每一场开始时调用一次，返回的对象就是 decide 的第三个参数 st。",
+      "s.x        这一回合你对真实价值 V 的估计：V 加上 −ε 到 +ε 之间均匀分布的误差。各条规则的误差互相独立",
+      "s.n        场上一共几条规则",
+      "s.t  s.T   这是第几回合（从 0 起）、一场一共几回合",
+      "s.g        市场的常数：s.g.lo、s.g.hi（V 在这之间均匀分布）、s.g.eps（ε）" + (mk === "auction" ? "、s.g.fmt（\"first\" 付自己的出价，\"second\" 付第二高的出价）" : "、s.g.pi（客人是知情的概率）、s.g.R（不知情的客人能接受报价离 V 多远）"),
+      "s.last     上一回合你的盈亏（没成交是 0，第一回合是 NaN）；s.lastA 是上一回合你报的数；s.won 是上一回合你成交了没有（1 / 0）",
+      "s.v        上一回合的真实价值（每回合结束后公布）；s.win 是上一回合的成交价（没成交是 NaN）" + (mk === "mm" ? "；s.side 是上一回合客人买（1）、卖（−1）还是没成交（0）" : ""),
+      "s.total    到目前为止你的累计盈亏；s.rnd() 给一个 0 到 1 之间的均匀随机数",
+      "p          你在\"参数\"一栏里写的那些数（只读）"
+    ].join("\n");
+  }
+  function aiPrompt(mk, r) {
+    return [
+      "请替我写一条规则，用在一个模拟市场里和别的规则同场竞争。只回一段 JavaScript 代码，不要解释。",
+      "",
+      mk === "auction"
+        ? "市场：共同价值拍卖。每一回合有一件东西，真实价值 V 在 [lo, hi] 上均匀分布，谁也看不到。每条规则各自看到一个带误差的估计 x = V + U(−ε, ε)，然后各出一个价；出价最高的买走，赚 V − 付的钱。每回合结束后公布 V 和成交价。得分是平均每回合的盈亏。"
+        : "市场：几条规则同时做市。每一回合有一件东西，真实价值 V 在 [lo, hi] 上均匀分布，谁也看不到。每条规则各自看到一个带误差的估计 x = V + U(−ε, ε)，然后各报一个半价差 h，等于挂出卖价 x + h 和买价 x − h。来一位客人：不知情的随机买或卖，在最好的报价上成交；知情的知道 V，只在有便宜可占时出手。成交的规则：卖出赚 卖价 − V，买进赚 V − 买价。每回合结束后公布 V 和成交价。得分是平均每回合的盈亏。",
+      "",
+      "接口：",
+      apiDoc(mk),
+      "",
+      "要求：只定义 decide（需要的话加 init），不要有别的顶层语句；不要用 eval、不要联网；参数都从 p 里读。",
+      r ? "\n我现在的代码（请在它的基础上改）：\n" + r.code + (Object.keys(r.p).length ? "\n参数：" + pLine(r.p) : "") : "",
+      "",
+      "我的想法："
+    ].join("\n");
+  }
+
+  /* ---------- 写一条 / 看一条 ---------- */
+  function openEditor(mk, rule, after) {
+    var isLib = !rule.src && !rule.fresh, mine = rule.src === "mine", ro = rule.src === "hub";   // fresh：从样板新写的一条，还没存过
+    var name = h("input", { type: "text", id: "arName", maxlength: 40, value: isLib ? rule.name + "（改）" : rule.name, "aria-label": "名字", disabled: ro });
+    var sum = h("input", { type: "text", id: "arSum", maxlength: 200, value: rule.summary, "aria-label": "一句话说明", disabled: ro });
+    var par = h("input", { type: "text", id: "arPar", class: "num", value: pLine(rule.p), placeholder: "比如 d = 10, up = 2（没有就留空）", "aria-label": "参数", spellcheck: "false", disabled: ro });
+    var ta = h("textarea", { class: "codeedit", id: "arCode", spellcheck: "false", "aria-label": "规则的代码", readonly: ro }); ta.value = rule.code;
+    var err = h("div", { class: "warn err", id: "arErr", hidden: true });
+    function read() {
+      var p = parseP(par.value), code = ta.value, bad = QLJobs.syntax(code);
+      if (!A.cleanText(name.value, 40)) return "先给它起个名字。";
+      if (!p) return "参数的写法不对。照这个样子写：d = 10, up = 2（名字用字母，值是数）。";
+      if (bad) return "代码有语法错误：" + bad;
+      if (!/\bfunction\s+decide\s*\(/.test(code)) return "代码里要有 function decide(s, p, st)。";
+      if (code.length > 20000) return "代码太长了（上限两万字）。";
+      return { id: mine ? rule.id : "ar-" + Date.now().toString(36), market: mk, name: A.cleanText(name.value, 40), summary: A.cleanText(sum.value, 200), code: code, p: p, src: "mine" };
+    }
+    function fail(msg) { err.hidden = false; err.textContent = msg; }
+    var foot = [h("button", { class: "btn", type: "button", id: "arAi", text: "复制给 AI 的说明", title: "把这个市场的规矩、接口和现在的代码复制下来，贴给任何一个 AI，让它替你写", onclick: function () { A.copy(aiPrompt(mk, { code: ta.value, p: parseP(par.value) || {} })); } })];
+    if (!ro) {
+      foot.push(h("button", { class: "btn", type: "button", id: "arPost", text: "贴到 GitHub", onclick: function () {
+        var r = read(); if (typeof r === "string") { fail(r); return; }
+        A.postDialog({ kind: "rule", title: MK[mk] + " · " + r.name, meta: { kind: "rule", for: "arena:" + mk, name: r.name, summary: r.summary, p: r.p }, code: r.code });
+      } }));
+      foot.push(h("button", { class: "btn primary", type: "button", id: "arSave", text: isLib ? "另存成我的" : "保存", onclick: function () {
+        var r = read(); if (typeof r === "string") { fail(r); return; }
+        var i = -1; store.rules.forEach(function (x, k) { if (x.id === r.id) i = k; });
+        if (i >= 0) store.rules[i] = r; else { store.rules.push(r); if (store.rules.length > 40) store.rules.shift(); if (store.pick[mk].indexOf(r.id) < 0 && store.pick[mk].length < MAXN) store.pick[mk].push(r.id); }
+        save(); m.close(); if (after) after(r);
+      } }));
+    } else foot.push(h("button", { class: "btn primary", type: "button", id: "arFork", text: "另存成我的再改", onclick: function () { m.close(); openEditor(mk, { id: "", market: mk, name: rule.name + "（改）", summary: rule.summary, code: rule.code, p: rule.p, src: "", fresh: true }, after); } }));
+    var m = A.modal((ro ? "别人写的规则 · " : isLib ? "自带的规则 · " : "我的规则 · ") + MK[mk], [
+      ro ? h("p", { class: "note", id: "arForeign" }, "这条规则是别人写的", rule.from && rule.from.user ? ["（", h("a", { href: rule.from.url, target: "_blank", rel: "noopener", text: "@" + rule.from.user }), "）"] : null, "，这里只能看。上场时它在隔离环境里运行。") : isLib ? h("p", { class: "note", text: "自带的规则本身不能改。改完点\"另存成我的\"，它就成了你自己的一条。" }) : null,
+      h("div", { class: "ar-form" }, h("label", { for: "arName", text: "名字" }), name, h("label", { for: "arSum", text: "一句话说明" }), sum, h("label", { for: "arPar", text: "参数" }), par),
+      ta, err,
+      h("details", { class: "more" }, h("summary", { text: "规则能用到的东西" }), h("div", { class: "more-body" }, h("pre", { class: "code", id: "arDoc", text: apiDoc(mk) })))
+    ], { cls: "are", foot: foot, focus: "#arCode" });
+    return m;
+  }
+
+  /* ---------- 从大家那里找 ---------- */
+  function openFind(mk, after) {
+    var box = h("div", { class: "db", id: "arFind" }), alive = true;
+    var m = A.modal("大家写的规则 · " + MK[mk], box, { cls: "dbm", onClose: function () { alive = false; } });
+    function paint(st) {
+      clear(box);
+      box.appendChild(h("div", { class: "row tight db-head" }, h("span", { class: "sp" }), h("button", { class: "btn small", type: "button", id: "arFindRefresh", disabled: st.loading, text: st.loading ? "正在取…" : "刷新", onclick: function () { load(true); } })));
+      if (st.err) box.appendChild(h("div", { class: "warn", id: "arFindErr", text: st.err.limited ? "GitHub 限制了这个网络的访问次数（不登录每小时 60 次）。过一会儿再刷新。" : "连不上 GitHub，暂时看不了。" }));
+      if (!st.loading && !st.rows.length && !st.err) box.appendChild(h("p", { class: "db-say", id: "arFindEmpty", text: "还没有人贴过" + MK[mk] + "的规则。自己写一条，在编辑的地方点\"贴到 GitHub\"。" }));
+      st.rows.forEach(function (x) {
+        var have = store.rules.some(function (r) { return r.id === x.rule.id; });
+        box.appendChild(h("div", { class: "ar-found", "data-n": x.item.n }, h("div", { class: "ar-ftxt" }, h("b", { text: x.rule.name }), " ", h("a", { href: x.item.url, target: "_blank", rel: "noopener", text: "@" + x.item.user }), x.item.up ? h("span", { class: "note", text: " 👍 " + x.item.up }) : null, x.rule.summary ? h("div", { class: "note", text: x.rule.summary }) : null),
+          h("button", { class: "btn small" + (have ? "" : " primary"), type: "button", "data-add": x.item.n, disabled: have, text: have ? "已经在名单里" : "请它上场", onclick: function () {
+            store.rules.push(x.rule); if (store.rules.length > 40) store.rules.shift();
+            if (store.pick[mk].indexOf(x.rule.id) < 0 && store.pick[mk].length < MAXN) store.pick[mk].push(x.rule.id);
+            save(); if (after) after(); paint(st);
+          } })));
+      });
+      box.appendChild(h("p", { class: "note db-how", text: "别人写的规则上场时在隔离环境里运行，碰不到这张页面里的东西，也连不了网。想给哪条规则打分，点它后面的用户名，去那条 Issue 上点 👍。" }));
+    }
+    function load(fresh) {
+      paint({ loading: true, rows: [], err: null });
+      QLHub.list({ kind: "rule", fresh: !!fresh }).then(function (res) {
+        if (!alive) return;
+        var rows = res.items.filter(function (it) { return it.meta.for === "arena:" + mk; }).map(function (it) { var r = okRule({ id: "hub-" + it.n, market: mk, name: it.meta.name, summary: it.meta.summary, code: it.code, p: it.meta.p, src: "hub", from: { user: it.user, n: it.n } }); return r ? { item: it, rule: r } : null; }).filter(Boolean)
+          .sort(function (a, b) { return b.item.up - a.item.up || b.item.at - a.item.at; }).slice(0, 60);
+        paint({ loading: false, rows: rows, err: res.stale ? res.error : null });
+      }, function (e) { if (alive) paint({ loading: false, rows: [], err: e || {} }); });
+    }
+    load(false);
+    return m;
+  }
+
+  /* ---------- 主弹层 ---------- */
+  A.openArena = function (mk0) {
+    var mk = AR.markets[mk0] ? mk0 : store.market, job = null, alive = true, chart = null, last = {};
+    var host = h("div", { class: "ar-host" }), seg = h("div", { class: "seg", role: "group", "aria-label": "哪种市场" });
+    [["auction", "竞价"], ["mm", "做市"]].forEach(function (x) { seg.appendChild(h("button", { type: "button", "data-mk": x[0], text: x[1], onclick: function () { if (mk !== x[0]) { stop(); mk = x[0]; store.market = mk; save(); draw(); } } })); });
+    function stop() { if (job) { job.cancel(); job = null; } }
+    var m = A.modal("规则同场", [
+      h("p", { class: "lb-lead", text: "别处的规则都是各打各的；这里把几条规则放进同一个市场，互相当对手。一条规则赚多少，取决于别的规则怎么出手。" }),
+      h("div", { class: "row tight" }, seg), host
+    ], { cls: "arm", onClose: function () { alive = false; stop(); if (chart) chart.destroy(); } });
+    function numIn(id, label, key, min, max, step) {
+      var s = store.set[mk], inp = h("input", { type: "number", id: id, min: min, max: max, step: step, value: s[key], "aria-label": label });
+      inp.addEventListener("change", function () { var v = parseFloat(inp.value); if (!(v === v)) v = s[key]; v = Math.min(max, Math.max(min, v)); if (step >= 1) v = Math.round(v); inp.value = v; s[key] = v; save(); });
+      return h("label", { class: "ar-set" }, h("span", { text: label }), inp);
+    }
+    function draw() {
+      clear(host); if (chart) { chart.destroy(); chart = null; }
+      Array.prototype.forEach.call(seg.children, function (b) { b.setAttribute("aria-pressed", b.getAttribute("data-mk") === mk ? "true" : "false"); });
+      var s = store.set[mk], rules = allRules(mk), pick = store.pick[mk] = store.pick[mk].filter(function (id) { return rules.some(function (r) { return r.id === id; }); });
+      host.appendChild(h("p", { class: "note", id: "arWhat", text: mk === "auction"
+        ? "竞价：每一回合有一件东西，真实价值 V 谁也看不到，每条规则各自看到一个带误差的估计，然后各出一个价。出价最高的买走，赚 V 减去付的钱。出价最高的人，手里往往是最乐观的那个估计，这就是赢家诅咒。"
+        : "做市：每条规则报一个半价差，等于同时挂出卖价和买价。来一位客人，在最好的那个报价上成交。价差小才抢得到单，可是抢到的多半是自己估错的那些；知情的客人更是只在你报错价时才来。" }));
+      var setRow = h("div", { class: "row tight ar-sets" }, numIn("arEps", "估计的误差 ε", "eps", 1, 100, 1));
+      if (mk === "auction") { var fs = h("select", { id: "arFmt", "aria-label": "怎么付钱", onchange: function () { s.fmt = fs.value; save(); } }, [["first", "第一价格（付自己的出价）"], ["second", "第二价格（付第二高的出价）"]].map(function (x) { return h("option", { value: x[0], text: x[1], selected: s.fmt === x[0] }); })); setRow.appendChild(h("label", { class: "ar-set" }, h("span", { text: "怎么付钱" }), fs)); }
+      else setRow.appendChild(numIn("arPi", "知情客人的比例", "pi", 0, 0.9, 0.05));
+      setRow.appendChild(numIn("arT", "一场几回合", "T", 20, 1000, 10)); setRow.appendChild(numIn("arK", "比几场", "K", 20, 2000, 10)); setRow.appendChild(numIn("arSeed", "种子", "seed", 0, 999999, 1));
+      host.appendChild(setRow);
+      /* 名单 */
+      var list = h("div", { class: "ar-list", id: "arList" });
+      rules.forEach(function (r) {
+        var on = pick.indexOf(r.id) >= 0, cb = h("input", { type: "checkbox", id: "arPick-" + r.id, checked: on, onchange: function () {
+          var i = pick.indexOf(r.id); if (cb.checked && i < 0) { if (pick.length >= MAXN) { cb.checked = false; A.toast("一场最多 " + MAXN + " 条规则。", 3000); return; } pick.push(r.id); } else if (!cb.checked && i >= 0) pick.splice(i, 1);
+          save(); count();
+        } });
+        list.appendChild(h("div", { class: "ar-rule", "data-rule": r.id }, cb, h("label", { for: "arPick-" + r.id, class: "ar-rtxt" }, h("b", { text: r.name }), r.src === "hub" ? h("span", { class: "tag", text: "别人写的" + (r.from && r.from.user ? " @" + r.from.user : "") }) : r.src ? h("span", { class: "tag", text: "我的" }) : null, h("span", { class: "note", text: (r.summary ? r.summary : "") + (Object.keys(r.p).length ? "（" + pLine(r.p) + "）" : "") })),
+          h("button", { class: "btn small", type: "button", "data-code": r.id, text: r.src === "mine" ? "改" : "看代码", onclick: function () { openEditor(mk, r, function () { if (alive) draw(); }); } }),
+          r.src ? h("button", { class: "iconbtn", type: "button", "data-del": r.id, "aria-label": "删掉 " + r.name, text: "✕", onclick: function () { store.rules = store.rules.filter(function (x) { return x.id !== r.id; }); store.pick[mk] = store.pick[mk].filter(function (x) { return x !== r.id; }); save(); draw(); } }) : null));
+      });
+      host.appendChild(list);
+      var cnt = h("span", { class: "note", id: "arCount" }), go = h("button", { class: "btn primary", type: "button", id: "arRun", text: "开始比", onclick: run });
+      function count() { var n = pick.length; cnt.textContent = "已经请了 " + n + " 条上场（2 到 " + MAXN + " 条）"; go.disabled = n < 2; }
+      host.appendChild(h("div", { class: "row tight ar-acts" }, go,
+        h("button", { class: "btn", type: "button", id: "arNew", text: "写一条新的", onclick: function () { var t = libRules(mk).filter(function (r) { return r.id === (mk === "auction" ? "a_cut" : "m_fix"); })[0]; openEditor(mk, { id: "", market: mk, name: "我的规则", summary: "", code: t.code, p: t.p, src: "", fresh: true }, function () { if (alive) draw(); }); } }),
+        h("button", { class: "btn", type: "button", id: "arFindBtn", text: "从大家那里找", onclick: function () { openFind(mk, function () { if (alive) draw(); }); } }), h("span", { class: "sp" }), cnt));
+      count();
+      var out = h("div", { class: "ar-out", id: "arOut" }); host.appendChild(out);
+      if (last[mk]) show(out, last[mk]);
+
+      function run() {
+        var chosen = pick.map(function (id) { return ruleOf(id, mk); }).filter(Boolean), bad = null;
+        chosen.forEach(function (r) { if (!bad) { var e = QLJobs.syntax(r.code); if (e) bad = "「" + r.name + "」的代码有语法错误：" + e; } });
+        clear(out); if (chart) { chart.destroy(); chart = null; }
+        if (bad) { out.appendChild(h("div", { class: "warn err", id: "arRunErr", text: bad })); return; }
+        go.disabled = true;
+        var prog = h("p", { class: "note", id: "arProg", text: "正在让每条规则先单独走几步…" }); out.appendChild(prog);
+        stop();
+        var j = job = QLJobs.run({ kind: "arena", codes: chosen.map(function (r) { return { id: r.id, code: r.code, mine: !r.foreign }; }), timeout: A.arenaOpt.timeout,
+          data: { market: mk, params: { eps: s.eps, fmt: s.fmt, pi: s.pi }, T: s.T, K: s.K, seed: s.seed, entries: chosen.map(function (r) { return { id: r.id, p: r.p }; }) },
+          onProgress: function (pm) { if (pm.total) prog.textContent = "已经比了 " + pm.done + " / " + pm.total + " 场…"; } });
+        j.promise.then(function (res) { if (job === j) job = null; if (!alive) return; last[mk] = { res: res, names: chosen.map(function (r) { return { id: r.id, name: r.name, src: r.src }; }), foreign: chosen.some(function (r) { return !!r.foreign; }) }; go.disabled = pick.length < 2; clear(out); show(out, last[mk]); },
+          function (e) {
+            if (job === j) job = null; if (!alive || (e && e.cancelled)) return;
+            go.disabled = pick.length < 2; clear(out);
+            var who = e && e.id ? chosen.filter(function (r) { return r.id === e.id; })[0] : null, msg = e && e.message || "出错了";
+            if (who && e.timeout) { var i = pick.indexOf(who.id); if (i >= 0) pick.splice(i, 1); save(); var c = document.getElementById("arPick-" + who.id); if (c) c.checked = false; count(); msg = "「" + who.name + "」卡住了（多半是代码里有死循环），已经把它请下场。再点一次\"开始比\"。"; }
+            else if (who && e.compile) msg = "「" + who.name + "」的代码有语法错误" + (e.line ? "（第 " + e.line + " 行）" : "") + "：" + e.message;
+            out.appendChild(h("div", { class: "warn err", id: "arRunErr", text: msg }));
+          });
+      }
+    }
+    function show(out, L) {
+      var res = L.res, nameOf = function (id) { var x = L.names.filter(function (q) { return q.id === id; })[0]; return x ? x.name : id; };
+      (res.skipped || []).forEach(function (x) { out.appendChild(h("div", { class: "warn", "data-skip": x.id, text: "「" + nameOf(x.id) + "」没能上场：" + x.err })); });
+      if (!res.rows.length) { out.appendChild(h("div", { class: "warn err", id: "arRunErr", text: "能上场的规则不到两条，比不了。" })); return; }
+      var rows = res.rows.slice().sort(function (a, b) { return b.mean - a.mean; }), tb = h("tbody"), auc = res.market === "auction";
+      rows.forEach(function (r, i) {
+        tb.appendChild(h("tr", { "data-rule": r.id }, h("td", { class: "num", text: String(i + 1) }), h("td", null, h("b", { text: nameOf(r.id) }), r.err ? h("span", { class: "note", text: " 中途出错：" + r.err }) : null),
+          h("td", { class: "num" }, h("b", { class: "verdict " + (r.mean > 2 * r.se ? "up" : r.mean < -2 * r.se ? "down" : "flat"), text: A.sgn(F(r.mean, 3)) }), h("span", { class: "note", text: " ± " + F(r.se, 3) })),
+          h("td", { class: "num", text: P(r.fill, 1) }), h("td", { class: "num", text: r.edge === r.edge ? A.sgn(F(r.edge, 2)) : "—" }), h("td", { class: "num", text: r.act === r.act ? F(r.act, 2) : "—" })));
+      });
+      out.appendChild(h("div", { class: "gref" }, h("table", { class: "gtab hp-tab db-tab ar-tab", id: "arTab" },
+        h("caption", { text: res.n + " 条规则同场，比了 " + res.K + " 场，每场 " + res.T + " 回合；ε = " + res.g.eps + (auc ? (res.g.fmt === "second" ? "，第二价格" : "，第一价格") : "，知情客人占 " + P(res.g.pi, 0)) + "。± 后面是标准误。" }),
+        h("thead", null, h("tr", null, h("th", { text: "名次" }), h("th", { text: "规则" }), h("th", { text: "平均每回合盈亏" }), h("th", { text: "成交占比" }), h("th", { text: "成交时每笔盈亏" }), h("th", { text: auc ? "平均比估计少出" : "平均半价差" }))), tb)));
+      if (res.marks && res.marks.length) {
+        var ul = h("ul", { class: "ar-marks", id: "arMarks" });
+        res.marks.forEach(function (mkx) { ul.appendChild(h("li", { "data-mark": mkx.id }, mkx.name + "：每条规则每回合 ", h("b", { class: "num", text: A.sgn(F(mkx.value, 3)) }))); });
+        out.appendChild(h("div", null, h("p", { class: "note", text: "对照着看的理论值（" + res.n + " 条规则、ε = " + res.g.eps + " 时）：" }), ul));
+      }
+      if (L.foreign) out.appendChild(h("p", { class: "note", id: "arFun", text: "场上有别人写的规则。它们在隔离环境里运行，偷不走东西；但同场的规则之间没法完全隔绝，这个结果只图个乐。" }));
+      if (res.trace) {
+        var T = res.T, xs = [], i; for (i = 0; i <= T; i++) xs.push(i);
+        var host2 = h("div", { class: "hp-chart", id: "arChart" }); out.appendChild(host2);
+        chart = new QLChart.Chart(host2, { height: 250 });
+        chart.set({ height: 250, x: { label: "第一场的回合", domain: [0, T] }, legend: res.rows.map(function (r, k) { return { name: nameOf(r.id), color: "s" + (k % 8 + 1) }; }),
+          panels: [{ y: { label: "累计盈亏", zero: true }, layers: [{ kind: "hline", y: 0, color: "axis" }].concat(res.rows.map(function (r, k) { return { kind: "line", x: xs, y: res.trace[k], color: "s" + (k % 8 + 1), name: nameOf(r.id) }; })) }] });
+      }
+    }
+    draw();
+    return m;
+  };
+
+  if (A.lobbyAdd) A.lobbyAdd({
+    id: "arena", order: 40, route: "arena", kicker: "规则对规则", title: "规则同场", label: "摆一场", keys: "arena 同场 竞价 拍卖 做市 对手 赢家诅咒 auction market making",
+    blurb: "几条规则放进同一个市场互相当对手：一起竞价，或者一起做市抢同一批客人。看谁的规则在有对手的时候还站得住。",
+    status: function () { var n = store.rules.length; return n ? "你写了、载入了 " + n + " 条规则" : ""; },
+    go: function (arg) { A.openArena(arg); }
   });
 })(App);
 
