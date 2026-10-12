@@ -40,6 +40,15 @@ Only the following uses are permitted:
  (d) Citation. You may quote brief excerpts with attribution for commentary,
      review, teaching or academic citation, to the extent permitted by law.
 
+ (e) Strategy Lab workshop. In "Strategy Lab" (strategy-lab/) you may use
+     the page's built-in editors to adapt its built-in templates (rules,
+     worlds and games), and you may post what you make there to this
+     repository's issue tracker so that it can be loaded in Strategy Lab at
+     https://zechenbian.github.io/strategy-lab/. Inside Strategy Lab you may
+     load, run and adapt what other people have posted there. This
+     permission goes no further: apart from it, the templates and every
+     other part of Strategy Lab remain subject to Section 3.
+
 3. WHAT YOU MAY NOT DO
 
 Except as stated in Section 2, you may not, without the prior written
@@ -112,6 +121,12 @@ through GitHub: https://github.com/ZechenBian
 
  （四）引用：在法律允许的范围内，可以为评论、评测、教学或学术引用而注明出处
        并简短引用。
+
+ （五）策略实验室工坊：在“策略实验室”（strategy-lab/）里，可以用页面自带的
+       编辑器改写自带的样板（规则、世界和玩法），并把做出来的东西贴到本仓库
+       的 Issue，供 https://zechenbian.github.io/strategy-lab/ 上的策略实验室
+       载入。别人贴在那里的内容，可以在策略实验室里载入、运行和改写。本款不作
+       其他放宽：除此之外，样板和策略实验室的其他部分仍受第三条约束。
 
 三、禁止的行为
 

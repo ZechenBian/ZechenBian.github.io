@@ -237,8 +237,8 @@ The engine and the rules are plain JavaScript with no runtime dependencies. The 
 
 © 2026 Zechen Bian. 保留所有权利 / All rights reserved.
 
-本项目**不是开源项目**。可以在线使用，但未经书面许可，不得复制、修改、再分发、商用或用于 AI/机器学习训练。详见 [LICENSE](../LICENSE)。页面里内联的 KaTeX 是第三方软件，按它自己的 MIT 许可使用，见 [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)。
+本项目**不是开源项目**。可以在线使用，但未经书面许可，不得复制、修改、再分发、商用或用于 AI/机器学习训练。详见 [LICENSE](../LICENSE)。其中有一处专门给策略实验室的例外（第二条（五））：页面自带的样板（规则、世界和玩法）可以用页面自带的编辑器改写，做出来的东西可以贴到本仓库的 Issue 供策略实验室载入；别人贴在那里的内容，可以在策略实验室里载入、运行和改写。页面里内联的 KaTeX 是第三方软件，按它自己的 MIT 许可使用，见 [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)。
 
-This project is **not open source**. You are welcome to use it online, but you may not copy, modify, redistribute, use commercially, or use it to train AI/ML models without written permission. See [LICENSE](../LICENSE). KaTeX, which is bundled in the page, is third-party software under its own MIT licence; see [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
+This project is **not open source**. You are welcome to use it online, but you may not copy, modify, redistribute, use commercially, or use it to train AI/ML models without written permission. See [LICENSE](../LICENSE). It makes one exception specific to Strategy Lab (section 2(e)): you may use the page's built-in editors to adapt its built-in templates (rules, worlds and games) and post what you make there to this repository's issue tracker so that it can be loaded in Strategy Lab, and inside Strategy Lab you may load, run and adapt what other people have posted there. KaTeX, which is bundled in the page, is third-party software under its own MIT licence; see [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
 
 Built with Claude.
