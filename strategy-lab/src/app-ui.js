@@ -611,6 +611,7 @@
     QL.WORLD_GROUPS.forEach(function (g) { Object.keys(QL.WORLDS).forEach(function (k) { var w = QL.WORLDS[k]; if (w.group !== g || (k === "custom" && !S.custom)) return; L.push({ kind: w.game ? "玩法" : "世界", name: w.name, key: w.name + " " + w.short + " " + k + (w.game ? " 玩法 游戏" : " 世界"), run: function () { A.setWorldType(k); } }); }); });
     L.push({ kind: "玩法", name: A.TRADE.name + "（定仓位）", key: "交易 资产 仓位 trade 玩法", run: function () { A.setGame("trade"); } });
     A.stratsFor().forEach(function (s) { L.push({ kind: "规则", name: s.name, key: s.name + " " + s.id + " " + (s.summary || ""), run: function () { A.setStrat(s.id); } }); });
+    if (A.lobbyCommands) A.lobbyCommands().forEach(function (c) { L.push(c); });
     if (A.guideCommands) { try { A.guideCommands().forEach(function (c) { L.push(c); }); } catch (e) { console.error(e); } }   // 手册条目排在最后
     return L;
   };
