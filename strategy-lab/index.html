@@ -14421,14 +14421,14 @@ var App = (function () {
     var body; try { body = QLHub.pack(o.meta, o.code); } catch (e) { A.toast(e.message || String(e), 4200); return null; }
     var u = QLHub.newUrl(o.kind, o.title, body), long = !!u.clip;
     var steps = long
-      ? "内容比较长，放不进地址里，所以分两步：先点\"复制内容\"，再点\"去 GitHub 提交\"；在打开的页面里把正文整段换成刚复制的内容，然后点 Submit new issue。"
-      : "点\"去 GitHub 提交\"会打开 GitHub 的新建 Issue 页面，内容已经填好；在那里点 Submit new issue 就交上去了。";
+      ? "内容比较长，放不进地址里，所以分两步：先点\"复制内容\"，再点\"去 GitHub 提交\"；在打开的页面里把正文整段换成刚复制的内容，然后点 Create。"
+      : "点\"去 GitHub 提交\"会打开 GitHub 的新建 Issue 页面，内容已经填好；在那里点 Create 就交上去了。";
     var copy = h("button", { class: "btn" + (long ? " primary" : ""), type: "button", id: "pdCopy", text: "复制内容", onclick: function () { A.copy(body); } });
     var go = A.outLink("去 GitHub 提交", u.url, !long, "pdGo");
     return A.modal("交到 GitHub", [
       h("p", { class: "lb-lead", id: "pdSteps", text: steps }),
       h("pre", { class: "code pd-body", id: "pdBody", text: body }),
-      h("p", { class: "note", text: "需要一个 GitHub 账号。交上去的东西是公开的，署的是你的 GitHub 用户名；别人可以载入、运行和修改它。想撤下来，把那条 Issue 关掉就行。" })
+      h("p", { class: "note", text: "需要一个 GitHub 账号。要是 GitHub 先让你登录，登录完没有回到填好的页面，就回到这里再点一次。交上去的东西是公开的，署的是你的 GitHub 用户名；别人可以载入、运行和修改它。想撤下来，把那条 Issue 关掉就行。" })
     ], { cls: "pdm", foot: [copy, go] });
   };
 })(App);
@@ -14540,7 +14540,7 @@ var App = (function () {
       foot.appendChild(h("button", { class: "btn small", type: "button", id: "dbShare", text: "复制这一局的链接", onclick: function () { A.copy(A.lobbyLink("daily")); } }));
       if (isToday) foot.appendChild(h("button", { class: "btn small", type: "button", id: "dbYesterday", text: "看昨天的榜", onclick: function () { A.openDailyBoard(QL.dayShift(spec.day, -1)); } }));
       host.appendChild(foot);
-      if (st.posted) host.appendChild(h("p", { class: "note", id: "dbPosted", text: "在刚打开的 GitHub 页面里点 Submit new issue（要先登录 GitHub 账号，成绩会以这个账号公开显示）。提交之后回到这里点\"刷新\"；GitHub 那边有时要等一两分钟才取得到。" }));
+      if (st.posted) host.appendChild(h("p", { class: "note", id: "dbPosted", text: "在刚打开的 GitHub 页面里点 Create（要先登录 GitHub 账号，成绩会以这个账号公开显示）。提交之后回到这里点\"刷新\"；GitHub 那边有时要等一两分钟才取得到。" }));
       host.appendChild(h("p", { class: "note db-how", text: "榜上的每一条都在你的浏览器里照着交来的动作重放过，得分以重放的为准。种子是公开的，先看完整局再回头挑动作的人拦不住，所以这个榜只图个乐。" }));
     }
     load(false);
@@ -15988,7 +15988,7 @@ var App = (function () {
         act: { label: "进工坊", go: function () { A.openShop(); } } },
       { id: "share", short: "贴给别人", title: "把你做的东西贴给别人", body: [
         "这张页面没有自己的服务器。大家的榜、别人写的规则、世界和玩法，都是 GitHub 上公开的帖子（GitHub 管它叫 Issue）。",
-        "贴东西：在要贴的地方点\"贴到 GitHub\"或者\"把我的成绩贴到榜上\"。页面会把内容填好、打开 GitHub，你在那里点 Submit new issue。这需要一个 GitHub 账号；帖子是公开的，署你的用户名；想撤回，把那条帖子关掉就行。",
+        "贴东西：在要贴的地方点\"贴到 GitHub\"或者\"把我的成绩贴到榜上\"。页面会把内容填好、打开 GitHub，你在那里点 Create。这需要一个 GitHub 账号；帖子是公开的，署你的用户名；想撤回，把那条帖子关掉就行。",
         "用别人的东西：别人写的代码一律在隔离环境里运行，碰不到这张页面里的东西，也连不了网。觉得哪一份好，去它的帖子上点 👍，赞多的排在前面。",
         "只是看榜不需要账号。GitHub 对不登录的访问有次数限制（每小时 60 次），偶尔会让你过一会儿再刷新。" ],
         act: { label: "回到大厅", go: function () { A.openLobby(); } } }

@@ -106,7 +106,7 @@
       foot.appendChild(h("button", { class: "btn small", type: "button", id: "dbShare", text: "复制这一局的链接", onclick: function () { A.copy(A.lobbyLink("daily")); } }));
       if (isToday) foot.appendChild(h("button", { class: "btn small", type: "button", id: "dbYesterday", text: "看昨天的榜", onclick: function () { A.openDailyBoard(QL.dayShift(spec.day, -1)); } }));
       host.appendChild(foot);
-      if (st.posted) host.appendChild(h("p", { class: "note", id: "dbPosted", text: "在刚打开的 GitHub 页面里点 Submit new issue（要先登录 GitHub 账号，成绩会以这个账号公开显示）。提交之后回到这里点\"刷新\"；GitHub 那边有时要等一两分钟才取得到。" }));
+      if (st.posted) host.appendChild(h("p", { class: "note", id: "dbPosted", text: "在刚打开的 GitHub 页面里点 Create（要先登录 GitHub 账号，成绩会以这个账号公开显示）。提交之后回到这里点\"刷新\"；GitHub 那边有时要等一两分钟才取得到。" }));
       host.appendChild(h("p", { class: "note db-how", text: "榜上的每一条都在你的浏览器里照着交来的动作重放过，得分以重放的为准。种子是公开的，先看完整局再回头挑动作的人拦不住，所以这个榜只图个乐。" }));
     }
     load(false);

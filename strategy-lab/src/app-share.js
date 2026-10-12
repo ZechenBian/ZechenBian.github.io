@@ -69,14 +69,14 @@
     var body; try { body = QLHub.pack(o.meta, o.code); } catch (e) { A.toast(e.message || String(e), 4200); return null; }
     var u = QLHub.newUrl(o.kind, o.title, body), long = !!u.clip;
     var steps = long
-      ? "内容比较长，放不进地址里，所以分两步：先点\"复制内容\"，再点\"去 GitHub 提交\"；在打开的页面里把正文整段换成刚复制的内容，然后点 Submit new issue。"
-      : "点\"去 GitHub 提交\"会打开 GitHub 的新建 Issue 页面，内容已经填好；在那里点 Submit new issue 就交上去了。";
+      ? "内容比较长，放不进地址里，所以分两步：先点\"复制内容\"，再点\"去 GitHub 提交\"；在打开的页面里把正文整段换成刚复制的内容，然后点 Create。"
+      : "点\"去 GitHub 提交\"会打开 GitHub 的新建 Issue 页面，内容已经填好；在那里点 Create 就交上去了。";
     var copy = h("button", { class: "btn" + (long ? " primary" : ""), type: "button", id: "pdCopy", text: "复制内容", onclick: function () { A.copy(body); } });
     var go = A.outLink("去 GitHub 提交", u.url, !long, "pdGo");
     return A.modal("交到 GitHub", [
       h("p", { class: "lb-lead", id: "pdSteps", text: steps }),
       h("pre", { class: "code pd-body", id: "pdBody", text: body }),
-      h("p", { class: "note", text: "需要一个 GitHub 账号。交上去的东西是公开的，署的是你的 GitHub 用户名；别人可以载入、运行和修改它。想撤下来，把那条 Issue 关掉就行。" })
+      h("p", { class: "note", text: "需要一个 GitHub 账号。要是 GitHub 先让你登录，登录完没有回到填好的页面，就回到这里再点一次。交上去的东西是公开的，署的是你的 GitHub 用户名；别人可以载入、运行和修改它。想撤下来，把那条 Issue 关掉就行。" })
     ], { cls: "pdm", foot: [copy, go] });
   };
 })(App);

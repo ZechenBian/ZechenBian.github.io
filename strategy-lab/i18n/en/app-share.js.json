@@ -1,10 +1,10 @@
 [
 {"zh":"没有名字的规则","en":"Unnamed rule"},
 {"zh":"已载入到\"我的策略\"：§0§。别人写的代码在隔离环境里运行。","en":"Loaded into \"My strategies\": §0§. Code written by other people runs in an isolated environment."},
-{"zh":"内容比较长，放不进地址里，所以分两步：先点\"复制内容\"，再点\"去 GitHub 提交\"；在打开的页面里把正文整段换成刚复制的内容，然后点 Submit new issue。","en":"The content is too long to fit in the address, so there are two steps: first click \"Copy content\", then click \"Submit on GitHub\"; on the page that opens, replace the whole body with what you just copied, then click Submit new issue."},
-{"zh":"点\"去 GitHub 提交\"会打开 GitHub 的新建 Issue 页面，内容已经填好；在那里点 Submit new issue 就交上去了。","en":"Clicking \"Submit on GitHub\" opens GitHub's new-issue page with the content already filled in; click Submit new issue there and it is posted."},
+{"zh":"内容比较长，放不进地址里，所以分两步：先点\"复制内容\"，再点\"去 GitHub 提交\"；在打开的页面里把正文整段换成刚复制的内容，然后点 Create。","en":"The content is too long to fit in the address, so there are two steps: first click \"Copy content\", then click \"Submit on GitHub\"; on the page that opens, replace the whole body with what you just copied, then click Create."},
+{"zh":"点\"去 GitHub 提交\"会打开 GitHub 的新建 Issue 页面，内容已经填好；在那里点 Create 就交上去了。","en":"Clicking \"Submit on GitHub\" opens GitHub's new-issue page with the content already filled in; click Create there and it is posted."},
 {"zh":"复制内容","en":"Copy content"},
 {"zh":"去 GitHub 提交","en":"Submit on GitHub"},
 {"zh":"交到 GitHub","en":"Post to GitHub"},
-{"zh":"需要一个 GitHub 账号。交上去的东西是公开的，署的是你的 GitHub 用户名；别人可以载入、运行和修改它。想撤下来，把那条 Issue 关掉就行。","en":"You need a GitHub account. What you post is public and carries your GitHub username; others can load, run and modify it. To take it down, just close that issue."}
+{"zh":"需要一个 GitHub 账号。要是 GitHub 先让你登录，登录完没有回到填好的页面，就回到这里再点一次。交上去的东西是公开的，署的是你的 GitHub 用户名；别人可以载入、运行和修改它。想撤下来，把那条 Issue 关掉就行。","en":"You need a GitHub account. If GitHub asks you to sign in first and then does not return to the filled-in page, come back here and click again. What you post is public and carries your GitHub username; others can load, run and modify it. To take it down, just close that issue."}
 ]
