@@ -13186,14 +13186,14 @@ var App = (function () {
     var body; try { body = QLHub.pack(o.meta, o.code); } catch (e) { A.toast(e.message || String(e), 4200); return null; }
     var u = QLHub.newUrl(o.kind, o.title, body), long = !!u.clip;
     var steps = long
-      ? "The content is too long to fit in the address, so there are two steps: first click \"Copy content\", then click \"Submit on GitHub\"; on the page that opens, replace the whole body with what you just copied, then click Submit new issue."
-      : "Clicking \"Submit on GitHub\" opens GitHub's new-issue page with the content already filled in; click Submit new issue there and it is posted.";
+      ? "The content is too long to fit in the address, so there are two steps: first click \"Copy content\", then click \"Submit on GitHub\"; on the page that opens, replace the whole body with what you just copied, then click Create."
+      : "Clicking \"Submit on GitHub\" opens GitHub's new-issue page with the content already filled in; click Create there and it is posted.";
     var copy = h("button", { class: "btn" + (long ? " primary" : ""), type: "button", id: "pdCopy", text: "Copy content", onclick: function () { A.copy(body); } });
     var go = A.outLink("Submit on GitHub", u.url, !long, "pdGo");
     return A.modal("Post to GitHub", [
       h("p", { class: "lb-lead", id: "pdSteps", text: steps }),
       h("pre", { class: "code pd-body", id: "pdBody", text: body }),
-      h("p", { class: "note", text: "You need a GitHub account. What you post is public and carries your GitHub username; others can load, run and modify it. To take it down, just close that issue." })
+      h("p", { class: "note", text: "You need a GitHub account. If GitHub asks you to sign in first and then does not return to the filled-in page, come back here and click again. What you post is public and carries your GitHub username; others can load, run and modify it. To take it down, just close that issue." })
     ], { cls: "pdm", foot: [copy, go] });
   };
 })(App);
@@ -13305,7 +13305,7 @@ var App = (function () {
       foot.appendChild(h("button", { class: "btn small", type: "button", id: "dbShare", text: "Copy the link to this episode", onclick: function () { A.copy(A.lobbyLink("daily")); } }));
       if (isToday) foot.appendChild(h("button", { class: "btn small", type: "button", id: "dbYesterday", text: "Yesterday's board", onclick: function () { A.openDailyBoard(QL.dayShift(spec.day, -1)); } }));
       host.appendChild(foot);
-      if (st.posted) host.appendChild(h("p", { class: "note", id: "dbPosted", text: "On the GitHub page that just opened, click Submit new issue (you need to be signed in to GitHub; your result will be shown publicly under that account). Then come back here and click \"Refresh\"; it can take GitHub a minute or two to make it available." }));
+      if (st.posted) host.appendChild(h("p", { class: "note", id: "dbPosted", text: "On the GitHub page that just opened, click Create (you need to be signed in to GitHub; your result will be shown publicly under that account). Then come back here and click \"Refresh\"; it can take GitHub a minute or two to make it available." }));
       host.appendChild(h("p", { class: "note db-how", text: "Every entry on the board has been replayed in your browser from the submitted actions, and the score shown is the replayed one. The seed is public, so nothing stops someone from looking at the whole episode first and then choosing their actions; the board is just for fun." }));
     }
     load(false);
@@ -14753,7 +14753,7 @@ var App = (function () {
         act: { label: "Enter the workshop", go: function () { A.openShop(); } } },
       { id: "share", short: "Share", title: "Post what you made for others", body: [
         "This page has no server of its own. Everyone's boards and the rules, worlds and games written by others are all public posts on GitHub (GitHub calls them issues).",
-        "To post: click \"Post to GitHub\" or \"Post my result to the board\" wherever you want to post. The page fills in the content and opens GitHub, where you click Submit new issue. This needs a GitHub account; the post is public and carries your username; to take it back, just close that issue.",
+        "To post: click \"Post to GitHub\" or \"Post my result to the board\" wherever you want to post. The page fills in the content and opens GitHub, where you click Create. This needs a GitHub account; the post is public and carries your username; to take it back, just close that issue.",
         "To use other people's work: code written by other people always runs in an isolated environment; it cannot touch anything on this page and cannot reach the network. If you like something, give its post a 👍; the ones with more likes are listed first.",
         "Just viewing the boards needs no account. GitHub limits requests made without signing in (60 per hour), so now and then you will be asked to refresh a little later." ],
         act: { label: "Back to the lobby", go: function () { A.openLobby(); } } }

@@ -91,7 +91,7 @@ let pass = 0, fail = 0; const ok = (c, name, d) => { if (c) { pass++; if (proces
 
   console.log("== 四、我也贴上去之后；GitHub 限流、断网");
   await page.click("#dbPost").catch(() => {}); await page.waitForTimeout(200);
-  ok((await page.locator("#dbPosted").count()) === 1 && (await txt("#dbPosted")).includes("Submit new issue"), "点了之后告诉人下一步在 GitHub 上点什么");
+  ok((await page.locator("#dbPosted").count()) === 1 && (await txt("#dbPosted")).includes("点 Create"), "点了之后告诉人下一步在 GitHub 上点什么");
   const pages = page.context().pages(); for (const p2 of pages) if (p2 !== page) await p2.close();
   const mineItem = await page.evaluate(([d, acts]) => ({ number: 20, title: QLHub.title("daily", d), body: QLHub.pack({ kind: "daily", day: d, game: window.App.QL.dailySpec(d).type, acts, v: 1 }), user: { login: "zechen" }, html_url: "https://github.com/x/y/issues/20", created_at: d + "T10:05:00Z", reactions: {} }), [D1, rec1.acts]);
   hub.items = hub.items.concat([mineItem]);

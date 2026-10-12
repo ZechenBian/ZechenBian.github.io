@@ -23,7 +23,7 @@
 {"zh":"把我的成绩贴到榜上","en":"Post my result to the board"},
 {"zh":"复制这一局的链接","en":"Copy the link to this episode"},
 {"zh":"看昨天的榜","en":"Yesterday's board"},
-{"zh":"在刚打开的 GitHub 页面里点 Submit new issue（要先登录 GitHub 账号，成绩会以这个账号公开显示）。提交之后回到这里点\"刷新\"；GitHub 那边有时要等一两分钟才取得到。","en":"On the GitHub page that just opened, click Submit new issue (you need to be signed in to GitHub; your result will be shown publicly under that account). Then come back here and click \"Refresh\"; it can take GitHub a minute or two to make it available."},
+{"zh":"在刚打开的 GitHub 页面里点 Create（要先登录 GitHub 账号，成绩会以这个账号公开显示）。提交之后回到这里点\"刷新\"；GitHub 那边有时要等一两分钟才取得到。","en":"On the GitHub page that just opened, click Create (you need to be signed in to GitHub; your result will be shown publicly under that account). Then come back here and click \"Refresh\"; it can take GitHub a minute or two to make it available."},
 {"zh":"榜上的每一条都在你的浏览器里照着交来的动作重放过，得分以重放的为准。种子是公开的，先看完整局再回头挑动作的人拦不住，所以这个榜只图个乐。","en":"Every entry on the board has been replayed in your browser from the submitted actions, and the score shown is the replayed one. The seed is public, so nothing stops someone from looking at the whole episode first and then choosing their actions; the board is just for fun."},
 {"zh":"每日一局 · §0§","en":"Daily episode · §0§"},
 {"zh":"§0§ · 全站同一局","en":"§0§ · same episode for everyone"},

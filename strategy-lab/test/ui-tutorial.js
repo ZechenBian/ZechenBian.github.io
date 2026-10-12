@@ -33,7 +33,7 @@ let pass = 0, fail = 0; const ok = (c, name, d) => { if (c) { pass++; if (proces
   }
   ok(labels.join("|") === "打今天这一局|开一个房间|看看眼下这条规则的代码|走一遍十项|摆一场|进工坊|回到大厅" && titles.every(x => x.length >= 4) && new Set(titles).size === 7, "后面七步各有一个带你过去的按钮", labels.join("|"));
   s = await state();
-  ok(s.pos === "第 8 步，共 8 步" && s.next === "看完了" && s.body.includes("Submit new issue") && s.body.includes("隔离环境") && s.body.includes("每小时 60 次"), "最后一步讲怎么贴给别人：要账号、是公开的、别人的代码在隔离环境里跑、看榜有次数限制");
+  ok(s.pos === "第 8 步，共 8 步" && s.next === "看完了" && s.body.includes("点 Create") && s.body.includes("隔离环境") && s.body.includes("每小时 60 次"), "最后一步讲怎么贴给别人：要账号、是公开的、别人的代码在隔离环境里跑、看榜有次数限制");
   await page.click("#tourPrev"); s = await state();
   ok(s.pos.startsWith("第 7 步") && s.sel === "shop", "\"上一步\"往回走");
   await page.click('.tour-pill[data-step="daily"]'); s = await state();
