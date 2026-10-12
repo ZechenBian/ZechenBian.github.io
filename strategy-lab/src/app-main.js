@@ -14,7 +14,7 @@
   A.restore();
   if (!A.dataset(S.world.dsId)) S.world.dsId = A.datasets[0] && A.datasets[0].id;
   A.initChrome(); A.renderWorld(); A.renderStrat(); A.renderSettings(); A.renderWorldHead(); A.renderSummary();
-  A.initCharts(); A.initClaude(); if (A.initGuide) A.initGuide();
+  A.initCharts(); A.initClaude(); if (A.initGuide) A.initGuide(); if (A.initLobby) A.initLobby();
   A.on("run", function () { A.renderSummary(); });
   A.on("error", function () { A.renderSummary(); });
   A.on("world", function () { A.renderWorldHead(); });

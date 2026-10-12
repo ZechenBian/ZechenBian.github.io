@@ -631,6 +631,70 @@ table.hp-tab th:first-child { padding-left: 6px; }
   .hp-foot .note { margin-left: 0; }
 }
 
+/* ---------- 大厅（src/app-lobby.js） ---------- */
+a.btn { text-decoration: none; }
+.modal-box.lbm-box { width: min(900px, 100%); }
+.lb-lead { margin: 0; font-size: 13px; line-height: 1.6; color: var(--ink2); max-width: 78ch; }
+.lb-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 10px; }
+.lb-card { border: 1px solid var(--line); border-radius: 6px; background: var(--surface); padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.lb-card.wide { grid-column: 1 / -1; }
+.lb-kicker { font-size: 11.5px; color: var(--muted); letter-spacing: 0.04em; }
+.lb-card h3 { margin: 0; font: 700 16px/1.3 var(--font-display); letter-spacing: 0.04em; }
+.lb-blurb { margin: 0; font-size: 13px; line-height: 1.6; color: var(--ink2); flex: 1; }
+.lb-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-top: 4px; }
+.lb-status { font-size: 12px; color: var(--ink2); font-variant-numeric: tabular-nums; min-width: 0; overflow-wrap: anywhere; }
+html[lang="en"] :is(.lb-card h3, .db-title) { letter-spacing: 0.01em; }
+
+/* ---------- 每日一局（src/app-daily.js） ---------- */
+.hp-banner, .hp-extra { min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+.hp-banner:empty, .hp-extra:empty { display: none; }
+.db { border-top: 1px solid var(--line); padding-top: 10px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; min-width: 0; }
+.modal-b > .db { border-top: 0; padding-top: 0; }
+.db .gref { padding: 0; }
+.db .warn { border: 1px solid var(--line); border-radius: 5px; }
+.db-head .sp { flex: 1; }
+.db-title { margin: 0; font: 700 15px/1.3 var(--font-display); letter-spacing: 0.04em; }
+.db-say, .db-banner { margin: 0; font-size: 13px; line-height: 1.6; }
+.db-say { color: var(--ink); }
+table.db-tab td:first-child, table.db-tab th:first-child { width: 4.2em; text-align: right; padding: 3px 14px 3px 6px; }
+table.db-tab tr.ref td { color: var(--ink2); }
+table.db-tab a { color: var(--accent-ink); text-decoration: none; }
+table.db-tab a:hover { text-decoration: underline; }
+.db-av { border-radius: 50%; vertical-align: -4px; margin-right: 5px; }
+.modal-box.dbm-box { width: min(640px, 100%); }
+table.db-tab th:nth-child(2) { text-align: left; padding-left: 0; }
+
+/* ---------- 实时房间（src/app-room.js） ---------- */
+.modal-box.rmm-box { width: min(680px, 100%); }
+.rm { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; min-width: 0; }
+.rm .gref { padding: 0; }
+.rm .warn { border: 1px solid var(--line); border-radius: 5px; }
+.rm-code { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.rm-code b { font: 600 24px/1.2 var(--font-mono); letter-spacing: 0.14em; }
+.rm-code .sp, .rm-foot .sp { flex: 1; }
+.rm-game select { width: auto; max-width: 100%; }
+table.rm-list td:first-child { display: flex; flex-wrap: wrap; gap: 4px 6px; align-items: baseline; }
+.rm-field { max-width: 320px; }
+.rm-field input, #rmJoinCode { padding: 4px 8px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 4px; min-width: 0; }
+.rm-field input { grid-column: 1 / -1; width: 100%; }
+#rmJoinCode { width: 8.5em; letter-spacing: 0.12em; text-transform: uppercase; }
+.rm-two { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px; }
+.rm-opt { border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 6px; align-items: flex-start; min-width: 0; }
+.rm-opt h3 { margin: 0; font: 700 15px/1.3 var(--font-display); letter-spacing: 0.04em; }
+.rm-opt .note { margin: 0; flex: 1; }
+/* 打的时候：每个人一小条进度 */
+.rm-strip { display: flex; flex-wrap: wrap; gap: 6px; }
+.rm-strip:empty { display: none; }
+.rm-chip { position: relative; display: inline-flex; align-items: baseline; gap: 8px; border: 1px solid var(--line); border-radius: 5px; padding: 3px 9px 6px; font-size: 12.5px; background: var(--surface); min-width: 0; overflow: hidden; }
+.rm-chip b { font-weight: 600; max-width: 9em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rm-chip .num { color: var(--ink2); font-size: 12px; }
+.rm-chip i { position: absolute; left: 0; bottom: 0; height: 3px; background: var(--c-neutral); }
+.rm-chip.me { border-color: var(--accent); }
+.rm-chip.me i { background: var(--accent); }
+.rm-chip.done i { background: var(--c-good); }
+.rm-chip.off { opacity: 0.55; }
+html[lang="en"] .rm-opt h3 { letter-spacing: 0.01em; }
+
 </style>
 <style>
 /* KaTeX 0.16.47 的样式，字体内联。KaTeX: MIT License, (c) Khan Academy and other contributors; 字体: SIL Open Font License 1.1。全文见 THIRD-PARTY-NOTICES.md */
@@ -646,6 +710,7 @@ table.hp-tab th:first-child { padding-left: 6px; }
     <div class="top-world"><span id="topWorld"></span></div>
     <div class="top-actions">
       <a class="btn" id="btnLang" href="../index.html" data-dir="../" data-lang="zh" hreflang="zh-CN" lang="zh-CN" title="切换到中文">中文</a>
+      <button class="btn" id="btnLobby" type="button" title="Play with others: the daily episode, live rooms, the decathlon, the rule arena and the world workshop">Lobby</button>
       <button class="btn" id="btnGuide" type="button" title="Explanations, rulebooks, and the use cases of every chart and every rule">Handbook <kbd>?</kbd></button>
       <button class="btn" id="btnPalette" type="button"><span class="lang-long">Find charts &amp; commands</span><span class="lang-short">Find</span> <kbd>⌘K</kbd></button>
       <button class="btn primary" id="btnClaude" type="button" aria-pressed="false">Claude</button>
@@ -6119,6 +6184,79 @@ return H;
 }
 if (typeof module !== "undefined" && module.exports) module.exports = QL_HUMAN_INSTALL;
 
+/* ===== social.js ===== */
+/* 策略实验室 · 大家一起打（引擎这一半）
+ * 每日一局是哪一局、一局的动作怎么写成一行字、别人交来的一局怎么核对。
+ * 核对靠重放：同一局（同一套玩法、同一组设定、同一个种子、第几局）交给同一个裁判，照着交来的动作再走一遍，
+ * 得分以这一遍算出来的为准。所以交上来的只需要动作，不需要分数，也没法虚报分数。
+ * 防不了的是"事后诸葛亮"：种子是公开的，有人可以先看完整局再回头挑动作。人亲手打的榜只适合图个乐。
+ * 只在主线程里用（要先装好 human.js）；Node 里也能跑。 */
+function QL_SOCIAL_INSTALL(QL) {
+"use strict";
+var WORLDS = QL.WORLDS;
+var DAILY = ["g_sec", "g_lock", "g_bandit", "g_coin"];   // 每日一局按天轮换的四套玩法
+function hashStr(s) { var x = 2166136261; s = String(s); for (var i = 0; i < s.length; i++) { x ^= s.charCodeAt(i); x = Math.imul(x, 16777619); } return QL.hash32(x); }
+QL.hashStr = hashStr;
+
+/* ---------- 日期（一律按 UTC 算：全站在同一时刻换到新的一天） ---------- */
+/** 毫秒时间戳 → "2026-10-12" */
+QL.dayOf = function (ms) { return new Date(ms).toISOString().slice(0, 10); };
+/** "2026-10-12" → 从 1970-01-01 算起的第几天；写法不对或者没有这一天时是 NaN */
+QL.dayNum = function (day) {
+  var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(day)); if (!m) return NaN;
+  var t = Date.UTC(+m[1], +m[2] - 1, +m[3]);
+  return t === t && new Date(t).toISOString().slice(0, 10) === day ? Math.round(t / 864e5) : NaN;
+};
+QL.dayShift = function (day, d) { return QL.dayOf((QL.dayNum(day) + d) * 864e5); };
+QL.dailyGames = function () { return DAILY.slice(); };
+/** 这一天全站打的是哪一局：{ day, type, hp, seed, k, T }。只由日期决定 */
+QL.dailySpec = function (day) {
+  var n = QL.dayNum(day); if (!(n === n)) throw new Error("Invalid date: " + day);
+  var type = DAILY[((n % DAILY.length) + DAILY.length) % DAILY.length];
+  var z = QL.humanSizes(type, QL.worldDefaults(type)).filter(function (x) { return x.id === "m"; })[0];
+  return { day: day, type: type, hp: z.hp, seed: hashStr("daily|" + day) % 1000000, k: 0, T: WORLDS[type].Tof(z.hp) };
+};
+
+/* ---------- 一局的动作写成一行字 ---------- */
+/** [1, 0, NaN, 0.25] → "1,0,,0.25"。裁判没问的回合（NaN）留空 */
+QL.actsPack = function (acts) {
+  return (acts || []).map(function (a) { return typeof a === "number" && a === a && isFinite(a) ? String(a) : ""; }).join(",");
+};
+/** 反过来。写法不对、比这一局的回合数还长时返回 null */
+QL.actsUnpack = function (str, T) {
+  if (typeof str !== "string" || str.length > 40000) return null;
+  if (str === "") return [];
+  var parts = str.split(","), out = [], i;
+  if (parts.length > T) return null;
+  for (i = 0; i < parts.length; i++) {
+    var s = parts[i];
+    if (s === "") { out.push(NaN); continue; }
+    if (!/^-?(\d+\.?\d*|\.\d+)(e[+-]?\d+)?$/i.test(s)) return null;
+    var v = +s; if (!isFinite(v)) return null;
+    out.push(v);
+  }
+  return out;
+};
+/** 照着动作把指定的那一局重放一遍：{ ok, score, acts, why }。没打完的、重放出错的都不算数 */
+QL.humanReplay = function (spec, acts) {
+  try {
+    if (!Array.isArray(acts)) return { ok: false, why: "bad" };
+    var B = QL.humanEpisode(spec.type, spec.hp, spec.seed, spec.k | 0), st = QL.humanStep(B, acts);
+    if (!st.done) return { ok: false, why: "short" };
+    return { ok: true, score: st.score, acts: st.acts };
+  } catch (e) { return { ok: false, why: "error" }; }
+};
+/** 把一组成绩排成名次。rows: [{ score, at }]；lower：分数越低越好。并列的按交得早的在前；返回每一行的名次（从 1 起，并列同名次） */
+QL.rankRows = function (rows, lower) {
+  var idx = rows.map(function (_, i) { return i; }), rank = new Array(rows.length), i;
+  idx.sort(function (a, b) { var d = lower ? rows[a].score - rows[b].score : rows[b].score - rows[a].score; return d || (rows[a].at || 0) - (rows[b].at || 0) || a - b; });
+  for (i = 0; i < idx.length; i++) rank[idx[i]] = i > 0 && rows[idx[i]].score === rows[idx[i - 1]].score ? rank[idx[i - 1]] : i + 1;
+  return { order: idx, rank: rank };
+};
+return { daily: DAILY };
+}
+if (typeof module !== "undefined" && module.exports) module.exports = QL_SOCIAL_INSTALL;
+
 /* ===== charts.js ===== */
 /* 图表层：只用 Canvas 2D，不依赖外部库。
  * 一张图 = 共享 x 轴的若干面板（每个面板只有一条 y 轴，绝不做双轴）或一张热力图。
@@ -7030,6 +7168,282 @@ var QLIO = (function () {
   return { parseTable: parseTable, guess: guess, buildSeries: buildSeries, parseNum: parseNum, parseTime: parseTime, fmtDate: fmtDate, describe: describe, load: load, save: save, packDs: packDs, unpackDs: unpackDs };
 })();
 if (typeof module !== "undefined" && module.exports) module.exports = QLIO;
+
+/* ===== hub.js ===== */
+/* 策略实验室 · 大家的东西放在哪里（GitHub 当后台，没有自己的服务器）
+ * 别人交上来的每一份东西（一局的成绩、一条规则、一个世界……）是仓库里的一条 Issue：
+ *   谁交的 = Issue 的作者（GitHub 账号）；打分 = Issue 上的 👍；撤下 = 仓库的主人把这条 Issue 关掉。
+ * 读：GitHub 的公开接口，不用登录。每个 IP 每小时只有 60 次，所以一次把最近的 Issue 都取回来，各处共用，三分钟内不重取。
+ * 交：页面不替人发帖（那需要登录和令牌，令牌不该交给一张网页）。它把内容填进"新建 Issue"的地址，人自己点一下提交。
+ * 一条 Issue 是哪一类，看标题开头的 [SL:类别]；内容在正文的 json 代码块里（要带代码的，再跟一个 js 代码块）。
+ * 正文是别人写的：这里只把它当数据解析，从不执行，也不当成 HTML 往页面里放。
+ * 这个文件不碰界面；Node 里也能跑（测试时用 QLHub.use 换一个假的 fetch）。 */
+var QLHub = (function () {
+  "use strict";
+  var REPO = "ZechenBian/ZechenBian.github.io", API = "https://api.github.com/repos/" + REPO, WEB = "https://github.com/" + REPO;
+  var KINDS = { daily: 1, rule: 1, world: 1, game: 1, deca: 1 };
+  var TTL = 180000, MAX_URL = 6000, MAX_PAGES = 3, SKEY = "ql.hub.v1";
+  var NOTE = "This issue was generated by Strategy Lab (https://zechenbian.github.io/strategy-lab/). By submitting it you agree that the content below is shown publicly in Strategy Lab and that others may load, run and modify it. Please do not change the code blocks below.";
+  var PASTE = "(The content is too long to fit in the address. Go back to Strategy Lab, click \"Copy content\", then replace this whole paragraph with what you copied.)";
+  var mem = {}, doFetch = null;
+
+  function tag(kind) { return "[SL:" + kind + "]"; }
+  function title(kind, text) { return (tag(kind) + " " + String(text == null ? "" : text).replace(/\s+/g, " ").trim()).slice(0, 120); }
+  /** 把一份东西写成 Issue 的正文。meta 是一个普通对象（会补上 sl: 1）；code 可以没有 */
+  function pack(meta, code) {
+    var m = Object.assign({ sl: 1 }, meta), out = [NOTE, "", "```json", JSON.stringify(m).replace(/`/g, "\\u0060"), "```"];
+    if (code) {
+      code = String(code).replace(/\r\n?/g, "\n").replace(/\s+$/, "");
+      if (code.indexOf("````") >= 0) throw new Error("The code must not contain four backticks in a row.");
+      out.push("", "````js", code, "````");
+    }
+    return out.join("\n") + "\n";
+  }
+  /** 反过来：{ meta, code }；不是这里生成的、或者被改坏了的，返回 null */
+  function unpack(body) {
+    if (typeof body !== "string" || body.length > 200000) return null;
+    body = body.replace(/\r\n?/g, "\n");
+    var m = /```json[ \t]*\n([\s\S]*?)\n```/.exec(body); if (!m) return null;
+    var meta; try { meta = JSON.parse(m[1]); } catch (e) { return null; }
+    if (!meta || typeof meta !== "object" || Array.isArray(meta) || meta.sl !== 1 || !KINDS[meta.kind]) return null;
+    var c = /````js[ \t]*\n([\s\S]*?)\n````/.exec(body.slice(m.index + m[0].length));
+    return { meta: meta, code: c ? c[1] : "" };
+  }
+  /** 去 GitHub 新建一条 Issue 的地址。内容太长放不进地址时，clip 里是要人自己粘贴的正文 */
+  function newUrl(kind, text, body) {
+    var base = WEB + "/issues/new?title=" + encodeURIComponent(title(kind, text)), full = base + "&body=" + encodeURIComponent(body);
+    if (full.length <= MAX_URL) return { url: full, clip: "" };
+    return { url: base + "&body=" + encodeURIComponent(PASTE), clip: body };
+  }
+  function issueUrl(n) { return WEB + "/issues/" + (n | 0); }
+
+  /* ---------- 读 ---------- */
+  function fetcher() { return doFetch || (typeof fetch === "function" ? function (u, o) { return fetch(u, o); } : null); }
+  function getJson(url) {
+    var f = fetcher(); if (!f) return Promise.reject({ offline: true });
+    return f(url, { headers: { Accept: "application/vnd.github+json" } }).then(function (r) {
+      if (r.status === 403 || r.status === 429) {
+        var hd = function (k) { try { return r.headers.get(k); } catch (e) { return null; } };
+        throw { limited: r.status === 429 || hd("x-ratelimit-remaining") === "0", status: r.status, reset: +hd("x-ratelimit-reset") || 0 };
+      }
+      if (!r.ok) throw { status: r.status };
+      return r.json();
+    }, function () { throw { offline: true }; });
+  }
+  /** 一条原始的 Issue → 这里用的样子；不是策略实验室的东西就返回 null */
+  function norm(it) {
+    if (!it || it.pull_request || typeof it.title !== "string") return null;
+    var m = /^\[SL:([a-z]+)\]\s*(.*)$/.exec(it.title); if (!m || !KINDS[m[1]]) return null;
+    var p = unpack(it.body); if (!p || p.meta.kind !== m[1]) return null;
+    var rc = it.reactions || {}, u = it.user || {};
+    return {
+      n: it.number | 0, kind: m[1], title: m[2].slice(0, 120), meta: p.meta, code: p.code, user: String(u.login || "").slice(0, 60), avatar: typeof u.avatar_url === "string" && /^https:\/\/avatars\.githubusercontent\.com\//.test(u.avatar_url) ? u.avatar_url : "",
+      url: issueUrl(it.number), at: Date.parse(it.created_at) || 0, up: rc["+1"] | 0, down: rc["-1"] | 0, comments: it.comments | 0
+    };
+  }
+  function scan(since) {
+    var out = [];
+    function page(k) {
+      var url = API + "/issues?state=open&per_page=100&sort=created&direction=desc&page=" + k + (since ? "&since=" + encodeURIComponent(since) : "");
+      return getJson(url).then(function (arr) {
+        if (!Array.isArray(arr)) throw { status: 0 };
+        arr.forEach(function (it) { var x = norm(it); if (x) out.push(x); });
+        return arr.length === 100 && k < MAX_PAGES ? page(k + 1) : out;
+      });
+    }
+    return page(1);
+  }
+  function sget() { try { return JSON.parse(sessionStorage.getItem(SKEY) || "null") || {}; } catch (e) { return {}; } }
+  function sput(key, rec) { try { var o = sget(); o[key] = rec; var s = JSON.stringify(o); if (s.length < 1500000) sessionStorage.setItem(SKEY, s); } catch (e) {} }
+  /** 取回大家交上来的东西。opt: { kind, since（ISO 时间：只要这之后动过的）, fresh（不用缓存） }
+   *  返回 { items, at, stale, error }：取不到新的但手里有旧的，就给旧的（stale 为真，error 说明为什么） */
+  function list(opt) {
+    opt = opt || {};
+    var key = opt.since || "all", now = Date.now(), c = mem[key] || (mem[key] = sget()[key] || null);
+    function pick(rec, extra) { return Object.assign({ items: rec.items.filter(function (x) { return !opt.kind || x.kind === opt.kind; }), at: rec.at, stale: false, error: null }, extra || {}); }
+    if (c && !opt.fresh && now - c.at < TTL) return Promise.resolve(pick(c));
+    return scan(opt.since).then(function (items) {
+      var rec = mem[key] = { at: Date.now(), items: items }; sput(key, rec);
+      return pick(rec);
+    }, function (e) {
+      if (c) return pick(c, { stale: true, error: e || {} });
+      throw e || {};
+    });
+  }
+  return {
+    REPO: REPO, WEB: WEB, KINDS: Object.keys(KINDS), title: title, pack: pack, unpack: unpack, newUrl: newUrl, issueUrl: issueUrl, list: list, norm: norm,
+    /** 测试用：换一个取数的函数，并清掉缓存 */
+    use: function (f) { doFetch = f || null; mem = {}; try { sessionStorage.removeItem(SKEY); } catch (e) {} }
+  };
+})();
+if (typeof module !== "undefined" && module.exports) module.exports = QLHub;
+
+/* ===== mq.js ===== */
+/* 策略实验室 · 实时房间的通道（公共 MQTT 中继，没有自己的服务器）
+ * GitHub 没有实时的通道，房间里"谁打到哪了"这种一秒一变的东西走公共的 MQTT 中继服务器（经 WebSocket）。
+ * 上半个文件是一个极简的 MQTT 3.1.1 客户端，只实现用得到的部分：连接、订阅、发布（QoS 0，保留消息）、心跳。
+ * 下半个文件是房间：房间里的东西都是"保留消息"，一个主题一份，内容是 { s: 版本戳, w: 谁写的, d: 数据 }。
+ *   · 同时连几台中继，写的时候每一台都发，读的时候取并集；同一个主题以版本戳大的为准，所以重复收到、先后颠倒都没关系。
+ *   · 断线自动重连；重连之后把自己写的东西再发一遍。
+ *   · 房间号就是主题的一部分：知道房间号的人都能进来、都能看到里面的东西。里面只有昵称、进度和这一局的动作，没有别的。
+ * 收到的内容是别人写的：这里只做 JSON 解析和类型检查，往页面上放的时候一律当纯文字。
+ * 这个文件不碰界面；Node 里也能跑（Node 22 自带 WebSocket）。 */
+var QLMQ = (function () {
+  "use strict";
+  var enc = new TextEncoder(), dec = new TextDecoder();
+  function cat(parts) { var n = 0, i, o, k = 0; for (i = 0; i < parts.length; i++) n += parts[i].length; o = new Uint8Array(n); for (i = 0; i < parts.length; i++) { o.set(parts[i], k); k += parts[i].length; } return o; }
+  function u16(n) { return Uint8Array.of((n >> 8) & 255, n & 255); }
+  function str(s) { var b = enc.encode(s); return cat([u16(b.length), b]); }
+  function remLen(n) { var o = []; do { var d = n % 128; n = Math.floor(n / 128); if (n > 0) d |= 128; o.push(d); } while (n > 0); return Uint8Array.from(o); }
+  function pkt(b1, body) { return cat([Uint8Array.of(b1), remLen(body.length), body]); }
+  function rid(n) { var s = ""; while (s.length < n) s += Math.random().toString(36).slice(2); return s.slice(0, n); }
+
+  /** 连一台中继。返回 { up, on(事件, fn), subscribe(主题), publish(主题, 文字, 保留), end() }；事件：connect、close(原因)、message(主题, 文字, 是否保留) */
+  function connect(url, opt) {
+    opt = opt || {};
+    var keep = opt.keepalive || 30, ev = { connect: [], close: [], message: [] }, ws = null, buf = new Uint8Array(0), up = false, closed = false, pid = 0, pingT = null, pongT = null, connT = null;
+    function emit(k, a, b, c) { ev[k].slice().forEach(function (f) { try { f(a, b, c); } catch (e) { if (typeof console !== "undefined") console.error(e); } }); }
+    function send(b) { if (ws && ws.readyState === 1) { try { ws.send(b); return true; } catch (e) {} } return false; }
+    function fail(why) {
+      if (closed) return; closed = true; up = false;
+      clearInterval(pingT); clearTimeout(pongT); clearTimeout(connT);
+      try { if (ws) ws.close(); } catch (e) {}
+      emit("close", why || "closed");
+    }
+    function handle(b1, body) {
+      var type = b1 >> 4;
+      if (type === 2) {                                    // CONNACK
+        if (body[1] !== 0) { fail("refused " + body[1]); return; }
+        up = true; clearTimeout(connT);
+        pingT = setInterval(function () { if (!send(Uint8Array.of(0xc0, 0))) return; clearTimeout(pongT); pongT = setTimeout(function () { fail("ping timeout"); }, 15000); }, Math.max(5, keep * 0.6) * 1000);
+        emit("connect");
+      } else if (type === 3) {                             // PUBLISH
+        var fl = b1 & 15, qos = (fl >> 1) & 3, tl = (body[0] << 8) | body[1], topic = dec.decode(body.subarray(2, 2 + tl)), i = 2 + tl, id = 0;
+        if (qos > 0) { id = (body[i] << 8) | body[i + 1]; i += 2; }
+        if (qos === 1) send(pkt(0x40, u16(id)));           // 这里只订阅 QoS 0；中继真发来 QoS 1 也照规矩应答
+        emit("message", topic, dec.decode(body.subarray(i)), !!(fl & 1));
+      } else if (type === 13) clearTimeout(pongT);         // PINGRESP
+    }
+    function feed(chunk) {
+      buf = buf.length ? cat([buf, chunk]) : chunk;
+      for (;;) {
+        if (buf.length < 2) return;
+        var mul = 1, len = 0, i = 1, b;
+        do { if (i >= buf.length) return; b = buf[i++]; len += (b & 127) * mul; mul *= 128; if (mul > 268435456) { fail("bad length"); return; } } while (b & 128);
+        if (buf.length < i + len) return;
+        var b1 = buf[0], body = buf.subarray(i, i + len);
+        buf = buf.subarray(i + len);
+        handle(b1, body);
+        if (closed) return;
+      }
+    }
+    try { ws = new WebSocket(url, ["mqtt"]); } catch (e) { setTimeout(function () { fail("bad url"); }, 0); }
+    if (ws) {
+      ws.binaryType = "arraybuffer";
+      connT = setTimeout(function () { fail("connect timeout"); }, opt.timeout || 10000);
+      ws.onopen = function () { send(pkt(0x10, cat([str("MQTT"), Uint8Array.of(4, 0x02), u16(keep), str(opt.clientId || "sl" + rid(14))]))); };   // 协议 3.1.1，不留会话
+      ws.onmessage = function (e) { if (typeof e.data === "string") return; feed(new Uint8Array(e.data)); };
+      ws.onerror = function () { fail("socket error"); };
+      ws.onclose = function () { fail("socket closed"); };
+    }
+    return {
+      url: url,
+      isUp: function () { return up; },
+      on: function (k, f) { ev[k].push(f); },
+      subscribe: function (filter) { if (!up) return false; pid = (pid % 65535) + 1; return send(pkt(0x82, cat([u16(pid), str(filter), Uint8Array.of(0)]))); },
+      publish: function (topic, text, retain) { if (!up) return false; return send(pkt(0x30 | (retain ? 1 : 0), cat([str(topic), enc.encode(text == null ? "" : text)]))); },
+      end: function () { if (!closed) { send(Uint8Array.of(0xe0, 0)); fail("ended"); } }
+    };
+  }
+  return { connect: connect, rid: rid };
+})();
+
+var QLRoom = (function () {
+  "use strict";
+  var DEF = ["wss://broker.emqx.io:8084/mqtt", "wss://broker.hivemq.com:8884/mqtt", "wss://mqtt.eclipseprojects.io:443/mqtt"];
+  var NS = "strategy-lab/v1/r/", MAX_DOC = 60000;
+  /** 用哪几台中继。只有在本机打开页面时（开发、测试）才认地址里的 ?broker=ws://…，免得别人发一条链接就把你引到他的服务器上 */
+  function brokers() {
+    try {
+      var local = location.protocol === "file:" || /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname), q = local ? new URLSearchParams(location.search).get("broker") : null;
+      if (q) { var L = q.split(",").map(function (s) { return s.trim(); }).filter(function (s) { return /^wss?:\/\//.test(s); }).slice(0, 4); if (L.length) return L; }
+    } catch (e) {}
+    return DEF.slice();
+  }
+  function codeOk(c) { return typeof c === "string" && /^[A-Z2-9]{6}$/.test(c); }
+  /** 新的房间号：6 位，去掉了容易看混的 0/O、1/I/L */
+  function newCode() { var A = "ABCDEFGHJKMNPQRSTUVWXYZ23456789", s = "", a = new Uint8Array(6), i; try { crypto.getRandomValues(a); } catch (e) { for (i = 0; i < 6; i++) a[i] = Math.random() * 256; } for (i = 0; i < 6; i++) s += A[a[i] % A.length]; return s; }
+
+  /** 进一个房间。uid：我是谁（随机编号）；on：{ doc(key, data 或 null, 谁写的), status(连上了几台, 一共几台) }
+   *  返回 { set(key, data), del(key), get(key), keys(prefix), up(), close() } */
+  function open(code, uid, on, opt) {
+    if (!codeOk(code)) throw new Error("Invalid room code");
+    opt = opt || {}; on = on || {};
+    var prefix = NS + code + "/", urls = opt.brokers || brokers(), docs = {}, mine = {}, dead = false;
+    var conns = urls.map(function (url) { return { url: url, cl: null, up: false, tries: 0, timer: 0 }; });
+    function nUp() { return conns.filter(function (c) { return c.up; }).length; }
+    function status() { if (on.status) { try { on.status(nUp(), conns.length); } catch (e) {} } }
+    function wire(key) { var d = docs[key]; return d.d === null ? "" : JSON.stringify({ s: d.s, w: d.w, d: d.d }); }
+    function onMsg(topic, text, retained) {
+      if (dead || topic.slice(0, prefix.length) !== prefix || text.length > MAX_DOC) return;
+      var key = topic.slice(prefix.length), cur = docs[key], m = null;
+      if (!/^[a-z0-9_\/.-]{1,80}$/i.test(key)) return;
+      if (text === "") {                                   // 空消息 = 这一份被撤掉了。自己还在写的东西不让别人撤
+        if (!cur || cur.d === null || mine[key]) return;
+        docs[key] = { s: cur.s + 1, w: cur.w, d: null, rt: Date.now(), live: true };
+        if (on.doc) on.doc(key, null, cur.w);
+        return;
+      }
+      try { m = JSON.parse(text); } catch (e) { return; }
+      if (!m || typeof m !== "object" || typeof m.s !== "number" || !(m.s === m.s) || typeof m.w !== "string" || m.w.length > 40 || m.d == null || typeof m.d !== "object") return;
+      if (cur && !(m.s > cur.s || (m.s === cur.s && m.w > cur.w))) return;                  // 旧的、重复的：不理
+      docs[key] = { s: m.s, w: m.w, d: m.d, rt: Date.now(), live: !retained };   // live：这是对方刚刚发的，不是中继替它留着的旧消息
+      if (on.doc) on.doc(key, m.d, m.w);
+    }
+    function start(c) {
+      if (dead) return;
+      var cl = QLMQ.connect(c.url, { clientId: "sl" + QLMQ.rid(14), keepalive: 30, timeout: opt.timeout || 10000 });
+      c.cl = cl;
+      cl.on("connect", function () {
+        c.up = true; c.tries = 0;
+        cl.subscribe(prefix + "#");
+        Object.keys(mine).forEach(function (k) { if (docs[k]) cl.publish(prefix + k, wire(k), true); });
+        status();
+      });
+      cl.on("message", onMsg);
+      cl.on("close", function () {
+        if (c.cl !== cl) return;
+        c.up = false; c.cl = null; status();
+        if (!dead) c.timer = setTimeout(function () { start(c); }, Math.min(15000, 1000 * Math.pow(2, Math.min(c.tries++, 4))) * (0.7 + Math.random() * 0.6));
+      });
+    }
+    function pub(key) { var text = wire(key), n = 0; conns.forEach(function (c) { if (c.up && c.cl.publish(prefix + key, text, true)) n++; }); return n; }
+    conns.forEach(start);
+    return {
+      code: code, uid: uid,
+      /** 写一份（保留消息）。返回这一下发到了几台中继；一台都没连上时先记着，连上了自动补发 */
+      set: function (key, data) {
+        var cur = docs[key], s = Math.max(Date.now(), cur ? cur.s + 1 : 0);
+        docs[key] = { s: s, w: uid, d: data, rt: Date.now(), live: true }; mine[key] = 1;
+        return pub(key);
+      },
+      del: function (key) { var cur = docs[key]; if (!cur) return 0; docs[key] = { s: cur.s + 1, w: uid, d: null, rt: Date.now(), live: true }; delete mine[key]; return pub(key); },
+      get: function (key) { var d = docs[key]; return d && d.d !== null ? d.d : null; },
+      /** 这一份（的最新版本）是什么时候收到的（本机时间），是不是对方刚发的。没有这一份时是 null */
+      info: function (key) { var d = docs[key]; return d && d.d !== null ? { rt: d.rt, live: d.live, w: d.w } : null; },
+      keys: function (pre) { return Object.keys(docs).filter(function (k) { return docs[k].d !== null && k.slice(0, pre.length) === pre; }); },
+      up: nUp, total: function () { return conns.length; },
+      close: function () {
+        if (dead) return;
+        Object.keys(mine).forEach(function (k) { conns.forEach(function (c) { if (c.up) c.cl.publish(prefix + k, "", true); }); });   // 走的时候把自己的东西撤掉
+        dead = true;
+        conns.forEach(function (c) { clearTimeout(c.timer); if (c.cl) { var cl = c.cl; c.cl = null; c.up = false; setTimeout(function () { cl.end(); }, 30); } });
+      }
+    };
+  }
+  return { open: open, newCode: newCode, codeOk: codeOk, brokers: brokers, NS: NS };
+})();
+if (typeof module !== "undefined" && module.exports) module.exports = { QLMQ: QLMQ, QLRoom: QLRoom };
 
 /* ===== guide.js ===== */
 /* 手册的内容（一）：入门、图表、名词、插图。
@@ -10060,6 +10474,7 @@ var App = (function () {
     QL.WORLD_GROUPS.forEach(function (g) { Object.keys(QL.WORLDS).forEach(function (k) { var w = QL.WORLDS[k]; if (w.group !== g || (k === "custom" && !S.custom)) return; L.push({ kind: w.game ? "Game" : "World", name: w.name, key: w.name + " " + w.short + " " + k + (w.game ? " game games" : " world"), run: function () { A.setWorldType(k); } }); }); });
     L.push({ kind: "Game", name: "" + A.TRADE.name + " (position sizing)", key: "trading asset position trade game", run: function () { A.setGame("trade"); } });
     A.stratsFor().forEach(function (s) { L.push({ kind: "Rule", name: s.name, key: s.name + " " + s.id + " " + (s.summary || ""), run: function () { A.setStrat(s.id); } }); });
+    if (A.lobbyCommands) A.lobbyCommands().forEach(function (c) { L.push(c); });
     if (A.guideCommands) { try { A.guideCommands().forEach(function (c) { L.push(c); }); } catch (e) { console.error(e); } }   // 手册条目排在最后
     return L;
   };
@@ -11331,7 +11746,9 @@ var App = (function () {
  * 页面上别的地方都是让规则去打；这里是你自己逐回合做决定，打完之后同一局交给各条参照规则再打一遍，并排着比。
  * 逐回合推进、参照规则、长期平均都在 human.js 里；这个文件只管界面：弹层、每套玩法的局面和按钮、打完之后的对照、累计的成绩。
  * 成绩按"哪套玩法 + 哪组设定 + 哪个种子"分开记在这台设备的浏览器里（只有数字）。
- * 同一组设定下第 k 局永远是同一局，所以规则在你打过的那几局上的成绩随时可以重算，不用存。 */
+ * 同一组设定下第 k 局永远是同一局，所以规则在你打过的那几局上的成绩随时可以重算，不用存。
+ * 每日一局、实时房间打的是"指定的那一局"（A.openHuman({ fixed })）：哪套玩法、哪组设定、哪个种子、第几局都由外面给定，
+ * 只打这一局，不往上面那份存档里记；打到哪了、打完了，都通过 fixed 上的几个回调告诉外面。 */
 (function (A) {
   "use strict";
   var h = A.h, clear = A.clear, S = A.state, QL = A.QL, F = A.F, P = A.P;
@@ -11368,15 +11785,19 @@ var App = (function () {
     if (!s) s = live[key] = { key: key, type: type, hp: hp, seed: seed, kit: QL.humanKit(type, hp, seed), B: null, k: 0, step: null, fin: null, finAt: 0, mark: null, mem: {}, refSC: {}, long: null, star: "" };
     return s;
   }
-  function recOf(s) { return store.rec[s.key] || null; }
+  /** 指定的那一局：每次打开都是一份新的，不进上面的 live，也不进存档 */
+  function sessFixed(fx) {
+    return { key: "fx|" + fx.id, type: fx.type, hp: fx.hp, seed: fx.seed, kit: QL.humanKit(fx.type, fx.hp, fx.seed), B: null, k: fx.k | 0, step: null, fin: null, finAt: 0, mark: null, mem: {}, refSC: {}, long: null, star: "", fx: fx };
+  }
+  function recOf(s) { return s.fx ? null : store.rec[s.key] || null; }
   function recMake(s) { var r = store.rec[s.key] || (store.rec[s.key] = { me: [], base: 0, at: 0, cur: null }); r.at = Date.now(); return r; }
-  function played(s) { var r = recOf(s); return r ? r.me : []; }
+  function played(s) { if (s.fx) return s.fin ? [s.fin.st.score] : []; var r = recOf(s); return r ? r.me : []; }
   /** 开一局：接着存档里的局号往下；上次打到一半的，从断开的地方接着打 */
   function begin(s) {
-    var r = recOf(s);
-    s.k = r ? r.base + r.me.length : 0; s.B = QL.humanEpisode(s.type, s.hp, s.seed, s.k); s.fin = null; s.mark = null;
-    var st; try { st = QL.humanStep(s.B, r && r.cur ? r.cur : []); } catch (e) { st = QL.humanStep(s.B, []); }
-    if (st.done) finish(s, st); else s.step = st;
+    var r = recOf(s), saved = s.fx ? (s.fx.acts ? s.fx.acts() : null) : (r && r.cur ? r.cur : null);
+    s.k = s.fx ? s.fx.k | 0 : r ? r.base + r.me.length : 0; s.B = QL.humanEpisode(s.type, s.hp, s.seed, s.k); s.fin = null; s.mark = null;
+    var st; try { st = QL.humanStep(s.B, saved || []); } catch (e) { st = QL.humanStep(s.B, []); }
+    if (st.done) finish(s, st, !!(saved && saved.length)); else s.step = st;
   }
   /** 把动作 a 交给眼下这一回合 */
   function advance(s, a) {
@@ -11386,18 +11807,23 @@ var App = (function () {
     var nx = QL.humanStep(s.B, acts);
     if (nx.done) finish(s, nx); else s.step = nx;
   }
-  function finish(s, st) {
-    var r = recMake(s), refs = QL.humanRefsOn(s.kit, s.B, true), sc = {};
-    r.me.push(st.score); r.cur = null;
-    if (r.me.length > 5000) { r.me.shift(); r.base++; }   // 只留最近的 5000 局；局号照旧往下数
-    save();
+  /** restored：这一局是从存下来的动作里接回来的（之前就打完了），不是刚刚打完 */
+  function finish(s, st, restored) {
+    var refs = QL.humanRefsOn(s.kit, s.B, true), sc = {};
+    if (!s.fx) {
+      var r = recMake(s);
+      r.me.push(st.score); r.cur = null;
+      if (r.me.length > 5000) { r.me.shift(); r.base++; }   // 只留最近的 5000 局；局号照旧往下数
+      save();
+    }
     refs.forEach(function (x) { sc[x.id] = x.score; }); s.refSC[s.k] = sc;
     s.fin = { k: s.k, st: st, refs: refs, reveal: QL.humanDef(s.type).reveal(s.B) };
-    s.step = null; s.finAt = Date.now();
+    s.step = null; s.finAt = restored ? 0 : Date.now();
+    if (s.fx && s.fx.onFinish) s.fx.onFinish({ acts: st.acts.slice(), score: st.score, restored: !!restored });
   }
   /** 你打过的那几局上，各条参照规则的得分（同样的局、同样的顺序） */
   function cumul(s) {
-    var r = recOf(s), me = r ? r.me : [], base = r ? r.base : 0, by = {}, i;
+    var r = recOf(s), me = s.fx ? played(s) : r ? r.me : [], base = s.fx ? s.k : r ? r.base : 0, by = {}, i;
     s.kit.refs.forEach(function (x) { by[x.id] = []; });
     for (i = 0; i < me.length; i++) {
       var sc = s.refSC[base + i];
@@ -11733,15 +12159,25 @@ var App = (function () {
     }
   };
 
+  /** 这套玩法的一局有多长，写成给人看的一小句（"60 回合"、"20 人"） */
+  A.humanSizeLabel = function (type, hp) { return UI[type] ? UI[type].sizeLabel(hp) : ""; };
+
   /* ---------- 弹层 ---------- */
-  A.openHuman = function () {
-    var type = S.world.type, w = A.wdef();
-    if (!A.humanOk(type)) { A.toast("This game cannot be played by hand yet. The ones that can: " + QL.humanGames().map(function (k) { return QL.WORLDS[k].short; }).join(", ") + ".", 4600); return; }
-    var ui = UI[type], seed = S.world.seed, sizes = QL.humanSizes(type, Object.assign({}, A.wp())), sizeId = store.size[type], s = null, chart = null, alive = true;
+  /** opt.fixed：只打指定的那一局。{ id, type, hp, seed, k, title, label, acts(), onStep(acts, t, T), onFinish({ acts, score, restored }), actions(), mount(api), onRender(api), onClose() }
+   *  返回一个控制柄（不能打时是 null）：banner / extra 是留给外面画东西的两块地方（局面上方、对照表下方），state() 是眼下打到哪了 */
+  A.openHuman = function (opt) {
+    var fx = opt && opt.fixed ? opt.fixed : null, type = fx ? fx.type : S.world.type, w = QL.WORLDS[type];
+    if (!A.humanOk(type)) { A.toast("This game cannot be played by hand yet. The ones that can: " + QL.humanGames().map(function (k) { return QL.WORLDS[k].short; }).join(", ") + ".", 4600); return null; }
+    var ui = UI[type], seed = fx ? fx.seed : S.world.seed, sizes = fx ? [{ id: "fixed", hp: fx.hp }] : QL.humanSizes(type, Object.assign({}, A.wp())), sizeId = fx ? "fixed" : store.size[type], s = null, chart = null, alive = true;
     if (!sizes.some(function (z) { return z.id === sizeId; })) sizeId = "m";
-    var top = h("div", { class: "hp-top" }), setup = h("ul", { class: "hp-setup" }), tiles = h("div", { class: "hp-tiles" }), main = h("div", { class: "hp-main" }), logEl = h("div", { class: "hp-log", "aria-live": "polite" }),
-      chartHost = h("div", { class: "hp-chart" }), after = h("div", { class: "hp-after" });
-    var m = A.modal("Play it yourself · " + w.name, h("div", { class: "hp", "data-game": type }, top, setup, tiles, main, logEl, chartHost, after), { cls: "hpm", focus: ".hp-focus", onClose: function () { alive = false; if (chart) chart.destroy(); } });
+    var top = h("div", { class: "hp-top" }), banner = h("div", { class: "hp-banner" }), setup = h("ul", { class: "hp-setup" }), tiles = h("div", { class: "hp-tiles" }), main = h("div", { class: "hp-main" }), logEl = h("div", { class: "hp-log", "aria-live": "polite" }),
+      chartHost = h("div", { class: "hp-chart" }), after = h("div", { class: "hp-after" }), extra = h("div", { class: "hp-extra" });
+    var m = A.modal(fx && fx.title ? fx.title : "Play it yourself · " + w.name, h("div", { class: "hp", "data-game": type }, top, banner, setup, tiles, main, logEl, chartHost, after, extra), { cls: "hpm", focus: ".hp-focus", onClose: function () { alive = false; if (chart) chart.destroy(); if (fx && fx.onClose) fx.onClose(); } });
+    var api = {
+      modal: m, banner: banner, extra: extra, type: type, close: function () { if (alive) m.close(); }, alive: function () { return alive; },
+      kit: function () { return s.kit; }, refs: function () { return s.fin ? s.fin.refs : null; }, fmt: function (v) { return fm1(v); },
+      state: function () { var fin = s.fin; return { done: !!fin, t: fin ? s.kit.T : s.step.t, T: s.kit.T, score: fin ? fin.st.score : NaN, acts: (fin ? fin.st.acts : s.step.acts).slice() }; }
+    };
 
     function G() { return s.kit.score; }
     function fm(v) { return A.gfmt(G(), v); }
@@ -11761,30 +12197,38 @@ var App = (function () {
       var from = s.step.t, to = from, a = first;
       for (var g = 0; g <= s.kit.T && a != null; g++) { to = s.step.t; advance(s, a); a = more && s.step ? more(s.step) : null; }
       s.mark = { from: from, to: to };
-      if (!s.fin) { var r = recMake(s); r.cur = s.step.acts.slice(); save(); }
+      if (!s.fin) {
+        if (fx) { if (fx.onStep) fx.onStep(s.step.acts.slice(), s.step.t, s.kit.T); }
+        else { var r = recMake(s); r.cur = s.step.acts.slice(); save(); }
+      }
       render();
     }
     function setSize(id) {
       var z = sizes.filter(function (x) { return x.id === id; })[0] || sizes[0];
-      sizeId = z.id; store.size[type] = z.id; save();
-      s = sess(type, z.hp, seed);
+      sizeId = z.id; if (!fx) { store.size[type] = z.id; save(); }
+      s = fx ? sessFixed(fx) : sess(type, z.hp, seed);
       if (!s.step && !s.fin) begin(s);
       render();
       var mine = s, L = longStart(s);
       if (!L.done) L.cbs.push(function () { if (alive && s === mine && s.fin) renderAfter(); });
     }
     function next() {
-      if (Date.now() - s.finAt < 600) return;   // 刚打完的一瞬间不接：连按回车下注的人，不会一头撞过这一局的结果
+      if (fx || Date.now() - s.finAt < 600) return;   // 刚打完的一瞬间不接：连按回车下注的人，不会一头撞过这一局的结果
       s.fin = null; begin(s); render();
     }
     function wipe() {
-      var r = recOf(s); if (!r) return;
+      var r = recOf(s); if (!r || fx) return;
       r.base += r.me.length; r.me = []; r.cur = null; r.at = Date.now(); save();
       s.fin = null; begin(s); render(); A.toast("The record for these settings has been cleared. From here on you play new episodes you have not seen.", 3600);
     }
 
     function renderTop() {
       clear(top);
+      if (fx) {   // 指定的那一局：没有长度可选，也没有"第几局"
+        top.appendChild(h("span", { class: "hp-ep", text: fx.label || "" })); top.appendChild(h("span", { class: "sp" }));
+        if (A.openGuide) top.appendChild(A.helpBtn("game:" + type, "This game's rulebook, background, and known results"));
+        return;
+      }
       var seg = h("div", { class: "seg hp-sizes", role: "group", "aria-label": "Episode length" }), me = played(s);
       sizes.forEach(function (z) {
         seg.appendChild(h("button", { type: "button", "data-size": z.id, "aria-pressed": z.id === sizeId ? "true" : "false", text: z.id === "same" ? "Same as the left column (" + ui.sizeLabel(z.hp) + ")" : ui.sizeLabel(z.hp), onclick: function () { if (z.id !== sizeId) setSize(z.id); } }));
@@ -11816,7 +12260,8 @@ var App = (function () {
       var hind = h("div", { class: "hp-hind" });
       ui.hind(c).forEach(function (x) { hind.appendChild(typeof x === "string" ? h("p", { text: x }) : x); });
       box.appendChild(hind);
-      box.appendChild(h("div", { class: "hp-acts" }, h("button", { class: "btn primary hp-act hp-focus", type: "button", id: "hpNext", onclick: next }, "Next episode", h("kbd", { text: "↵" }))));
+      if (fx) { var extraActs = fx.actions ? fx.actions(api) : null; if (extraActs && extraActs.length) box.appendChild(h("div", { class: "hp-acts" }, extraActs)); }
+      else box.appendChild(h("div", { class: "hp-acts" }, h("button", { class: "btn primary hp-act hp-focus", type: "button", id: "hpNext", onclick: next }, "Next episode", h("kbd", { text: "↵" }))));
       return box;
     }
     function renderAfter() {
@@ -11835,6 +12280,7 @@ var App = (function () {
       after.appendChild(h("div", { class: "gref" }, h("table", { class: "gtab hp-tab" },
         h("caption", { text: "Each reference rule plays the same episodes. \"Long-run average\" is computed on " + (s.long ? s.long.N : QL.humanLongN(s.kit)) + " separately generated episodes" + (L ? "." : "; computing…") }),
         h("thead", null, h("tr", null, head)), tb)));
+      if (fx) return;   // 指定的那一局只有这一局：没有累计，也没有可清零的记录
       // 累计：和先比的那条规则在同样几局上的配对差
       var sr = s.kit.refs.filter(function (r) { return r.id === sid; })[0], note;
       if (sr && !sr.err && n > 1) {
@@ -11861,6 +12307,7 @@ var App = (function () {
       if (!chart) chart = new QLChart.Chart(chartHost, { height: spec.height || 280 });
       chart.set(spec);
       renderAfter();
+      if (fx && fx.onRender) fx.onRender(api);
       var f = m.box.querySelector(".hp-focus");
       if (f) { try { f.focus({ preventScroll: true }); } catch (e) { f.focus(); } if (f.select && f.tagName === "INPUT") f.select(); }
     }
@@ -11870,8 +12317,521 @@ var App = (function () {
       if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;   // 正在填数字时不抢
       if (ui.keys(ctx(), e.key)) e.preventDefault();
     });
+    if (fx && fx.mount) fx.mount(api);
     setSize(sizeId);
+    return api;
   };
+})(App);
+
+/* ===== app-lobby.js ===== */
+/* 应用主体（七）：大厅。和别人一起玩的几种办法都从这里进：每日一局、实时房间、十项全能、规则同场、世界工坊，外加新手教程。
+ * 各个功能在自己的文件里，用 A.lobbyAdd 把自己登记成大厅里的一张卡片；这里只管把卡片摆出来、认地址里的 #daily、#room=… 这类入口。
+ * 页面没有自己的服务器：要给别人看的东西放在 GitHub 上（src/hub.js），实时房间走公共的中继（src/mq.js）。 */
+(function (A) {
+  "use strict";
+  var h = A.h, $ = A.$;
+  var cards = [], routes = {};
+  /** 登记一张卡片：{ id, order, kicker, title, blurb, status(), go(arg), label, route }。route：地址里 #route 或 #route=参数 会直接打开它 */
+  A.lobbyAdd = function (c) { cards.push(c); cards.sort(function (a, b) { return a.order - b.order; }); if (c.route) routes[c.route] = c; };
+  A.lobbyCards = function () { return cards.slice(); };
+  /** 能发给别人的地址：这张页面 + #入口 */
+  A.lobbyLink = function (route, arg) { return location.href.replace(/#.*$/, "") + "#" + route + (arg ? "=" + encodeURIComponent(arg) : ""); };
+  /** 去别的网站（GitHub）的按钮：做成真正的链接，浏览器不会当成弹窗拦下来 */
+  A.outLink = function (label, url, primary, id) { return h("a", { class: "btn" + (primary ? " primary" : ""), href: url, target: "_blank", rel: "noopener", id: id || null, text: label }); };
+
+  A.openLobby = function () {
+    var grid = h("div", { class: "lb-grid" });
+    cards.forEach(function (c) {
+      var st = ""; try { st = c.status ? c.status() : ""; } catch (e) { st = ""; }
+      grid.appendChild(h("section", { class: "lb-card" + (c.wide ? " wide" : ""), "data-card": c.id },
+        c.kicker ? h("div", { class: "lb-kicker", text: c.kicker }) : null,
+        h("h3", { text: c.title }),
+        h("p", { class: "lb-blurb", text: c.blurb }),
+        h("div", { class: "lb-foot" },
+          h("button", { class: "btn" + (c.primary ? " primary" : ""), type: "button", "data-go": c.id, text: c.label || "Open", onclick: function () { m.close(); c.go(); } }),
+          st ? h("span", { class: "lb-status", text: st }) : null)));
+    });
+    var m = A.modal("Lobby", [
+      h("p", { class: "lb-lead", text: "Ways to play with other people. This page has no server of its own: anything you want others to see, you post to GitHub yourself, and live rooms go through public relays. Without a network connection, everything you play on your own still works." }),
+      grid
+    ], { cls: "lbm", focus: ".lb-card .btn" });
+    return m;
+  };
+
+  /** 地址里的入口：#daily、#room=AB12CD …… */
+  function route() {
+    var m = /^#([a-z]+)(?:=(.*))?$/.exec(location.hash || ""); if (!m) return false;
+    var c = m[1] === "lobby" ? { go: A.openLobby } : routes[m[1]]; if (!c) return false;
+    var arg = ""; try { arg = m[2] ? decodeURIComponent(m[2]) : ""; } catch (e) {}
+    try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {}   // 入口只用一次：刷新页面不再弹出来
+    setTimeout(function () { try { c.go(arg); } catch (e) { console.error(e); } }, 60);
+    return true;
+  }
+  A.initLobby = function () {
+    var b = $("btnLobby"); if (b) b.addEventListener("click", function () { A.openLobby(); });
+    route();
+    window.addEventListener("hashchange", route);
+  };
+  A.lobbyCommands = function () {
+    var L = [{ kind: "Action", name: "Open the lobby (daily episode, live rooms, decathlon, rule arena, world workshop)", key: "lobby together multiplayer online community ranking leaderboard board", run: function () { A.openLobby(); } }];
+    cards.forEach(function (c) { L.push({ kind: "Lobby", name: c.title, key: c.title + " " + c.id + " " + (c.keys || ""), run: function () { c.go(); } }); });
+    return L;
+  };
+})(App);
+
+/* ===== app-daily.js ===== */
+/* 应用主体（八）：每日一局。全站每天打同一局（哪套玩法、哪个种子只由日期决定，见 social.js），打完看自己排在所有人的哪个位置。
+ * 打：就是"亲手玩一局"里指定的那一局，一天只有这一局，打到一半关掉可以接着打。成绩存在这台设备上。
+ * 榜：想上榜的人自己把这一局的动作贴成一条 GitHub Issue（src/hub.js）。看榜的人把每一条交来的动作在自己的浏览器里重放一遍，
+ *     得分以重放出来的为准，所以没法虚报；同一个账号一天只算最早交的那一条。
+ * 种子是公开的，先看完整局再回头挑动作的人拦不住：这个榜只图个乐。 */
+(function (A) {
+  "use strict";
+  var h = A.h, clear = A.clear, QL = A.QL;
+  if (typeof QL_SOCIAL_INSTALL === "function" && QL.humanDef && !QL.dailySpec) QL_SOCIAL_INSTALL(QL);
+  if (!QL.dailySpec) return;
+
+  /* ---------- 存档：一天一条 ---------- */
+  var KEY = "ql.daily.v1", store = { v: 1, days: {} };
+  try {
+    var o0 = JSON.parse(localStorage.getItem(KEY) || "null");
+    if (o0 && o0.v === 1 && o0.days && typeof o0.days === "object") Object.keys(o0.days).forEach(function (d) {
+      var r = o0.days[d]; if (!r || typeof r.acts !== "string" || !(QL.dayNum(d) === QL.dayNum(d))) return;
+      store.days[d] = { type: String(r.type || ""), acts: r.acts.slice(0, 40000), done: !!r.done, score: typeof r.score === "number" ? r.score : NaN, at: +r.at || 0, v: r.v | 0 };
+    });
+  } catch (e) {}
+  function save() {
+    try {
+      var ks = Object.keys(store.days).sort(); if (ks.length > 90) ks.slice(0, ks.length - 90).forEach(function (k) { delete store.days[k]; });   // 只留最近 90 天
+      localStorage.setItem(KEY, JSON.stringify(store));
+    } catch (e) {}
+  }
+  /** 这一天存下来的那一局；玩法或者对局的生成方式对不上（换过版本）就当没打过 */
+  function rec(spec) { var r = store.days[spec.day]; return r && r.type === spec.type && r.v === QL.HUMAN_VER ? r : null; }
+  function touch(spec) { var r = rec(spec); if (!r) r = store.days[spec.day] = { type: spec.type, acts: "", done: false, score: NaN, at: 0, v: QL.HUMAN_VER }; return r; }
+  function today() { return QL.dayOf(Date.now()); }
+  A.dailyToday = today;
+  function sizeText(spec) { return A.humanSizeLabel(spec.type, spec.hp); }
+  function untilNext() {
+    var ms = (QL.dayNum(today()) + 1) * 864e5 - Date.now(), hr = Math.floor(ms / 36e5), mi = Math.floor((ms % 36e5) / 6e4);
+    return hr > 0 ? "" + hr + " h " + mi + " min" : "" + Math.max(1, mi) + " min";
+  }
+
+  /* ---------- 榜 ---------- */
+  /** 把交上来的东西核对一遍：只留这一天这一局的、重放得通的；同一个账号只算最早的那一条 */
+  function verify(spec, items) {
+    var seen = {}, rows = [];
+    items.slice().sort(function (a, b) { return a.at - b.at || a.n - b.n; }).forEach(function (it) {
+      var m = it.meta; if (m.day !== spec.day || m.game !== spec.type || !it.user || seen[it.user]) return;
+      var acts = QL.actsUnpack(m.acts, spec.T); if (!acts) return;
+      var rp = QL.humanReplay(spec, acts); if (!rp.ok) return;
+      seen[it.user] = 1; rows.push({ user: it.user, avatar: it.avatar, url: it.url, at: it.at, score: rp.score, packed: QL.actsPack(rp.acts), up: it.up });
+    });
+    return rows;
+  }
+  A.dailyVerify = verify;
+  /** 在 host 里画这一天的榜。mine()：{ acts（写成一行字的）, score } 或 null；refs：[{ name, score, bench }]；fmt：得分怎么写；lower：是不是越低越好 */
+  function board(host, spec, mine, refs, fmt, lower) {
+    var st = { loading: false, rows: null, err: null, at: 0, posted: false }, alive = true;
+    function load(fresh) {
+      st.loading = true; draw();
+      QLHub.list({ kind: "daily", since: spec.day + "T00:00:00Z", fresh: !!fresh }).then(function (res) {
+        st.loading = false; st.rows = verify(spec, res.items); st.err = res.stale ? res.error : null; st.at = res.at; if (alive) draw();
+      }, function (e) { st.loading = false; st.err = e || {}; if (alive) draw(); });
+    }
+    function errText(e) {
+      if (e.limited) return "GitHub has limited requests from this network (60 per hour without signing in). Refresh again in a while.";
+      return "Cannot reach GitHub, so the ranking is unavailable for now. Your result for this episode is already saved on this device and is not affected.";
+    }
+    function draw() {
+      clear(host);
+      var me = mine(), rows = st.rows || [], isToday = spec.day === today(), dayWord = isToday ? "today" : spec.day;
+      var meRow = null, people = rows.map(function (r) { var o = Object.assign({ who: "user" }, r); if (me && r.packed === me.acts) { o.me = true; meRow = o; } return o; });
+      if (me && !meRow) { meRow = { who: "me", me: true, score: me.score, at: Date.now(), ghost: true }; people.push(meRow); }
+      var rk = QL.rankRows(people, lower), all = people.slice();
+      people.forEach(function (r, i) { r.rank = rk.rank[i]; });
+      (refs || []).forEach(function (r) { if (r.score === r.score) all.push({ who: "ref", name: r.name, bench: r.bench, score: r.score, rank: 0, at: Infinity }); });
+      all.sort(function (a, b) { var d = lower ? a.score - b.score : b.score - a.score; return d || (a.rank ? 0 : 1) - (b.rank ? 0 : 1) || a.at - b.at; });
+      var n = rows.length, head = h("div", { class: "row tight db-head" }, h("h3", { class: "db-title", text: "Ranking for " + dayWord }), h("span", { class: "sp" }));
+      if (st.at) head.appendChild(h("span", { class: "note", text: "Verified results: " + n }));
+      head.appendChild(h("button", { class: "btn small", type: "button", id: "dbRefresh", disabled: st.loading, text: st.loading ? "Loading…" : "Refresh", onclick: function () { load(true); } }));
+      host.appendChild(head);
+      var say = "";
+      if (st.rows) {
+        if (!n) say = "No one is on the board for " + dayWord + " yet.";
+        else if (meRow && !meRow.ghost) say = "On the board for " + dayWord + ": " + n + ". Your rank: " + meRow.rank + ".";
+        else if (meRow) say = "On the board for " + dayWord + ": " + n + ". If you post your result, your rank will be " + meRow.rank + " (out of " + (n + 1) + ").";
+        else say = "On the board for " + dayWord + ": " + n + ".";
+        if (meRow && n + (meRow.ghost ? 1 : 0) >= 5) { var tot = n + (meRow.ghost ? 1 : 0), below = all.filter(function (r) { return r.rank > meRow.rank; }).length; say += " Players below you: " + below + " (" + A.P(below / (tot - 1), 0) + ")."; }
+      }
+      if (say) host.appendChild(h("p", { class: "db-say", id: "dbSay", text: say }));
+      if (st.err) host.appendChild(h("div", { class: "warn", id: "dbErr", text: errText(st.err) + (st.rows ? " Shown below is what was fetched last time." : "") }));
+      if (st.rows || me) {
+        var tb = h("tbody");
+        all.forEach(function (r) {
+          var who;
+          if (r.who === "ref") who = [h("span", { class: "tag", text: r.bench ? "Benchmark" : "Rule" }), " ", r.name];
+          else if (r.who === "me") who = [h("b", { text: "You" }), h("span", { class: "note", text: " (not posted yet)" })];
+          else who = [r.avatar ? h("img", { class: "db-av", src: r.avatar + (r.avatar.indexOf("?") < 0 ? "?" : "&") + "s=40", alt: "", width: 18, height: 18, loading: "lazy" }) : null, h("a", { href: r.url, target: "_blank", rel: "noopener", text: "@" + r.user }), r.me ? h("b", { text: " (you)" }) : null];
+          tb.appendChild(h("tr", { class: (r.me ? "me" : "") + (r.who === "ref" ? " ref" : ""), "data-who": r.who === "user" ? r.user : r.who }, h("td", { class: "num", text: r.rank ? String(r.rank) : "—" }), h("td", null, who), h("td", { class: "num", text: fmt(r.score) })));
+        });
+        host.appendChild(h("div", { class: "gref" }, h("table", { class: "gtab hp-tab db-tab" }, h("thead", null, h("tr", null, h("th", { text: "Rank" }), h("th", { text: "Who" }), h("th", { text: "Score" }))), tb)));
+      } else if (st.loading) host.appendChild(h("p", { class: "note", text: "Fetching everyone's results from GitHub…" }));
+      var foot = h("div", { class: "row tight db-foot" });
+      if (me && isToday && !(meRow && !meRow.ghost)) {
+        var w = QL.WORLDS[spec.type], body = QLHub.pack({ kind: "daily", day: spec.day, game: spec.type, acts: me.acts, score: me.score, v: QL.HUMAN_VER }), u = QLHub.newUrl("daily", spec.day + " " + w.short + " " + fmt(me.score), body);
+        var a = A.outLink("Post my result to the board", u.url, true, "dbPost"); a.addEventListener("click", function () { st.posted = true; setTimeout(draw, 50); });
+        foot.appendChild(a);
+      }
+      foot.appendChild(h("button", { class: "btn small", type: "button", id: "dbShare", text: "Copy the link to this episode", onclick: function () { A.copy(A.lobbyLink("daily")); } }));
+      if (isToday) foot.appendChild(h("button", { class: "btn small", type: "button", id: "dbYesterday", text: "Yesterday's board", onclick: function () { A.openDailyBoard(QL.dayShift(spec.day, -1)); } }));
+      host.appendChild(foot);
+      if (st.posted) host.appendChild(h("p", { class: "note", id: "dbPosted", text: "On the GitHub page that just opened, click Submit new issue (you need to be signed in to GitHub; your result will be shown publicly under that account). Then come back here and click \"Refresh\"; it can take GitHub a minute or two to make it available." }));
+      host.appendChild(h("p", { class: "note db-how", text: "Every entry on the board has been replayed in your browser from the submitted actions, and the score shown is the replayed one. The seed is public, so nothing stops someone from looking at the whole episode first and then choosing their actions; the board is just for fun." }));
+    }
+    load(false);
+    return { redraw: function () { if (alive) draw(); }, stop: function () { alive = false; } };
+  }
+
+  /* ---------- 打 ---------- */
+  A.dailyStatus = function () {
+    var spec = QL.dailySpec(today()), r = rec(spec), w = QL.WORLDS[spec.type], g = w.score(spec.hp);
+    return { spec: spec, name: w.short, size: sizeText(spec), done: !!(r && r.done), started: !!(r && r.acts), scoreText: r && r.done ? A.gfmt({ kind: g.kind || "num", digits: g.digits == null ? 3 : g.digits, lower: !!g.lower }, r.score) : "" };
+  };
+  A.openDaily = function () {
+    var spec = QL.dailySpec(today()), w = QL.WORLDS[spec.type], bd = null, hp = null;
+    function mine() { var r = rec(spec); return r && r.done ? { acts: r.acts, score: r.score } : null; }
+    hp = A.openHuman({ fixed: {
+      id: "daily|" + spec.day, type: spec.type, hp: spec.hp, seed: spec.seed, k: 0, title: "Daily episode · " + w.name, label: "" + spec.day + " · same episode for everyone",
+      acts: function () { var r = rec(spec); return r && r.acts ? QL.actsUnpack(r.acts, spec.T) : null; },
+      onStep: function (acts) { var r = touch(spec); r.acts = QL.actsPack(acts); save(); },
+      onFinish: function (x) { var r = touch(spec); r.acts = QL.actsPack(x.acts); r.done = true; r.score = x.score; if (!x.restored || !r.at) r.at = Date.now(); save(); },
+      mount: function (api) {
+        api.banner.appendChild(h("p", { class: "note db-banner", text: "One episode a day, the same one for everyone on the site. The day changes at 00:00 UTC (08:00 Beijing time); the next episode starts in " + untilNext() + ". You get one attempt, and if you close this halfway you can pick it up again." }));
+      },
+      onRender: function (api) {
+        if (!api.state().done) return;
+        if (bd) { bd.redraw(); return; }
+        var kit = api.kit(), refs = (api.refs() || []).map(function (x) { var r = kit.refs.filter(function (q) { return q.id === x.id; })[0]; return { name: r ? r.name : x.id, score: x.err ? NaN : x.score, bench: !!(r && r.bench) }; });
+        var host = h("div", { class: "db", id: "dailyBoard" }); api.extra.appendChild(host);
+        bd = board(host, spec, mine, refs, api.fmt, !!kit.score.lower);
+      },
+      onClose: function () { if (bd) bd.stop(); }
+    } });
+    return hp;
+  };
+  /** 只看某一天的榜（不打）：昨天的、更早的 */
+  A.openDailyBoard = function (day) {
+    var spec = QL.dailySpec(day), w = QL.WORLDS[spec.type], kit = QL.humanKit(spec.type, spec.hp, spec.seed), B = QL.humanEpisode(spec.type, spec.hp, spec.seed, 0);
+    var refs = QL.humanRefsOn(kit, B, false).map(function (x) { var r = kit.refs.filter(function (q) { return q.id === x.id; })[0]; return { name: r.name, score: x.err ? NaN : x.score, bench: r.bench }; });
+    var host = h("div", { class: "db" }), r0 = rec(spec);
+    function fmt(v) { if (kit.score.kind === "prob" && (v === 0 || v === 1)) return v ? "✓" : "✗"; return A.gfmt(kit.score, v); }
+    var bd = board(host, spec, function () { return r0 && r0.done ? { acts: r0.acts, score: r0.score } : null; }, refs, fmt, !!kit.score.lower);
+    A.modal("Daily episode · " + day + " · " + w.short, [h("p", { class: "note", text: "That day's game: " + w.short + " (" + sizeText(spec) + "). Scoring: " + kit.score.name + "." }), host], { cls: "dbm", onClose: function () { bd.stop(); } });
+  };
+
+  if (A.lobbyAdd) A.lobbyAdd({
+    id: "daily", order: 10, route: "daily", primary: true, kicker: "Same episode, everyone together", title: "Daily episode", label: "Play today's episode", keys: "daily today ranking board leaderboard",
+    blurb: "Everyone on the site plays the same episode each day. When you finish, see where you rank among all players, then compare with the best rule on the same episode.",
+    status: function () { var s = A.dailyStatus(); return "Today: " + s.name + " (" + s.size + ")" + (s.done ? " · your score " + s.scoreText : s.started ? " · in progress" : " · not played yet"); },
+    go: function () { A.openDaily(); }
+  });
+})(App);
+
+/* ===== app-room.js ===== */
+/* 应用主体（九）：实时房间。最多八个人同时打同一局，打的时候只看得到彼此打到第几回合，所有人都打完，成绩一起揭晓。
+ * 通道是公共的 MQTT 中继（src/mq.js），不经过 GitHub，不需要账号。房间里有三种东西：
+ *   cfg       房主写：打哪套玩法、多长、种子、第几局、现在是在等人（lobby）、在打（play）还是房主叫停了（over）
+ *   p/<编号>  每个人各写各的：昵称、在第几局、打到第几回合、打完没有、打完时交的"封条"
+ *   r/<编号>  揭晓时每个人各写各的：这一局的全部动作，和封条用的那串随机字
+ * 一起揭晓靠"先封后亮"：打完的人先交封条（动作 + 一串随机字的 SHA-256），等这一局在场的人都交了封条，各人才把动作亮出来。
+ * 亮出来的动作和封条对不上的作废，所以没法看了别人的再改自己的。得分不由本人报：每个人的浏览器照着动作各自重放。
+ * 打的那一局就是"亲手玩一局"里指定的那一局（app-human.js），裁判、局面、对照表都是同一份。 */
+(function (A) {
+  "use strict";
+  var h = A.h, clear = A.clear, QL = A.QL;
+  if (!QL.dailySpec || typeof QLRoom === "undefined") return;
+  var MAXP = 8, SIZES = ["s", "m", "l"];
+  A.roomOpt = { stale: 35000, beat: 10000 };   // 多久没动静算掉线、多久报一次到（毫秒）。测试里会调小
+  var cur = null;   // 眼下所在的房间（一次只在一个里）
+
+  /* ---------- 我是谁 ---------- */
+  function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  function myId() { var u = lsGet("ql.uid"); if (!u || !/^[a-z0-9]{8,24}$/.test(u)) { u = QLMQ.rid(12); lsSet("ql.uid", u); } return u; }
+  function myNick() { var n = (lsGet("ql.nick") || "").trim(); return n ? n.slice(0, 20) : ""; }
+  function cleanNick(s) { return String(s == null ? "" : s).replace(/[\u0000-\u001f\u007f]/g, "").trim().slice(0, 20); }
+  /** 封条：SHA-256 的十六进制。浏览器不给用（不是安全的页面）时返回空字符串，那就不封 */
+  function seal(text) {
+    try {
+      if (!crypto.subtle) return Promise.resolve("");
+      return crypto.subtle.digest("SHA-256", new TextEncoder().encode(text)).then(function (b) { return Array.prototype.map.call(new Uint8Array(b), function (x) { return (x < 16 ? "0" : "") + x.toString(16); }).join(""); }, function () { return ""; });
+    } catch (e) { return Promise.resolve(""); }
+  }
+  function isInt(x) { return typeof x === "number" && x === Math.floor(x) && isFinite(x); }
+  function sizeHp(type, z) { var L = QL.humanSizes(type, QL.worldDefaults(type)), o = L.filter(function (x) { return x.id === z; })[0] || L.filter(function (x) { return x.id === "m"; })[0]; return o.hp; }
+  function sizeLabel(type, z) { return A.humanSizeLabel(type, sizeHp(type, z)); }
+  /** 别人写来的东西先过一遍：不合规矩的当作没有 */
+  function okCfg(c) { return c && typeof c.host === "string" && c.host.length <= 40 && !!QL.humanDef(c.type) && SIZES.indexOf(c.z) >= 0 && isInt(c.k) && c.k >= 0 && c.k < 1e6 && isInt(c.seed) && c.seed >= 0 && c.seed < 1e6 && (c.phase === "lobby" || c.phase === "play" || c.phase === "over") ? c : null; }
+  function okP(p) { return p && typeof p.n === "string" && isInt(p.k) && isInt(p.t) && isInt(p.T) && (p.done === 0 || p.done === 1) && typeof p.h === "string" && p.h.length <= 64 ? p : null; }
+  function okR(r) { return r && isInt(r.k) && typeof r.acts === "string" && r.acts.length <= 40000 && typeof r.salt === "string" && r.salt.length <= 40 ? r : null; }
+
+  /* ---------- 一个房间 ---------- */
+  function enter(code, create) {
+    var me = myId(), R = { code: code, me: me, alive: true, cfg: null, round: 0, sat: 0, my: null, hp: null, judged: {}, first: true, joinedAt: Date.now(), full: false, missing: false, modal: null, body: null, timers: [] };
+    function spec() { var c = R.cfg; return { type: c.type, hp: sizeHp(c.type, c.z), seed: c.seed, k: c.k, T: QL.WORLDS[c.type].Tof(sizeHp(c.type, c.z)) }; }
+    function isHost() { return !!R.cfg && R.cfg.host === me; }
+    /** 这个人现在在不在：他最近一次发来东西是什么时候 */
+    function online(uid) {
+      if (uid === me) return true;
+      var info = R.room.info("p/" + uid), p = okP(R.room.get("p/" + uid)); if (!info || !p) return false;
+      var at = info.live ? info.rt : Math.min(info.rt, typeof p.at === "number" ? p.at : 0);   // 中继替他留着的旧消息：按他自己写的时间算
+      return Date.now() - at < A.roomOpt.stale;
+    }
+    function players() {
+      return R.room.keys("p/").map(function (k) { var uid = k.slice(2), p = okP(R.room.get(k)); return p ? { uid: uid, n: cleanNick(p.n) || "Player", k: p.k, t: p.t, T: p.T, done: p.done === 1, h: p.h, on: online(uid), me: uid === me } : null; })
+        .filter(function (p) { return p && (p.on || (R.round > 0 && p.k === R.round)); })   // 早就走了的人（中继还替他留着一条旧消息）不列出来
+        .sort(function (a, b) { return (b.me ? 1 : 0) - (a.me ? 1 : 0) || (a.uid < b.uid ? -1 : 1); });
+    }
+    function inRound() { return players().filter(function (p) { return p.k === R.round && R.round > 0; }); }
+    function pubMe() {
+      var m = R.my || {};
+      R.room.set("p/" + me, { n: myNick() || "Player", at: Date.now(), k: m.k | 0, t: m.t | 0, T: m.T | 0, done: m.sealed ? 1 : 0, h: m.h || "" });   // 封条交上去了才算"打完"：别人是看到这个才亮动作的
+    }
+    var pubT = 0;
+    function pubSoon() { if (pubT) return; pubT = setTimeout(function () { pubT = 0; if (R.alive) pubMe(); }, 350); }
+
+    /* 先封后亮 */
+    function maybeReveal() {
+      var m = R.my; if (!m || !m.done || m.shown || !m.sealed || !R.cfg || m.k !== R.round) return;
+      var waiting = inRound().filter(function (p) { return p.on && !p.done; });
+      if (R.cfg.phase !== "over" && waiting.length) return;
+      m.shown = true; R.room.set("r/" + me, { k: m.k, acts: m.acts, salt: m.salt });
+    }
+    /** 这一局里某个人亮出来的成绩：{ ok, score, bad }。照着动作重放；和封条对不上的作废 */
+    function judge(p) {
+      var r = okR(R.room.get("r/" + p.uid)); if (!r || r.k !== R.round) return null;
+      var key = p.uid + "|" + r.k + "|" + r.salt + "|" + r.acts.length, j = R.judged[key];
+      if (j) return j;
+      var sp = spec(), acts = QL.actsUnpack(r.acts, sp.T), rp = acts ? QL.humanReplay(sp, acts) : { ok: false };
+      j = R.judged[key] = { ok: rp.ok, score: rp.ok ? rp.score : NaN, bad: false, checked: !p.h };
+      if (p.h) seal(r.acts + "|" + r.salt).then(function (x) { j.checked = true; if (x && x !== p.h) { j.bad = true; j.ok = false; } if (R.alive) draw(); });
+      return j;
+    }
+
+    /* 开一局、收到别人开的一局 */
+    function startRound() {
+      var c = R.cfg; if (!c || c.host !== me) return;
+      setCfg({ host: me, type: c.type, z: c.z, seed: c.seed, k: c.k + 1, phase: "play", at: Date.now() });
+    }
+    function setCfg(c) { R.room.set("cfg", c); onCfg(c); }
+    function onCfg(c) {
+      var prev = R.cfg; R.cfg = c; R.missing = false;
+      if (R.first) { R.first = false; if (c.phase !== "lobby" && c.host !== me) R.sat = c.k; }   // 进来的时候这一局已经开打了：这一局旁观，等下一局
+      if (c.k !== R.round) { R.round = c.k; R.judged = {}; if (c.phase === "play" && c.k !== R.sat) play(); else { R.my = null; closeHuman(); if (R.room.get("p/" + me)) pubMe(); } }
+      else if (prev && prev.phase !== c.phase) maybeReveal();
+      draw();
+    }
+    function closeHuman() { var x = R.hp; R.hp = null; if (x) x.close(); }
+    function play() {
+      var sp = spec();
+      closeHuman();
+      R.my = { k: sp.k, t: 0, T: sp.T, done: false, h: "", acts: "", salt: QLMQ.rid(16), cur: null, sealed: false, shown: false };
+      pubMe(); openHuman();
+    }
+    function openHuman() {
+      var sp = spec(), w = QL.WORLDS[sp.type], m = R.my; if (!m || R.hp) return;
+      var api = A.openHuman({ fixed: {
+        id: "room|" + code + "|" + sp.k, type: sp.type, hp: sp.hp, seed: sp.seed, k: sp.k, title: "Live room · " + w.name, label: "Room " + code + " · episode " + sp.k,
+        acts: function () { return m.cur; },
+        onStep: function (acts, t) { m.cur = acts; m.t = t; pubSoon(); },
+        onFinish: function (x) {
+          m.cur = x.acts;
+          if (m.done) return;
+          m.done = true; m.t = m.T; m.acts = QL.actsPack(x.acts);
+          seal(m.acts + "|" + m.salt).then(function (hx) { m.h = hx; m.sealed = true; if (!R.alive) return; pubMe(); maybeReveal(); draw(); });
+          pubSoon();
+        },
+        mount: function (a) { a.banner.appendChild(R.strip = h("div", { class: "rm-strip", id: "rmStrip" })); a.extra.appendChild(R.after = h("div", { class: "db rm-after", id: "rmAfter" })); },
+        onRender: function () { drawHuman(); },
+        onClose: function () { if (R.hp === api) R.hp = null; R.strip = null; R.after = null; if (R.alive) draw(); }
+      } });
+      R.hp = api;
+    }
+
+    /* ---------- 画 ---------- */
+    function stateText(p) {
+      if (!p.on) return "Offline";
+      if (!R.round || p.k !== R.round) return R.cfg && R.cfg.phase === "play" ? "Watching; waiting for the next episode" : "Waiting to start";
+      if (p.done) return "Finished";
+      return "At " + Math.min(p.T, p.t + 1) + " / " + p.T;
+    }
+    function table() {
+      var sp = spec(), kk = sp.type + "|" + R.cfg.z + "|" + sp.seed;
+      if (R.kitKey !== kk) { R.kitKey = kk; R.kit = QL.humanKit(sp.type, sp.hp, sp.seed); }
+      var kit = R.kit, lower = !!kit.score.lower;
+      function fmt(v) { if (kit.score.kind === "prob" && (v === 0 || v === 1)) return v ? "✓" : "✗"; return A.gfmt(kit.score, v); }
+      var ps = inRound(), rows = [], shown = 0;
+      ps.forEach(function (p) { var j = judge(p); if (j && j.ok) { shown++; rows.push({ p: p, score: j.score, at: 0 }); } });
+      var rk = QL.rankRows(rows, lower), tb = h("tbody"), all = rows.map(function (r, i) { return { p: r.p, score: r.score, rank: rk.rank[i] }; });
+      if (shown) {
+        var key = "refs|" + sp.k; if (R.refKey !== key) { R.refKey = key; R.refs = QL.humanRefsOn(kit, QL.humanEpisode(sp.type, sp.hp, sp.seed, sp.k), false); }
+        R.refs.forEach(function (x) { var r = kit.refs.filter(function (q) { return q.id === x.id; })[0]; if (!x.err && x.score === x.score) all.push({ ref: r, score: x.score, rank: 0 }); });
+      }
+      all.sort(function (a, b) { var d = lower ? a.score - b.score : b.score - a.score; return d || (a.rank ? 0 : 1) - (b.rank ? 0 : 1); });
+      all.forEach(function (r) {
+        tb.appendChild(h("tr", { class: (r.p && r.p.me ? "me" : "") + (r.ref ? " ref" : ""), "data-who": r.p ? r.p.uid : "ref" }, h("td", { class: "num", text: r.rank ? String(r.rank) : "—" }),
+          h("td", null, r.ref ? [h("span", { class: "tag", text: r.ref.bench ? "Benchmark" : "Rule" }), " ", r.ref.name] : [h("b", { text: r.p.n }), r.p.me ? " (you)" : ""]), h("td", { class: "num", text: fmt(r.score) })));
+      });
+      ps.forEach(function (p) {
+        var j = judge(p); if (j && j.ok) return;
+        var why = j && j.bad ? "The revealed actions do not match the seal: void" : j ? "The actions cannot be replayed: void" : !p.on ? "Offline" : p.done ? "Finished; waiting for the joint reveal" : "Still playing: " + stateText(p);
+        tb.appendChild(h("tr", { class: p.me ? "me" : "", "data-who": p.uid }, h("td", { class: "num", text: "—" }), h("td", null, h("b", { text: p.n }), p.me ? " (you)" : ""), h("td", { class: "note", text: why })));
+      });
+      return { el: h("div", { class: "gref" }, h("table", { class: "gtab hp-tab db-tab rm-tab" }, h("thead", null, h("tr", null, h("th", { text: "Rank" }), h("th", { text: "Who" }), h("th", { text: "Score" }))), tb)), shown: shown, n: ps.length, left: ps.filter(function (p) { return p.on && !p.done; }).length };
+    }
+    function hostButtons(host) {
+      var c = R.cfg; if (!c) return;
+      if (isHost()) {
+        // 还有人在打：房主只能选择"不等了"；都打完了（或者还没开过）才能开下一局
+        if (c.phase === "play" && inRound().some(function (p) { return p.on && !p.done; })) host.appendChild(h("button", { class: "btn small", type: "button", id: "rmForce", text: "Stop waiting and reveal now", onclick: function () { setCfg(Object.assign({}, R.cfg, { phase: "over", at: Date.now() })); } }));
+        else host.appendChild(h("button", { class: "btn primary", type: "button", id: "rmStart", text: c.k ? "Next episode" : "Start", onclick: startRound }));
+      } else {
+        var hostOn = players().some(function (p) { return p.uid === c.host && p.on; });
+        if (hostOn) host.appendChild(h("span", { class: "note", text: c.phase === "play" ? "When this episode is over, the host starts the next one." : "Waiting for the host to start." }));
+        else host.appendChild(h("button", { class: "btn", type: "button", id: "rmTake", text: "The host is offline; make me the host", onclick: function () { setCfg(Object.assign({}, R.cfg, { host: me, at: Date.now() })); } }));
+      }
+    }
+    /** 打的那个弹层里：上面一行各人的进度，打完之后下面是这一局的成绩 */
+    function drawHuman() {
+      if (!R.hp || !R.cfg) return;
+      var ps = inRound(), m = R.my;
+      if (R.strip) {
+        clear(R.strip);
+        ps.forEach(function (p) {
+          R.strip.appendChild(h("span", { class: "rm-chip" + (p.me ? " me" : "") + (p.on ? "" : " off") + (p.done ? " done" : ""), "data-who": p.uid }, h("b", { text: p.me ? "You" : p.n }), h("span", { class: "num", text: p.done ? "✓" : !p.on ? "offline" : p.t + " / " + p.T }), h("i", { style: { width: (p.T ? 100 * (p.done ? p.T : p.t) / p.T : 0) + "%" } })));
+        });
+      }
+      if (R.after) {
+        clear(R.after);
+        if (!m || !m.done) return;
+        var t = table();
+        R.after.appendChild(h("div", { class: "row tight db-head" }, h("h3", { class: "db-title", text: "Results of this episode" }), h("span", { class: "sp" })));
+        R.after.appendChild(h("p", { class: "db-say", id: "rmSay", text: t.shown === t.n ? "Everyone has revealed. Each score was replayed in your browser from that player's actions." : t.left ? "Still playing: " + t.left + ". Results are revealed together once everyone has finished; until then no one can see anyone else's." : "Revealing…" }));
+        R.after.appendChild(t.el);
+        var foot = h("div", { class: "row tight db-foot" }); hostButtons(foot); R.after.appendChild(foot);
+      }
+    }
+    /** 房间的弹层：房间号、谁在、打什么、谁来开始 */
+    function draw() {
+      drawHuman();
+      var body = R.body; if (!body) return;
+      clear(body);
+      var c = R.cfg, ps = players(), up = R.room.up();
+      body.appendChild(h("div", { class: "rm-code" }, h("span", { class: "note", text: "Room code" }), h("b", { class: "num", id: "rmCode", text: code }), h("button", { class: "btn small", type: "button", id: "rmCopy", text: "Copy invite link", onclick: function () { A.copy(A.lobbyLink("room", code)); } }),
+        h("span", { class: "sp" }), h("span", { class: "note", id: "rmNet", text: up ? "Connected to " + up + " / " + R.room.total() + " relays" : "Connecting to the relays…" })));
+      if (!up && Date.now() - R.joinedAt > 9000) body.appendChild(h("div", { class: "warn", id: "rmDown", text: "Cannot reach the public relay servers. This network may be blocking them; try another network, or wait a while and it will reconnect by itself." }));
+      if (R.full) { body.appendChild(h("div", { class: "warn", id: "rmFull", text: "This room already has " + MAXP + " people in it, so you cannot join." })); return; }
+      if (!c) { body.appendChild(h("p", { class: R.missing ? "warn" : "note", id: "rmWait", text: R.missing ? "This room was not found. The code may be mistyped, or everyone in it has already left." : "Joining the room…" })); return; }
+      var w = QL.WORLDS[c.type], line = h("div", { class: "row tight rm-game" });
+      if (isHost() && c.phase !== "play") {
+        var gs = h("select", { id: "rmGame", "aria-label": "Which game to play", onchange: function () { setCfg(Object.assign({}, R.cfg, { type: gs.value, at: Date.now() })); } }, QL.humanGames().map(function (g) { return h("option", { value: g, text: QL.WORLDS[g].short, selected: g === c.type }); }));
+        var zs = h("select", { id: "rmSize", "aria-label": "Episode length", onchange: function () { setCfg(Object.assign({}, R.cfg, { z: zs.value, at: Date.now() })); } }, SIZES.map(function (z) { return h("option", { value: z, text: sizeLabel(c.type, z), selected: z === c.z }); }));
+        line.appendChild(h("span", { class: "note", text: "Game" })); line.appendChild(gs); line.appendChild(zs);
+      } else line.appendChild(h("span", { id: "rmWhat", text: "Game: " + w.short + " (" + sizeLabel(c.type, c.z) + ")" + (c.k ? "; now on episode " + c.k + "." : ".") }));
+      body.appendChild(line);
+      var tb = h("tbody");
+      ps.forEach(function (p) { tb.appendChild(h("tr", { class: p.me ? "me" : "", "data-who": p.uid }, h("td", null, h("b", { text: p.n }), p.me ? " (you)" : "", p.uid === c.host ? h("span", { class: "tag", text: "Host" }) : null), h("td", { class: p.on ? "" : "note", text: stateText(p) }))); });
+      body.appendChild(h("div", { class: "gref" }, h("table", { class: "gtab hp-tab rm-list" }, h("caption", { text: "In the room: " + ps.filter(function (p) { return p.on; }).length + " (at most " + MAXP + ")" }), h("thead", null, h("tr", null, h("th", { text: "Who" }), h("th", { text: "Doing" }))), tb)));
+      if (R.round && c.k === R.round && (c.phase === "over" || inRound().some(function (p) { return !!judge(p); }))) {
+        var t = table(); body.appendChild(h("h3", { class: "db-title", text: "Results of episode " + c.k })); body.appendChild(t.el);
+      }
+      var foot = h("div", { class: "row tight rm-foot" });
+      if (R.my && !R.hp && R.my.k === R.round) foot.appendChild(h("button", { class: "btn" + (R.my.done ? "" : " primary"), type: "button", id: "rmBack", text: R.my.done ? "See this episode's comparison" : "Back to this episode", onclick: function () { openHuman(); } }));
+      hostButtons(foot);
+      foot.appendChild(h("span", { class: "sp" }));
+      foot.appendChild(h("button", { class: "btn small", type: "button", id: "rmLeave", text: "Leave the room", onclick: function () { leave(); } }));
+      body.appendChild(foot);
+      body.appendChild(h("p", { class: "note", text: "Rooms go through public relay servers and need no account. Anyone who knows the room code can join; nicknames, progress and this episode's actions pass through the relays." }));
+    }
+    function leave() {
+      if (!R.alive) return; R.alive = false;
+      R.timers.forEach(clearInterval); clearTimeout(pubT);
+      closeHuman();
+      try { R.room.close(); } catch (e) {}
+      if (cur === R) cur = null;
+      var m = R.modal; R.modal = null; R.body = null; if (m) m.close();
+    }
+    R.leave = leave;
+    R.show = function () {
+      if (R.modal) return;
+      R.body = h("div", { class: "rm", id: "roomBody" });
+      R.modal = A.modal("Live room", R.body, { cls: "rmm", onClose: function () { R.modal = null; R.body = null; } });
+      draw();
+    };
+    R.room = QLRoom.open(code, me, {
+      doc: function (key, data) {
+        if (!R.alive) return;
+        if (key === "cfg") { var c = okCfg(data); if (c) onCfg(c); return; }
+        if (key.slice(0, 2) === "p/" && !R.cfg && !create) { /* 还没收到 cfg：先不急 */ }
+        maybeReveal(); draw();
+      },
+      status: function () { if (R.alive) draw(); }
+    });
+    if (create) {
+      var t0 = A.humanOk(A.state.world.type) ? A.state.world.type : QL.dailySpec(QL.dayOf(Date.now())).type;
+      setCfg({ host: me, type: t0, z: "m", seed: Math.floor(Math.random() * 1e6), k: 0, phase: "lobby", at: Date.now() });
+      pubMe();
+    } else {
+      // 进别人的房间：等一会儿，看有没有这个房间、是不是满了，再报到
+      R.timers.push(setTimeout(function () {
+        if (!R.alive) return;
+        if (!R.cfg) { R.missing = true; draw(); return; }
+        if (players().filter(function (p) { return p.on && !p.me; }).length >= MAXP) { R.full = true; draw(); try { R.room.close(); } catch (e) {} return; }
+        pubMe(); draw();
+      }, 1500));
+      R.timers.push(setTimeout(function () { if (R.alive && !R.cfg) { R.missing = true; draw(); } }, 7000));
+    }
+    R.timers.push(setInterval(function () { if (!R.alive) return; if (R.cfg && !R.full && (create || R.room.get("p/" + me))) pubMe(); maybeReveal(); draw(); }, A.roomOpt.beat));
+    R.timers.push(setInterval(function () { if (R.alive && R.hp) drawHuman(); }, 3000));
+    return R;
+  }
+
+  /* ---------- 入口 ---------- */
+  A.roomNow = function () { return cur; };
+  A.openRoom = function (code) {
+    if (cur && cur.alive) { if (!code || code === cur.code) { cur.show(); return; } }
+    code = String(code || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6);
+    var nick = h("input", { type: "text", id: "rmNick", maxlength: 20, value: myNick(), placeholder: "Pick a name for yourself", "aria-label": "Nickname" });
+    var codeI = h("input", { type: "text", id: "rmJoinCode", maxlength: 6, value: code, placeholder: "6-character room code", "aria-label": "Room code", autocapitalize: "characters", spellcheck: "false", class: "num" });
+    var err = h("div", { class: "warn err", id: "rmErr", hidden: true });
+    function go(c, create) {
+      var n = cleanNick(nick.value); if (!n) { err.hidden = false; err.textContent = "Pick a name first, so the others can tell who you are."; nick.focus(); return; }
+      if (!create && !QLRoom.codeOk(c)) { err.hidden = false; err.textContent = "A room code is 6 letters and digits (no 0, 1, I, L or O)."; codeI.focus(); return; }
+      lsSet("ql.nick", n);
+      if (cur && cur.alive) cur.leave();
+      m.close(); cur = enter(c, create); cur.show();
+    }
+    codeI.addEventListener("input", function () { codeI.value = codeI.value.toUpperCase().replace(/[^A-Z0-9]/g, ""); });
+    codeI.addEventListener("keydown", function (e) { if (e.key === "Enter" && !e.isComposing) { e.preventDefault(); go(codeI.value, false); } });
+    var m = A.modal("Live room", [
+      h("p", { class: "lb-lead", text: "Up to eight people play the same episode at the same time. While playing you only see which round each of the others has reached; once everyone has finished, the results are revealed together and compared with the reference rules on the same episode." }),
+      h("div", { class: "field rm-field" }, h("label", { for: "rmNick", text: "Your name" }), h("span"), nick),
+      h("div", { class: "rm-two" },
+        h("div", { class: "rm-opt" }, h("h3", { text: "Open a new room" }), h("p", { class: "note", text: "You are the host: choose the game, send the invite link to your friends, and click Start when everyone is in." }), h("button", { class: "btn" + (code ? "" : " primary"), type: "button", id: "rmCreate", text: "Open a room", onclick: function () { go(QLRoom.newCode(), true); } })),
+        h("div", { class: "rm-opt" }, h("h3", { text: "Join someone's room" }), h("p", { class: "note", text: "Enter the room code your friend gave you; if you came in through an invite link, it is already filled in." }), h("div", { class: "row tight" }, codeI, h("button", { class: "btn" + (code ? " primary" : ""), type: "button", id: "rmJoin", text: "Join", onclick: function () { go(codeI.value, false); } })))),
+      err,
+      h("p", { class: "note", text: "Rooms go through public relay servers, not through GitHub, and need no account. Closing the page counts as leaving; when everyone has left, the room is gone." })
+    ], { cls: "rmm", narrow: false, focus: myNick() ? (code ? "#rmJoin" : "#rmCreate") : "#rmNick" });
+  };
+  window.addEventListener("pagehide", function () { if (cur && cur.alive) { try { cur.room.close(); } catch (e) {} } });
+
+  if (A.lobbyAdd) A.lobbyAdd({
+    id: "room", order: 20, route: "room", kicker: "Same episode, everyone together", title: "Live room", label: "Open or join a room", keys: "room rooms online multiplayer together live friends",
+    blurb: "Up to eight people play the same episode at the same time. While playing you only see each other's progress; the results are revealed together once everyone has finished. No account needed: just send the invite link to your friends.",
+    status: function () { return cur && cur.alive ? "You are in room " + cur.code : ""; },
+    go: function (arg) { A.openRoom(arg); }
+  });
 })(App);
 
 /* ===== app-guide.js ===== */
@@ -13105,7 +14065,7 @@ var App = (function () {
   A.restore();
   if (!A.dataset(S.world.dsId)) S.world.dsId = A.datasets[0] && A.datasets[0].id;
   A.initChrome(); A.renderWorld(); A.renderStrat(); A.renderSettings(); A.renderWorldHead(); A.renderSummary();
-  A.initCharts(); A.initClaude(); if (A.initGuide) A.initGuide();
+  A.initCharts(); A.initClaude(); if (A.initGuide) A.initGuide(); if (A.initLobby) A.initLobby();
   A.on("run", function () { A.renderSummary(); });
   A.on("error", function () { A.renderSummary(); });
   A.on("world", function () { A.renderWorldHead(); });

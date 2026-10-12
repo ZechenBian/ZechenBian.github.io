@@ -4,7 +4,9 @@
  * 页面上别的地方都是让规则去打；这里是你自己逐回合做决定，打完之后同一局交给各条参照规则再打一遍，并排着比。
  * 逐回合推进、参照规则、长期平均都在 human.js 里；这个文件只管界面：弹层、每套玩法的局面和按钮、打完之后的对照、累计的成绩。
  * 成绩按"哪套玩法 + 哪组设定 + 哪个种子"分开记在这台设备的浏览器里（只有数字）。
- * 同一组设定下第 k 局永远是同一局，所以规则在你打过的那几局上的成绩随时可以重算，不用存。 */
+ * 同一组设定下第 k 局永远是同一局，所以规则在你打过的那几局上的成绩随时可以重算，不用存。
+ * 每日一局、实时房间打的是"指定的那一局"（A.openHuman({ fixed })）：哪套玩法、哪组设定、哪个种子、第几局都由外面给定，
+ * 只打这一局，不往上面那份存档里记；打到哪了、打完了，都通过 fixed 上的几个回调告诉外面。 */
 (function (A) {
   "use strict";
   var h = A.h, clear = A.clear, S = A.state, QL = A.QL, F = A.F, P = A.P;
@@ -41,15 +43,19 @@
     if (!s) s = live[key] = { key: key, type: type, hp: hp, seed: seed, kit: QL.humanKit(type, hp, seed), B: null, k: 0, step: null, fin: null, finAt: 0, mark: null, mem: {}, refSC: {}, long: null, star: "" };
     return s;
   }
-  function recOf(s) { return store.rec[s.key] || null; }
+  /** 指定的那一局：每次打开都是一份新的，不进上面的 live，也不进存档 */
+  function sessFixed(fx) {
+    return { key: "fx|" + fx.id, type: fx.type, hp: fx.hp, seed: fx.seed, kit: QL.humanKit(fx.type, fx.hp, fx.seed), B: null, k: fx.k | 0, step: null, fin: null, finAt: 0, mark: null, mem: {}, refSC: {}, long: null, star: "", fx: fx };
+  }
+  function recOf(s) { return s.fx ? null : store.rec[s.key] || null; }
   function recMake(s) { var r = store.rec[s.key] || (store.rec[s.key] = { me: [], base: 0, at: 0, cur: null }); r.at = Date.now(); return r; }
-  function played(s) { var r = recOf(s); return r ? r.me : []; }
+  function played(s) { if (s.fx) return s.fin ? [s.fin.st.score] : []; var r = recOf(s); return r ? r.me : []; }
   /** 开一局：接着存档里的局号往下；上次打到一半的，从断开的地方接着打 */
   function begin(s) {
-    var r = recOf(s);
-    s.k = r ? r.base + r.me.length : 0; s.B = QL.humanEpisode(s.type, s.hp, s.seed, s.k); s.fin = null; s.mark = null;
-    var st; try { st = QL.humanStep(s.B, r && r.cur ? r.cur : []); } catch (e) { st = QL.humanStep(s.B, []); }
-    if (st.done) finish(s, st); else s.step = st;
+    var r = recOf(s), saved = s.fx ? (s.fx.acts ? s.fx.acts() : null) : (r && r.cur ? r.cur : null);
+    s.k = s.fx ? s.fx.k | 0 : r ? r.base + r.me.length : 0; s.B = QL.humanEpisode(s.type, s.hp, s.seed, s.k); s.fin = null; s.mark = null;
+    var st; try { st = QL.humanStep(s.B, saved || []); } catch (e) { st = QL.humanStep(s.B, []); }
+    if (st.done) finish(s, st, !!(saved && saved.length)); else s.step = st;
   }
   /** 把动作 a 交给眼下这一回合 */
   function advance(s, a) {
@@ -59,18 +65,23 @@
     var nx = QL.humanStep(s.B, acts);
     if (nx.done) finish(s, nx); else s.step = nx;
   }
-  function finish(s, st) {
-    var r = recMake(s), refs = QL.humanRefsOn(s.kit, s.B, true), sc = {};
-    r.me.push(st.score); r.cur = null;
-    if (r.me.length > 5000) { r.me.shift(); r.base++; }   // 只留最近的 5000 局；局号照旧往下数
-    save();
+  /** restored：这一局是从存下来的动作里接回来的（之前就打完了），不是刚刚打完 */
+  function finish(s, st, restored) {
+    var refs = QL.humanRefsOn(s.kit, s.B, true), sc = {};
+    if (!s.fx) {
+      var r = recMake(s);
+      r.me.push(st.score); r.cur = null;
+      if (r.me.length > 5000) { r.me.shift(); r.base++; }   // 只留最近的 5000 局；局号照旧往下数
+      save();
+    }
     refs.forEach(function (x) { sc[x.id] = x.score; }); s.refSC[s.k] = sc;
     s.fin = { k: s.k, st: st, refs: refs, reveal: QL.humanDef(s.type).reveal(s.B) };
-    s.step = null; s.finAt = Date.now();
+    s.step = null; s.finAt = restored ? 0 : Date.now();
+    if (s.fx && s.fx.onFinish) s.fx.onFinish({ acts: st.acts.slice(), score: st.score, restored: !!restored });
   }
   /** 你打过的那几局上，各条参照规则的得分（同样的局、同样的顺序） */
   function cumul(s) {
-    var r = recOf(s), me = r ? r.me : [], base = r ? r.base : 0, by = {}, i;
+    var r = recOf(s), me = s.fx ? played(s) : r ? r.me : [], base = s.fx ? s.k : r ? r.base : 0, by = {}, i;
     s.kit.refs.forEach(function (x) { by[x.id] = []; });
     for (i = 0; i < me.length; i++) {
       var sc = s.refSC[base + i];
@@ -406,15 +417,25 @@
     }
   };
 
+  /** 这套玩法的一局有多长，写成给人看的一小句（"60 回合"、"20 人"） */
+  A.humanSizeLabel = function (type, hp) { return UI[type] ? UI[type].sizeLabel(hp) : ""; };
+
   /* ---------- 弹层 ---------- */
-  A.openHuman = function () {
-    var type = S.world.type, w = A.wdef();
-    if (!A.humanOk(type)) { A.toast("这套玩法还不能亲手玩。现在可以的有：" + QL.humanGames().map(function (k) { return QL.WORLDS[k].short; }).join("、") + "。", 4600); return; }
-    var ui = UI[type], seed = S.world.seed, sizes = QL.humanSizes(type, Object.assign({}, A.wp())), sizeId = store.size[type], s = null, chart = null, alive = true;
+  /** opt.fixed：只打指定的那一局。{ id, type, hp, seed, k, title, label, acts(), onStep(acts, t, T), onFinish({ acts, score, restored }), actions(), mount(api), onRender(api), onClose() }
+   *  返回一个控制柄（不能打时是 null）：banner / extra 是留给外面画东西的两块地方（局面上方、对照表下方），state() 是眼下打到哪了 */
+  A.openHuman = function (opt) {
+    var fx = opt && opt.fixed ? opt.fixed : null, type = fx ? fx.type : S.world.type, w = QL.WORLDS[type];
+    if (!A.humanOk(type)) { A.toast("这套玩法还不能亲手玩。现在可以的有：" + QL.humanGames().map(function (k) { return QL.WORLDS[k].short; }).join("、") + "。", 4600); return null; }
+    var ui = UI[type], seed = fx ? fx.seed : S.world.seed, sizes = fx ? [{ id: "fixed", hp: fx.hp }] : QL.humanSizes(type, Object.assign({}, A.wp())), sizeId = fx ? "fixed" : store.size[type], s = null, chart = null, alive = true;
     if (!sizes.some(function (z) { return z.id === sizeId; })) sizeId = "m";
-    var top = h("div", { class: "hp-top" }), setup = h("ul", { class: "hp-setup" }), tiles = h("div", { class: "hp-tiles" }), main = h("div", { class: "hp-main" }), logEl = h("div", { class: "hp-log", "aria-live": "polite" }),
-      chartHost = h("div", { class: "hp-chart" }), after = h("div", { class: "hp-after" });
-    var m = A.modal("亲手玩一局 · " + w.name, h("div", { class: "hp", "data-game": type }, top, setup, tiles, main, logEl, chartHost, after), { cls: "hpm", focus: ".hp-focus", onClose: function () { alive = false; if (chart) chart.destroy(); } });
+    var top = h("div", { class: "hp-top" }), banner = h("div", { class: "hp-banner" }), setup = h("ul", { class: "hp-setup" }), tiles = h("div", { class: "hp-tiles" }), main = h("div", { class: "hp-main" }), logEl = h("div", { class: "hp-log", "aria-live": "polite" }),
+      chartHost = h("div", { class: "hp-chart" }), after = h("div", { class: "hp-after" }), extra = h("div", { class: "hp-extra" });
+    var m = A.modal(fx && fx.title ? fx.title : "亲手玩一局 · " + w.name, h("div", { class: "hp", "data-game": type }, top, banner, setup, tiles, main, logEl, chartHost, after, extra), { cls: "hpm", focus: ".hp-focus", onClose: function () { alive = false; if (chart) chart.destroy(); if (fx && fx.onClose) fx.onClose(); } });
+    var api = {
+      modal: m, banner: banner, extra: extra, type: type, close: function () { if (alive) m.close(); }, alive: function () { return alive; },
+      kit: function () { return s.kit; }, refs: function () { return s.fin ? s.fin.refs : null; }, fmt: function (v) { return fm1(v); },
+      state: function () { var fin = s.fin; return { done: !!fin, t: fin ? s.kit.T : s.step.t, T: s.kit.T, score: fin ? fin.st.score : NaN, acts: (fin ? fin.st.acts : s.step.acts).slice() }; }
+    };
 
     function G() { return s.kit.score; }
     function fm(v) { return A.gfmt(G(), v); }
@@ -434,30 +455,38 @@
       var from = s.step.t, to = from, a = first;
       for (var g = 0; g <= s.kit.T && a != null; g++) { to = s.step.t; advance(s, a); a = more && s.step ? more(s.step) : null; }
       s.mark = { from: from, to: to };
-      if (!s.fin) { var r = recMake(s); r.cur = s.step.acts.slice(); save(); }
+      if (!s.fin) {
+        if (fx) { if (fx.onStep) fx.onStep(s.step.acts.slice(), s.step.t, s.kit.T); }
+        else { var r = recMake(s); r.cur = s.step.acts.slice(); save(); }
+      }
       render();
     }
     function setSize(id) {
       var z = sizes.filter(function (x) { return x.id === id; })[0] || sizes[0];
-      sizeId = z.id; store.size[type] = z.id; save();
-      s = sess(type, z.hp, seed);
+      sizeId = z.id; if (!fx) { store.size[type] = z.id; save(); }
+      s = fx ? sessFixed(fx) : sess(type, z.hp, seed);
       if (!s.step && !s.fin) begin(s);
       render();
       var mine = s, L = longStart(s);
       if (!L.done) L.cbs.push(function () { if (alive && s === mine && s.fin) renderAfter(); });
     }
     function next() {
-      if (Date.now() - s.finAt < 600) return;   // 刚打完的一瞬间不接：连按回车下注的人，不会一头撞过这一局的结果
+      if (fx || Date.now() - s.finAt < 600) return;   // 刚打完的一瞬间不接：连按回车下注的人，不会一头撞过这一局的结果
       s.fin = null; begin(s); render();
     }
     function wipe() {
-      var r = recOf(s); if (!r) return;
+      var r = recOf(s); if (!r || fx) return;
       r.base += r.me.length; r.me = []; r.cur = null; r.at = Date.now(); save();
       s.fin = null; begin(s); render(); A.toast("这组设定下的记录清零了。接下来打的是没见过的新局。", 3600);
     }
 
     function renderTop() {
       clear(top);
+      if (fx) {   // 指定的那一局：没有长度可选，也没有"第几局"
+        top.appendChild(h("span", { class: "hp-ep", text: fx.label || "" })); top.appendChild(h("span", { class: "sp" }));
+        if (A.openGuide) top.appendChild(A.helpBtn("game:" + type, "这套玩法的细则、来历和已知结论"));
+        return;
+      }
       var seg = h("div", { class: "seg hp-sizes", role: "group", "aria-label": "一局打多长" }), me = played(s);
       sizes.forEach(function (z) {
         seg.appendChild(h("button", { type: "button", "data-size": z.id, "aria-pressed": z.id === sizeId ? "true" : "false", text: z.id === "same" ? "和左栏一样（" + ui.sizeLabel(z.hp) + "）" : ui.sizeLabel(z.hp), onclick: function () { if (z.id !== sizeId) setSize(z.id); } }));
@@ -489,7 +518,8 @@
       var hind = h("div", { class: "hp-hind" });
       ui.hind(c).forEach(function (x) { hind.appendChild(typeof x === "string" ? h("p", { text: x }) : x); });
       box.appendChild(hind);
-      box.appendChild(h("div", { class: "hp-acts" }, h("button", { class: "btn primary hp-act hp-focus", type: "button", id: "hpNext", onclick: next }, "再来一局", h("kbd", { text: "↵" }))));
+      if (fx) { var extraActs = fx.actions ? fx.actions(api) : null; if (extraActs && extraActs.length) box.appendChild(h("div", { class: "hp-acts" }, extraActs)); }
+      else box.appendChild(h("div", { class: "hp-acts" }, h("button", { class: "btn primary hp-act hp-focus", type: "button", id: "hpNext", onclick: next }, "再来一局", h("kbd", { text: "↵" }))));
       return box;
     }
     function renderAfter() {
@@ -508,6 +538,7 @@
       after.appendChild(h("div", { class: "gref" }, h("table", { class: "gtab hp-tab" },
         h("caption", { text: "同样的对局交给各条参照规则各打一遍。\"长期平均\"是在另外生成的 " + (s.long ? s.long.N : QL.humanLongN(s.kit)) + " 局上算的" + (L ? "。" : "，正在算…") }),
         h("thead", null, h("tr", null, head)), tb)));
+      if (fx) return;   // 指定的那一局只有这一局：没有累计，也没有可清零的记录
       // 累计：和先比的那条规则在同样几局上的配对差
       var sr = s.kit.refs.filter(function (r) { return r.id === sid; })[0], note;
       if (sr && !sr.err && n > 1) {
@@ -534,6 +565,7 @@
       if (!chart) chart = new QLChart.Chart(chartHost, { height: spec.height || 280 });
       chart.set(spec);
       renderAfter();
+      if (fx && fx.onRender) fx.onRender(api);
       var f = m.box.querySelector(".hp-focus");
       if (f) { try { f.focus({ preventScroll: true }); } catch (e) { f.focus(); } if (f.select && f.tagName === "INPUT") f.select(); }
     }
@@ -543,6 +575,8 @@
       if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;   // 正在填数字时不抢
       if (ui.keys(ctx(), e.key)) e.preventDefault();
     });
+    if (fx && fx.mount) fx.mount(api);
     setSize(sizeId);
+    return api;
   };
 })(App);
