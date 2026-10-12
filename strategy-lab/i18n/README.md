@@ -34,7 +34,8 @@ Where things live:
 
 Two safeguards beyond the per-unit checks: a literal that the code compares with `===` must have the same English
 everywhere (`check` reports clashes), and `test/ui-en.js` walks through the whole English page and fails if a Chinese
-character appears anywhere, including text drawn on charts.
+character appears anywhere, including text drawn on charts (`test/ui-en-lobby.js` does the same for the lobby: the tutorial,
+the daily episode, live rooms, the decathlon, the rule arena and the world workshop).
 
 The English page reuses the Chinese page's cache of live-computed numbers: `node i18n/i18n.js sig` prints the cache
 signature of the Chinese source, and the build writes it into `en/index.html`.

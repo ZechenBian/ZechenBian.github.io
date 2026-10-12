@@ -5,12 +5,13 @@
 cd "$(dirname "$0")/.." || exit 1
 python3 build.py || exit 1
 fail=0
-for t in engine worker io ml ai claims model-claims games games-worker obs human guide; do
+for t in engine worker io ml ai claims model-claims games games-worker obs human guide social room jobs arena shop; do
   out=$(node test/$t.test.js 2>&1); line=$(echo "$out" | grep -E "passed, [0-9]+ failed" | tail -1)
   echo "$t: $line"; echo "$out" | grep -E "^\s+FAIL|CRASH" ; echo "$line" | grep -q ", 0 failed" || fail=1
 done
 # ui-obs 排第一个：它不用存档、把现算从头跑一遍，算完的结果留在 test/.cache/ 里，后面几个测试接着用
-for t in ui-obs ui-tour ui-claude ui-data ui-models ui-explain ui-games ui-human ui-guide ui-review2 ui-review3 ui-review4; do
+# 大厅的那几样（每日一局、实时房间、十项全能、规则同场、世界工坊、新手教程）：GitHub 的接口换成本机的假数据，实时房间走本机的假中继
+for t in ui-obs ui-tour ui-claude ui-data ui-models ui-explain ui-games ui-human ui-guide ui-review2 ui-review3 ui-review4 ui-daily ui-room ui-deca ui-arena ui-shop ui-tutorial; do
   out=$(node test/$t.js 2>&1); line=$(echo "$out" | grep -E "passed, [0-9]+ failed|TOTAL LOGS|CRASH" | tail -1); logs=$(echo "$out" | grep -E "^page logs:|TOTAL LOGS" | tail -1)
   echo "$t: $line | $logs"; echo "$out" | grep -E "^\s+FAIL|CRASH"; echo "$out" | grep -qE "[1-9][0-9]* failed|CRASH" && fail=1
 done
@@ -22,5 +23,6 @@ out=$(node test/ui-standalone.js 2>&1); echo "ui-standalone: $(echo "$out" | gre
 # 独立网页版里的 AI 面板：接入一家服务商（本机的假接口）之后四种用法都能用
 out=$(node test/ui-ai.js 2>&1); echo "ui-ai: $(echo "$out" | grep -E "passed, [0-9]+ failed|CRASH" | tail -1)"; echo "$out" | grep -E "^\\s+FAIL|CRASH"; echo "$out" | grep -qE "[1-9][0-9]* failed|CRASH" && fail=1
 out=$(node test/ui-en.js 2>&1); echo "ui-en: $(echo "$out" | grep -E "passed, [0-9]+ failed|CRASH" | tail -1)"; echo "$out" | grep -E "^\\s+FAIL|CRASH"; echo "$out" | grep -qE "[1-9][0-9]* failed|CRASH" && fail=1
+out=$(node test/ui-en-lobby.js 2>&1); echo "ui-en-lobby: $(echo "$out" | grep -E "passed, [0-9]+ failed|CRASH" | tail -1)"; echo "$out" | grep -E "^\\s+FAIL|CRASH"; echo "$out" | grep -qE "[1-9][0-9]* failed|CRASH" && fail=1
 [ $fail = 0 ] && echo "ALL GREEN" || echo "SOMETHING FAILED"
 exit $fail

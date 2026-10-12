@@ -39,9 +39,9 @@ def katex_css():
     return css
 
 # 顺序有讲究：模型库和玩法是被内核"安装"的，要先于内核定义；规则表在内核之后；界面各部分按依赖排
-JS = ["ml.js", "games.js", "obs-games.js", "live.js", "core.js", "strategies.js", "models.js", "game-strats.js", "obs-strats.js", "human.js", "social.js", "deca.js", "arena.js", "charts.js", "sandbox.js", "engine-client.js", "jobs.js", "md.js", "io.js", "hub.js", "mq.js",
+JS = ["ml.js", "games.js", "obs-games.js", "live.js", "core.js", "strategies.js", "models.js", "game-strats.js", "obs-strats.js", "human.js", "social.js", "deca.js", "arena.js", "shop.js", "charts.js", "sandbox.js", "engine-client.js", "jobs.js", "md.js", "io.js", "hub.js", "mq.js",
       "guide.js", "guide-games.js", "guide-worlds.js", "guide-obs.js",
-      "ai.js", "app-core.js", "app-live.js", "app-ui.js", "app-charts.js", "app-scenes.js", "app-human.js", "app-lobby.js", "app-share.js", "app-daily.js", "app-room.js", "app-deca.js", "app-arena.js", "app-guide.js", "claude.js", "app-main.js"]
+      "ai.js", "app-core.js", "app-live.js", "app-ui.js", "app-charts.js", "app-scenes.js", "app-human.js", "app-lobby.js", "app-share.js", "app-daily.js", "app-room.js", "app-deca.js", "app-arena.js", "app-shop.js", "app-tour.js", "app-guide.js", "claude.js", "app-main.js"]
 JS = [f for f in JS if os.path.exists(os.path.join(ROOT, "src", f))]
 def bundle(base=None):
     out = "/* %s\n   Not open source. %s */\n" % (COPY, LICENSE_URL) + "\n".join("/* ===== %s ===== */\n%s" % (f, src(f, base)) for f in JS)

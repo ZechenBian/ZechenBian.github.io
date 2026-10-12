@@ -750,6 +750,46 @@ ul.ar-marks { margin: 4px 0 0; padding-left: 18px; font-size: 12.5px; color: var
 table.ar-tab td:nth-child(2) { overflow-wrap: anywhere; }
 @media (max-width: 560px) { table.ar-tab th:nth-child(5), table.ar-tab td:nth-child(5), table.ar-tab th:nth-child(6), table.ar-tab td:nth-child(6) { display: none; } }
 
+/* ---------- 世界工坊（src/app-shop.js）。名单、表单、结果表沿用规则同场的样式 ---------- */
+.sh-txt { cursor: default; }
+.sh-about { margin: 0; font-size: 13px; line-height: 1.65; color: var(--ink); white-space: pre-wrap; overflow-wrap: anywhere; max-width: 84ch; }
+.more-body.sh-about { color: var(--ink2); }
+.ar-form textarea.sh-par { padding: 4px 8px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 4px; min-width: 0; width: 100%; resize: vertical; font-size: 12.5px; line-height: 1.5; }
+.ar-form textarea.sh-par.num { font-family: var(--font-mono); white-space: pre; overflow: auto; }
+.sh-two { gap: 6px 10px; align-items: center; }
+.sh-two input[type="number"] { width: 96px; flex: none; }
+.sh-two label { white-space: nowrap; }
+.sh-pair { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; min-width: 0; }   /* 第二个数和它的标签一起折行 */
+@media (max-width: 560px) { .ar-form { grid-template-columns: minmax(0, 1fr); gap: 3px; } .ar-form label { margin-top: 5px; } }   /* 手机上表单改成一栏：标签在上，输入框在下 */
+.ar-set.sh-gp { flex: 1 1 200px; }
+.ar-set.sh-gp input { width: 100%; padding: 2px 6px; }
+table.sh-tab td:nth-child(2) .tag { margin-left: 8px; }
+table.sh-trace td.sh-see { text-align: left; font-family: var(--font-mono); font-size: 12px; overflow-wrap: anywhere; }
+table.sh-trace th:nth-child(2) { text-align: left; }
+#shTrace .row { margin-bottom: 6px; }
+@media (max-width: 560px) { table.sh-tab th:nth-child(5), table.sh-tab td:nth-child(5) { display: none; } .sh-host .ar-rule { flex-wrap: wrap; } }
+
+/* ---------- 新手教程（src/app-tour.js） ---------- */
+.modal-box.tourm-box { width: min(720px, 100%); }
+.tourm .modal-f .sp { flex: 1; }
+.tourm .modal-f .note { align-self: center; }
+.tour-nav { display: flex; flex-wrap: wrap; gap: 6px; }
+.tour-pill { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--ink2); padding: 3px 11px 3px 4px; font-size: 12.5px; cursor: pointer; }
+.tour-pill:hover { border-color: var(--c-axis); color: var(--ink); }
+.tour-pill[aria-selected="true"] { border-color: var(--accent); background: var(--accent-wash); color: var(--ink); font-weight: 600; }
+.tour-no { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--surface-2); font: 600 11.5px var(--font-mono); color: var(--ink2); }
+.tour-pill[aria-selected="true"] .tour-no { background: var(--accent); color: var(--on-accent); }
+.tour-pill.went .tour-no { background: var(--good-wash, var(--surface-2)); color: var(--good-ink, var(--ink)); box-shadow: inset 0 0 0 1px var(--good-ink, var(--c-axis)); }
+.tour-pill.went[aria-selected="true"] .tour-no { background: var(--accent); color: var(--on-accent); box-shadow: none; }
+.tour-pane { display: grid; gap: 10px; min-width: 0; margin-top: 4px; }
+.tour-pane p, .tour-pane ol { margin: 0; font-size: 14px; line-height: 1.75; color: var(--ink); max-width: 68ch; }
+.tour-pane ol { padding-left: 22px; display: grid; gap: 6px; }
+.tour-title { margin: 6px 0 0; font: 700 19px/1.35 var(--font-display); letter-spacing: 0.03em; }
+html[lang="en"] .tour-title { letter-spacing: 0; }
+.tour-act { margin-top: 4px; align-items: center; gap: 8px 12px; }
+.tour-chip { position: fixed; z-index: 55; left: calc(14px + env(safe-area-inset-left, 0px)); bottom: calc(14px + env(safe-area-inset-bottom, 0px)); display: flex; align-items: center; gap: 4px; background: var(--surface); border: 1px solid var(--accent); border-radius: 999px; padding: 4px 6px 4px 4px; box-shadow: var(--shadow); }
+.tour-chip .btn { border-radius: 999px; }
+
 </style>
 <style>
 /* KaTeX 0.16.47 的样式，字体内联。KaTeX: MIT License, (c) Khan Academy and other contributors; 字体: SIL Open Font License 1.1。全文见 THIRD-PARTY-NOTICES.md */
@@ -7080,6 +7120,225 @@ QL.jobs.arena = function (m, CODE, progress) {
 }
 if (typeof module !== "undefined" && module.exports) module.exports = QL_ARENA_INSTALL;
 
+/* ===== shop.js ===== */
+/* 策略实验室 · 世界工坊（引擎这一半）
+ * 工坊里能造两样东西，样板也都在这个文件里。
+ *
+ * 世界 = 一段 simulate(T, rng, p, K)：每条路径调用一次，返回 T+1 个正的价格。和实验室里"自定义世界"是同一个接口，
+ *        所以造好的世界可以直接拿到实验室里，让任何一条规则在上面回测。
+ *
+ * 玩法 = 三个函数，合起来就是"裁判"：
+ *   deal(T, rng, p)     发牌。每一局开始时调用一次，返回这一局藏起来的东西 G。规则看不到 G
+ *   show(G, t)          亮牌。每回合开始时调用，返回规则这一回合能看到的东西：一个数、一个数组，或者只有一层的对象。可以不写
+ *   referee(G, t, a)    判分。规则报出动作 a（一个数）之后调用，返回这一回合的得分。可以在 G 上记账；把 G.over 设成 true，这一局到此为止
+ * 一局的得分 = 各回合得分加起来。
+ * 玩法里的规则：decide(s, p, st) 返回一个数。s.see 是 show 给的东西，s.t、s.T 是第几回合和一共几回合，s.last 是上一回合的得分，
+ *              s.total 是这一局到目前的得分，s.g 是玩法的参数，s.rnd() 给一个 0 到 1 之间的随机数。init(p) 可以没有。
+ *
+ * 比的时候每条规则各打 K 局，第 k 局发给每条规则的牌是同一副（同一个种子），所以规则之间的差别不是牌运。
+ * 这个文件在后台线程里执行（jobs.js 把它编进去）；页面里只用到样板的清单。 */
+function QL_SHOP_INSTALL(QL) {
+"use strict";
+var RNG = QL.RNG, LOGN = 30;
+function num(key, label, def, min, max, step) { return { key: key, label: label, def: def, min: min, max: max, step: step, type: "num" }; }
+
+/* ---------- 样板：两个世界 ---------- */
+var WORLD_LIB = [
+  { id: "w_walk", name: "随机游走（最简单的样板）", summary: "每一步的涨跌互相独立，只有一个固定的漂移和一个固定的波动。",
+    schema: [num("mu", "年化漂移 μ", 0.06, -0.3, 0.5, 0.01), num("sigma", "年化波动 σ", 0.2, 0.02, 1, 0.01)], K: 252, T: 252,
+    explain: "和内置的\"几何布朗运动\"是同一个过程，放在这里当样板：十行代码就是一个世界。\n\n每一步的对数收益独立同分布，过去的价格对猜下一步没有任何帮助，所以择时的规则在这里都是白忙。长期增长率最高的做法是一直把固定比例 f = μ/σ² 的钱放在这个资产上（Merton 的结论）。",
+    code: [
+      "// 最简单的世界：每一步的对数收益互相独立，分布也都一样。",
+      "// mu、sigma 是按年给的；K 是每年几步，所以一步的时间是 dt = 1/K。",
+      "function simulate(T, rng, p, K) {",
+      "  var dt = 1 / K, S = [100];",
+      "  for (var t = 0; t < T; t++) {",
+      "    S.push(S[t] * Math.exp((p.mu - p.sigma * p.sigma / 2) * dt + p.sigma * Math.sqrt(dt) * rng.normal()));",
+      "  }",
+      "  return S;",
+      "}"
+    ].join("\n") },
+  { id: "w_limit", name: "涨跌停板", summary: "每天的涨跌幅有上限；当天没走完的行情留到第二天接着走。",
+    schema: [num("sigma", "年化波动 σ", 0.4, 0.05, 1.5, 0.05), num("lim", "每天涨跌幅的上限", 0.02, 0.005, 0.2, 0.005)], K: 252, T: 252,
+    explain: "没有涨跌停的时候，这是一个没有漂移的随机游走。加上涨跌停之后，当天没走完的幅度留到第二天，所以涨停的第二天多半接着涨，跌停的第二天多半接着跌：相邻两天的收益有了正的相关。上限相对于每天的波动（σ/√K）越紧，这种延续越明显。\n\n可以试的规则：内置的\"时间序列动量\"（把回看窗口调成 1 步）在这里比买入持有好得多；把涨跌幅的上限调到 0.2（几乎碰不到），它的优势就没有了，只剩下交易成本。\n\n要留意的一点：真实的市场里，涨停的时候往往买不进去。这个世界没有管这件事，所以这里的收益比现实里拿得到的高得多。",
+    code: [
+      "// 每天的涨跌幅不许超过 ±lim（按对数算）。没走完的行情不会消失，留到第二天接着走。",
+      "function simulate(T, rng, p, K) {",
+      "  var S = [100], carry = 0, sd = p.sigma / Math.sqrt(K);",
+      "  for (var t = 0; t < T; t++) {",
+      "    var want = carry + sd * rng.normal();              // 今天想走的幅度",
+      "    var r = Math.max(-p.lim, Math.min(p.lim, want));   // 实际只能走到涨跌停",
+      "    carry = want - r;                                  // 没走完的留给明天",
+      "    S.push(S[t] * Math.exp(r));",
+      "  }",
+      "  return S;",
+      "}"
+    ].join("\n") }
+];
+
+/* ---------- 样板：两套带裁判的玩法，各带几条规则 ---------- */
+var GAME_LIB = [
+  { id: "s_pig", name: "掷骰子，见好就收", summary: "一直掷骰子攒分，掷出 1 就前功尽弃。什么时候收手？",
+    about: "一局里你可以一直掷骰子。掷出 2 到 6，点数加进这一局的累计；掷出 1，累计清零，这一局结束，一分没有。每次掷之前你都可以收手，把累计的分数带走。\n\n规则每回合看到的是眼下的累计分数（s.see），报 1 是接着掷，报别的数是收手。\n\n算一笔账：累计是 s 分的时候再掷一次，有 1/6 的机会丢掉 s 分，有 5/6 的机会平均多得 4 分。两头相等时 s = 20，所以攒到 20 分就该收手。",
+    p: {}, T: 60,
+    code: [
+      "// 发牌：把这一局可能用到的骰子先掷好，藏起来。pot 是眼下的累计分数。",
+      "function deal(T, rng, p) {",
+      "  var dice = [];",
+      "  for (var t = 0; t < T; t++) dice.push(1 + rng.int(6));",
+      "  return { dice: dice, pot: 0 };",
+      "}",
+      "// 亮牌：规则看到的是眼下累计了多少分。",
+      "function show(G, t) {",
+      "  return G.pot;",
+      "}",
+      "// 判分：规则报 1 是接着掷，报别的是收手。收手时，累计的分数就是这一局的得分。",
+      "function referee(G, t, a) {",
+      "  if (a !== 1) { G.over = true; return G.pot; }",
+      "  var d = G.dice[t];",
+      "  if (d === 1) { G.pot = 0; G.over = true; return 0; }",
+      "  G.pot += d;",
+      "  if (t === G.dice.length - 1) { G.over = true; return G.pot; }   // 回合用完了：算作收手",
+      "  return 0;",
+      "}"
+    ].join("\n"),
+    rules: [
+      { id: "once", name: "掷一次就收", summary: "有分就走。拿来当基准。", p: {},
+        code: "// 手里一有分就收手。\nfunction decide(s, p) {\n  return s.see > 0 ? 0 : 1;\n}" },
+      { id: "hold", name: "攒到 20 分就收", summary: "累计不到 c 分就接着掷。c = 20 时平均得分最高。", p: { c: 20 },
+        code: "// 累计不到 c 分就接着掷。\nfunction decide(s, p) {\n  return s.see >= p.c ? 0 : 1;\n}" },
+      { id: "greedy", name: "太贪：攒到 40 分才收", summary: "同一条规则，c = 40。多数时候等不到 40 分就掷出 1 了。", p: { c: 40 },
+        code: "// 累计不到 c 分就接着掷。\nfunction decide(s, p) {\n  return s.see >= p.c ? 0 : 1;\n}" }
+    ] },
+  { id: "s_guess", name: "猜下一次是正是反", summary: "硬币是偏的，偏多少不知道。每回合猜下一次的结果，猜对得 1 分。",
+    about: "每一局换一枚硬币：正面的概率 q 在 lo 和 hi 之间随机抽一个，规则不知道 q 是多少。每回合先猜这一次抛出来是正面还是反面，猜对得 1 分；然后才看到结果。\n\n规则每回合看到的是上一次抛出来的结果（s.see：1 是正面，0 是反面，第一回合还没有，是 NaN），报 1 是猜正面，报别的数是猜反面。\n\n要是知道 q，永远猜可能性大的那一面，每回合平均得 max(q, 1 − q) 分。不知道 q，就只能一边猜一边数。",
+    p: { lo: 0.2, hi: 0.8 }, T: 50,
+    code: [
+      "// 发牌：抽一枚硬币（正面的概率 q），把这一局的 T 次都先抛好，藏起来。",
+      "function deal(T, rng, p) {",
+      "  var q = rng.uniform(p.lo, p.hi), flips = [];",
+      "  for (var t = 0; t < T; t++) flips.push(rng.u() < q ? 1 : 0);",
+      "  return { flips: flips };",
+      "}",
+      "// 亮牌：规则看到的是上一次抛出来的结果（第一回合还没有）。",
+      "function show(G, t) {",
+      "  return t > 0 ? G.flips[t - 1] : NaN;",
+      "}",
+      "// 判分：规则报 1 是猜正面，报别的都算猜反面。猜对得 1 分。",
+      "function referee(G, t, a) {",
+      "  return (a === 1 ? 1 : 0) === G.flips[t] ? 1 : 0;",
+      "}"
+    ].join("\n"),
+    rules: [
+      { id: "heads", name: "总猜正面", summary: "什么也不看。拿来当基准。", p: {},
+        code: "// 每回合都猜正面。\nfunction decide(s, p) {\n  return 1;\n}" },
+      { id: "repeat", name: "上次是什么就猜什么", summary: "只看上一次的结果。", p: {},
+        code: "// 上一次是正面就猜正面，否则猜反面。\nfunction decide(s, p) {\n  return s.see === 1 ? 1 : 0;\n}" },
+      { id: "major", name: "跟着多数猜", summary: "数一数到现在正面多还是反面多，猜多的那一面。", p: {},
+        code: "// 记下到现在出过几次正面，猜出得多的那一面（一样多时猜正面）。\nfunction init(p) {\n  return { heads: 0, n: 0 };\n}\nfunction decide(s, p, st) {\n  if (s.t > 0) { st.n++; if (s.see === 1) st.heads++; }\n  return 2 * st.heads >= st.n ? 1 : 0;\n}" }
+    ] }
+];
+QL.SHOP = { worlds: WORLD_LIB, games: GAME_LIB, ver: 1, maxRules: 12 };
+
+/* ---------- 给规则看的东西：只放行数、短字符串、数组和只有一层的对象，而且是抄一份 ---------- */
+function scalar(v) { return typeof v === "number" ? v : typeof v === "boolean" ? (v ? 1 : 0) : typeof v === "string" ? v.slice(0, 80) : NaN; }
+function listOf(a) { var n = Math.min(a.length >>> 0, 256), o = new Array(n), i; for (i = 0; i < n; i++) o[i] = scalar(a[i]); return Object.freeze(o); }
+function isList(v) { return Array.isArray(v) || ArrayBuffer.isView(v); }
+QL.shopSee = function (x) {
+  if (typeof x === "number") return x;
+  if (x == null) return NaN;
+  if (typeof x !== "object") return scalar(x);
+  if (isList(x)) return listOf(x);
+  var o = {}, ks = Object.keys(x), i;
+  for (i = 0; i < ks.length && i < 32; i++) { var v = x[ks[i]]; o[ks[i]] = v && typeof v === "object" ? (isList(v) ? listOf(v) : NaN) : scalar(v); }
+  return Object.freeze(o);
+};
+
+function ruleErr(e) { return { rule: true, message: String(e && e.message || e) }; }
+function finite(x) { return typeof x === "number" && x === x && x !== Infinity && x !== -Infinity; }
+/** 打一局。game: { deal, show, referee }；pl: { decide, init, p }；slot 是这条规则排第几（它自己的随机数从这里来）。
+ *  返回 { score, rounds, bad }；log 是数组时把前几回合记进去。
+ *  规则抛的错带着 rule 标记（这条规则出局，别的规则照常比）；玩法自己抛的错不带（整件事停下来） */
+QL.shopEpisode = function (game, gp, T, seed, k, pl, slot, log) {
+  var G = game.deal(T, new RNG(seed, k, 9101), gp);
+  if (!G || typeof G !== "object") throw new Error("deal 要返回一个对象（这一局藏起来的东西），现在返回的是 " + (G === null ? "null" : typeof G));
+  var r = new RNG(seed, k * 64 + (slot | 0), 9102), rnd = function () { return r.u(); }, st, total = 0, last = NaN, bad = 0, t = 0, a, see, gain;
+  try { st = pl.init ? pl.init(pl.p) || {} : {}; } catch (e) { throw ruleErr(e); }
+  for (; t < T; t++) {
+    see = game.show ? QL.shopSee(game.show(G, t)) : NaN;
+    try { a = pl.decide(Object.freeze({ t: t, T: T, see: see, last: last, total: total, g: gp, rnd: rnd }), pl.p, st); } catch (e2) { throw ruleErr(e2); }
+    if (!finite(a)) { bad++; a = NaN; }
+    gain = game.referee(G, t, a);
+    if (!finite(gain)) throw new Error("第 " + t + " 回合，referee 返回的不是有限的数：" + String(gain));
+    total += gain; last = gain;
+    if (log && log.length < LOGN) log.push({ see: see, a: a, gain: gain });
+    if (G.over === true) { t++; break; }
+  }
+  return { score: total, rounds: t, bad: bad };
+};
+function meanSE(a, n) {
+  var s1 = 0, s2 = 0, i; for (i = 0; i < n; i++) { s1 += a[i]; s2 += a[i] * a[i]; }
+  var v = n > 1 ? Math.max(0, (s2 - s1 * s1 / n) / (n - 1)) : 0;
+  return { mean: n ? s1 / n : NaN, se: n > 1 ? Math.sqrt(v / n) : NaN };
+}
+/** 每条规则各打 K 局，汇总成每条规则一行：{ id, mean, se, d, dse, rounds, bad, err }。
+ *  d、dse：和排在第一的那条规则（基准）逐局相减之后的平均数和标准误；基准自己那一行是 0 */
+QL.shopRun = function (game, gp, T, K, seed, players, progress) {
+  var n = players.length, sc = [], rows = [], trace = [], i, k;
+  for (i = 0; i < n; i++) {
+    var pl = players[i], s = new Float64Array(K), rounds = 0, bad = 0, err = "", log = [];
+    if (progress) progress({ id: pl.id, i: i, n: n, k: 0, K: K });
+    for (k = 0; k < K; k++) {
+      var ep;
+      try { ep = QL.shopEpisode(game, gp, T, seed, k, pl, i, k === 0 ? log : null); }
+      catch (e) { if (e && e.rule) { err = e.message; break; } throw e; }
+      s[k] = ep.score; rounds += ep.rounds; bad += ep.bad;
+      if (progress && k % 200 === 199) progress({ id: pl.id, i: i, n: n, k: k + 1, K: K });
+    }
+    sc.push(err ? null : s);
+    var ms = err ? { mean: NaN, se: NaN } : meanSE(s, K), row = { id: pl.id, mean: ms.mean, se: ms.se, d: NaN, dse: NaN, rounds: err ? NaN : rounds / K, bad: err || !rounds ? 0 : bad / rounds, err: err };
+    if (!err && sc[0]) {
+      if (i === 0) { row.d = 0; row.dse = 0; }
+      else { var df = new Float64Array(K); for (k = 0; k < K; k++) df[k] = s[k] - sc[0][k]; var dm = meanSE(df, K); row.d = dm.mean; row.dse = dm.se; }
+    }
+    rows.push(row); trace.push({ id: pl.id, score: err ? NaN : s[0], log: log });
+  }
+  return { rows: rows, trace: trace };
+};
+
+QL.jobs = QL.jobs || {};
+/** 任务：几条规则在一套玩法里比。m: { game: 玩法那段代码的编号, gp, T, K, seed, entries: [{ id, p }] } */
+QL.jobs.game = function (m, CODE, progress) {
+  var S = CODE[m.game];
+  if (!S || typeof S.deal !== "function" || typeof S.referee !== "function") throw new Error("玩法的代码里要有 deal(T, rng, p) 和 referee(G, t, a) 这两个函数");
+  var game = { deal: S.deal, show: typeof S.show === "function" ? S.show : null, referee: S.referee }, gp = QL.jobParams(m.gp);
+  var T = Math.max(1, Math.min(2000, m.T | 0 || 20)), K = Math.max(1, Math.min(20000, m.K | 0 || 2000)), seed = m.seed | 0, players = [], skipped = [];
+  K = Math.max(1, Math.min(K, Math.floor(4e6 / T)));
+  (m.entries || []).slice(0, QL.SHOP.maxRules).forEach(function (en) {
+    var R = CODE[en.id];
+    if (!R || typeof R.decide !== "function") { skipped.push({ id: en.id, err: "代码里没有定义 decide(s, p, st) 函数" }); return; }
+    players.push({ id: en.id, decide: R.decide, init: R.init || null, p: QL.jobParams(en.p) });
+  });
+  if (!players.length) return { T: T, K: K, seed: seed, rows: [], skipped: skipped, trace: [] };
+  var out = QL.shopRun(game, gp, T, K, seed, players, progress);
+  return { T: T, K: K, seed: seed, rows: out.rows, skipped: skipped, trace: out.trace };
+};
+/** 任务：试一个世界。m: { id: 世界那段代码的编号, p, T, K, N, seed }。返回几个数和几条样本路径 */
+QL.jobs.world = function (m, CODE, progress) {
+  var S = CODE[m.id];
+  if (!S || typeof S.simulate !== "function") throw new Error("代码里没有定义 simulate(T, rng, p, K) 函数");
+  var T = Math.max(10, Math.min(4000, m.T | 0 || 252)), N = Math.max(20, Math.min(4000, m.N | 0 || 400)), K = +m.K > 0 ? Math.min(+m.K, 100000) : 252;
+  if (N * T > 2e6) N = Math.max(20, Math.floor(2e6 / T));
+  progress({ id: m.id });
+  var B = QL.makeBatch({ type: "custom", params: Object.assign({}, QL.jobParams(m.p)), N: N, T: T, K: K, seed: m.seed | 0, S0: 100 }, { simulate: S.simulate }, 0), ws = QL.worldStats(B);
+  var G = ws.grid.length, arr = function (a) { return Array.prototype.map.call(a, function (v) { return +(+v).toPrecision(7); }); }, paths = [], i;
+  for (i = 0; i < Math.min(8, ws.paths.n); i++) paths.push(arr(ws.paths.data.subarray(i * G, (i + 1) * G)));
+  return { N: N, T: T, K: K, annMean: ws.annMean, annVol: ws.annVol, skew: ws.skew, kurt: ws.kurt, min: ws.min, max: ws.max, acf1: ws.acf.length ? ws.acf[0] : NaN, acfAbs1: ws.acfAbs.length ? ws.acfAbs[0] : NaN,
+    grid: Array.prototype.slice.call(ws.grid), q5: arr(ws.fan.q5), q50: arr(ws.fan.q50), q95: arr(ws.fan.q95), paths: paths };
+};
+}
+if (typeof module !== "undefined" && module.exports) module.exports = QL_SHOP_INSTALL;
+
 /* ===== charts.js ===== */
 /* 图表层：只用 Canvas 2D，不依赖外部库。
  * 一张图 = 共享 x 轴的若干面板（每个面板只有一条 y 轴，绝不做双轴）或一张热力图。
@@ -11677,6 +11936,7 @@ var App = (function () {
       });
       host.appendChild(sel);
       host.appendChild(h("p", { class: "blurb", text: w.type === "custom" && S.custom ? (S.custom.summary || d.blurb) : d.blurb }));
+      if (w.type === "custom" && S.custom && S.custom.foreign) host.appendChild(h("p", { class: "note", id: "worldForeign" }, "这个世界是别人写的", S.custom.from && S.custom.from.user ? ["（", h("a", { href: S.custom.from.url, target: "_blank", rel: "noopener", text: "@" + S.custom.from.user }), "）"] : null, "，在隔离环境里运行：它碰不到这张页面里的东西，也连不了网。"));
     }
     if (d.needsData) {
       var ds = A.dataset(), dsel = h("select", { id: "dsSel", "aria-label": "数据集", onchange: function () { w.dsId = dsel.value; A.afterWorldChange(); } },
@@ -12166,7 +12426,7 @@ var App = (function () {
       var old = c.code; c.code = ta.value; errBox.hidden = true; apply.disabled = true;
       A.engine().then(function () { A.requestRun("commit"); m.close(); }).catch(function (e) { c.code = old; errBox.hidden = false; errBox.textContent = e.message || String(e); apply.disabled = false; });
     } });
-    var m = A.modal("自定义世界：" + c.name, [ex, h("pre", { class: "code", style: { "max-height": "120px" }, text: "function simulate(T, rng, p)  →  返回长度为 T+1 的正的价格数组\nrng.u()  rng.normal()  rng.exp(rate)  rng.t(nu)  rng.gamma(k)  rng.poisson(lam)\nrng.bernoulli(p)  rng.laplace()  rng.cauchy()  rng.int(n)  rng.uniform(a, b)" }), ta, errBox], { foot: [apply] });
+    var m = A.modal("自定义世界：" + c.name, [ex, h("pre", { class: "code", style: { "max-height": "120px" }, text: "function simulate(T, rng, p, K)  →  返回长度为 T+1 的正的价格数组（K 是每年几步，可以不用）\nrng.u()  rng.normal()  rng.exp(rate)  rng.t(nu)  rng.gamma(k)  rng.poisson(lam)\nrng.bernoulli(p)  rng.laplace()  rng.cauchy()  rng.int(n)  rng.uniform(a, b)" }), ta, errBox], { foot: [apply] });
   };
 
   /* ---------- 命令面板 ---------- */
@@ -14043,7 +14303,7 @@ var App = (function () {
   "use strict";
   var h = A.h, $ = A.$;
   var cards = [], routes = {};
-  /** 登记一张卡片：{ id, order, kicker, title, blurb, status(), go(arg), label, route }。route：地址里 #route 或 #route=参数 会直接打开它 */
+  /** 登记一张卡片：{ id, order, kicker, title, blurb, status(), go(arg), label（文字，或者返回文字的函数）, route, wide, primary }。route：地址里 #route 或 #route=参数 会直接打开它 */
   A.lobbyAdd = function (c) { cards.push(c); cards.sort(function (a, b) { return a.order - b.order; }); if (c.route) routes[c.route] = c; };
   A.lobbyCards = function () { return cards.slice(); };
   /** 能发给别人的地址：这张页面 + #入口 */
@@ -14060,7 +14320,7 @@ var App = (function () {
         h("h3", { text: c.title }),
         h("p", { class: "lb-blurb", text: c.blurb }),
         h("div", { class: "lb-foot" },
-          h("button", { class: "btn" + (c.primary ? " primary" : ""), type: "button", "data-go": c.id, text: c.label || "打开", onclick: function () { m.close(); c.go(); } }),
+          h("button", { class: "btn" + (c.primary ? " primary" : ""), type: "button", "data-go": c.id, text: (typeof c.label === "function" ? c.label() : c.label) || "打开", onclick: function () { m.close(); c.go(); } }),
           st ? h("span", { class: "lb-status", text: st }) : null)));
     });
     var m = A.modal("大厅", [
@@ -14525,8 +14785,10 @@ var App = (function () {
       body.appendChild(h("div", { class: "rm-code" }, h("span", { class: "note", text: "房间号" }), h("b", { class: "num", id: "rmCode", text: code }), h("button", { class: "btn small", type: "button", id: "rmCopy", text: "复制邀请链接", onclick: function () { A.copy(A.lobbyLink("room", code)); } }),
         h("span", { class: "sp" }), h("span", { class: "note", id: "rmNet", text: up ? "已连上 " + up + " / " + R.room.total() + " 台中继" : "正在连中继…" })));
       if (!up && Date.now() - R.joinedAt > 9000) body.appendChild(h("div", { class: "warn", id: "rmDown", text: "连不上公共的中继服务器。可能是这个网络把它们拦了；换一个网络再试，或者过一会儿它会自己重连。" }));
-      if (R.full) { body.appendChild(h("div", { class: "warn", id: "rmFull", text: "这个房间已经有 " + MAXP + " 个人了，进不去。" })); return; }
-      if (!c) { body.appendChild(h("p", { class: R.missing ? "warn" : "note", id: "rmWait", text: R.missing ? "没有找到这个房间。房间号可能输错了，或者里面的人都已经走了。" : "正在进房间…" })); return; }
+      // 进不去的几种情况也要给一条出路：离开这里，回到"开房间 / 进房间"那一步
+      var exitRow = function (again) { return h("div", { class: "row tight rm-foot" }, h("span", { class: "sp" }), h("button", { class: "btn small" + (again ? " primary" : ""), type: "button", id: "rmLeave", text: again ? "换一个房间" : "离开房间", onclick: function () { leave(); if (again) A.openRoom(); } })); };
+      if (R.full) { body.appendChild(h("div", { class: "warn", id: "rmFull", text: "这个房间已经有 " + MAXP + " 个人了，进不去。" })); body.appendChild(exitRow(true)); return; }
+      if (!c) { body.appendChild(h("p", { class: R.missing ? "warn" : "note", id: "rmWait", text: R.missing ? "没有找到这个房间。房间号可能输错了，或者里面的人都已经走了。" : "正在进房间…" })); body.appendChild(exitRow(R.missing)); return; }
       var w = QL.WORLDS[c.type], line = h("div", { class: "row tight rm-game" });
       if (isHost() && c.phase !== "play") {
         var gs = h("select", { id: "rmGame", "aria-label": "打哪套玩法", onchange: function () { setCfg(Object.assign({}, R.cfg, { type: gs.value, at: Date.now() })); } }, QL.humanGames().map(function (g) { return h("option", { value: g, text: QL.WORLDS[g].short, selected: g === c.type }); }));
@@ -15083,6 +15345,720 @@ var App = (function () {
     blurb: "几条规则放进同一个市场互相当对手：一起竞价，或者一起做市抢同一批客人。看谁的规则在有对手的时候还站得住。",
     status: function () { var n = store.rules.length; return n ? "你写了、载入了 " + n + " 条规则" : ""; },
     go: function (arg) { A.openArena(arg); }
+  });
+})(App);
+
+/* ===== app-shop.js ===== */
+/* 应用主体（十三）：世界工坊。自己造两样东西，造好了可以贴到 GitHub 给别人用（怎么跑见 shop.js）。
+ *   世界：一段 simulate(T, rng, p, K)。这里能写、能试（生成几百条路径看看长什么样），也能一键拿到实验室里当"自定义世界"用。
+ *   玩法：一个裁判（deal / show / referee 三个函数）加上几条来玩它的规则。这里能写裁判、写规则，把几条规则放在同一副牌上比。
+ * 自己写的东西存在这台设备的浏览器里。别人写的世界、玩法、规则带着 foreign 标记，一律在隔离环境里运行（sandbox.js）。
+ * 裁判和规则编在同一个线程里，互相之间没法完全隔绝（见 jobs.js 的说明），所以有别人的代码在场时，结果只图个乐。 */
+(function (A) {
+  "use strict";
+  var h = A.h, clear = A.clear, QL = A.QL, F = A.F, P = A.P, S = A.state;
+  if (typeof QL_SHOP_INSTALL !== "function" || typeof QLJobs === "undefined") return;
+  if (!QL.SHOP) QL_SHOP_INSTALL(QL);
+  var SH = QL.SHOP, KEY = "ql.shop.v1", MAXR = SH.maxRules, IDRE = /^[a-z0-9_-]{2,40}$/i, KEYRE = /^[A-Za-z_][A-Za-z0-9_]{0,23}$/;
+  A.shopOpt = { timeout: 30000 };   // 一件任务多久没动静算卡死（毫秒）。测试里会调小
+  var store = { v: 1, tab: "world", worlds: [], games: [], extra: {}, sets: {} };
+
+  /* ---------- 进门的筛子：存着的、别人交来的东西都先过一遍 ---------- */
+  function okP(p) { var o = {}; if (p && typeof p === "object") Object.keys(p).slice(0, 12).forEach(function (k) { if (KEYRE.test(k) && typeof p[k] === "number" && isFinite(p[k])) o[k] = p[k]; }); return o; }
+  function fromOf(f) { return f && typeof f === "object" && (f.n | 0) > 0 ? { user: A.cleanText(f.user, 60), n: f.n | 0, url: QLHub.issueUrl(f.n | 0) } : null; }
+  function okCode(c) { return typeof c === "string" && !!c.trim() && c.length <= 20000; }
+  /** 别人写的说明只当文字看：把链接的写法拆开，点不了 */
+  function noLinks(s) { return A.cleanText(s, 4000).replace(/\]\(/g, "] ("); }
+  function okRule(r) {
+    if (!r || typeof r.id !== "string" || !IDRE.test(r.id) || !okCode(r.code)) return null;
+    var o = { id: r.id, name: A.cleanText(r.name, 40) || "没有名字的规则", summary: A.cleanText(r.summary, 200), code: r.code, p: okP(r.p), src: r.src === "hub" ? "hub" : r.src === "mine" ? "mine" : "" };
+    if (o.src === "hub") { o.foreign = true; o.from = fromOf(r.from); }
+    return o;
+  }
+  function okWorld(w) {
+    if (!w || typeof w.id !== "string" || !IDRE.test(w.id) || !okCode(w.code)) return null;
+    var K = +w.K, T = Math.round(+w.T), hub = w.src === "hub";
+    var o = { id: w.id, name: A.cleanText(w.name, 40) || "没有名字的世界", summary: A.cleanText(w.summary, 200), code: w.code, schema: A.cleanSchema(w.schema).filter(function (q) { return q.type === "num"; }).slice(0, 12),
+      K: K >= 1 && K <= 100000 ? K : 252, T: T >= 10 && T <= 4000 ? T : 252, explain: hub ? noLinks(w.explain) : typeof w.explain === "string" ? w.explain.slice(0, 4000) : "", src: hub ? "hub" : "mine" };
+    if (hub) { o.foreign = true; o.from = fromOf(w.from); }
+    return o;
+  }
+  function okGame(g) {
+    if (!g || typeof g.id !== "string" || !IDRE.test(g.id) || !okCode(g.code)) return null;
+    var T = Math.round(+g.T), hub = g.src === "hub", seen = {};
+    var o = { id: g.id, name: A.cleanText(g.name, 40) || "没有名字的玩法", summary: A.cleanText(g.summary, 200), about: hub ? noLinks(g.about) : typeof g.about === "string" ? g.about.slice(0, 4000) : "", code: g.code, p: okP(g.p), T: T >= 1 && T <= 2000 ? T : 20,
+      rules: (Array.isArray(g.rules) ? g.rules : []).slice(0, 8).map(function (r, i) { return okRule({ id: r && typeof r.id === "string" && IDRE.test(r.id) ? r.id : "b" + i, name: r && r.name, summary: r && r.summary, code: r && r.code, p: r && r.p, src: "" }); }).filter(function (r) { if (!r || seen[r.id]) return false; seen[r.id] = 1; return true; }),
+      src: hub ? "hub" : "mine" };
+    if (hub) { o.foreign = true; o.from = fromOf(g.from); }
+    return o;
+  }
+  function okSet(s) {
+    if (!s || typeof s !== "object") return null;
+    var T = Math.round(+s.T), K = Math.round(+s.K), seed = Math.round(+s.seed);
+    return { p: okP(s.p), T: T >= 1 && T <= 2000 ? T : 20, K: K >= 20 && K <= 20000 ? K : 2000, seed: seed >= 0 && seed <= 999999 ? seed : 7, pick: Array.isArray(s.pick) ? s.pick.filter(function (x) { return typeof x === "string" && IDRE.test(x); }).slice(0, MAXR) : null };
+  }
+  try {
+    var o0 = JSON.parse(localStorage.getItem(KEY) || "null");
+    if (o0 && o0.v === 1) {
+      if (o0.tab === "game" || o0.tab === "world") store.tab = o0.tab;
+      if (Array.isArray(o0.worlds)) store.worlds = o0.worlds.map(okWorld).filter(Boolean).slice(0, 30);
+      if (Array.isArray(o0.games)) store.games = o0.games.map(okGame).filter(Boolean).slice(0, 20);
+      if (o0.extra && typeof o0.extra === "object") Object.keys(o0.extra).slice(0, 60).forEach(function (gid) { if (!IDRE.test(gid) || !Array.isArray(o0.extra[gid])) return; var L = o0.extra[gid].map(okRule).filter(function (r) { return r && r.src; }).slice(0, 30); if (L.length) store.extra[gid] = L; });
+      if (o0.sets && typeof o0.sets === "object") Object.keys(o0.sets).slice(0, 60).forEach(function (gid) { var s = okSet(o0.sets[gid]); if (IDRE.test(gid) && s) store.sets[gid] = s; });
+    }
+  } catch (e) {}
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} }
+  A.shopStore = function () { return store; };
+  function newId(pre) { return pre + "-" + Date.now().toString(36) + Math.floor(Math.random() * 1296).toString(36); }
+  function libWorlds() { return SH.worlds.map(function (w) { return { id: w.id, name: w.name, summary: w.summary, code: w.code, schema: w.schema.map(function (q) { return Object.assign({}, q); }), K: w.K, T: w.T, explain: w.explain, src: "" }; }); }
+  function libGames() { return SH.games.map(function (g) { return { id: g.id, name: g.name, summary: g.summary, about: g.about, code: g.code, p: Object.assign({}, g.p), T: g.T, rules: g.rules.map(function (r) { return { id: r.id, name: r.name, summary: r.summary, code: r.code, p: Object.assign({}, r.p), src: "" }; }), src: "" }; }); }
+  function allWorlds() { return libWorlds().concat(store.worlds); }
+  function allGames() { return libGames().concat(store.games); }
+  /** 自己的玩法：规则全放在玩法里，都能改、能删，贴到 GitHub 时一起带走。样板和别人的玩法：自带的规则只能看，你加的规则另放在 extra 里 */
+  function owns(g) { return g.src === "mine"; }
+  function rulesOf(g) { return owns(g) ? g.rules : g.rules.concat(store.extra[g.id] || []); }
+  /** 存一条规则；满了返回 false */
+  function putRule(g, r) {
+    var L = owns(g) ? g.rules : (store.extra[g.id] || (store.extra[g.id] = [])), cap = owns(g) ? 8 : 30, i = -1, s = setOf(g);
+    r.src = owns(g) ? "" : r.src || "mine";
+    L.forEach(function (x, k) { if (x.id === r.id) i = k; });
+    if (i >= 0) L[i] = r; else { if (L.length >= cap) return false; L.push(r); if (s.pick.indexOf(r.id) < 0 && s.pick.length < MAXR) s.pick.push(r.id); }
+    save(); return true;
+  }
+  function dropRule(g, id) {
+    if (owns(g)) g.rules = g.rules.filter(function (x) { return x.id !== id; });
+    else { store.extra[g.id] = (store.extra[g.id] || []).filter(function (x) { return x.id !== id; }); if (!store.extra[g.id].length) delete store.extra[g.id]; }
+    var s = setOf(g); s.pick = s.pick.filter(function (x) { return x !== id; }); save();
+  }
+  function setOf(g) {
+    var s = store.sets[g.id]; if (!s) s = store.sets[g.id] = { p: Object.assign({}, g.p), T: g.T, K: 2000, seed: 7, pick: null };
+    var ids = rulesOf(g).map(function (r) { return r.id; });
+    s.pick = s.pick ? s.pick.filter(function (id) { return ids.indexOf(id) >= 0; }) : g.rules.map(function (r) { return r.id; }).slice(0, MAXR);
+    return s;
+  }
+  function tagOf(x) { return x.src === "hub" ? h("span", { class: "tag", text: "别人写的" + (x.from && x.from.user ? " @" + x.from.user : "") }) : x.src === "mine" ? h("span", { class: "tag", text: "我的" }) : h("span", { class: "tag", text: "样板" }); }
+  function foreignNote(x, lead, tail, id) { return h("p", { class: "note", id: id || null }, lead, x.from && x.from.user ? ["（", h("a", { href: x.from.url, target: "_blank", rel: "noopener", text: "@" + x.from.user }), "）"] : null, tail); }
+
+  /* ---------- 参数的两种写法 ---------- */
+  var NUM = "-?(?:\\d+\\.?\\d*|\\.\\d+)(?:e[+-]?\\d+)?";
+  function pLine(p) { return Object.keys(p).map(function (k) { return k + " = " + +(+p[k]).toFixed(6); }).join(", "); }
+  /** "d = 10, up = 2" → { d: 10, up: 2 }；写法不对时返回 null */
+  function parseP(text) {
+    var o = {}, parts = String(text || "").split(/[,，;；\n]+/).map(function (s) { return s.trim(); }).filter(Boolean), re = new RegExp("^([A-Za-z_][A-Za-z0-9_]{0,23})\\s*[=\\uFF1D:\\uFF1A]\\s*(" + NUM + ")$", "i"), i;   // 全角的等号、冒号也认
+    if (parts.length > 12) return null;
+    for (i = 0; i < parts.length; i++) { var m = re.exec(parts[i]); if (!m || !isFinite(+m[2])) return null; o[m[1]] = +m[2]; }
+    return o;
+  }
+  function nice(x) { var e = Math.pow(10, Math.floor(Math.log(x) / Math.LN10)), m = x / e; return +((m < 1.5 ? 1 : m < 3.5 ? 2 : m < 7.5 ? 5 : 10) * e).toPrecision(6); }
+  function schemaText(L) { return L.map(function (q) { var lab = String(q.label || "").replace(/\s+/g, " ").trim(); return q.key + " = " + +(+q.def).toPrecision(8) + " [" + q.min + ", " + q.max + "]" + (lab && lab !== q.key ? " " + lab : ""); }).join("\n"); }
+  /** 世界的参数表，每行一个："sigma = 0.2 [0.02, 1] 年化波动"。范围和说明可以不写。写法不对时返回 null */
+  function parseSchema(text) {
+    var out = [], seen = {}, lines = String(text || "").split(/\n+/).map(function (s) { return s.trim(); }).filter(Boolean), i;
+    var re = new RegExp("^([A-Za-z_][A-Za-z0-9_]{0,23})\\s*[=\\uFF1D]\\s*(" + NUM + ")\\s*(?:[\\[\\uFF3B]\\s*(" + NUM + ")\\s*[,\\uFF0C]\\s*(" + NUM + ")\\s*[\\]\\uFF3D])?\\s*(.*)$", "i");   // 全角的等号、方括号、逗号也认
+    if (lines.length > 12) return null;
+    for (i = 0; i < lines.length; i++) {
+      var m = re.exec(lines[i]); if (!m || seen[m[1]]) return null;
+      var def = +m[2], min, max;
+      if (m[3] != null) { min = +m[3]; max = +m[4]; } else if (def > 0) { min = 0; max = nice(3 * def); } else if (def < 0) { max = nice(-3 * def); min = -max; } else { min = -1; max = 1; }
+      if (![def, min, max].every(isFinite) || !(max > min) || def < min || def > max) return null;
+      seen[m[1]] = 1; out.push({ key: m[1], label: A.cleanText(m[5], 40) || m[1], def: def, min: min, max: max, step: nice((max - min) / 100), type: "num" });
+    }
+    return out;
+  }
+  /** 代码开头的注释里要是照"// 名字 = 默认值 [最小, 最大] 含义"写了参数，就读出来（让 AI 写的世界一贴就能用） */
+  function schemaFromCode(code) {
+    var L = String(code || "").split("\n").map(function (s) { var m = /^\s*\/\/\s*(.+)$/.exec(s); return m ? m[1].trim() : ""; }).filter(function (s) { return /^[A-Za-z_][A-Za-z0-9_]{0,23}\s*[=＝]\s*-?[\d.]/.test(s); }).slice(0, 12);
+    return L.length ? parseSchema(L.join("\n")) : null;
+  }
+
+  /* ---------- 说明文字：接口，和复制给 AI 的那一段 ---------- */
+  var RNG_DOC = "rng.u() 给 0 到 1 之间的均匀数；rng.normal() 标准正态；rng.uniform(a, b)；rng.exp(rate)；rng.t(nu)；rng.gamma(k)；rng.poisson(lam)；rng.bernoulli(q) 给 0 或 1；rng.int(n) 给 0 到 n−1 的整数";
+  function worldDoc() {
+    return [
+      "function simulate(T, rng, p, K)   必须有。每条路径调用一次，返回 T+1 个数：每个都是有限的正的价格，第 0 个是起始价（一般取 100）。",
+      "T          一条路径几步",
+      "K          每年几步。按年给的量要自己换算到每一步：一步的时间是 1/K",
+      "p          参数，就是你在\"参数\"一栏里写的那些（p.sigma 这样用）",
+      "rng        这条路径专用的随机数，每条路径互相独立、可以复现。不要用 Math.random",
+      "           " + RNG_DOC
+    ].join("\n");
+  }
+  function gameDoc() {
+    return [
+      "function deal(T, rng, p)      必须有。发牌：每一局开始时调用一次，返回这一局藏起来的东西 G（一个对象）。规则看不到 G。",
+      "function show(G, t)           可以没有。亮牌：每回合开始时调用，返回规则这一回合能看到的东西：一个数、一个数组，或者只有一层的对象。",
+      "function referee(G, t, a)     必须有。判分：规则报出动作 a 之后调用，返回这一回合的得分（一个有限的数）。",
+      "                              规则报的不是数时 a 是 NaN。可以在 G 上记账；把 G.over 设成 true，这一局到此为止。",
+      "T          一局最多几回合；t 是第几回合，从 0 起",
+      "p          玩法的参数，就是你在\"参数\"一栏里写的那些（只读）",
+      "rng        这一局专用的随机数。" + RNG_DOC + "。后面的回合还要用，就把 rng 存进 G",
+      "一局的得分 = 各回合得分加起来。每条规则各打同样的几局，第 k 局发给每条规则的是同一副牌。"
+    ].join("\n");
+  }
+  function ruleDoc() {
+    return [
+      "function decide(s, p, st)   必须有。每个回合调用一次，返回一个数：这一回合的动作。哪个数代表什么，看这套玩法的说明。",
+      "function init(p)            可以没有。每一局开始时调用一次，返回的对象就是 decide 的第三个参数 st。",
+      "s.see      这一回合裁判亮给你看的东西",
+      "s.t  s.T   这是第几回合（从 0 起）、一局最多几回合",
+      "s.last     上一回合的得分（第一回合是 NaN）",
+      "s.total    这一局到目前为止的得分",
+      "s.g        玩法的参数（只读）",
+      "s.rnd()    给一个 0 到 1 之间的均匀随机数",
+      "p          你在\"参数\"一栏里写的那些数（只读）"
+    ].join("\n");
+  }
+  function worldPrompt(code, parText) {
+    return ["请替我写一个\"世界\"：一段生成价格路径的 JavaScript 代码，用在一个模拟实验室里，让各种交易规则在上面回测。只回一段代码，不要解释。", "", "接口：", worldDoc(), "",
+      "要求：只定义 simulate（里面可以有辅助函数），不要有别的顶层语句；不要用 eval、不要联网；计算量适中，它会被调用上千次。", "在代码开头用注释把参数列出来，每行一个，照这个样子写：// sigma = 0.2 [0.02, 1] 年化波动",
+      code ? "\n我现在的代码（请在它的基础上改）：\n" + code + (parText ? "\n参数：\n" + parText : "") : "", "", "我的想法："].join("\n");
+  }
+  function gamePrompt(code, about) {
+    return ["请替我写一套\"玩法\"：一个回合制的小游戏，连同它的裁判，用 JavaScript 写。别人会写规则来玩它。只回一段代码，不要解释。", "", "接口（三个函数合起来就是裁判）：", gameDoc(), "",
+      "来玩的规则长这样：", ruleDoc(), "",
+      "要求：只定义 deal、show、referee（里面可以有辅助函数），不要有别的顶层语句；不要用 eval、不要联网。", "在代码开头用注释写清楚怎么玩：规则看到的是什么，报哪个数代表什么动作，怎么得分。",
+      code ? "\n我现在的代码（请在它的基础上改）：\n" + code : "", about ? "\n现在的玩法说明：\n" + about : "", "", "我的想法："].join("\n");
+  }
+  function rulePrompt(g, r) {
+    return ["请替我写一条规则，用来玩下面这套回合制的玩法。只回一段 JavaScript 代码，不要解释。", "", "玩法：" + g.name, g.about || g.summary || "", "",
+      "裁判的代码（规则看不到 G，只看得到 show 返回的东西）：", g.code, "", "接口：", ruleDoc(), "",
+      "要求：只定义 decide（需要的话加 init），不要有别的顶层语句；不要用 eval、不要联网；参数都从 p 里读。",
+      r ? "\n我现在的代码（请在它的基础上改）：\n" + r.code + (Object.keys(r.p).length ? "\n参数：" + pLine(r.p) : "") : "", "", "我的想法："].join("\n");
+  }
+
+  /* ---------- 从 GitHub 上找一类东西 ---------- */
+  /** o: { title, kind, pick(item) → 收拾好的东西或 null, have(obj) → 是不是已经有了, add(obj), empty, addText, how } */
+  function finder(o) {
+    var box = h("div", { class: "db", id: "shFind" }), alive = true;
+    var m = A.modal(o.title, box, { cls: "dbm", onClose: function () { alive = false; } });
+    function paint(st) {
+      clear(box);
+      box.appendChild(h("div", { class: "row tight db-head" }, h("span", { class: "sp" }), h("button", { class: "btn small", type: "button", id: "shFindRefresh", disabled: st.loading, text: st.loading ? "正在取…" : "刷新", onclick: function () { load(true); } })));
+      if (st.err) box.appendChild(h("div", { class: "warn", id: "shFindErr", text: st.err.limited ? "GitHub 限制了这个网络的访问次数（不登录每小时 60 次）。过一会儿再刷新。" : "连不上 GitHub，暂时看不了。" }));
+      if (!st.loading && !st.rows.length && !st.err) box.appendChild(h("p", { class: "db-say", id: "shFindEmpty", text: o.empty }));
+      st.rows.forEach(function (x) {
+        var have = o.have(x.obj);
+        box.appendChild(h("div", { class: "ar-found", "data-n": x.item.n }, h("div", { class: "ar-ftxt" }, h("b", { text: x.obj.name }), " ", h("a", { href: x.item.url, target: "_blank", rel: "noopener", text: "@" + x.item.user }), x.item.up ? h("span", { class: "note", text: " 👍 " + x.item.up }) : null, x.obj.summary ? h("div", { class: "note", text: x.obj.summary }) : null),
+          h("button", { class: "btn small" + (have ? "" : " primary"), type: "button", "data-add": x.item.n, disabled: have, text: have ? "已经载入了" : o.addText, onclick: function () { o.add(x.obj); paint(st); } })));
+      });
+      box.appendChild(h("p", { class: "note db-how", text: o.how + "想给哪一份打分，点它后面的用户名，去那条 Issue 上点 👍。" }));
+    }
+    function load(fresh) {
+      paint({ loading: true, rows: [], err: null });
+      QLHub.list({ kind: o.kind, fresh: !!fresh }).then(function (res) {
+        if (!alive) return;
+        var rows = res.items.map(function (it) { var x = o.pick(it); return x ? { item: it, obj: x } : null; }).filter(Boolean).sort(function (a, b) { return b.item.up - a.item.up || b.item.at - a.item.at; }).slice(0, 60);
+        paint({ loading: false, rows: rows, err: res.stale ? res.error : null });
+      }, function (e) { if (alive) paint({ loading: false, rows: [], err: e || {} }); });
+    }
+    load(false);
+    return m;
+  }
+  var HOW = "别人写的代码在隔离环境里运行，碰不到这张页面里的东西，也连不了网。";
+
+  /* ================= 世界 ================= */
+  /** 把一个世界设成实验室当前的世界（"自定义世界"那一格） */
+  function useWorld(w) {
+    // 实验室里"自定义世界"只有一格。里面原来那个要是工坊里没有（比如 AI 刚替你写的），先收进工坊，免得被这一下盖掉
+    var kept = S.custom && S.custom.code !== w.code && !sameWorld(S.custom) ? grabCustom() : null;
+    var defs = {}; w.schema.forEach(function (q) { defs[q.key] = q.def; });
+    var c = { name: w.name, summary: w.summary, code: w.code, schema: w.schema.map(function (q) { return Object.assign({}, q); }), explain: w.explain || "" };
+    if (w.foreign) { c.foreign = true; c.from = w.from || null; }
+    S.custom = c; S.wparams.custom = defs;
+    A.setWorldType("custom", true);
+    S.world.K = w.K; S.world.T = w.T;
+    A.renderWorld(); A.renderSettings(); A.renderStrat(); A.worldChanged(true); A.persist();
+    A.toast("实验室现在用的世界是「" + w.name + "」。" + (kept ? "原来那个自定义世界「" + kept.name + "」已经收进工坊。" : "") + (w.foreign ? "别人写的代码在隔离环境里运行。" : ""), kept ? 6000 : 4200);
+  }
+  A.shopUseWorld = useWorld;
+  function sameWorld(c) { return !!c && allWorlds().some(function (w) { return w.code === c.code; }); }
+  /** 实验室里那个自定义世界（AI 写的，或者你自己改的）收进工坊 */
+  function grabCustom() {
+    var c = S.custom; if (!c || !okCode(c.code)) return null;
+    var w = okWorld({ id: newId("w"), name: c.name, summary: c.summary, code: c.code, schema: c.schema, K: S.world.type === "custom" ? S.world.K : 252, T: S.world.type === "custom" ? S.world.T : 252, explain: c.explain, src: c.foreign ? "hub" : "mine", from: c.from });
+    if (w) { store.worlds.push(w); if (store.worlds.length > 30) store.worlds.shift(); save(); }
+    return w;
+  }
+
+  function openWorld(w, after) {
+    var isLib = !w.src && !w.fresh, mine = w.src === "mine", ro = w.src === "hub", job = null, chart = null, alive = true;   // fresh：从样板新写的，还没存过
+    var name = h("input", { type: "text", id: "shWName", maxlength: 40, value: isLib ? w.name + "（改）" : w.name, "aria-label": "名字", disabled: ro });
+    var sum = h("input", { type: "text", id: "shWSum", maxlength: 200, value: w.summary, "aria-label": "一句话说明", disabled: ro });
+    var par = h("textarea", { id: "shWPar", class: "num sh-par", rows: Math.max(2, Math.min(6, w.schema.length + 1)), spellcheck: "false", "aria-label": "参数", placeholder: "每行一个，比如：\nsigma = 0.2 [0.02, 1] 年化波动", readonly: ro }); par.value = schemaText(w.schema);
+    var kIn = h("input", { type: "number", id: "shWK", min: 1, max: 100000, step: 1, value: w.K, "aria-label": "每年几步", disabled: ro }), tIn = h("input", { type: "number", id: "shWT", min: 10, max: 4000, step: 1, value: w.T, "aria-label": "一条路径几步", disabled: ro });
+    var ta = h("textarea", { class: "codeedit", id: "shWCode", spellcheck: "false", "aria-label": "世界的代码", readonly: ro }); ta.value = w.code;
+    var err = h("div", { class: "warn err", id: "shWErr", hidden: true }), out = h("div", { class: "ar-out", id: "shWOut" });
+    function fail(msg) { err.hidden = false; err.textContent = msg; }
+    function read() {
+      if (ro) return Object.assign({}, w);                       // 别人的世界改不了：原样用，不重新解析
+      var code = ta.value, bad = QLJobs.syntax(code), sch, K = Math.round(+kIn.value), T = Math.round(+tIn.value);
+      if (!par.value.trim()) { sch = schemaFromCode(code); if (sch) par.value = schemaText(sch); else sch = []; } else sch = parseSchema(par.value);
+      if (!A.cleanText(name.value, 40)) return "先给它起个名字。";
+      if (!sch) return "参数的写法不对。每行一个，照这个样子写：sigma = 0.2 [0.02, 1] 年化波动（方括号里是最小值和最大值，默认值要在这个范围里）。";
+      if (bad) return "代码有语法错误：" + bad;
+      if (!/\bfunction\s+simulate\s*\(/.test(code)) return "代码里要有 function simulate(T, rng, p, K)。";
+      if (code.length > 20000) return "代码太长了（上限两万字）。";
+      if (!(K >= 1 && K <= 100000)) return "每年几步要在 1 到 100000 之间。";
+      if (!(T >= 10 && T <= 4000)) return "一条路径的步数要在 10 到 4000 之间。";
+      return { id: mine ? w.id : newId("w"), name: A.cleanText(name.value, 40), summary: A.cleanText(sum.value, 200), code: code, schema: sch, K: K, T: T, explain: w.explain || "", src: "mine" };
+    }
+    function stop() { if (job) { job.cancel(); job = null; } }
+    function tryIt() {
+      var r = read(); err.hidden = true; clear(out); if (chart) { chart.destroy(); chart = null; }
+      if (typeof r === "string") { fail(r); return; }
+      var defs = {}; r.schema.forEach(function (q) { defs[q.key] = q.def; });
+      out.appendChild(h("p", { class: "note", id: "shWProg", text: "正在生成路径…" }));
+      stop();
+      var j = job = QLJobs.run({ kind: "world", codes: [{ id: "w", code: r.code, mine: !w.foreign }], timeout: A.shopOpt.timeout, data: { id: "w", p: defs, T: r.T, K: r.K, N: 400, seed: 7 } });
+      j.promise.then(function (res) { if (job === j) job = null; if (!alive) return; clear(out); showWorld(res); },
+        function (e) {
+          if (job === j) job = null; if (!alive || (e && e.cancelled)) return; clear(out);
+          fail(e && e.timeout ? "跑了很久也没有结果，已经停掉：多半是代码里有死循环。" : e && e.compile ? "代码有语法错误" + (e.line ? "（第 " + e.line + " 行）" : "") + "：" + e.message : "没有跑通：" + (e && e.message || "出错了"));
+        });
+    }
+    function showWorld(r) {
+      out.appendChild(h("p", { class: "db-say", id: "shWSay", text: "生成了 " + r.N + " 条路径，每条 " + r.T + " 步（每年 " + r.K + " 步）。把每一步的收益换算成一年：平均 " + P(r.annMean, 1) + "，波动 " + P(r.annVol, 1) + "。相邻两步收益的相关系数是 " + F(r.acf1, 3) + "；单步涨得最多的一次是 " + P(r.max, 2) + "，跌得最多的一次是 " + P(-r.min, 2) + "。" }));
+      var host2 = h("div", { class: "hp-chart", id: "shWChart" }); out.appendChild(host2);
+      chart = new QLChart.Chart(host2, { height: 240 });
+      chart.set({ height: 240, x: { label: "步", domain: [0, r.T] }, legend: [{ name: "中位数", color: "s1" }, { name: "几条样本路径，和 5% 到 95% 的范围", color: "s1", mark: "band" }],
+        panels: [{ y: { label: "价格" }, layers: [{ kind: "band", x: r.grid, lo: r.q5, hi: r.q95, color: "s1", alpha: 0.1 }, { kind: "lines", x: r.grid, ys: r.paths, color: "s1", alpha: 0.3, width: 1 }, { kind: "line", x: r.grid, y: r.q50, color: "s1", name: "中位数" }] }] });
+    }
+    var foot = [h("button", { class: "btn", type: "button", id: "shWAi", text: "复制给 AI 的说明", title: "把接口、要求和现在的代码复制下来，贴给任何一个 AI，让它替你写", onclick: function () { A.copy(worldPrompt(ta.value, par.value.trim())); } })];
+    if (!ro) {
+      foot.push(h("button", { class: "btn", type: "button", id: "shWPost", text: "贴到 GitHub", onclick: function () {
+        var r = read(); if (typeof r === "string") { fail(r); return; }
+        A.postDialog({ kind: "world", title: r.name, meta: { kind: "world", name: r.name, summary: r.summary, params: r.schema, K: r.K, T: r.T, explain: r.explain }, code: r.code });
+      } }));
+      foot.push(h("button", { class: "btn", type: "button", id: "shWSave", text: isLib ? "另存成我的" : "保存", onclick: function () { var r = keep(); if (r) { m.close(); if (after) after(r); } } }));
+    } else foot.push(h("button", { class: "btn", type: "button", id: "shWFork", text: "另存成我的再改", onclick: function () { m.close(); openWorld({ id: "", name: w.name + "（改）", summary: w.summary, code: w.code, schema: w.schema, K: w.K, T: w.T, explain: "", src: "", fresh: true }, after); } }));
+    foot.push(h("button", { class: "btn primary", type: "button", id: "shWUse", text: "拿到实验室里用", title: "把它设成实验室当前的世界，任何一条规则都可以在上面回测", onclick: function () {
+      var same = ta.value === w.code && par.value === schemaText(w.schema) && +kIn.value === w.K && +tIn.value === w.T, r;
+      if (ro || (isLib && same)) r = w;                                   // 别人的、没动过的样板：原样拿去
+      else if (mine) { r = keep(); if (!r) return; }                      // 自己的：先存再用
+      else { r = read(); if (typeof r === "string") { fail(r); return; } }   // 改过的样板、还没存的新世界：照现在写的用，存不存由你
+      m.close(); if (after) after(r, true); useWorld(r);
+    } }));
+    /** 存下来（自己的世界原地改，样板和新写的另存一份）；写得不对时返回 null */
+    function keep() {
+      var r = read(); if (typeof r === "string") { fail(r); return null; }
+      var i = -1; store.worlds.forEach(function (x, k) { if (x.id === r.id) i = k; });
+      if (i >= 0) store.worlds[i] = r; else { store.worlds.push(r); if (store.worlds.length > 30) store.worlds.shift(); }
+      save(); return r;
+    }
+    var m = A.modal((ro ? "别人写的世界" : isLib ? "样板世界" : "我的世界") + " · " + w.name, [
+      ro ? foreignNote(w, "这个世界是别人写的", "，这里只能看。试的时候、拿到实验室里用的时候，它都在隔离环境里运行。", "shWForeign") : isLib ? h("p", { class: "note", text: "样板本身不能改。改完点\"另存成我的\"，它就成了你自己的一个世界。" }) : null,
+      h("div", { class: "ar-form" }, h("label", { for: "shWName", text: "名字" }), name, h("label", { for: "shWSum", text: "一句话说明" }), sum, h("label", { for: "shWPar", text: "参数" }), par,
+        h("label", { for: "shWK", text: "每年几步" }), h("div", { class: "row tight sh-two" }, kIn, h("span", { class: "sh-pair" }, h("label", { for: "shWT", text: "一条路径几步" }), tIn))),
+      ta, err,
+      h("div", { class: "row tight" }, h("button", { class: "btn", type: "button", id: "shWTry", text: "试一试", title: "用默认参数生成 400 条路径，看看它长什么样", onclick: tryIt })),
+      out,
+      w.explain ? h("details", { class: "more" }, h("summary", { text: "这个世界的说明" }), explainBox(w)) : null,
+      h("details", { class: "more" }, h("summary", { text: "世界的代码怎么写" }), h("div", { class: "more-body" }, h("pre", { class: "code", id: "shWDoc", text: worldDoc() })))
+    ], { cls: "are", foot: foot, focus: "#shWCode", onClose: function () { alive = false; stop(); if (chart) chart.destroy(); } });
+    return m;
+  }
+  /** 世界的说明。自己的、样板的（多半是 AI 写的，带公式）照手册那样排版；别人写的只当文字看 */
+  function explainBox(w) {
+    var d = h("div", { class: "more-body" + (w.src === "hub" ? " sh-about" : ""), id: "shWExplain" });
+    if (w.src === "hub" || typeof QLMD === "undefined") d.textContent = w.explain; else QLMD.mount(d, w.explain);
+    return d;
+  }
+  function hubWorld(it) { var m = it.meta; return okWorld({ id: "hub-w" + it.n, name: m.name, summary: m.summary, code: it.code, schema: m.params, K: m.K, T: m.T, explain: m.explain, src: "hub", from: { user: it.user, n: it.n } }); }
+
+  /* ================= 玩法 ================= */
+  function hubGame(it) { var m = it.meta; return okGame({ id: "hub-g" + it.n, name: m.name, summary: m.summary, about: m.about, code: it.code, p: m.p, T: m.T, rules: m.rules, src: "hub", from: { user: it.user, n: it.n } }); }
+  function seeText(v) {
+    if (typeof v === "number") return v === v ? String(+v.toPrecision(6)) : "—";
+    var s; try { s = JSON.stringify(v, function (k, x) { return typeof x === "number" ? (x === x ? +x.toPrecision(5) : null) : x; }); } catch (e) { s = String(v); }
+    return s.length > 80 ? s.slice(0, 77) + "…" : s;
+  }
+
+  /** 写玩法的裁判 */
+  function openGameEditor(g, after) {
+    var isLib = !g.src && !g.fresh, mine = g.src === "mine", ro = g.src === "hub";
+    var name = h("input", { type: "text", id: "shGName", maxlength: 40, value: isLib ? g.name + "（改）" : g.name, "aria-label": "名字", disabled: ro });
+    var sum = h("input", { type: "text", id: "shGSum", maxlength: 200, value: g.summary, "aria-label": "一句话说明", disabled: ro });
+    var about = h("textarea", { id: "shGAbout", class: "sh-par", rows: 4, maxlength: 4000, "aria-label": "怎么玩", placeholder: "写给人看的：规则每回合看到什么，报哪个数代表什么动作，怎么得分。", readonly: ro }); about.value = g.about || "";
+    var par = h("input", { type: "text", id: "shGPar", class: "num", value: pLine(g.p), placeholder: "比如 lo = 0.2, hi = 0.8（没有就留空）", "aria-label": "参数", spellcheck: "false", disabled: ro });
+    var tIn = h("input", { type: "number", id: "shGT0", min: 1, max: 2000, step: 1, value: g.T, "aria-label": "一局最多几回合", disabled: ro });
+    var ta = h("textarea", { class: "codeedit", id: "shGCode0", spellcheck: "false", "aria-label": "裁判的代码", readonly: ro }); ta.value = g.code;
+    var err = h("div", { class: "warn err", id: "shGErr", hidden: true });
+    function fail(msg) { err.hidden = false; err.textContent = msg; }
+    function read() {
+      var p = parseP(par.value), code = ta.value, bad = QLJobs.syntax(code), T = Math.round(+tIn.value);
+      if (!A.cleanText(name.value, 40)) return "先给它起个名字。";
+      if (!p) return "参数的写法不对。照这个样子写：lo = 0.2, hi = 0.8（名字用字母，值是数）。";
+      if (bad) return "代码有语法错误：" + bad;
+      if (!/\bfunction\s+deal\s*\(/.test(code) || !/\bfunction\s+referee\s*\(/.test(code)) return "代码里要有 function deal(T, rng, p) 和 function referee(G, t, a)。";
+      if (code.length > 20000) return "代码太长了（上限两万字）。";
+      if (!(T >= 1 && T <= 2000)) return "一局的回合数要在 1 到 2000 之间。";
+      return { id: mine ? g.id : newId("g"), name: A.cleanText(name.value, 40), summary: A.cleanText(sum.value, 200), about: about.value.slice(0, 4000).trim(), code: code, p: p, T: T,
+        rules: mine ? g.rules : rulesOf(g).filter(function (r) { return !r.foreign; }).slice(0, 8).map(function (r, i) { return { id: "b" + i, name: r.name, summary: r.summary, code: r.code, p: Object.assign({}, r.p), src: "" }; }), src: "mine" };
+    }
+    var foot = [h("button", { class: "btn", type: "button", id: "shGAi", text: "复制给 AI 的说明", title: "把接口、要求和现在的代码复制下来，贴给任何一个 AI，让它替你写", onclick: function () { A.copy(gamePrompt(ta.value, about.value.trim())); } })];
+    if (!ro) {
+      foot.push(h("button", { class: "btn", type: "button", id: "shGPost", text: "贴到 GitHub", title: "连裁判带规则一起贴上去", onclick: function () {
+        var r = read(); if (typeof r === "string") { fail(r); return; }
+        var rules = r.rules.slice(0, 8).map(function (x) { return { name: x.name, summary: x.summary, p: x.p, code: x.code }; });
+        A.postDialog({ kind: "game", title: r.name, meta: { kind: "game", name: r.name, summary: r.summary, about: r.about, p: r.p, T: r.T, rules: rules }, code: r.code });
+      } }));
+      foot.push(h("button", { class: "btn primary", type: "button", id: "shGSave", text: isLib ? "另存成我的" : "保存", onclick: function () {
+        var r = read(); if (typeof r === "string") { fail(r); return; }
+        var i = -1; store.games.forEach(function (x, k) { if (x.id === r.id) i = k; });
+        if (i >= 0) { store.games[i] = r; delete store.sets[r.id]; } else { store.games.push(r); if (store.games.length > 20) { var old = store.games.shift(); delete store.extra[old.id]; delete store.sets[old.id]; } }
+        save(); m.close(); if (after) after(r);
+      } }));
+    } else foot.push(h("button", { class: "btn primary", type: "button", id: "shGFork", text: "另存成我的再改", title: "只带走裁判的代码。它自带的规则不跟过来，另存之后自己再写", onclick: function () { m.close(); openGameEditor({ id: "", name: g.name + "（改）", summary: g.summary, about: g.about, code: g.code, p: g.p, T: g.T, rules: [], src: "", fresh: true }, after); } }));
+    var m = A.modal((ro ? "别人写的玩法" : isLib ? "样板玩法" : "我的玩法") + " · 裁判", [
+      ro ? foreignNote(g, "这套玩法是别人写的", "，这里只能看。比的时候它在隔离环境里运行。", "shGForeign") : isLib ? h("p", { class: "note", text: "样板本身不能改。改完点\"另存成我的\"，它就成了你自己的一套玩法，自带的规则也一起带过去。" }) : null,
+      h("div", { class: "ar-form" }, h("label", { for: "shGName", text: "名字" }), name, h("label", { for: "shGSum", text: "一句话说明" }), sum, h("label", { for: "shGAbout", text: "怎么玩" }), about, h("label", { for: "shGPar", text: "参数" }), par, h("label", { for: "shGT0", text: "一局最多几回合" }), h("div", { class: "row tight sh-two" }, tIn)),
+      ta, err,
+      h("details", { class: "more" }, h("summary", { text: "裁判的代码怎么写" }), h("div", { class: "more-body" }, h("pre", { class: "code", id: "shGDoc", text: gameDoc() })))
+    ], { cls: "are", foot: foot, focus: "#shGCode0" });
+    return m;
+  }
+
+  /** 给一套玩法写规则 / 看规则 */
+  function openRule(g, rule, after) {
+    var own = owns(g) && !rule.fresh, bundled = !rule.src && !rule.fresh && !own, mine = rule.src === "mine" || own, ro = rule.src === "hub" || (bundled && g.src === "hub"), hubN = g.from && g.from.n;   // own：自己的玩法里的规则
+    var name = h("input", { type: "text", id: "shRName", maxlength: 40, value: bundled && !ro ? rule.name + "（改）" : rule.name, "aria-label": "名字", disabled: ro });
+    var sum = h("input", { type: "text", id: "shRSum", maxlength: 200, value: rule.summary, "aria-label": "一句话说明", disabled: ro });
+    var par = h("input", { type: "text", id: "shRPar", class: "num", value: pLine(rule.p), placeholder: "比如 c = 20（没有就留空）", "aria-label": "参数", spellcheck: "false", disabled: ro });
+    var ta = h("textarea", { class: "codeedit", id: "shRCode", spellcheck: "false", "aria-label": "规则的代码", readonly: ro }); ta.value = rule.code;
+    var err = h("div", { class: "warn err", id: "shRErr", hidden: true });
+    function fail(msg) { err.hidden = false; err.textContent = msg; }
+    function read() {
+      var p = parseP(par.value), code = ta.value, bad = QLJobs.syntax(code);
+      if (!A.cleanText(name.value, 40)) return "先给它起个名字。";
+      if (!p) return "参数的写法不对。照这个样子写：c = 20, up = 2（名字用字母，值是数）。";
+      if (bad) return "代码有语法错误：" + bad;
+      if (!/\bfunction\s+decide\s*\(/.test(code)) return "代码里要有 function decide(s, p, st)。";
+      if (code.length > 20000) return "代码太长了（上限两万字）。";
+      return { id: mine ? rule.id : newId("r"), name: A.cleanText(name.value, 40), summary: A.cleanText(sum.value, 200), code: code, p: p, src: "mine" };
+    }
+    var foot = [h("button", { class: "btn", type: "button", id: "shRAi", text: "复制给 AI 的说明", title: "把这套玩法的说明、裁判的代码、接口和现在的代码复制下来，贴给任何一个 AI，让它替你写", onclick: function () { A.copy(rulePrompt(g, { code: ta.value, p: parseP(par.value) || {} })); } })];
+    if (!ro) {
+      if (hubN) foot.push(h("button", { class: "btn", type: "button", id: "shRPost", text: "贴到 GitHub", title: "贴到这套玩法名下，别人在这套玩法里就能找到它", onclick: function () {
+        var r = read(); if (typeof r === "string") { fail(r); return; }
+        A.postDialog({ kind: "rule", title: g.name + " · " + r.name, meta: { kind: "rule", for: "game:" + hubN, name: r.name, summary: r.summary, p: r.p }, code: r.code });
+      } }));
+      foot.push(h("button", { class: "btn primary", type: "button", id: "shRSave", text: bundled ? "另存成我的" : "保存", onclick: function () {
+        var r = read(); if (typeof r === "string") { fail(r); return; }
+        if (!putRule(g, r)) { fail(owns(g) ? "一套玩法最多带 8 条规则。先删掉一条。" : "这套玩法下面存的规则太多了。先删掉几条。"); return; }
+        m.close(); if (after) after(r);
+      } }));
+    } else foot.push(h("button", { class: "btn primary", type: "button", id: "shRFork", text: "另存成我的再改", onclick: function () { m.close(); openRule(g, { id: "", name: rule.name + "（改）", summary: rule.summary, code: rule.code, p: rule.p, src: "", fresh: true }, after); } }));
+    var m = A.modal((ro ? "别人写的规则" : bundled ? "玩法自带的规则" : "我的规则") + " · " + g.name, [
+      ro ? foreignNote(rule.src === "hub" ? rule : g, "这条规则是别人写的", "，这里只能看。比的时候它在隔离环境里运行。", "shRForeign") : bundled ? h("p", { class: "note", text: "玩法自带的规则本身不能改。改完点\"另存成我的\"，它就成了你自己的一条。" }) : null,
+      h("div", { class: "ar-form" }, h("label", { for: "shRName", text: "名字" }), name, h("label", { for: "shRSum", text: "一句话说明" }), sum, h("label", { for: "shRPar", text: "参数" }), par),
+      ta, err,
+      !ro && !hubN ? h("p", { class: "note", id: "shRNoPost", text: "这套玩法还只在你这台设备上。想让别人也来写规则，先打开裁判的代码，在那里把玩法贴到 GitHub：你写的规则会跟着一起贴上去。" }) : null,
+      h("details", { class: "more" }, h("summary", { text: "规则能用到的东西" }), h("div", { class: "more-body" }, h("pre", { class: "code", id: "shRDoc", text: ruleDoc() })))
+    ], { cls: "are", foot: foot, focus: "#shRCode" });
+    return m;
+  }
+
+  /** 一套玩法：看说明、挑规则、比一比 */
+  function openGame(g0, after) {
+    var g = g0, job = null, alive = true, last = null;
+    var host = h("div", { class: "ar-host sh-host" });
+    function stop() { if (job) { job.cancel(); job = null; } }
+    var m = A.modal("玩法 · " + g.name, host, { cls: "arm", onClose: function () { alive = false; stop(); if (after) after(); } });
+    function refresh(ng) { if (!alive) return; if (ng) { g = ng; last = null; } draw(); }
+    function numIn(id, label, key, min, max, step) {
+      var s = setOf(g), inp = h("input", { type: "number", id: id, min: min, max: max, step: step, value: s[key], "aria-label": label });
+      inp.addEventListener("change", function () { var v = Math.round(parseFloat(inp.value)); if (!(v === v)) v = s[key]; v = Math.min(max, Math.max(min, v)); inp.value = v; s[key] = v; save(); });
+      return h("label", { class: "ar-set" }, h("span", { text: label }), inp);
+    }
+    function draw() {
+      clear(host);
+      var s = setOf(g), rules = rulesOf(g), pick = s.pick, hubN = g.from && g.from.n;
+      if (g.src === "hub") host.appendChild(foreignNote(g, "这套玩法是别人写的", "：裁判和它自带的规则都在隔离环境里运行。", "shGFrom"));
+      host.appendChild(h("div", { class: "sh-about", id: "shGAboutText", text: g.about || g.summary || "（这套玩法没有写说明。打开裁判的代码，看它是怎么判分的。）" }));
+      var pIn = h("input", { type: "text", id: "shGP", class: "num", value: pLine(s.p), "aria-label": "玩法的参数", spellcheck: "false", placeholder: "没有参数" });
+      pIn.addEventListener("change", function () { var p = parseP(pIn.value); if (!p) { pIn.value = pLine(s.p); A.toast("参数的写法不对。照这个样子写：lo = 0.2, hi = 0.8", 3200); return; } s.p = p; pIn.value = pLine(p); save(); });
+      host.appendChild(h("div", { class: "row tight ar-sets" }, Object.keys(g.p).length || Object.keys(s.p).length ? h("label", { class: "ar-set sh-gp" }, h("span", { text: "玩法的参数" }), pIn) : null,
+        numIn("shGT", "一局最多几回合", "T", 1, 2000, 1), numIn("shGK", "比几局", "K", 20, 20000, 10), numIn("shGSeed", "种子", "seed", 0, 999999, 1)));
+      /* 规则的名单 */
+      var list = h("div", { class: "ar-list", id: "shRules" });
+      rules.forEach(function (r) {
+        var on = pick.indexOf(r.id) >= 0, cb = h("input", { type: "checkbox", id: "shPick-" + r.id, checked: on, onchange: function () {
+          var i = pick.indexOf(r.id); if (cb.checked && i < 0) { if (pick.length >= MAXR) { cb.checked = false; A.toast("一次最多比 " + MAXR + " 条规则。", 3000); return; } pick.push(r.id); } else if (!cb.checked && i >= 0) pick.splice(i, 1);
+          save(); count();
+        } });
+        list.appendChild(h("div", { class: "ar-rule", "data-rule": r.id }, cb, h("label", { for: "shPick-" + r.id, class: "ar-rtxt" }, h("b", { text: r.name }), r.src === "hub" ? h("span", { class: "tag", text: "别人写的" + (r.from && r.from.user ? " @" + r.from.user : "") }) : r.src ? h("span", { class: "tag", text: "我的" }) : null, h("span", { class: "note", text: (r.summary ? r.summary : "") + (Object.keys(r.p).length ? "（" + pLine(r.p) + "）" : "") })),
+          h("button", { class: "btn small", type: "button", "data-code": r.id, text: r.src === "mine" || owns(g) ? "改" : "看代码", onclick: function () { openRule(g, r, function () { refresh(); }); } }),
+          r.src || owns(g) ? h("button", { class: "iconbtn", type: "button", "data-del": r.id, "aria-label": "删掉 " + r.name, text: "✕", onclick: function () { dropRule(g, r.id); draw(); } }) : null));
+      });
+      if (!rules.length) list.appendChild(h("p", { class: "note", id: "shNoRules", text: "这套玩法还没有规则。点下面的\"写一条新规则\"，写第一条。" }));
+      host.appendChild(list);
+      var cnt = h("span", { class: "note", id: "shCount" }), go = h("button", { class: "btn primary", type: "button", id: "shGRun", text: "比一比", onclick: run });
+      function count() { var n = pick.length; cnt.textContent = n ? "挑了 " + n + " 条规则；排在最前面的「" + nameOf(pick[0]) + "」当基准" : "先挑至少一条规则"; go.disabled = n < 1; }
+      function nameOf(id) { var x = rules.filter(function (r) { return r.id === id; })[0]; return x ? x.name : id; }
+      host.appendChild(h("div", { class: "row tight ar-acts" }, go,
+        h("button", { class: "btn", type: "button", id: "shRNew", text: "写一条新规则", onclick: function () { var t = rules[0]; openRule(g, { id: "", name: "我的规则", summary: "", code: t ? t.code : "function decide(s, p, st) {\n  return 0;\n}", p: t ? t.p : {}, src: "", fresh: true }, function () { refresh(); }); } }),
+        hubN ? h("button", { class: "btn", type: "button", id: "shRFind", text: "从大家那里找规则", onclick: function () {
+          finder({ title: "大家给「" + g.name + "」写的规则", kind: "rule", addText: "请它来比", empty: "还没有人给这套玩法贴过规则。自己写一条，在编辑的地方点\"贴到 GitHub\"。", how: HOW,
+            pick: function (it) { return it.meta.for === "game:" + hubN ? okRule({ id: "hub-r" + it.n, name: it.meta.name, summary: it.meta.summary, code: it.code, p: it.meta.p, src: "hub", from: { user: it.user, n: it.n } }) : null; },
+            have: function (r) { return (store.extra[g.id] || []).some(function (x) { return x.id === r.id; }); },
+            add: function (r) { if (!putRule(g, r)) A.toast("这套玩法下面存的规则太多了。先删掉几条。", 3200); refresh(); } });
+        } }) : null,
+        h("button", { class: "btn", type: "button", id: "shGCode", text: g.src === "mine" ? "改裁判的代码" : "看裁判的代码", onclick: function () { openGameEditor(g, function (ng) { if (!alive) return; if (ng && ng.id !== g.id) { m.close(); openGame(ng, after); } else refresh(ng); }); } }),
+        h("span", { class: "sp" }), cnt));
+      count();
+      var out = h("div", { class: "ar-out", id: "shGOut" }); host.appendChild(out);
+      if (last) show(out, last);
+
+      function run() {
+        var chosen = pick.map(function (id) { return rules.filter(function (r) { return r.id === id; })[0]; }).filter(Boolean), bad = QLJobs.syntax(g.code) ? "裁判的代码有语法错误：" + QLJobs.syntax(g.code) : null;
+        chosen.forEach(function (r) { if (!bad) { var e = QLJobs.syntax(r.code); if (e) bad = "「" + r.name + "」的代码有语法错误：" + e; } });
+        clear(out);
+        if (bad) { out.appendChild(h("div", { class: "warn err", id: "shGRunErr", text: bad })); return; }
+        go.disabled = true;
+        var prog = h("p", { class: "note", id: "shGProg", text: "正在发牌…" }); out.appendChild(prog);
+        stop();
+        var isForeign = function (r) { return !!r.foreign || (!r.src && !!g.foreign); }, rid = function (r) { return "r:" + r.id; }, byRid = function (id) { return chosen.filter(function (r) { return rid(r) === id; })[0] || null; };
+        var j = job = QLJobs.run({ kind: "game", timeout: A.shopOpt.timeout,
+          codes: [{ id: "game", code: g.code, mine: !g.foreign }].concat(chosen.map(function (r) { return { id: rid(r), code: r.code, mine: !isForeign(r) }; })),
+          data: { game: "game", gp: s.p, T: s.T, K: s.K, seed: s.seed, entries: chosen.map(function (r) { return { id: rid(r), p: r.p }; }) },
+          onProgress: function (pm) { var r = byRid(pm.id); if (r) prog.textContent = "第 " + (pm.i + 1) + " / " + pm.n + " 条：" + r.name + "…"; } });
+        j.promise.then(function (res) {
+          if (job === j) job = null; if (!alive) return;
+          last = { res: res, names: chosen.map(function (r) { return { id: rid(r), name: r.name }; }), foreign: !!g.foreign || chosen.some(isForeign) };
+          go.disabled = pick.length < 1; clear(out); show(out, last);
+        }, function (e) {
+          if (job === j) job = null; if (!alive || (e && e.cancelled)) return;
+          go.disabled = pick.length < 1; clear(out);
+          var who = e && e.id ? byRid(e.id) : null, msg = e && e.message || "出错了";
+          if (e && e.timeout && who) { var i = pick.indexOf(who.id); if (i >= 0) pick.splice(i, 1); save(); var c = document.getElementById("shPick-" + who.id); if (c) c.checked = false; count(); msg = "轮到「" + who.name + "」的时候卡住了：多半是它的代码里有死循环（也可能出在裁判的代码里）。已经把它从名单里拿掉，再点一次\"比一比\"。"; }
+          else if (e && e.timeout) msg = "跑了很久也没有结果，已经停掉：多半是裁判的代码里有死循环。";
+          else if (e && e.compile && e.id === "game") msg = "裁判的代码有语法错误" + (e.line ? "（第 " + e.line + " 行）" : "") + "：" + e.message;
+          else if (e && e.compile && who) msg = "「" + who.name + "」的代码有语法错误" + (e.line ? "（第 " + e.line + " 行）" : "") + "：" + e.message;
+          else if (e && !e.nostart) msg = "裁判的代码出错了" + (who ? "（当时上场的是「" + who.name + "」）" : "") + "：" + msg;
+          out.appendChild(h("div", { class: "warn err", id: "shGRunErr", text: msg }));
+        });
+      }
+    }
+    function show(out, L) {
+      var res = L.res, nameOf = function (id) { var x = L.names.filter(function (q) { return q.id === id; })[0]; return x ? x.name : id; };
+      (res.skipped || []).forEach(function (x) { out.appendChild(h("div", { class: "warn", "data-skip": x.id, text: "「" + nameOf(x.id) + "」没能上场：" + x.err })); });
+      if (!res.rows.length) { out.appendChild(h("div", { class: "warn err", id: "shGRunErr", text: "没有能上场的规则。" })); return; }
+      var base = res.rows[0], key = function (r) { return r.err || !(r.mean === r.mean) ? -Infinity : r.mean; }, rows = res.rows.slice().sort(function (a, b) { var ka = key(a), kb = key(b); return ka === kb ? 0 : kb > ka ? 1 : -1; }), tb = h("tbody"), rank = 0;
+      rows.forEach(function (r) {
+        var isBase = r === base;
+        tb.appendChild(h("tr", { "data-rule": r.id }, h("td", { class: "num", text: r.err ? "—" : String(++rank) }),
+          h("td", null, h("b", { text: nameOf(r.id) }), isBase ? h("span", { class: "tag", text: "基准" }) : null, r.err ? h("span", { class: "note", text: " 中途出错：" + r.err }) : r.bad > 0 ? h("span", { class: "note", text: " 有 " + P(r.bad, 1) + " 的回合报的不是数" }) : null),
+          h("td", { class: "num" }, r.err ? "—" : [h("b", { text: F(r.mean, 3) }), h("span", { class: "note", text: " ± " + F(r.se, 3) })]),
+          h("td", { class: "num" }, r.err || isBase || !(r.d === r.d) ? "—" : [h("b", { class: "verdict " + (r.d > 2 * r.dse ? "up" : r.d < -2 * r.dse ? "down" : "flat"), text: A.sgn(F(r.d, 3)) }), h("span", { class: "note", text: " ± " + F(r.dse, 3) })]),
+          h("td", { class: "num", text: r.err ? "—" : F(r.rounds, 1) })));
+      });
+      out.appendChild(h("div", { class: "gref" }, h("table", { class: "gtab hp-tab db-tab ar-tab sh-tab", id: "shGTab" },
+        h("caption", { text: "每条规则各打 " + res.K + " 局，每局最多 " + res.T + " 回合；第 k 局发给每条规则的是同一副牌。± 后面是标准误。" }),
+        h("thead", null, h("tr", null, h("th", { text: "名次" }), h("th", { text: "规则" }), h("th", { text: "平均每局得分" }), h("th", { text: "比基准多" }), h("th", { text: "平均打几回合" }))), tb)));
+      if (L.foreign) out.appendChild(h("p", { class: "note", id: "shFun", text: "这里有别人写的代码（裁判或者规则）。它们在隔离环境里运行，偷不走东西；但裁判和规则之间没法完全隔绝，这个结果只图个乐。" }));
+      /* 第一局的过程 */
+      var tr = (res.trace || []).filter(function (x) { return x.log && x.log.length; });
+      if (tr.length) {
+        var sel = h("select", { id: "shTraceSel", "aria-label": "看哪条规则的第一局" }, tr.map(function (x) { return h("option", { value: x.id, text: nameOf(x.id) }); })), box = h("div", { class: "gref" });
+        var paint = function () {
+          var x = tr.filter(function (q) { return q.id === sel.value; })[0] || tr[0], tb2 = h("tbody");
+          x.log.forEach(function (o, t) { tb2.appendChild(h("tr", null, h("td", { class: "num", text: String(t + 1) }), h("td", { class: "sh-see", text: seeText(o.see) }), h("td", { class: "num", text: o.a === o.a ? String(+o.a.toPrecision(6)) : "不是数" }), h("td", { class: "num", text: A.sgn(F(o.gain, 3)) }))); });
+          clear(box); box.appendChild(h("table", { class: "gtab hp-tab sh-trace", id: "shTraceTab" }, h("thead", null, h("tr", null, h("th", { text: "回合" }), h("th", { text: "规则看到的" }), h("th", { text: "规则报的数" }), h("th", { text: "这一回合的得分" }))), tb2));
+        };
+        sel.addEventListener("change", paint); paint();
+        out.appendChild(h("details", { class: "more", id: "shTrace" }, h("summary", { text: "看第一局是怎么打的" }), h("div", { class: "more-body" }, h("div", { class: "row tight" }, h("label", { for: "shTraceSel", class: "note", text: "哪条规则" }), sel), box, h("p", { class: "note", text: "只列前 30 个回合。写裁判的时候，拿它核对亮出来的东西和判的分对不对。" }))));
+      }
+    }
+    draw();
+    return m;
+  }
+
+  /* ================= 主弹层 ================= */
+  A.openShop = function (tab0) {
+    var tab = tab0 === "game" || tab0 === "world" ? tab0 : store.tab, alive = true;
+    if (tab !== store.tab) { store.tab = tab; save(); }
+    var host = h("div", { class: "ar-host sh-host" }), seg = h("div", { class: "seg", role: "group", "aria-label": "造什么" });
+    [["world", "世界"], ["game", "玩法"]].forEach(function (x) { seg.appendChild(h("button", { type: "button", "data-tab": x[0], text: x[1], onclick: function () { if (tab !== x[0]) { tab = x[0]; store.tab = tab; save(); draw(); } } })); });
+    var m = A.modal("世界工坊", [
+      h("p", { class: "lb-lead", text: "在这里造两样东西：世界（一段生成价格的代码）和玩法（一个发牌、判分的裁判）。造好了可以贴到 GitHub，别人载入之后拿自己的规则来试。" }),
+      h("div", { class: "row tight" }, seg), host
+    ], { cls: "arm", onClose: function () { alive = false; } });
+    function redraw() { if (alive) draw(); }
+    function delBtn(label, fn) { return h("button", { class: "iconbtn", type: "button", "aria-label": "删掉 " + label, text: "✕", onclick: fn }); }
+    function draw() {
+      clear(host);
+      Array.prototype.forEach.call(seg.children, function (b) { b.setAttribute("aria-pressed", b.getAttribute("data-tab") === tab ? "true" : "false"); });
+      if (tab === "world") {
+        host.appendChild(h("p", { class: "note", id: "shWhat", text: "世界 = 一段代码：给它随机数，它交出一条价格路径。造好的世界可以拿到实验室里，让任何一条规则在上面回测。" }));
+        var list = h("div", { class: "ar-list", id: "shWorlds" });
+        allWorlds().forEach(function (w) {
+          list.appendChild(h("div", { class: "ar-rule", "data-world": w.id }, h("div", { class: "ar-rtxt sh-txt" }, h("b", { text: w.name }), tagOf(w), h("span", { class: "note", text: w.summary })),
+            h("button", { class: "btn small", type: "button", "data-open": w.id, text: w.src === "mine" ? "改" : "打开", onclick: function () { openWorld(w, function (r, used) { if (used) m.close(); else redraw(); }); } }),
+            h("button", { class: "btn small", type: "button", "data-use": w.id, text: "拿到实验室里用", onclick: function () { m.close(); useWorld(w); } }),
+            w.src ? delBtn(w.name, function () { store.worlds = store.worlds.filter(function (x) { return x.id !== w.id; }); save(); draw(); }) : null));
+        });
+        host.appendChild(list);
+        host.appendChild(h("div", { class: "row tight ar-acts" },
+          h("button", { class: "btn primary", type: "button", id: "shWNew", text: "写一个新的", onclick: function () { var t = libWorlds()[0]; openWorld({ id: "", name: "我的世界", summary: "", code: t.code, schema: t.schema, K: t.K, T: t.T, explain: "", src: "", fresh: true }, function (r, used) { if (used) m.close(); else redraw(); }); } }),
+          h("button", { class: "btn", type: "button", id: "shWFind", text: "从大家那里找", onclick: function () {
+            finder({ title: "大家造的世界", kind: "world", addText: "载入", empty: "还没有人贴过世界。自己造一个，在编辑的地方点\"贴到 GitHub\"。", how: HOW, pick: hubWorld,
+              have: function (w) { return store.worlds.some(function (x) { return x.id === w.id; }); },
+              add: function (w) { store.worlds.push(w); if (store.worlds.length > 30) store.worlds.shift(); save(); redraw(); } });
+          } }),
+          S.custom && !sameWorld(S.custom) ? h("button", { class: "btn", type: "button", id: "shWGrab", text: "把实验室里的自定义世界收进来", title: "实验室里现在有一个自定义世界「" + S.custom.name + "」，收进工坊之后可以在这里改、贴到 GitHub", onclick: function () { if (grabCustom()) draw(); } }) : null));
+      } else {
+        host.appendChild(h("p", { class: "note", id: "shWhat", text: "玩法 = 一个裁判：它发牌、亮牌、判分。规则每回合看到亮出来的东西，报一个数，裁判给分。玩法连同裁判可以贴到 GitHub，别人载入之后拿自己的规则来比。" }));
+        var gl = h("div", { class: "ar-list", id: "shGames" });
+        allGames().forEach(function (g) {
+          var n = rulesOf(g).length;
+          gl.appendChild(h("div", { class: "ar-rule", "data-game": g.id }, h("div", { class: "ar-rtxt sh-txt" }, h("b", { text: g.name }), tagOf(g), h("span", { class: "note", text: g.summary + (g.summary ? " " : "") + "（" + n + " 条规则）" })),
+            h("button", { class: "btn small primary", type: "button", "data-open": g.id, text: "打开", onclick: function () { openGame(g, redraw); } }),
+            g.src ? delBtn(g.name, function () { store.games = store.games.filter(function (x) { return x.id !== g.id; }); delete store.extra[g.id]; delete store.sets[g.id]; save(); draw(); }) : null));
+        });
+        host.appendChild(gl);
+        host.appendChild(h("div", { class: "row tight ar-acts" },
+          h("button", { class: "btn primary", type: "button", id: "shGNew", text: "写一套新的", onclick: function () { var t = libGames()[0]; openGameEditor({ id: "", name: "我的玩法", summary: "", about: "", code: t.code, p: t.p, T: t.T, rules: t.rules, src: "", fresh: true }, function (ng) { redraw(); if (ng && alive) openGame(ng, redraw); }); } }),
+          h("button", { class: "btn", type: "button", id: "shGFind", text: "从大家那里找", onclick: function () {
+            finder({ title: "大家造的玩法", kind: "game", addText: "载入", empty: "还没有人贴过玩法。自己造一套，在裁判的代码那里点\"贴到 GitHub\"。", how: HOW, pick: hubGame,
+              have: function (g) { return store.games.some(function (x) { return x.id === g.id; }); },
+              add: function (g) { store.games.push(g); if (store.games.length > 20) { var old = store.games.shift(); delete store.extra[old.id]; delete store.sets[old.id]; } save(); redraw(); } });
+          } })));
+      }
+    }
+    draw();
+    return m;
+  };
+
+  if (A.lobbyAdd) A.lobbyAdd({
+    id: "workshop", order: 50, route: "workshop", kicker: "共建", title: "世界工坊", label: "进工坊", keys: "workshop 工坊 世界 玩法 裁判 自定义 上传 simulate referee",
+    blurb: "不只写规则，也造世界、造玩法，连裁判一起：写一段生成价格的代码，或者写一个发牌、判分的裁判。造好了贴到 GitHub，别人载入之后拿自己的规则来试。",
+    status: function () { var a = store.worlds.length, b = store.games.length; return a || b ? "你这里存着 " + a + " 个世界、" + b + " 套玩法" : ""; },
+    go: function (arg) { A.openShop(arg); }
+  });
+})(App);
+
+/* ===== app-tour.js ===== */
+/* 应用主体（十四）：新手教程。八步，每步两三分钟：这是什么 → 亲手打一局 → 开房间 → 写规则 → 十项全能 → 规则同场 → 世界工坊 → 贴给别人。
+ * 每一步是几段话加一个按钮；按钮把人带到那个地方，同时在左下角留一个"回到教程"的小条，做完了点它接着看。
+ * 看到第几步、哪几步去过，记在这台设备的浏览器里。教程本身不改任何设置。 */
+(function (A) {
+  "use strict";
+  var h = A.h, clear = A.clear, QL = A.QL, KEY = "ql.tour.v1";
+  var store = { v: 1, step: 0, went: {} };
+  function dailyNames() { try { return QL.dailyGames().map(function (t) { return QL.WORLDS[t].short; }).join("、"); } catch (e) { return ""; } }
+  /** 每一步：{ id, short（上面那排小标签）, title, body: [段落 | { list: [...] }], act: { label, go } } */
+  function steps() {
+    return [
+      { id: "what", short: "这是什么", title: "一个拿来试想法的地方", body: [
+        "策略实验室只做一件事：你出一个想法，它告诉你这个想法到底行不行。",
+        "具体说：先选一个世界（数据从哪里来，比如一条随机涨跌的价格），再定一条规则（每一步怎么做，比如涨了就买）。页面把这条规则放到成千上万条路径上各跑一遍，把结果摆出来：平均赚多少，最坏亏多少，和什么也不做相比差多少，这个差别是不是运气。",
+        "大厅里的几样东西，是把同一件事变成和别人一起玩：同一局大家比一比，规则和规则当对手，自己造世界让别人来试。",
+        "这份教程每步两三分钟，不用按顺序。每一步有一个按钮带你去那个地方；做完之后，点左下角的\"回到教程\"接着看。" ] },
+      { id: "daily", short: "打一局", title: "先亲手打一局", body: [
+        "这一步不用写任何东西。全站每天同一局，玩法轮着来（" + dailyNames() + "），一局只有几十个回合，两三分钟打完。",
+        "打完之后看两样东西。第一，你的得分和几条参照规则在同一局上的得分：你是真的打得好，还是只是这一局运气好？第二，今天的榜：你排在所有人的哪个位置。",
+        "想上榜，点\"把我的成绩贴到榜上\"（需要 GitHub 账号，最后一步有说明）。不贴也没关系，成绩已经存在这台设备上了。" ],
+        act: { label: "打今天这一局", go: function () { A.openDaily(); } } },
+      { id: "room", short: "开房间", title: "拉朋友开一个房间", body: [
+        "最多八个人同时打同一局。开房间的人挑玩法，把邀请链接发给朋友；人到齐了点\"开始\"。",
+        "打的时候只看得到别人打到第几回合，看不到别人怎么选。所有人都打完，成绩一起揭晓，再和参照规则在同一局上比。",
+        "不需要账号，起个名字就能进。一个人也能开房间，先看看它是什么样子。" ],
+        act: { label: "开一个房间", go: function () { A.openRoom(); } } },
+      { id: "rule", short: "写规则", title: "写你的第一条规则", body: [
+        "规则是一小段代码：每一步拿到眼下看得到的东西，交出一个数（比如仓位、出价）。它只看得到过去，看不到未来。",
+        "不会写代码也可以，有三条路：",
+        { list: [
+          "改现成的。找到\"规则\"那一块（手机上先点\"玩法与规则\"），点它下面的\"代码与说明\"，换到\"代码\"那一页，把里面的一两个数改掉，点\"应用修改\"：它就另存成了你自己的一条。",
+          "让页面里的 AI 写。打开 " + A.AI + " 面板（电脑上是右上角的按钮，手机上是同名的那一页），用一句话说出想法；它会写出规则、给出参数，并解释为什么这样写。这条路要用你自己的 API 密钥。",
+          "让你平常用的 AI 写。规则同场和世界工坊里，写规则的地方都有一个\"复制给 AI 的说明\"：点一下，贴给任何一个 AI，再把它回的代码贴回来。" ] } ],
+        act: { label: "看看眼下这条规则的代码", go: function () { A.openCode("code"); } } },
+      { id: "deca", short: "十项全能", title: "它是不是只在一种行情里好使", body: [
+        "一条规则在一个世界里表现好，说明不了什么：也许它只是碰巧合了那个世界的脾气。十项全能让一条规则走遍十个世界，每个世界里都和\"买入持有\"（买了就不动）比长期增长率。十个差里最小的那一个，就是它的得分。",
+        "所以得分高于 0 很不容易：它得在十种行情里都不比什么也不做差。",
+        "每个星期一换一批路径。自己的规则可以贴到榜上；榜上的分数不是贴的人报的，而是每个看榜的人在自己的浏览器里重新算出来的。" ],
+        act: { label: "走一遍十项", go: function () { A.openDeca(); } } },
+      { id: "arena", short: "规则同场", title: "有对手的时候", body: [
+        "前面的规则都是各打各的。规则同场把几条规则放进同一个市场互相当对手：一起竞价（出价最高的买走），或者一起做市（报价最好的成交）。你赚多少，取决于别人怎么出手。",
+        "先点\"开始比\"，看自带的几条规则谁赢，谁中了\"赢家诅咒\"。再点\"写一条新的\"，改一改让价的大小，看能不能挤进前两名。" ],
+        act: { label: "摆一场", go: function () { A.openArena(); } } },
+      { id: "shop", short: "世界工坊", title: "连世界和裁判一起造", body: [
+        "世界是一段生成价格的代码；玩法是一个发牌、判分的裁判。这两样也可以自己写。",
+        "先看样板：打开\"涨跌停板\"，点\"试一试\"，看它生成的价格长什么样；再点\"拿到实验室里用\"，换几条规则，看谁在这个世界里好使。",
+        "然后换到\"玩法\"那一边，打开\"掷骰子，见好就收\"，点\"比一比\"；再自己写一条规则，看能不能赢过\"攒到 20 分就收\"。（提示：平均下来赢不了，它是最优的；能做到的只是打平。）" ],
+        act: { label: "进工坊", go: function () { A.openShop(); } } },
+      { id: "share", short: "贴给别人", title: "把你做的东西贴给别人", body: [
+        "这张页面没有自己的服务器。大家的榜、别人写的规则、世界和玩法，都是 GitHub 上公开的帖子（GitHub 管它叫 Issue）。",
+        "贴东西：在要贴的地方点\"贴到 GitHub\"或者\"把我的成绩贴到榜上\"。页面会把内容填好、打开 GitHub，你在那里点 Submit new issue。这需要一个 GitHub 账号；帖子是公开的，署你的用户名；想撤回，把那条帖子关掉就行。",
+        "用别人的东西：别人写的代码一律在隔离环境里运行，碰不到这张页面里的东西，也连不了网。觉得哪一份好，去它的帖子上点 👍，赞多的排在前面。",
+        "只是看榜不需要账号。GitHub 对不登录的访问有次数限制（每小时 60 次），偶尔会让你过一会儿再刷新。" ],
+        act: { label: "回到大厅", go: function () { A.openLobby(); } } }
+    ];
+  }
+  var N = steps().length;
+  try {
+    var o0 = JSON.parse(localStorage.getItem(KEY) || "null");
+    if (o0 && o0.v === 1) {
+      if (o0.step >= 0 && o0.step < N) store.step = o0.step | 0;
+      if (o0.went && typeof o0.went === "object") Object.keys(o0.went).slice(0, 20).forEach(function (k) { if (/^[a-z]{2,12}$/.test(k) && o0.went[k]) store.went[k] = true; });
+      store.started = !!o0.started;
+    }
+  } catch (e) {}
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} }
+  A.tourStore = function () { return store; };
+
+  /* 左下角的小条：去做这一步的时候留着，点它回到教程 */
+  function hideChip() { var el = document.getElementById("tourChip"); if (el) el.remove(); }
+  function showChip() {
+    hideChip();
+    document.body.appendChild(h("div", { class: "tour-chip", id: "tourChip", role: "note" },
+      h("button", { class: "btn small primary", type: "button", id: "tourBack", text: "回到教程（第 " + (store.step + 1) + " 步）", onclick: function () { hideChip(); A.openTour(); } }),
+      h("button", { class: "iconbtn", type: "button", id: "tourChipX", "aria-label": "不用了", text: "✕", onclick: hideChip })));
+  }
+
+  /** 打开教程。at：从第几步开始（从 0 数），或者那一步的编号；不给就接着上次看到的地方 */
+  A.openTour = function (at) {
+    var S = steps(), i = store.step, k;
+    if (typeof at === "number" && at >= 0 && at < N) i = at | 0;
+    else if (typeof at === "string" && at) { for (k = 0; k < N; k++) if (S[k].id === at) i = k; }
+    hideChip();
+    var nav = h("div", { class: "tour-nav", id: "tourNav", role: "tablist", "aria-label": "教程的各步" }), pane = h("div", { class: "tour-pane", id: "tourPane" });
+    var prev = h("button", { class: "btn", type: "button", id: "tourPrev", text: "上一步", onclick: function () { go(i - 1); } });
+    var next = h("button", { class: "btn", type: "button", id: "tourNext", text: "下一步", onclick: function () { if (i < N - 1) go(i + 1); else m.close(); } });
+    var m = A.modal("新手教程", [nav, pane], { cls: "tourm", foot: [h("span", { class: "note", id: "tourPos" }), h("span", { class: "sp" }), prev, next], focus: "#tourNext" });
+    function go(j) { i = Math.max(0, Math.min(N - 1, j)); store.step = i; store.started = true; save(); draw(); pane.scrollTop = 0; var b = m.box.querySelector(".modal-b"); if (b) b.scrollTop = 0; }
+    function draw() {
+      var s = S[i];
+      clear(nav);
+      S.forEach(function (x, j) {
+        nav.appendChild(h("button", { type: "button", class: "tour-pill" + (store.went[x.id] ? " went" : ""), role: "tab", "data-step": x.id, "aria-selected": j === i ? "true" : "false", title: store.went[x.id] ? "去过了" : null, onclick: function () { go(j); } },
+          h("span", { class: "tour-no", text: String(j + 1) }), h("span", { text: x.short })));
+      });
+      clear(pane);
+      pane.appendChild(h("h3", { class: "tour-title", id: "tourTitle", text: s.title }));
+      s.body.forEach(function (b) {
+        if (typeof b === "string") pane.appendChild(h("p", { text: b }));
+        else if (b && b.list) pane.appendChild(h("ol", null, b.list.map(function (t) { return h("li", { text: t }); })));
+      });
+      if (s.act) pane.appendChild(h("div", { class: "row tight tour-act" }, h("button", { class: "btn primary", type: "button", id: "tourAct", text: s.act.label, onclick: function () {
+        store.went[s.id] = true; save();
+        var last = i === N - 1; m.close();
+        if (!last) showChip();
+        try { s.act.go(); } catch (e) { console.error(e); }
+      } }), store.went[s.id] ? h("span", { class: "note", text: "这一步去过了" }) : null));
+      document.getElementById("tourPos").textContent = "第 " + (i + 1) + " 步，共 " + N + " 步";
+      prev.disabled = i === 0; next.textContent = i === N - 1 ? "看完了" : "下一步";
+      next.className = "btn" + (s.act && !store.went[s.id] ? "" : " primary");
+    }
+    go(i);
+    setTimeout(function () { var a = document.getElementById("tourAct"); if (a) a.focus(); }, 0);   // 一打开，焦点落在"带我去"的那个按钮上
+    return m;
+  };
+
+  if (A.lobbyAdd) A.lobbyAdd({
+    id: "tutorial", order: 1, wide: true, primary: true, route: "tutorial", kicker: "第一次来", title: "新手教程", label: function () { return store.started ? "接着看" : "开始"; }, keys: "tutorial 教程 新手 入门 上手 怎么玩 第一次 start guide",
+    blurb: "八步，每步两三分钟：亲手打一局，开一个房间，写第一条规则，让它走十项全能、和别的规则同场，再到工坊里造一个世界。每一步都有一个按钮带你过去。",
+    status: function () { return store.started ? "上次看到第 " + (store.step + 1) + " 步，共 " + N + " 步" : ""; },
+    go: function (arg) { A.openTour(arg || undefined); }
   });
 })(App);
 

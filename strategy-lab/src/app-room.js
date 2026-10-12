@@ -192,8 +192,10 @@
       body.appendChild(h("div", { class: "rm-code" }, h("span", { class: "note", text: "房间号" }), h("b", { class: "num", id: "rmCode", text: code }), h("button", { class: "btn small", type: "button", id: "rmCopy", text: "复制邀请链接", onclick: function () { A.copy(A.lobbyLink("room", code)); } }),
         h("span", { class: "sp" }), h("span", { class: "note", id: "rmNet", text: up ? "已连上 " + up + " / " + R.room.total() + " 台中继" : "正在连中继…" })));
       if (!up && Date.now() - R.joinedAt > 9000) body.appendChild(h("div", { class: "warn", id: "rmDown", text: "连不上公共的中继服务器。可能是这个网络把它们拦了；换一个网络再试，或者过一会儿它会自己重连。" }));
-      if (R.full) { body.appendChild(h("div", { class: "warn", id: "rmFull", text: "这个房间已经有 " + MAXP + " 个人了，进不去。" })); return; }
-      if (!c) { body.appendChild(h("p", { class: R.missing ? "warn" : "note", id: "rmWait", text: R.missing ? "没有找到这个房间。房间号可能输错了，或者里面的人都已经走了。" : "正在进房间…" })); return; }
+      // 进不去的几种情况也要给一条出路：离开这里，回到"开房间 / 进房间"那一步
+      var exitRow = function (again) { return h("div", { class: "row tight rm-foot" }, h("span", { class: "sp" }), h("button", { class: "btn small" + (again ? " primary" : ""), type: "button", id: "rmLeave", text: again ? "换一个房间" : "离开房间", onclick: function () { leave(); if (again) A.openRoom(); } })); };
+      if (R.full) { body.appendChild(h("div", { class: "warn", id: "rmFull", text: "这个房间已经有 " + MAXP + " 个人了，进不去。" })); body.appendChild(exitRow(true)); return; }
+      if (!c) { body.appendChild(h("p", { class: R.missing ? "warn" : "note", id: "rmWait", text: R.missing ? "没有找到这个房间。房间号可能输错了，或者里面的人都已经走了。" : "正在进房间…" })); body.appendChild(exitRow(R.missing)); return; }
       var w = QL.WORLDS[c.type], line = h("div", { class: "row tight rm-game" });
       if (isHost() && c.phase !== "play") {
         var gs = h("select", { id: "rmGame", "aria-label": "打哪套玩法", onchange: function () { setCfg(Object.assign({}, R.cfg, { type: gs.value, at: Date.now() })); } }, QL.humanGames().map(function (g) { return h("option", { value: g, text: QL.WORLDS[g].short, selected: g === c.type }); }));

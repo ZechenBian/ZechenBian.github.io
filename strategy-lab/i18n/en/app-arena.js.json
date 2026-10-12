@@ -112,5 +112,6 @@
 {"zh":"摆一场","en":"Set up a match"},
 {"zh":"arena 同场 竞价 拍卖 做市 对手 赢家诅咒 auction market making","en":"arena auction bidding market making opponents winner's curse common value"},
 {"zh":"几条规则放进同一个市场互相当对手：一起竞价，或者一起做市抢同一批客人。看谁的规则在有对手的时候还站得住。","en":"Several rules are put into the same market as each other's opponents: they bid against each other, or make a market together and compete for the same customers. See whose rule still holds up when it has opponents."},
-{"zh":"你写了、载入了 §0§ 条规则","en":"Rules you have written or loaded: §0§"}
+{"zh":"你写了、载入了 §0§ 条规则","en":"Rules you have written or loaded: §0§"},
+{"zh":"参数","en":"Parameters"}
 ]
