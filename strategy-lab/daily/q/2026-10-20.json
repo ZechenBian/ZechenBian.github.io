@@ -1,0 +1,180 @@
+{
+  "v": 1,
+  "day": "2026-10-20",
+  "id": "drifting-arms",
+  "title": {
+    "zh": "会变的老虎机",
+    "en": "Slot machines that drift"
+  },
+  "summary": {
+    "zh": "三台老虎机，中奖率各自在慢慢变。刚才最好的那一台，过一会儿就不一定了。",
+    "en": "Three slot machines whose odds drift slowly. The one that was best a moment ago may not be best for long."
+  },
+  "about": {
+    "zh": [
+      "有三台老虎机，一共可以拉 200 次，每次挑一台。中了得 1 分，没中 0 分。",
+      "",
+      "每台机器有自己的中奖率，开局时在 0.2 到 0.8 之间均匀地抽。每拉完一次（不管拉的是哪一台），三台的中奖率各自随机地变一点：加上一个均值 0、标准差 0.05 的正态数，碰到 0.05 或者 0.95 就弹回来。所以没有哪一台会一直是最好的。",
+      "",
+      "**你的规则看到的**：`s.see` 是上一次中了没有（1 中了，0 没中，第一次是 NaN）。上一次拉的是哪一台，要自己记在 `st` 里。",
+      "",
+      "**你的规则报的数**：报 1、2、3 分别是拉第一、二、三台。报别的，或者报的不是数，都算拉第一台。",
+      "",
+      "**计分**：200 次里中了几次。"
+    ],
+    "en": [
+      "There are three slot machines and 200 pulls in total; each time you pick one machine. A win scores 1, a miss 0.",
+      "",
+      "Each machine has its own chance of paying out, drawn uniformly between 0.2 and 0.8 at the start. After every pull (whichever machine it was), the chance of each machine changes a little at random: a normal number with mean 0 and standard deviation 0.05 is added, and the chance bounces back when it hits 0.05 or 0.95. So no machine stays the best for ever.",
+      "",
+      "**What your rule sees**: `s.see` is whether the previous pull won (1 won, 0 missed, NaN on the first pull). Which machine you pulled last is something to remember in `st`.",
+      "",
+      "**What your rule returns**: 1, 2 or 3 to pull the first, second or third machine. Anything else, including something that is not a number, counts as the first machine.",
+      "",
+      "**Score**: the number of wins in the 200 pulls."
+    ]
+  },
+  "note": {
+    "zh": "中奖率不变的老虎机，试得够多就能认准最好的那一台，之后一直拉它。这里不行：很久以前的战绩已经说明不了现在，放着不拉的机器也在悄悄变。多久以前的战绩还算数、隔多久回头看看别的机器，是这道题要权衡的。",
+    "en": "With fixed odds, enough pulls identify the best machine and you can stay on it from then on. Not here: results from long ago say little about now, and machines you leave alone keep changing quietly. How far back results still count, and how often to look in on the other machines, is the trade-off in this challenge."
+  },
+  "T": 200,
+  "p": {
+    "step": 0.05,
+    "lo": 0.2,
+    "hi": 0.8
+  },
+  "code": {
+    "zh": [
+      "// 发牌：三台机器各抽一个起始的中奖率，再把每一次拉之后的变化和每一次中不中都先定好，藏起来。",
+      "function deal(T, rng, p) {",
+      "  var q = [rng.uniform(p.lo, p.hi), rng.uniform(p.lo, p.hi), rng.uniform(p.lo, p.hi)], win = [];",
+      "  for (var t = 0; t < T; t++) {",
+      "    win.push([rng.u() < q[0] ? 1 : 0, rng.u() < q[1] ? 1 : 0, rng.u() < q[2] ? 1 : 0]);",
+      "    for (var i = 0; i < 3; i++) {",
+      "      q[i] += p.step * rng.normal();",
+      "      if (q[i] < 0.05) q[i] = 0.1 - q[i];",
+      "      if (q[i] > 0.95) q[i] = 1.9 - q[i];",
+      "    }",
+      "  }",
+      "  return { win: win, last: NaN };",
+      "}",
+      "// 亮牌：上一次中了没有。",
+      "function show(G, t) {",
+      "  return G.last;",
+      "}",
+      "// 判分：报 2 拉第二台，报 3 拉第三台，其余都算第一台。中了得 1 分。",
+      "function referee(G, t, a) {",
+      "  var i = a === 2 ? 1 : a === 3 ? 2 : 0;",
+      "  G.last = G.win[t][i];",
+      "  return G.last;",
+      "}"
+    ],
+    "en": [
+      "// Deal: draw a starting chance for each of the three machines, then fix in advance every later change and whether each pull wins. All hidden.",
+      "function deal(T, rng, p) {",
+      "  var q = [rng.uniform(p.lo, p.hi), rng.uniform(p.lo, p.hi), rng.uniform(p.lo, p.hi)], win = [];",
+      "  for (var t = 0; t < T; t++) {",
+      "    win.push([rng.u() < q[0] ? 1 : 0, rng.u() < q[1] ? 1 : 0, rng.u() < q[2] ? 1 : 0]);",
+      "    for (var i = 0; i < 3; i++) {",
+      "      q[i] += p.step * rng.normal();",
+      "      if (q[i] < 0.05) q[i] = 0.1 - q[i];",
+      "      if (q[i] > 0.95) q[i] = 1.9 - q[i];",
+      "    }",
+      "  }",
+      "  return { win: win, last: NaN };",
+      "}",
+      "// Show: whether the previous pull won.",
+      "function show(G, t) {",
+      "  return G.last;",
+      "}",
+      "// Referee: 2 pulls the second machine, 3 the third, anything else the first. A win scores 1.",
+      "function referee(G, t, a) {",
+      "  var i = a === 2 ? 1 : a === 3 ? 2 : 0;",
+      "  G.last = G.win[t][i];",
+      "  return G.last;",
+      "}"
+    ]
+  },
+  "sets": {
+    "pub": 10,
+    "fin": 10,
+    "K": 200,
+    "seed": 20261020
+  },
+  "higher": true,
+  "digits": 2,
+  "refs": [
+    {
+      "id": "stay",
+      "name": {
+        "zh": "只拉第一台",
+        "en": "Always the first machine"
+      },
+      "summary": {
+        "zh": "什么也不学。拿来当基准。",
+        "en": "Learns nothing. The benchmark."
+      },
+      "p": {},
+      "code": "function decide(s, p) {\n  return 1;\n}"
+    },
+    {
+      "id": "wsls",
+      "name": {
+        "zh": "中了留下，没中换下一台",
+        "en": "Stay after a win, move on after a miss"
+      },
+      "summary": {
+        "zh": "上一次中了就接着拉同一台，没中就换到下一台。",
+        "en": "Pulls the same machine again after a win and moves to the next one after a miss."
+      },
+      "p": {},
+      "code": "function init(p) {\n  return { arm: 1 };\n}\nfunction decide(s, p, st) {\n  if (s.see === 0) st.arm = st.arm % 3 + 1;\n  return st.arm;\n}"
+    },
+    {
+      "id": "fade",
+      "name": {
+        "zh": "越久以前的战绩越不算数",
+        "en": "Older results count for less"
+      },
+      "summary": {
+        "zh": "给每台机器记一个“近期中奖率”：拉了哪一台，就把那一台的旧战绩打个九折，再记上这一次。拉近期中奖率最高的那台；每次有一成的机会随便拉一台看看。",
+        "en": "Keeps a recent win rate per machine: after a pull, that machine's old results are scaled by 0.9 and the new one is added. Pulls the best recent rate; one time in ten, a random machine instead."
+      },
+      "p": {
+        "keep": 0.9,
+        "eps": 0.1
+      },
+      "code": "function init(p) {\n  return { arm: 1, w: [0.5, 0.5, 0.5], n: [1, 1, 1] };\n}\nfunction decide(s, p, st) {\n  var i = st.arm - 1, best = 0, k;\n  if (s.t > 0) { st.w[i] = p.keep * st.w[i] + s.see; st.n[i] = p.keep * st.n[i] + 1; }\n  for (k = 1; k < 3; k++) if (st.w[k] / st.n[k] > st.w[best] / st.n[best]) best = k;\n  st.arm = s.rnd() < p.eps ? 1 + Math.floor(3 * s.rnd()) : best + 1;\n  return st.arm;\n}"
+    }
+  ],
+  "starter": {
+    "p": {},
+    "code": {
+      "zh": [
+        "// 起始代码：中了留下，没中换下一台。把它改成你的办法。",
+        "// s.see：上一次中了没有（1 中了，0 没中，第一次是 NaN）。上一次拉的是哪一台，记在 st.arm 里。",
+        "// 要随机数用 s.rnd()，它给一个 0 到 1 之间的数。不要用 Math.random。",
+        "function init(p) {",
+        "  return { arm: 1 };",
+        "}",
+        "function decide(s, p, st) {",
+        "  if (s.see === 0) st.arm = st.arm % 3 + 1;",
+        "  return st.arm;",
+        "}"
+      ],
+      "en": [
+        "// Starter code: stays after a win and moves to the next machine after a miss. Change it into your own method.",
+        "// s.see: whether the previous pull won (1 won, 0 missed, NaN on the first pull). Which machine was pulled last is kept in st.arm.",
+        "// For random numbers use s.rnd(), which gives a number between 0 and 1. Do not use Math.random.",
+        "function init(p) {",
+        "  return { arm: 1 };",
+        "}",
+        "function decide(s, p, st) {",
+        "  if (s.see === 0) st.arm = st.arm % 3 + 1;",
+        "  return st.arm;",
+        "}"
+      ]
+    }
+  }
+}

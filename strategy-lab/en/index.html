@@ -769,6 +769,19 @@ table.sh-trace th:nth-child(2) { text-align: left; }
 #shTrace .row { margin-bottom: 6px; }
 @media (max-width: 560px) { table.sh-tab th:nth-child(5), table.sh-tab td:nth-child(5) { display: none; } .sh-host .ar-rule { flex-wrap: wrap; } }
 
+/* ---------- 每日一题（src/app-quest.js） ---------- */
+.qs-about, .qs-note { max-width: 84ch; min-width: 0; }
+.qs-note { border-left: 3px solid var(--accent); padding: 2px 0 2px 12px; color: var(--ink2); }
+.qs-host .db-title { margin-top: 6px; }
+.qs-host .codeedit { min-height: 220px; }
+.qs-in { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; min-width: 0; }
+#qsTab td.qs-sets { font: 11.5px/1.5 var(--font-mono); color: var(--ink2); text-align: left; white-space: normal; overflow-wrap: anywhere; max-width: 36ch; }
+#qsTab th:nth-child(5) { text-align: left; }
+.qs-flag { margin-left: 6px; color: var(--ink2); border-color: var(--c-axis); }
+#qsWho td:nth-child(2), #qsbTab td:nth-child(2) { overflow-wrap: anywhere; }
+#qsbTab td:nth-child(2) .note { margin-left: 4px; }
+@media (max-width: 560px) { #qsbTab th:nth-child(5), #qsbTab td:nth-child(5), #qsWho th:nth-child(3), #qsWho td:nth-child(3) { display: none; } .qs-host .ar-rule { flex-wrap: wrap; } }
+
 /* ---------- 新手教程（src/app-tour.js） ---------- */
 .modal-box.tourm-box { width: min(720px, 100%); }
 .tourm .modal-f .sp { flex: 1; }
@@ -6803,6 +6816,238 @@ QL.jobs.world = function (m, CODE, progress) {
 }
 if (typeof module !== "undefined" && module.exports) module.exports = QL_SHOP_INSTALL;
 
+/* ===== quest.js ===== */
+/* 策略实验室 · 每日一题（引擎这一半）
+ * 一道题 = 一套带裁判的玩法（和世界工坊里的玩法是同一个接口：deal / show / referee，见 shop.js），加上几条基准规则。
+ * 大家各写一条规则（decide），在"公开的几组数据"上随便试；交上去以后，到截止的时候换"结算的几组数据"排名。
+ *
+ * 一组数据 = 一个种子发出来的 K 局。公开的几组，种子由题目自己定，谁都能算；
+ * 结算的几组，种子取自一个公共随机信标（drand）在截止之后那一刻发布的随机数：截止之前谁也算不出来，
+ * 截止之后人人取到的都是同一个数，所以每个人的浏览器各自重放，排出来的是同一张榜。
+ *
+ * 题目是数据（daily/q/日期.json），不随页面发布；格式的检查在这个文件里（QL.questCheck），页面和校验脚本用的是同一份。
+ * 题目里的文字都有中、英两份；代码里只许有整行的 // 注释，执行的是去掉注释以后的那一份，所以两种语言的页面跑的是同一段代码。
+ * 这个文件在页面里和后台线程里各执行一遍：页面用到格式、种子、名次；线程用到最后那个任务。 */
+function QL_QUEST_INSTALL(QL) {
+"use strict";
+var Q = QL.QUEST = { ver: 1, slot: 32, maxSets: 40, maxK: 5000, maxCost: 2e6, maxRefs: 6, maxCode: 20000,
+  // drand 的 quicknet 链：每 3 秒出一个随机数，第 r 轮在 genesis + (r − 1) × period 那一秒发布
+  beacon: { chain: "52db9ba70e0cc0f6eaf7803dd07447a1f5477735fd3f661792ba94600c84e971", genesis: 1692803367, period: 3, margin: 30 } };
+var IDRE = /^[a-z0-9][a-z0-9-]{1,39}$/, KEYRE = /^[A-Za-z_][A-Za-z0-9_]{0,23}$/;
+
+/* ---------- 小工具 ---------- */
+/** 一段字 → 一个 32 位的数（FNV-1a 再搅一遍） */
+function qhash(s) { var x = 2166136261, i; s = String(s); for (i = 0; i < s.length; i++) { x ^= s.charCodeAt(i); x = Math.imul(x, 16777619); } return QL.hash32(x); }
+QL.questHash = qhash;
+/** "2026-10-14" → 这一天 UTC 零点的毫秒数；写法不对或者没有这一天时是 NaN */
+function dayMs(day) {
+  var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(day)); if (!m) return NaN;
+  var t = Date.UTC(+m[1], +m[2] - 1, +m[3]);
+  return t === t && new Date(t).toISOString().slice(0, 10) === day ? t : NaN;
+}
+QL.questOpen = dayMs;
+/** 这一天的题几点截止（毫秒）：第二天 UTC 零点 */
+QL.questDeadline = function (day) { return dayMs(day) + 864e5; };
+/** 某一时刻（毫秒）已经发布的最新一轮是第几轮；第几轮是什么时候发布的（毫秒） */
+QL.beaconRound = function (ms) { var b = Q.beacon; return Math.floor((Math.floor(ms / 1000) - b.genesis) / b.period) + 1; };
+QL.beaconTime = function (round) { var b = Q.beacon; return (b.genesis + (round - 1) * b.period) * 1000; };
+/** 这一天的题用哪一轮随机数结算：截止之后再过 margin 秒的那一轮 */
+QL.questRound = function (day) { return QL.beaconRound(QL.questDeadline(day) + Q.beacon.margin * 1000); };
+/** 执行用的代码：整行的注释换成空行（行号不变），行尾的空白去掉。两种语言的版本去掉注释以后必须一字不差 */
+QL.questCanon = function (code) {
+  return String(code == null ? "" : code).replace(/\r\n?/g, "\n").split("\n").map(function (l) { return /^\s*\/\//.test(l) ? "" : l.replace(/\s+$/, ""); }).join("\n").replace(/\n+$/, "");
+};
+/** 中、英两份文字里取一份。x 是 { zh, en }，也可以就是一段字 */
+QL.questText = function (x, lang) {
+  if (typeof x === "string") return x;
+  if (!x || typeof x !== "object") return "";
+  return typeof x[lang] === "string" && x[lang] ? x[lang] : typeof x.zh === "string" && x.zh ? x.zh : typeof x.en === "string" ? x.en : "";
+};
+function finite(x) { return typeof x === "number" && x === x && x !== Infinity && x !== -Infinity; }
+function isInt(x) { return finite(x) && Math.floor(x) === x; }
+
+/* ---------- 题目的格式 ---------- */
+function okP(p, errs, where) {
+  var o = {};
+  if (p == null) return o;
+  if (typeof p !== "object" || Array.isArray(p)) { errs.push(where + ": must be an object of numbers"); return o; }
+  var ks = Object.keys(p); if (ks.length > 12) errs.push(where + ": more than 12 parameters");
+  ks.slice(0, 12).forEach(function (k) { if (!KEYRE.test(k) || !finite(p[k])) errs.push(where + "." + k + ": parameter names are letters, values are finite numbers"); else o[k] = p[k]; });
+  return o;
+}
+/** 题目文件里，一段文字或者代码可以写成一个字符串，也可以写成"一行一个字符串"的数组（JSON 里好写，改动也好审）。不是这两样时返回 null */
+function lines(x) { return typeof x === "string" ? x : Array.isArray(x) && x.every(function (l) { return typeof l === "string"; }) ? x.join("\n") : null; }
+/** { zh, en } 拆成两段字；x 本身就是一段字时两份相同。single：是不是没有分语言 */
+function pair(x) {
+  var one = lines(x);
+  if (one != null) return { zh: one, en: one, single: true, bad: false };
+  if (x && typeof x === "object" && !Array.isArray(x)) { var zh = lines(x.zh), en = lines(x.en); return { zh: zh || "", en: en || "", single: false, bad: (x.zh != null && zh == null) || (x.en != null && en == null) }; }
+  return { zh: "", en: "", single: false, bad: x != null };
+}
+/** 一段给人看的文字：{ zh, en } 或者一段字。strict 时两份都要有 */
+function okText(x, max, need, strict, errs, where) {
+  var pr = pair(x), zh = pr.zh, en = pr.en;
+  if (pr.bad) errs.push(where + ": must be text (a string or an array of lines) or { zh, en }");
+  if (need && !zh.trim() && !en.trim()) errs.push(where + ": missing");
+  if (zh.length > max || en.length > max) errs.push(where + ": longer than " + max + " characters");
+  if (strict && (need || zh || en)) {
+    if (pr.single) errs.push(where + ": needs both { zh, en }");
+    else { if (!zh.trim()) errs.push(where + ".zh: missing"); if (!en.trim()) errs.push(where + ".en: missing"); if (/[\u3400-\u9fff\u3000-\u303f\uff00-\uffef]/.test(en)) errs.push(where + ".en: contains Chinese characters or full-width punctuation"); }
+    // 手册里"现算的数字"用的那对括号，在题面里填不出数来
+    if (/[\u27ea\u27eb]/.test(zh + en)) errs.push(where + ": must not contain the live-number brackets (U+27EA, U+27EB)");
+  }
+  return pr.single ? zh.slice(0, max) : { zh: zh.slice(0, max), en: en.slice(0, max) };
+}
+/** 一段代码：{ zh, en } 或者一段字。返回 { show（给人看的，原样）, canon（执行的） } */
+function okCode(x, need, strict, errs, where) {
+  var pr = pair(x), zh = pr.zh, en = pr.en;
+  var a = zh || en, b = en || zh, ca = QL.questCanon(a), cb = QL.questCanon(b);
+  if (pr.bad || !a.trim()) { errs.push(where + ": missing, or not text (a string or an array of lines) or { zh, en }"); return { show: "", canon: "" }; }
+  if (a.length > Q.maxCode || b.length > Q.maxCode) errs.push(where + ": longer than " + Q.maxCode + " characters");
+  if (ca !== cb) errs.push(where + ": the zh and en versions differ in more than whole-line // comments");
+  if (/\/\*|`/.test(a + b)) errs.push(where + ": no /* */ comments and no backticks (whole-line // comments only)");
+  if (ca.split("\n").some(function (l) { return /\/\//.test(l.replace(/"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'/g, '""')); })) errs.push(where + ": // comments must be on lines of their own");
+  if (need) need.forEach(function (fn) { if (!new RegExp("\\bfunction\\s+" + fn + "\\s*\\(").test(ca)) errs.push(where + ": function " + fn + " is missing"); });
+  if (/\b(?:eval|Function|import|require|fetch|XMLHttpRequest|WebSocket|importScripts|postMessage|globalThis|self|window|document|Date|setTimeout|setInterval|performance)\b|Math\s*\.\s*random/.test(ca)) errs.push(where + ": uses something a challenge may not use (network, timers, clocks, eval, Math.random; use the rng you are given)");
+  if (strict) { if (pr.single) { if (/[^\x00-\x7f]/.test(a)) errs.push(where + ": has non-ASCII text, so it needs both { zh, en }"); } else { if (!zh.trim() || !en.trim()) errs.push(where + ": needs both zh and en"); if (/[\u3400-\u9fff\u3000-\u303f\uff00-\uffef]/.test(en)) errs.push(where + ".en: contains Chinese characters or full-width punctuation"); } }
+  return { show: pr.single ? a : { zh: zh || en, en: en || zh }, canon: ca };
+}
+/** 把读进来的一道题核对一遍。返回 { spec, errors }：errors 不空时 spec 是 null。
+ *  strict（校验脚本用）：文字要有中、英两份，英文那份里不能有中文；代码里有注释的也要两份（没有注释、全是 ASCII 的可以只写一份） */
+QL.questCheck = function (raw, strict) {
+  var errs = [], o = raw;
+  if (!o || typeof o !== "object" || Array.isArray(o)) return { spec: null, errors: ["not an object"] };
+  if (o.v !== 1) errs.push("v: must be 1");
+  if (!(dayMs(o.day) === dayMs(o.day))) errs.push("day: must be a date like 2026-10-14");
+  if (typeof o.id !== "string" || !IDRE.test(o.id)) errs.push("id: lower-case letters, digits and hyphens, 2 to 40 characters");
+  var T = o.T, s = o.sets || {};
+  if (!isInt(T) || T < 1 || T > 2000) errs.push("T: an integer from 1 to 2000");
+  if (!isInt(s.pub) || s.pub < 1 || s.pub > Q.maxSets) errs.push("sets.pub: an integer from 1 to " + Q.maxSets);
+  if (!isInt(s.fin) || s.fin < 1 || s.fin > Q.maxSets) errs.push("sets.fin: an integer from 1 to " + Q.maxSets);
+  if (!isInt(s.K) || s.K < 1 || s.K > Q.maxK) errs.push("sets.K: an integer from 1 to " + Q.maxK);
+  if (!isInt(s.seed) || s.seed < 0 || s.seed > 2147483647) errs.push("sets.seed: a non-negative integer");
+  if (isInt(T) && isInt(s.pub) && isInt(s.fin) && isInt(s.K) && Math.max(s.pub, s.fin) * s.K * T > Q.maxCost) errs.push("sets: too much work (sets × K × T must not exceed " + Q.maxCost + ")");
+  if (o.higher != null && typeof o.higher !== "boolean") errs.push("higher: true or false");
+  if (o.digits != null && (!isInt(o.digits) || o.digits < 0 || o.digits > 6)) errs.push("digits: an integer from 0 to 6");
+  var code = okCode(o.code, ["deal", "referee"], strict, errs, "code");
+  var spec = { v: 1, day: String(o.day), id: String(o.id), title: okText(o.title, 60, true, strict, errs, "title"), summary: okText(o.summary, 200, true, strict, errs, "summary"), about: okText(o.about, 6000, true, strict, errs, "about"), note: okText(o.note, 6000, false, strict, errs, "note"),
+    T: T, p: okP(o.p, errs, "p"), code: code.show, canon: code.canon, sets: { pub: s.pub, fin: s.fin, K: s.K, seed: s.seed }, higher: o.higher !== false, digits: o.digits == null ? 3 : o.digits, refs: [], starter: null, cid: "" };
+  var refs = Array.isArray(o.refs) ? o.refs : [], seen = {};
+  if (!refs.length || refs.length > Q.maxRefs) errs.push("refs: 1 to " + Q.maxRefs + " reference rules (the first one is the benchmark)");
+  refs.slice(0, Q.maxRefs).forEach(function (r, i) {
+    var w = "refs[" + i + "]"; if (!r || typeof r !== "object") { errs.push(w + ": not an object"); return; }
+    if (typeof r.id !== "string" || !IDRE.test(r.id) || seen[r.id]) errs.push(w + ".id: missing, malformed or repeated");
+    seen[r.id] = 1;
+    var c = okCode(r.code, ["decide"], strict, errs, w + ".code");
+    spec.refs.push({ id: String(r.id), name: okText(r.name, 40, true, strict, errs, w + ".name"), summary: okText(r.summary, 200, true, strict, errs, w + ".summary"), p: okP(r.p, errs, w + ".p"), code: c.show, canon: c.canon });
+  });
+  var st = o.starter;
+  if (!st || typeof st !== "object") errs.push("starter: missing (the code a participant starts from)");
+  else { var sc = okCode(st.code, ["decide"], strict, errs, "starter.code"); spec.starter = { p: okP(st.p, errs, "starter.p"), code: sc.show }; }
+  if (errs.length) return { spec: null, errors: errs };
+  // 这道题的"指纹"：裁判的代码、回合数、参数、几组几局、朝哪边算好，任何一样变了，以前交的规则就不算这道题的了
+  var ks = Object.keys(spec.p).sort(), fp = [spec.canon, spec.T, ks.map(function (k) { return k + "=" + spec.p[k]; }).join(","), spec.sets.pub, spec.sets.fin, spec.sets.K, spec.sets.seed, spec.higher ? 1 : 0].join("|");
+  spec.cid = spec.id + "." + qhash(fp).toString(36);
+  return { spec: spec, errors: [] };
+};
+QL.questOk = function (raw) { return QL.questCheck(raw, false).spec; };
+
+/* ---------- 几组数据的种子 ---------- */
+/** kind: "pub"（公开的）或 "fin"（结算的）。salt：公开的用题目自己的种子，结算的用信标给的那串随机数。返回 n 个 32 位的种子 */
+QL.questSeeds = function (kind, spec, salt, n) {
+  var out = [], i;
+  for (i = 0; i < n; i++) out.push(qhash(kind + "|" + spec.day + "|" + spec.cid + "|" + salt + "|" + i) | 0);
+  return out;
+};
+QL.questPubSeeds = function (spec) { return QL.questSeeds("pub", spec, spec.sets.seed, spec.sets.pub); };
+QL.questFinSeeds = function (spec, randomness) { return QL.questSeeds("fin", spec, String(randomness).toLowerCase(), spec.sets.fin); };
+
+/* ---------- 交上来的规则 ---------- */
+/** 从 GitHub 上取回的东西（hub.js 收拾过的）里挑出这道题的：当天（UTC）交的、指纹对得上的、代码像样的；
+ *  同一个账号只算截止前最后交的那一条。touched：截止之后这条 Issue 又有过变动（可能是改了代码，也可能只是有人评论） */
+QL.questEntries = function (items, spec) {
+  var open = dayMs(spec.day), dead = open + 864e5, by = {};
+  (items || []).forEach(function (it) {
+    var m = it && it.meta; if (!m || it.kind !== "quest" || m.day !== spec.day || m.cid !== spec.cid || !it.user) return;
+    if (typeof it.code !== "string" || !it.code.trim() || it.code.length > Q.maxCode || !/\bfunction\s+decide\s*\(/.test(it.code)) return;
+    if (!(it.at >= open && it.at < dead)) return;
+    var p = {}; if (m.p && typeof m.p === "object") Object.keys(m.p).slice(0, 12).forEach(function (k) { if (KEYRE.test(k) && finite(m.p[k])) p[k] = m.p[k]; });
+    var e = { n: it.n | 0, user: String(it.user), avatar: it.avatar || "", url: it.url || "", at: it.at, name: typeof m.name === "string" ? m.name.replace(/[\u0000-\u001f\u007f]/g, "").trim().slice(0, 40) : "", p: p, code: it.code, touched: it.upd > dead, up: it.up | 0, tries: 1 };
+    var old = by[e.user];
+    if (old) e.tries = old.tries + 1;
+    if (!old || e.at > old.at || (e.at === old.at && e.n > old.n)) by[e.user] = e; else old.tries = e.tries;
+  });
+  return Object.keys(by).map(function (k) { return by[k]; }).sort(function (a, b) { return a.at - b.at || a.n - b.n; });
+};
+/** 排名次。rows: [{ score, at, n, err }]；higher：分数是不是越高越好。同分时先交的在前。返回每一行的名次（从 1 起；没有成绩的是 0） */
+QL.questRank = function (rows, higher) {
+  var idx = [], rank = new Array(rows.length), i;
+  for (i = 0; i < rows.length; i++) { rank[i] = 0; if (!rows[i].err && finite(rows[i].score)) idx.push(i); }
+  idx.sort(function (a, b) { var d = higher ? rows[b].score - rows[a].score : rows[a].score - rows[b].score; return d || (rows[a].at || 0) - (rows[b].at || 0) || (rows[a].n || 0) - (rows[b].n || 0) || a - b; });
+  for (i = 0; i < idx.length; i++) rank[idx[i]] = i + 1;
+  return rank;
+};
+
+/* ---------- 任务：几条规则在几组数据上各打一遍 ---------- */
+function meanSE(a, n) {
+  var s1 = 0, s2 = 0, i; for (i = 0; i < n; i++) { s1 += a[i]; s2 += a[i] * a[i]; }
+  var v = n > 1 ? Math.max(0, (s2 - s1 * s1 / n) / (n - 1)) : 0;
+  return { mean: n ? s1 / n : NaN, se: n > 1 ? Math.sqrt(v / n) : NaN };
+}
+QL.jobs = QL.jobs || {};
+/** m: { game: 裁判那段代码的编号, gp, T, K, seeds: [每组一个种子], entries: [{ id, p, slot }], cut, trace: 要不要记下第一组第一局的过程 }
+ *  每条规则一行：{ id, mean, se（所有局合起来的平均数和标准误）, sets: [每一组的平均数], d, dse（和排在第一的那条逐局相减）, rounds, bad, err }
+ *  cut：给了的话，前 cut 组和剩下的几组各算一份 { mean, se, d, dse }，放在 parts 里（结算的几组和公开的几组一次跑完）
+ *  slot 决定规则自己的随机数从哪里来：同一条规则不管和谁一起跑，只要 slot 相同，结果就一样 */
+QL.jobs.quest = function (m, CODE, progress) {
+  var S = CODE[m.game];
+  if (!S || typeof S.deal !== "function" || typeof S.referee !== "function") throw new Error("The challenge's code does not define the two functions deal(T, rng, p) and referee(G, t, a)");
+  var game = { deal: S.deal, show: typeof S.show === "function" ? S.show : null, referee: S.referee }, gp = QL.jobParams(m.gp);
+  var T = Math.max(1, Math.min(2000, m.T | 0 || 1)), K = Math.max(1, Math.min(Q.maxK, m.K | 0 || 1)), seeds = (Array.isArray(m.seeds) ? m.seeds : []).slice(0, 2 * Q.maxSets).map(function (x) { return x | 0; }), n = seeds.length, N = n * K;
+  if (!n) throw new Error("No seeds were given for the data");
+  if (N * T > 2 * Q.maxCost) throw new Error("This challenge needs more computation than the limit allows");
+  var cut = m.cut | 0, players = [], skipped = [], rows = [], trace = [], base = null;
+  if (!(cut > 0 && cut < n)) cut = 0;
+  (m.entries || []).slice(0, 12).forEach(function (en) {
+    var R = CODE[en.id];
+    if (!R || typeof R.decide !== "function") { skipped.push({ id: en.id, err: "The code does not define a decide(s, p, st) function" }); return; }
+    players.push({ id: en.id, decide: R.decide, init: R.init || null, p: QL.jobParams(en.p), slot: Math.max(0, Math.min(63, en.slot | 0)) });
+  });
+  /** 第 lo 到 hi 局的平均数和标准误，以及和基准逐局相减之后的 */
+  function part(sc, lo, hi, isBase) {
+    var a = sc.subarray(lo, hi), ms = meanSE(a, hi - lo), o = { mean: ms.mean, se: ms.se, d: NaN, dse: NaN }, k;
+    if (isBase) { o.d = 0; o.dse = 0; }
+    else if (base) { var df = new Float64Array(hi - lo); for (k = lo; k < hi; k++) df[k - lo] = sc[k] - base[k]; var dm = meanSE(df, hi - lo); o.d = dm.mean; o.dse = dm.se; }
+    return o;
+  }
+  players.forEach(function (pl, i) {
+    var sc = new Float64Array(N), per = [], rounds = 0, bad = 0, err = "", log = [], s, k, e = 0;
+    for (s = 0; s < n && !err; s++) {
+      if (progress) progress({ id: pl.id, i: i, n: players.length, s: s, S: n });
+      var sum = 0;
+      for (k = 0; k < K; k++) {
+        var ep;
+        try { ep = QL.shopEpisode(game, gp, T, seeds[s], k, pl, pl.slot, m.trace && s === 0 && k === 0 ? log : null); }
+        catch (x) { if (x && x.rule) { err = x.message; break; } throw x; }
+        sc[e++] = ep.score; sum += ep.score; rounds += ep.rounds; bad += ep.bad;
+      }
+      if (!err) per.push(sum / K);
+    }
+    var row = { id: pl.id, mean: NaN, se: NaN, sets: err ? [] : per, d: NaN, dse: NaN, rounds: err ? NaN : rounds / N, bad: err || !rounds ? 0 : bad / rounds, err: err };
+    if (!err) {
+      var all = part(sc, 0, N, i === 0);
+      row.mean = all.mean; row.se = all.se; row.d = all.d; row.dse = all.dse;
+      if (cut) row.parts = [part(sc, 0, cut * K, i === 0), part(sc, cut * K, N, i === 0)];
+      if (i === 0) base = sc;
+    }
+    rows.push(row);
+    if (m.trace) trace.push({ id: pl.id, score: err ? NaN : sc[0], log: log });
+  });
+  return { T: T, K: K, n: n, cut: cut, rows: rows, skipped: skipped, trace: trace };
+};
+}
+if (typeof module !== "undefined" && module.exports) module.exports = QL_QUEST_INSTALL;
+
 /* ===== charts.js ===== */
 /* 图表层：只用 Canvas 2D，不依赖外部库。
  * 一张图 = 共享 x 轴的若干面板（每个面板只有一条 y 轴，绝不做双轴）或一张热力图。
@@ -7580,12 +7825,12 @@ QL.jobMain = function (scope, CODE) {
 var QLJobs = (function () {
   "use strict";
   // 编进线程的代码里碰不到这些名字。比 engine-client.js 的那一份多：别人的代码连"给自己发消息""再开一个线程"的门也不留
-  var SHADOW = "var self, globalThis, postMessage, onmessage, onerror, onmessageerror, addEventListener, removeEventListener, dispatchEvent, importScripts, fetch, XMLHttpRequest, WebSocket, EventSource, WebTransport, BroadcastChannel, MessageChannel, MessageEvent, Worker, SharedWorker, URL, Blob, FileReader, close, navigator, location, indexedDB, caches, crypto, setTimeout, setInterval, queueMicrotask, requestAnimationFrame, reportError, structuredClone, QL, __CODE, QL_CORE, QL_ML_INSTALL, QL_GAMES_INSTALL, QL_OBS_INSTALL, QL_LIVE_INSTALL, QL_JOBS_INSTALL, QL_DECA_INSTALL, QL_ARENA_INSTALL, QL_SHOP_INSTALL;";
+  var SHADOW = "var self, globalThis, postMessage, onmessage, onerror, onmessageerror, addEventListener, removeEventListener, dispatchEvent, importScripts, fetch, XMLHttpRequest, WebSocket, EventSource, WebTransport, BroadcastChannel, MessageChannel, MessageEvent, Worker, SharedWorker, URL, Blob, FileReader, close, navigator, location, indexedDB, caches, crypto, setTimeout, setInterval, queueMicrotask, requestAnimationFrame, reportError, structuredClone, QL, __CODE, QL_CORE, QL_ML_INSTALL, QL_GAMES_INSTALL, QL_OBS_INSTALL, QL_LIVE_INSTALL, QL_JOBS_INSTALL, QL_DECA_INSTALL, QL_ARENA_INSTALL, QL_SHOP_INSTALL, QL_QUEST_INSTALL;";
   var RET = "\n;return { init: typeof init === \"function\" ? init : null, decide: typeof decide === \"function\" ? decide : null, fit: typeof fit === \"function\" ? fit : null, simulate: typeof simulate === \"function\" ? simulate : null, deal: typeof deal === \"function\" ? deal : null, show: typeof show === \"function\" ? show : null, referee: typeof referee === \"function\" ? referee : null };\n})();";
   function lines(s) { var n = 0, i = -1; while ((i = s.indexOf("\n", i + 1)) >= 0) n++; return n; }
   function fns() {
     var base = [typeof QL_ML_INSTALL === "function" ? QL_ML_INSTALL : null, typeof QL_GAMES_INSTALL === "function" ? QL_GAMES_INSTALL : null, typeof QL_OBS_INSTALL === "function" ? QL_OBS_INSTALL : null, typeof QL_LIVE_INSTALL === "function" ? QL_LIVE_INSTALL : null].filter(Boolean).map(function (f) { return f.toString(); }).join("\n");
-    var extra = [QL_JOBS_INSTALL, typeof QL_DECA_INSTALL === "function" ? QL_DECA_INSTALL : null, typeof QL_ARENA_INSTALL === "function" ? QL_ARENA_INSTALL : null, typeof QL_SHOP_INSTALL === "function" ? QL_SHOP_INSTALL : null].filter(Boolean).map(function (f) { return "(" + f.toString() + ")(QL);"; }).join("\n");
+    var extra = [QL_JOBS_INSTALL, typeof QL_DECA_INSTALL === "function" ? QL_DECA_INSTALL : null, typeof QL_ARENA_INSTALL === "function" ? QL_ARENA_INSTALL : null, typeof QL_SHOP_INSTALL === "function" ? QL_SHOP_INSTALL : null, typeof QL_QUEST_INSTALL === "function" ? QL_QUEST_INSTALL : null].filter(Boolean).map(function (f) { return "(" + f.toString() + ")(QL);"; }).join("\n");
     return base + "\nvar QL = (" + QL_CORE.toString() + ")(self);\n" + extra + "\nQL.harden();\nvar __CODE = {};\n";
   }
   /** 拼出线程的源码。codes: [{ id, code }]；返回 { src, spans: [{ id, from, to }] }（每段代码落在源码的哪几行，报错时用） */
@@ -7908,7 +8153,7 @@ if (typeof module !== "undefined" && module.exports) module.exports = QLIO;
 var QLHub = (function () {
   "use strict";
   var REPO = "ZechenBian/ZechenBian.github.io", API = "https://api.github.com/repos/" + REPO, WEB = "https://github.com/" + REPO;
-  var KINDS = { daily: 1, rule: 1, world: 1, game: 1, deca: 1 };
+  var KINDS = { daily: 1, rule: 1, world: 1, game: 1, deca: 1, quest: 1 };
   var TTL = 180000, MAX_URL = 6000, MAX_PAGES = 3, SKEY = "ql.hub.v1";
   var NOTE = "This issue was generated by Strategy Lab (https://zechenbian.github.io/strategy-lab/). By submitting it you agree that the content below is shown publicly in Strategy Lab and that others may load, run and modify it. Please do not change the code blocks below.";
   var PASTE = "(The content is too long to fit in the address. Go back to Strategy Lab, click \"Copy content\", then replace this whole paragraph with what you copied.)";
@@ -7965,7 +8210,7 @@ var QLHub = (function () {
     var rc = it.reactions || {}, u = it.user || {};
     return {
       n: it.number | 0, kind: m[1], title: m[2].slice(0, 120), meta: p.meta, code: p.code, user: String(u.login || "").slice(0, 60), avatar: typeof u.avatar_url === "string" && /^https:\/\/avatars\.githubusercontent\.com\//.test(u.avatar_url) ? u.avatar_url : "",
-      url: issueUrl(it.number), at: Date.parse(it.created_at) || 0, up: rc["+1"] | 0, down: rc["-1"] | 0, comments: it.comments | 0
+      url: issueUrl(it.number), at: Date.parse(it.created_at) || 0, upd: Date.parse(it.updated_at) || 0, up: rc["+1"] | 0, down: rc["-1"] | 0, comments: it.comments | 0
     };
   }
   function scan(since) {
@@ -13061,7 +13306,7 @@ var App = (function () {
 })(App);
 
 /* ===== app-lobby.js ===== */
-/* 应用主体（七）：大厅。和别人一起玩的几种办法都从这里进：每日一局、实时房间、十项全能、规则同场、世界工坊，外加新手教程。
+/* 应用主体（七）：大厅。和别人一起玩的几种办法都从这里进：每日一局、每日一题、实时房间、十项全能、规则同场、世界工坊，外加新手教程。
  * 各个功能在自己的文件里，用 A.lobbyAdd 把自己登记成大厅里的一张卡片；这里只管把卡片摆出来、认地址里的 #daily、#room=… 这类入口。
  * 页面没有自己的服务器：要给别人看的东西放在 GitHub 上（src/hub.js），实时房间走公共的中继（src/mq.js）。 */
 (function (A) {
@@ -13110,7 +13355,7 @@ var App = (function () {
     window.addEventListener("hashchange", route);
   };
   A.lobbyCommands = function () {
-    var L = [{ kind: "Action", name: "Open the lobby (daily episode, live rooms, decathlon, rule arena, world workshop)", key: "lobby together multiplayer online community ranking leaderboard board", run: function () { A.openLobby(); } }];
+    var L = [{ kind: "Action", name: "Open the lobby (daily episode, daily challenge, live rooms, decathlon, rule arena, world workshop)", key: "lobby together multiplayer online community ranking leaderboard board", run: function () { A.openLobby(); } }];
     cards.forEach(function (c) { L.push({ kind: "Lobby", name: c.title, key: c.title + " " + c.id + " " + (c.keys || ""), run: function () { c.go(); } }); });
     return L;
   };
@@ -14291,6 +14536,9 @@ var App = (function () {
       r ? "\nMy current code (please build on it):\n" + r.code + (Object.keys(r.p).length ? "\nParameters: " + pLine(r.p) : "") : "", "", "My idea:"].join("\n");
   }
 
+  /** 每日一题（app-quest.js）也要用的几样：参数的写法、规则的接口说明、把"规则看到的东西"写成一行字 */
+  A.shopKit = { pLine: pLine, parseP: parseP, ruleDoc: ruleDoc, seeText: function (v) { return seeText(v); } };
+
   /* ---------- 从 GitHub 上找一类东西 ---------- */
   /** o: { title, kind, pick(item) → 收拾好的东西或 null, have(obj) → 是不是已经有了, add(obj), empty, addText, how } */
   function finder(o) {
@@ -14702,6 +14950,462 @@ var App = (function () {
   });
 })(App);
 
+/* ===== app-quest.js ===== */
+/* 应用主体（十四）：每日一题。每天一套新规则（一个带裁判的小游戏），大家各写一条规则来解（引擎见 quest.js）。
+ *   题：是数据，不随页面发布。页面按日期去取 daily/q/日期.json；这一天没有题，就从以前的题里按日期挑一道重温。
+ *   试：在"公开的几组数据"上跑你的规则和几条基准规则，想试几次都行。
+ *   交：把规则贴成一条 GitHub Issue（hub.js）。当天 UTC 24 点截止，同一个账号只算截止前最后交的那一条。
+ *   结算：截止之后，用公共随机信标（drand）那一刻发布的随机数定出"结算的几组数据"，在看榜的人的浏览器里
+ *         把每个人的规则重跑一遍、排名次。每条规则各自和裁判单独在一个隔离环境里跑，互相碰不到。
+ * 截止前别人交的代码在 GitHub 上看得到；截止后改 Issue 的人只能标出来、拦不住。规则和裁判在同一个线程里也没法完全隔绝：这个榜图个乐。 */
+(function (A) {
+  "use strict";
+  var h = A.h, clear = A.clear, QL = A.QL, F = A.F;
+  if (typeof QL_QUEST_INSTALL !== "function" || typeof QL_SHOP_INSTALL !== "function" || typeof QLJobs === "undefined" || typeof QLHub === "undefined" || !A.shopKit) return;
+  if (!QL.SHOP) QL_SHOP_INSTALL(QL);
+  if (!QL.QUEST) QL_QUEST_INSTALL(QL);
+  var Q = QL.QUEST, KIT = A.shopKit, KEY = "ql.quest.v1", LANG = /^en/i.test(document.documentElement.getAttribute("lang") || "") ? "en" : "zh";
+  // base：题目放在哪里（英文页面在 en/ 里，要往上一层）。relays：取结算随机数的几个地址，一个不行换下一个。测试里会换掉
+  A.questOpt = { timeout: 30000, fetchMs: 9000, base: (LANG === "en" ? "../" : "") + "daily/", relays: ["https://api.drand.sh", "https://api2.drand.sh", "https://api3.drand.sh", "https://drand.cloudflare.com"] };
+
+  /* ---------- 存档：每天一份草稿，外加取到过的结算随机数 ---------- */
+  var store = { v: 1, days: {}, fin: {} };
+  try {
+    var o0 = JSON.parse(localStorage.getItem(KEY) || "null");
+    if (o0 && o0.v === 1) {
+      if (o0.days && typeof o0.days === "object") Object.keys(o0.days).slice(-80).forEach(function (d) {
+        var r = o0.days[d]; if (!r || !(QL.questOpen(d) === QL.questOpen(d)) || typeof r.code !== "string") return;
+        store.days[d] = { cid: String(r.cid || ""), title: A.cleanText(r.title, 60), name: A.cleanText(r.name, 40), par: typeof r.par === "string" ? r.par.slice(0, 400) : "", code: r.code.slice(0, Q.maxCode), posted: r.posted && typeof r.posted.h === "string" ? { h: r.posted.h.slice(0, 16), at: +r.posted.at || 0 } : null };
+      });
+      if (o0.fin && typeof o0.fin === "object") Object.keys(o0.fin).slice(-80).forEach(function (d) { var f = o0.fin[d]; if (f && /^[0-9a-f]{64}$/.test(f.randomness) && f.round === QL.questRound(d)) store.fin[d] = { round: f.round, randomness: f.randomness }; });
+    }
+  } catch (e) {}
+  function save() {
+    try {
+      ["days", "fin"].forEach(function (k) { var ks = Object.keys(store[k]).sort(); if (ks.length > 60) ks.slice(0, ks.length - 60).forEach(function (d) { delete store[k][d]; }); });
+      localStorage.setItem(KEY, JSON.stringify(store));
+    } catch (e) {}
+  }
+  A.questStore = function () { return store; };
+
+  /* ---------- 小工具 ---------- */
+  function T(x) { return QL.questText(x, LANG); }
+  function today() { return new Date(Date.now()).toISOString().slice(0, 10); }
+  function dayShift(day, d) { return new Date(QL.questOpen(day) + d * 864e5).toISOString().slice(0, 10); }
+  /** 一段时间写成"几小时几分钟" */
+  function spanText(ms) {
+    var hr = Math.floor(ms / 36e5), mi = Math.floor((ms % 36e5) / 6e4);
+    return hr > 0 ? "" + hr + " h " + mi + " min" : "" + Math.max(1, mi) + " min";
+  }
+  function leftText(day) { return spanText(QL.questDeadline(day) - Date.now()); }
+  function num(spec, v) { return v === v && v != null ? F(v, spec.digits) : "—"; }
+  function pm(spec, mean, se) { return [h("b", { text: num(spec, mean) }), se === se && se != null ? h("span", { class: "note", text: " ± " + F(se, spec.digits) }) : null]; }
+  function verdict(spec, d, dse) { var up = spec.higher ? d > 2 * dse : d < -2 * dse, down = spec.higher ? d < -2 * dse : d > 2 * dse; return [h("b", { class: "verdict " + (up ? "up" : down ? "down" : "flat"), text: A.sgn(F(d, spec.digits)) }), h("span", { class: "note", text: " ± " + F(dse, spec.digits) })]; }
+  function codeHash(code, p) { return QL.questHash(QL.questCanon(code) + "|" + KIT.pLine(p || {})).toString(36); }
+  function avatar(u) { return u ? h("img", { class: "db-av", src: u + (u.indexOf("?") < 0 ? "?" : "&") + "s=40", alt: "", width: 18, height: 18, loading: "lazy" }) : null; }
+  function hhmm(ms) { return new Date(ms).toISOString().slice(11, 16) + " UTC"; }
+  function md(el, text) { if (typeof QLMD !== "undefined") QLMD.mount(el, text); else el.textContent = text; return el; }
+
+  /* ---------- 取东西：题目、交上来的规则、结算的随机数 ---------- */
+  /** 取一个 JSON。失败时：{ offline }（连不上、超时）或 { status }（服务器说没有）。
+   *  own：是本站自己的文件。本站的文件每次都向服务器核对一遍，新合并的题马上看得到；
+   *  别人的服务器（drand）就用最普通的请求，不带任何额外的设定，免得有的浏览器为此先发一次预检 */
+  function getJson(url, own) {
+    if (typeof fetch !== "function") return Promise.reject({ offline: true });
+    var ctl = typeof AbortController === "function" ? new AbortController() : null, t = ctl ? setTimeout(function () { ctl.abort(); }, A.questOpt.fetchMs) : 0, opt = {};
+    if (ctl) opt.signal = ctl.signal;
+    if (own) opt.cache = "no-cache";
+    return fetch(url, opt).then(function (r) {
+      clearTimeout(t); if (!r.ok) throw { status: r.status };
+      return r.json().then(null, function () { throw { status: 0, bad: true }; });
+    }, function () { clearTimeout(t); throw { offline: true }; });
+  }
+  var idx = null, specs = {};
+  /** 有题的日子（排好序的）。十分钟内不重取 */
+  function loadIndex() {
+    if (idx && Date.now() - idx.at < 6e5) return Promise.resolve(idx.days);
+    return getJson(A.questOpt.base + "index.json", true).then(function (o) {
+      var days = o && o.v === 1 && Array.isArray(o.days) ? o.days.filter(function (d) { return typeof d === "string" && QL.questOpen(d) === QL.questOpen(d); }).sort() : [];
+      idx = { at: Date.now(), days: days }; return days;
+    });
+  }
+  /** 这一天的题：{ spec, rerun }。这一天没有题时，从更早的题里按日期挑一道（人人挑到的是同一道），rerun 是它原来的日子。
+   *  失败时：{ offline } 连不上；{ none } 一道题也没有；{ bad } 题目文件读不懂 */
+  function loadSpec(day) {
+    if (specs[day]) return Promise.resolve(specs[day]);
+    return loadIndex().then(function (days) {
+      var src = day;
+      if (days.indexOf(day) < 0) { var past = days.filter(function (d) { return d < day; }); if (!past.length) throw { none: true, first: days.length ? days[0] : "" }; src = past[QL.questHash("rerun|" + day) % past.length]; }
+      return getJson(A.questOpt.base + "q/" + src + ".json", true).then(function (raw) {
+        if (!raw || raw.day !== src) throw { bad: true };
+        var spec = QL.questOk(src === day ? raw : Object.assign({}, raw, { day: day })); if (!spec) throw { bad: true };
+        return (specs[day] = { spec: spec, rerun: src === day ? "" : src });
+      }, function (e) { throw e && e.status ? { bad: true } : e; });
+    }, function (e) { throw e && e.status === 404 ? { none: true } : e; });
+  }
+  function loadEntries(spec, fresh) {
+    return QLHub.list({ kind: "quest", since: spec.day + "T00:00:00Z", fresh: !!fresh }).then(function (res) { return { rows: QL.questEntries(res.items, spec), err: res.stale ? res.error : null }; });
+  }
+  function hex2bytes(s) { var a = new Uint8Array(s.length >> 1), i; for (i = 0; i < a.length; i++) a[i] = parseInt(s.substr(2 * i, 2), 16); return a; }
+  /** 信标给的东西自己对不对得上：随机数应该是签名的 SHA-256。算不了（没有 crypto.subtle）就当它对 */
+  function sigOk(o) {
+    try {
+      if (!/^([0-9a-f]{2})+$/i.test(o.signature) || !window.crypto || !crypto.subtle) return Promise.resolve(true);
+      return crypto.subtle.digest("SHA-256", hex2bytes(o.signature)).then(function (b) { return Array.prototype.map.call(new Uint8Array(b), function (x) { return (x < 16 ? "0" : "") + x.toString(16); }).join("") === String(o.randomness).toLowerCase(); }, function () { return true; });
+    } catch (e) { return Promise.resolve(true); }
+  }
+  /** 这一天结算用的随机数：{ round, randomness }。失败时：{ early } 还没到时候；{ offline } 几个地址都取不到 */
+  function beacon(day) {
+    var round = QL.questRound(day), have = store.fin[day];
+    if (have && have.round === round) return Promise.resolve(have);
+    if (Date.now() < QL.beaconTime(round)) return Promise.reject({ early: true });
+    var relays = A.questOpt.relays.slice(), early = false;
+    function next() {
+      if (!relays.length) return Promise.reject(early ? { early: true } : { offline: true });
+      var base = relays.shift();
+      return getJson(base + "/" + Q.beacon.chain + "/public/" + round).then(function (o) {
+        if (!o || o.round !== round || !/^[0-9a-f]{64}$/i.test(o.randomness)) return next();
+        return sigOk(o).then(function (ok) { if (!ok) return next(); var f = store.fin[day] = { round: round, randomness: String(o.randomness).toLowerCase() }; save(); return f; });
+      }, function (e) { if (e && (e.status === 404 || e.status === 425)) early = true; return next(); });
+    }
+    return next();
+  }
+  A.questBeacon = beacon; A.questLoad = loadSpec;
+
+  /* ---------- 跑 ---------- */
+  /** players: [{ id, code, p, slot, foreign }]。裁判和基准规则是这个网站自己发布的，不算别人的代码 */
+  function runJob(spec, seeds, players, cut, trace, onProgress) {
+    return QLJobs.run({ kind: "quest", timeout: A.questOpt.timeout,
+      codes: [{ id: "game", code: spec.canon, mine: true }].concat(players.map(function (p) { return { id: p.id, code: p.code, mine: !p.foreign }; })),
+      data: { game: "game", gp: spec.p, T: spec.T, K: spec.sets.K, seeds: seeds, cut: cut || 0, trace: !!trace, entries: players.map(function (p) { return { id: p.id, p: p.p, slot: p.slot }; }) }, onProgress: onProgress });
+  }
+  function refPlayers(spec) { return spec.refs.map(function (r, i) { return { id: "ref:" + r.id, code: r.canon, p: r.p, slot: i }; }); }
+  function failText(e) {
+    if (e && e.nostart) return e.message || "This browser cannot start the isolated environment.";
+    if (e && e.timeout) return "It got stuck: most likely there is an infinite loop in the code.";
+    if (e && e.compile) return "Syntax error in the code" + (e.line ? " (line " + e.line + ")" : "") + ": " + e.message;
+    return "Something went wrong: " + (e && e.message || "unknown reason");
+  }
+  /** 把一批人的规则挨个跑一遍：每个人单独一件任务（和基准规则一起），所以谁也碰不到谁。
+   *  people: [{ key, code, p, foreign }]；step(i, n) 报进度；返回 { stop() }，跑完调用 done(rows)：rows[i] 是 { row } 或 { err } */
+  function scoreAll(spec, seeds, cut, people, step, done) {
+    var out = [], i = 0, cur = null, dead = false, bench = refPlayers(spec)[0];
+    function next() {
+      if (dead) return;
+      if (i >= people.length) { done(out); return; }
+      step(i, people.length);
+      var p = people[i], j = cur = runJob(spec, seeds, [bench, { id: "you", code: p.code, p: p.p, slot: Q.slot, foreign: !!p.foreign }], cut, false);
+      j.promise.then(function (res) {
+        if (dead) return;
+        var row = res.rows.filter(function (r) { return r.id === "you"; })[0], sk = (res.skipped || []).filter(function (s) { return s.id === "you"; })[0];
+        out.push(row && !row.err ? { row: row } : { err: row ? "Failed part-way: " + row.err : sk ? sk.err : "Could not take part" }); i++; next();
+      }, function (e) {
+        if (dead || (e && e.cancelled)) return;
+        if (e && e.nostart) { dead = true; done(null, failText(e)); return; }
+        out.push({ err: failText(e) }); i++; next();
+      });
+    }
+    next();
+    return { stop: function () { dead = true; if (cur) cur.cancel(); } };
+  }
+
+  /* ---------- 给 AI 的说明 ---------- */
+  function rulePrompt(spec, code, par) {
+    return ["Please write a rule for me that solves the challenge below. Reply with one block of JavaScript code only, no explanation.", "", "Challenge: " + T(spec.title), T(spec.about), T(spec.note) ? "\n" + T(spec.note) : "", "",
+      "The referee's code (a rule cannot see G, only what show returns):", T(spec.code), Object.keys(spec.p).length ? "\nParameters of the challenge (a rule reads them from s.g): " + KIT.pLine(spec.p) : "", "", "Interface:", KIT.ruleDoc(), "",
+      "Scoring: every rule plays " + spec.sets.K + " episodes on each of several sets of data, and the result is the average score per episode; " + (spec.higher ? "higher is better" : "lower is better") + ". Settlement uses different sets of data, so do not tune the rule to the public ones.",
+      "Requirements: define only decide (plus init if needed), with no other top-level statements; no eval, no network access, no Math.random (use s.rnd() for random numbers); read all parameters from p.",
+      code ? "\nMy current code (please build on it):\n" + code + (par ? "\nParameters: " + par : "") : "", "", "My idea:"].join("\n");
+  }
+
+  /* ---------- 题面（今天的和往期的都用） ---------- */
+  function statement(spec, host) {
+    host.appendChild(md(h("div", { class: "qs-about", id: "qsAbout" }), T(spec.about)));
+    if (T(spec.note)) host.appendChild(md(h("div", { class: "qs-note", id: "qsNote" }), T(spec.note)));
+    host.appendChild(h("p", { class: "note", id: "qsSets", text: "At most " + spec.T + " rounds per episode. Public data: " + spec.sets.pub + " sets; settlement data: " + spec.sets.fin + " sets; " + spec.sets.K + " episodes per set. The result is the average score per episode; " + (spec.higher ? "higher is better" : "lower is better") + ". " + (Object.keys(spec.p).length ? "Parameters of the challenge (a rule reads them from s.g): " + KIT.pLine(spec.p) + "." : "") }));
+    host.appendChild(h("details", { class: "more", id: "qsGame" }, h("summary", { text: "The referee's code" }), h("div", { class: "more-body" }, h("pre", { class: "code", id: "qsGameCode", text: T(spec.code) }))));
+  }
+  function refList(spec, host) {
+    var list = h("div", { class: "ar-list", id: "qsRefs" });
+    spec.refs.forEach(function (r, i) {
+      list.appendChild(h("div", { class: "ar-rule", "data-ref": r.id }, h("div", { class: "ar-rtxt sh-txt" }, h("b", { text: T(r.name) }), i === 0 ? h("span", { class: "tag", text: "Benchmark" }) : null, h("span", { class: "note", text: T(r.summary) + (Object.keys(r.p).length ? " (" + KIT.pLine(r.p) + ")" : "") })),
+        h("button", { class: "btn small", type: "button", "data-code": r.id, text: "View code", onclick: function () { A.modal(T(r.name), [h("pre", { class: "code", id: "qsRefCode", text: T(r.code) }), Object.keys(r.p).length ? h("p", { class: "note", text: "Parameters: " + KIT.pLine(r.p) }) : null], { cls: "are" }); } })));
+    });
+    host.appendChild(list);
+  }
+  function loadFail(e, what) {
+    if (e && e.none) {
+      // 题已经排好了、只是还没到第一天：说清楚哪天开始。往回翻到了第一道题之前：说清楚第一道题是哪天的
+      if (e.first && e.first > today()) return "The first challenge opens on " + e.first + " (at 00:00 UTC, " + spanText(QL.questOpen(e.first) - Date.now()) + " from now).";
+      if (e.first) return "There was no daily challenge yet on this day: the first one is dated " + e.first + ".";
+      return "There are no challenges yet. A new batch is released every week.";
+    }
+    if (e && e.bad) return "That day's challenge could not be read (the file is malformed).";
+    if (e && e.limited) return "GitHub has limited requests from this network (60 per hour without signing in). Refresh again in a while.";
+    return "" + what + " could not be loaded: there is no connection, or you have opened an offline copy. The daily challenge is only available on the website.";
+  }
+
+  /* ================= 今天的题 ================= */
+  A.openQuest = function (dayArg) {
+    var day = today();
+    if (dayArg && typeof dayArg === "string" && QL.questOpen(dayArg) === QL.questOpen(dayArg) && dayArg < day) return A.openQuestBoard(dayArg);
+    var host = h("div", { class: "ar-host qs-host" }, h("p", { class: "note", id: "qsLoading", text: "Loading today's challenge…" })), alive = true, job = null, bjob = null, tick = 0, flushDraft = null;
+    function stop() { if (job) { job.cancel(); job = null; } if (bjob) { bjob.stop(); bjob = null; } }
+    // 草稿是停笔 0.3 秒之后才存的；关掉对话框、离开页面的时候，把还没来得及存的那几个字也存下来
+    function onHide() { if (flushDraft) flushDraft(); }
+    window.addEventListener("pagehide", onHide);
+    var m = A.modal("Daily challenge", host, { cls: "arm", onClose: function () { alive = false; stop(); clearInterval(tick); onHide(); window.removeEventListener("pagehide", onHide); } });
+    function fail(e) { if (!alive) return; clear(host); host.appendChild(h("div", { class: "warn", id: "qsLoadErr", text: loadFail(e, "Today's challenge") })); host.appendChild(h("div", { class: "row tight" }, h("button", { class: "btn", type: "button", id: "qsRetry", text: "Try again", onclick: function () { clear(host); host.appendChild(h("p", { class: "note", id: "qsLoading", text: "Loading today's challenge…" })); go(); } }))); }
+    function go() { loadSpec(day).then(function (x) { if (alive) draw(x.spec, x.rerun); }, fail); }
+    function draw(spec, rerun) {
+      clear(host);
+      var rec = store.days[day], pubSeeds = QL.questPubSeeds(spec), last = null, ents = null, entErr = null, entLoading = false, pubBoard = null;
+      if (!rec || rec.cid !== spec.cid) rec = store.days[day] = { cid: spec.cid, title: T(spec.title), name: "", par: KIT.pLine(spec.starter.p), code: T(spec.starter.code), posted: null };
+      rec.title = T(spec.title); save();
+      var title = m.box.querySelector(".modal-h h2"); if (title) title.textContent = "Daily challenge · " + T(spec.title);
+      var banner = h("p", { class: "note db-banner", id: "qsBanner" });
+      function closed() { return Date.now() >= QL.questDeadline(day); }
+      function paintBanner() {
+        banner.textContent = (rerun ? "There is no new challenge for this day, so this is a rerun of the one from " + rerun + ". " : "") + (closed() ? "The challenge of " + day + " has closed. Results are settled on " + spec.sets.fin + " other sets of data; click \"See the settlement\" below."
+          : "" + day + " · closes in " + leftText(day) + " (at 00:00 UTC, 08:00 Beijing time). After that, entries are settled and ranked on " + spec.sets.fin + " other sets of data.");
+        if (post) post.disabled = closed();
+      }
+      host.appendChild(banner);
+      statement(spec, host);
+      host.appendChild(h("h3", { class: "db-title", text: "Reference rules" }));
+      refList(spec, host);
+
+      /* 我的规则 */
+      host.appendChild(h("h3", { class: "db-title", text: "Your rule" }));
+      var name = h("input", { type: "text", id: "qsName", maxlength: 40, value: rec.name, placeholder: "Give it a name (used when you submit)", "aria-label": "Name of the rule" });
+      var par = h("input", { type: "text", id: "qsPar", class: "num", value: rec.par, placeholder: "e.g. c = 20 (leave empty if none)", "aria-label": "Parameters", spellcheck: "false" });
+      var ta = h("textarea", { class: "codeedit", id: "qsCode", spellcheck: "false", "aria-label": "Code of the rule" }); ta.value = rec.code;
+      var err = h("div", { class: "warn err", id: "qsErr", hidden: true }), out = h("div", { class: "ar-out", id: "qsOut" });
+      var dirty = false, flush = flushDraft = function () { if (!dirty) return; dirty = false; rec.name = A.cleanText(name.value, 40); rec.par = par.value.slice(0, 400); rec.code = ta.value.slice(0, Q.maxCode); save(); };
+      var later = A.debounce(flush, 300), keep = function () { dirty = true; later(); };
+      [name, par, ta].forEach(function (el) { el.addEventListener("input", keep); });
+      function bad(msg) { err.hidden = false; err.textContent = msg; }
+      /** 读出眼下写的规则：{ name, p, code }；写得不对时返回一句话 */
+      function read() {
+        var p = KIT.parseP(par.value), code = ta.value, syn = QLJobs.syntax(code);
+        if (!p) return "The parameters are not written correctly. Write them like this: c = 20, up = 2 (names are letters, values are numbers).";
+        if (syn) return "Syntax error in the code: " + syn;
+        if (!/\bfunction\s+decide\s*\(/.test(code)) return "The code must contain function decide(s, p, st).";
+        if (code.length > Q.maxCode) return "The code is too long (the limit is 20,000 characters).";
+        return { name: A.cleanText(name.value, 40) || "Unnamed rule", p: p, code: code };
+      }
+      host.appendChild(h("div", { class: "ar-form" }, h("label", { for: "qsName", text: "Name" }), name, h("label", { for: "qsPar", text: "Parameters" }), par));
+      host.appendChild(ta); host.appendChild(err);
+      var tryBtn = h("button", { class: "btn primary", type: "button", id: "qsTry", text: "Try it on the " + spec.sets.pub + " public sets", onclick: tryIt });
+      var post = h("button", { class: "btn", type: "button", id: "qsPost", text: "Submit", title: "Post this rule as a GitHub issue. You can submit again before the deadline; only your last submission counts", onclick: submit });
+      host.appendChild(h("div", { class: "row tight ar-acts" }, tryBtn, post,
+        h("button", { class: "btn", type: "button", id: "qsAi", text: "Copy a brief for an AI", title: "Copy the challenge, the referee's code, the interface and your current code, paste them to any AI, and have it write for you", onclick: function () { A.copy(rulePrompt(spec, ta.value, par.value.trim())); } }),
+        h("button", { class: "btn", type: "button", id: "qsReset", text: "Reset to the starter code", onclick: function () { ta.value = T(spec.starter.code); par.value = KIT.pLine(spec.starter.p); dirty = true; flush(); err.hidden = true; } })));
+      host.appendChild(h("details", { class: "more" }, h("summary", { text: "What a rule can use" }), h("div", { class: "more-body" }, h("pre", { class: "code", id: "qsDoc", text: KIT.ruleDoc() }))));
+      host.appendChild(out);
+
+      function tryIt() {
+        flush();
+        var r = read(); err.hidden = true; clear(out);
+        if (typeof r === "string") { bad(r); return; }
+        stop(); tryBtn.disabled = true;
+        var prog = h("p", { class: "note", id: "qsProg", text: "Dealing…" }); out.appendChild(prog);
+        var players = refPlayers(spec).concat([{ id: "you", code: r.code, p: r.p, slot: Q.slot }]);
+        var j = job = runJob(spec, pubSeeds, players, 0, true, function (pm) { prog.textContent = "Rule " + (pm.i + 1) + " of " + pm.n + ", set " + (pm.s + 1) + " of " + pm.S + "…"; });
+        j.promise.then(function (res) { if (job === j) job = null; if (!alive) return; tryBtn.disabled = false; last = res; clear(out); showTry(res); },
+          function (e) { if (job === j) job = null; if (!alive || (e && e.cancelled)) return; tryBtn.disabled = false; clear(out); bad(e && e.id && e.id !== "you" && !e.timeout ? "The challenge's own code failed: " + (e.message || "") : failText(e)); });
+      }
+      function nameOf(id) { if (id === "you") return "Your rule"; var r = spec.refs.filter(function (x) { return "ref:" + x.id === id; })[0]; return r ? T(r.name) : id; }
+      function showTry(res) {
+        (res.skipped || []).forEach(function (x) { out.appendChild(h("div", { class: "warn", "data-skip": x.id, text: "\"" + nameOf(x.id) + "\" could not take part: " + x.err })); });
+        var base = res.rows[0], key = function (r) { return r.err || !(r.mean === r.mean) ? -Infinity : spec.higher ? r.mean : -r.mean; }, rows = res.rows.slice().sort(function (a, b) { return key(b) - key(a) || 0; }), tb = h("tbody"), rank = 0;
+        rows.forEach(function (r) {
+          var me = r.id === "you";
+          tb.appendChild(h("tr", { class: me ? "me" : "ref", "data-rule": r.id }, h("td", { class: "num", text: r.err ? "—" : String(++rank) }),
+            h("td", null, h("b", { text: nameOf(r.id) }), r === base ? h("span", { class: "tag", text: "Benchmark" }) : null, r.err ? h("span", { class: "note", text: " failed part-way: " + r.err }) : r.bad > 0 ? h("span", { class: "note", text: " returned something other than a number in " + A.P(r.bad, 1) + " of the rounds" }) : null),
+            h("td", { class: "num" }, r.err ? "—" : pm(spec, r.mean, r.se)),
+            h("td", { class: "num" }, r.err || r === base || !(r.d === r.d) ? "—" : verdict(spec, r.d, r.dse)),
+            h("td", { class: "num qs-sets", text: r.err ? "—" : r.sets.map(function (v) { return F(v, spec.digits); }).join("  ") })));
+        });
+        out.appendChild(h("div", { class: "gref" }, h("table", { class: "gtab hp-tab db-tab ar-tab sh-tab", id: "qsTab" },
+          h("caption", { text: "The " + res.n + " public sets, " + res.K + " episodes each; in every episode all rules are dealt the same hand. The number after ± is the standard error." }),
+          h("thead", null, h("tr", null, h("th", { text: "Rank" }), h("th", { text: "Rule" }), h("th", { text: "Average score per episode" }), h("th", { text: "Above the benchmark" }), h("th", { text: "Average of each set" }))), tb)));
+        out.appendChild(h("p", { class: "note", id: "qsHint", text: "These are only the " + res.n + " public sets. Settlement uses " + spec.sets.fin + " other sets, and nobody knows which before the deadline, so do not tune your rule to these numbers." }));
+        var tr = (res.trace || []).filter(function (x) { return x.log && x.log.length; });
+        if (tr.length) {
+          var sel = h("select", { id: "qsTraceSel", "aria-label": "Whose first episode to show" }, tr.map(function (x) { return h("option", { value: x.id, text: nameOf(x.id), selected: x.id === "you" }); })), box = h("div", { class: "gref" });
+          var paint = function () {
+            var x = tr.filter(function (q) { return q.id === sel.value; })[0] || tr[0], tb2 = h("tbody");
+            x.log.forEach(function (o, t) { tb2.appendChild(h("tr", null, h("td", { class: "num", text: String(t + 1) }), h("td", { class: "sh-see", text: KIT.seeText(o.see) }), h("td", { class: "num", text: o.a === o.a ? String(+o.a.toPrecision(6)) : "not a number" }), h("td", { class: "num", text: A.sgn(F(o.gain, 3)) }))); });
+            clear(box); box.appendChild(h("table", { class: "gtab hp-tab sh-trace", id: "qsTraceTab" }, h("thead", null, h("tr", null, h("th", { text: "Round" }), h("th", { text: "What the rule saw" }), h("th", { text: "What the rule returned" }), h("th", { text: "Score this round" }))), tb2));
+          };
+          sel.addEventListener("change", paint); paint();
+          out.appendChild(h("details", { class: "more", id: "qsTrace" }, h("summary", { text: "See how the first episode was played" }), h("div", { class: "more-body" }, h("div", { class: "row tight" }, h("label", { for: "qsTraceSel", class: "note", text: "Which rule" }), sel), box, h("p", { class: "note", text: "The first episode of the first set; only the first 30 rounds are listed. Use it to check that what your rule sees is what you think it sees." }))));
+        }
+      }
+      function submit() {
+        flush();
+        var r = read(); err.hidden = true;
+        if (typeof r === "string") { bad(r); return; }
+        if (closed()) { bad("This day's challenge has already closed."); paintBanner(); return; }
+        var pd = A.postDialog({ kind: "quest", title: day + " " + T(spec.title) + " · " + r.name, meta: { kind: "quest", day: day, cid: spec.cid, name: r.name, p: r.p, v: Q.ver }, code: r.code });
+        var go2 = pd && pd.box.querySelector("#pdGo");
+        if (go2) go2.addEventListener("click", function () { rec.posted = { h: codeHash(r.code, r.p), at: Date.now() }; save(); setTimeout(paintBoard, 60); });
+      }
+
+      /* 今天谁交了 */
+      host.appendChild(h("h3", { class: "db-title", text: "Who has submitted today" }));
+      var board = h("div", { class: "db", id: "qsBoard" }); host.appendChild(board);
+      function isMine(e) { return !!rec.posted && codeHash(e.code, e.p) === rec.posted.h; }
+      function loadBoard(fresh) {
+        entLoading = true; paintBoard();
+        loadEntries(spec, fresh).then(function (x) { entLoading = false; ents = x.rows; entErr = x.err; pubBoard = null; if (alive) paintBoard(); }, function (e) { entLoading = false; entErr = e || {}; if (alive) paintBoard(); });
+      }
+      function paintBoard() {
+        clear(board);
+        var n = ents ? ents.length : 0, head = h("div", { class: "row tight db-head" }, h("span", { class: "db-say", id: "qsSay", text: ents ? "" + (n ? "Rules submitted so far: " + n + "." : "No one has submitted yet today.") + " Results are settled after the deadline." : entLoading ? "Loading from GitHub…" : "" }), h("span", { class: "sp" }),
+          h("button", { class: "btn small", type: "button", id: "qsRefresh", disabled: entLoading, text: entLoading ? "Loading…" : "Refresh", onclick: function () { loadBoard(true); } }));
+        board.appendChild(head);
+        if (entErr) board.appendChild(h("div", { class: "warn", id: "qsBoardErr", text: (entErr.limited ? "GitHub has limited requests from this network (60 per hour without signing in). Refresh again in a while." : "Cannot reach GitHub, so the list of submissions is unavailable for now. Your rule is saved on this device and is not affected.") + (ents ? " Shown below is what was fetched last time." : "") }));
+        if (rec.posted && ents && !ents.some(isMine)) board.appendChild(h("p", { class: "note", id: "qsPosted", text: "Your rule is only submitted once you click Create on the GitHub page that just opened. Then come back here and click \"Refresh\"; it can take GitHub a minute or two to make it available." }));
+        if (n) {
+          var tb = h("tbody"), order = ents.map(function (e, i) { return i; }), sc = pubBoard && pubBoard.rows;
+          if (sc) order.sort(function (a, b) { var ka = sc[a].row ? (spec.higher ? sc[a].row.mean : -sc[a].row.mean) : -Infinity, kb = sc[b].row ? (spec.higher ? sc[b].row.mean : -sc[b].row.mean) : -Infinity; return kb - ka || ents[a].at - ents[b].at; });
+          order.forEach(function (i) {
+            var e = ents[i], x = sc ? sc[i] : null;
+            tb.appendChild(h("tr", { class: isMine(e) ? "me" : "", "data-who": e.user }, h("td", null, avatar(e.avatar), h("a", { href: e.url, target: "_blank", rel: "noopener", text: "@" + e.user }), isMine(e) ? h("b", { text: " (you)" }) : null),
+              h("td", { text: e.name }), h("td", { class: "num", text: hhmm(e.at) + (e.tries > 1 ? ", attempt " + e.tries : "") }),
+              sc ? h("td", { class: "num" }, x.row ? pm(spec, x.row.mean, x.row.se) : h("span", { class: "note", text: x.err })) : null));
+          });
+          board.appendChild(h("div", { class: "gref" }, h("table", { class: "gtab hp-tab db-tab", id: "qsWho" }, h("thead", null, h("tr", null, h("th", { text: "Who" }), h("th", { text: "Rule" }), h("th", { text: "Submitted at" }), sc ? h("th", { text: "" + spec.sets.pub + " public sets" }) : null)), tb)));
+          if (pubBoard && pubBoard.err) board.appendChild(h("div", { class: "warn err", id: "qsPubErr", text: pubBoard.err }));
+          var pb = h("button", { class: "btn small", type: "button", id: "qsPubRun", disabled: !!bjob, text: bjob ? "Working…" : "Score everyone on the " + spec.sets.pub + " public sets", onclick: function () {
+            var prog = h("span", { class: "note", id: "qsPubProg" }); pb.disabled = true; pb.parentNode.appendChild(prog);
+            bjob = scoreAll(spec, pubSeeds, 0, ents.map(function (e) { return { code: e.code, p: e.p, foreign: true }; }), function (i2, n2) { prog.textContent = "Entry " + (i2 + 1) + " of " + n2 + "…"; }, function (rows, fatal) { bjob = null; pubBoard = { rows: rows, err: fatal || "" }; if (alive) paintBoard(); });
+          } });
+          board.appendChild(h("div", { class: "row tight db-foot" }, pb));
+          board.appendChild(h("p", { class: "note db-how", text: "Scores on the public sets are only a guide, not the final ranking. Other people's rules run in an isolated environment; they cannot touch anything on this page and cannot reach the network. Submitted code is public, so others can see it before the deadline; when scores are equal, the earlier submission ranks higher." }));
+        }
+      }
+      host.appendChild(h("div", { class: "row tight db-foot" },
+        h("button", { class: "btn small", type: "button", id: "qsYesterday", text: "See yesterday's settlement", onclick: function () { A.openQuestBoard(dayShift(day, -1)); } }),
+        h("button", { class: "btn small", type: "button", id: "qsSettle", text: "See the settlement", hidden: true, onclick: function () { m.close(); A.openQuestBoard(day); } }),
+        h("button", { class: "btn small", type: "button", id: "qsShare", text: "Copy a link to this challenge", onclick: function () { A.copy(A.lobbyLink("quest")); } })));
+      paintBanner(); loadBoard(false);
+      tick = setInterval(function () { if (!alive) return; paintBanner(); var sb = host.querySelector("#qsSettle"); if (sb) sb.hidden = !closed(); }, 20000);
+    }
+    go();
+    return m;
+  };
+
+  /* ================= 往期：结算和名次 ================= */
+  A.openQuestBoard = function (day) {
+    var host = h("div", { class: "ar-host qs-host" }, h("p", { class: "note", id: "qsbStatus", text: "Loading that day's challenge…" })), alive = true, sjob = null, rjob = null;
+    var m = A.modal("Daily challenge · " + day, host, { cls: "arm", onClose: function () { alive = false; if (sjob) sjob.stop(); if (rjob) rjob.cancel(); } });
+    function say(text, cls) { var s = host.querySelector("#qsbStatus"); if (!s) { s = h("p", { id: "qsbStatus" }); host.appendChild(s); } s.className = cls || "note"; s.textContent = text; }
+    function retry(label, fn) { host.appendChild(h("div", { class: "row tight", id: "qsbRetryRow" }, h("button", { class: "btn", type: "button", id: "qsbRetry", text: label, onclick: function () { var r = host.querySelector("#qsbRetryRow"); if (r) r.remove(); fn(); } }))); }
+    function nav() {
+      var prev = dayShift(day, -1), next = dayShift(day, 1), t = today();
+      return h("div", { class: "row tight db-foot", id: "qsbNav" },
+        h("button", { class: "btn small", type: "button", id: "qsbPrev", text: "Previous day", onclick: function () { m.close(); A.openQuestBoard(prev); } }),
+        next < t ? h("button", { class: "btn small", type: "button", id: "qsbNext", text: "Next day", onclick: function () { m.close(); A.openQuestBoard(next); } }) : null,
+        h("button", { class: "btn small", type: "button", id: "qsbToday", text: "Back to today's challenge", onclick: function () { m.close(); A.openQuest(); } }));
+    }
+    function start() {
+      loadSpec(day).then(function (x) { if (alive) withSpec(x.spec, x.rerun); }, function (e) { if (!alive) return; say(loadFail(e, "That day's challenge"), "warn"); if (!(e && (e.none || e.bad))) retry("Try again", start); host.appendChild(nav()); });
+    }
+    function withSpec(spec, rerun) {
+      clear(host);
+      var title = m.box.querySelector(".modal-h h2"); if (title) title.textContent = "Daily challenge · " + day + " · " + T(spec.title);
+      host.appendChild(h("p", { class: "note db-banner", id: "qsbBanner", text: (rerun ? "There was no new challenge for this day; this was a rerun of the one from " + rerun + ". " : "") + T(spec.summary) }));
+      var det = h("details", { class: "more", id: "qsbAbout" }, h("summary", { text: "The challenge and the reference rules" })), body = h("div", { class: "more-body qs-in" });
+      statement(spec, body); refList(spec, body); det.appendChild(body); host.appendChild(det);
+      var status = h("p", { class: "note", id: "qsbStatus" }), out = h("div", { class: "db", id: "qsbOut" });
+      host.appendChild(status); host.appendChild(out); host.appendChild(nav());
+      var rec = store.days[day], mine = rec && rec.cid === spec.cid ? rec : null;
+      function settle(fresh) {
+        clear(out); say("Fetching the random number used for settlement…");
+        if (Date.now() < QL.questDeadline(day)) { say("This day's challenge has not closed yet (it closes at 00:00 UTC).", "warn"); return; }
+        beacon(day).then(function (b) {
+          if (!alive) return;
+          say("Loading the submitted rules from GitHub…");
+          loadEntries(spec, fresh).then(function (x) { if (alive) compute(b, x.rows, x.err); }, function (e) { if (alive) compute(b, [], e || {}); });
+        }, function (e) {
+          if (!alive) return;
+          say(e && e.early ? "The random number used for settlement has not been published yet (that happens half a minute after the deadline). Try again in a moment." : "The random number used for settlement could not be fetched: none of the public servers could be reached. Try another network, or try again later.", "warn");
+          retry("Try again", function () { settle(false); });
+        });
+      }
+      function compute(b, ents, entErr) {
+        var seeds = QL.questFinSeeds(spec, b.randomness).concat(QL.questPubSeeds(spec)), cut = spec.sets.fin, people = ents.map(function (e) { return { code: e.code, p: e.p, foreign: true }; });
+        var ghost = mine && QLJobs.syntax(mine.code) === "" && /\bfunction\s+decide\s*\(/.test(mine.code) && !(mine.posted && ents.some(function (e) { return codeHash(e.code, e.p) === mine.posted.h; })) ? { code: mine.code, p: KIT.parseP(mine.par) || {} } : null;
+        if (ghost) people.push(ghost);
+        say("Running the reference rules…");
+        var j = rjob = runJob(spec, seeds, refPlayers(spec), cut, false);
+        j.promise.then(function (res) {
+          rjob = null; if (!alive) return;
+          sjob = scoreAll(spec, seeds, cut, people, function (i, n) { say("Re-running the submitted rules: " + (i + 1) + " of " + n + "…"); }, function (rows, fatal) {
+            sjob = null; if (!alive) return;
+            if (!rows) { say(fatal, "warn err"); return; }
+            paint(b, ents, entErr, res, rows, !!ghost);
+          });
+        }, function (e) { rjob = null; if (!alive || (e && e.cancelled)) return; say("The challenge's own code did not run: " + failText(e), "warn err"); });
+      }
+      function paint(b, ents, entErr, refRes, scored, hasGhost) {
+        clear(out);
+        var rows = ents.map(function (e, i) { var x = scored[i]; return { who: "user", e: e, me: !!(mine && mine.posted && codeHash(e.code, e.p) === mine.posted.h), fin: x.row ? x.row.parts[0] : null, pub: x.row ? x.row.parts[1] : null, err: x.err || "", at: e.at, n: e.n }; });
+        var rk = QL.questRank(rows.map(function (r) { return { score: r.fin ? r.fin.mean : NaN, at: r.at, n: r.n, err: r.err }; }), spec.higher);
+        rows.forEach(function (r, i) { r.rank = rk[i]; });
+        if (hasGhost) {   // 你当天写了但没交的那一条：算出"要是交了排第几"，但不占别人的名次
+          var g = scored[scored.length - 1], gf = g.row ? g.row.parts[0] : null, would = 0;
+          if (gf && gf.mean === gf.mean) would = 1 + rows.filter(function (r) { return r.rank && (spec.higher ? r.fin.mean >= gf.mean : r.fin.mean <= gf.mean); }).length;
+          rows.push({ who: "me", me: true, ghost: true, fin: gf, pub: g.row ? g.row.parts[1] : null, err: g.err || "", at: Infinity, n: Infinity, rank: 0, would: would });
+        }
+        var all = rows.slice();
+        refRes.rows.forEach(function (r, i) { var ref = spec.refs[i]; if (ref && r.parts) all.push({ who: "ref", name: T(ref.name), bench: i === 0, fin: r.parts[0], pub: r.parts[1], err: r.err || "", rank: 0, at: Infinity, n: Infinity }); });
+        var key = function (r) { return r.fin && r.fin.mean === r.fin.mean ? (spec.higher ? r.fin.mean : -r.fin.mean) : -Infinity; };
+        all.sort(function (a, b) { return key(b) - key(a) || (a.rank || 1e9) - (b.rank || 1e9); });
+        var n = ents.length, meRow = rows.filter(function (r) { return r.me; })[0], text;
+        if (!n) text = "No one submitted a rule that day. " + (hasGhost && meRow && meRow.fin ? "You did not submit the one you wrote that day; its score on the settlement data is shown below." : "The scores of the reference rules on the settlement data are shown below.");
+        else if (meRow && !meRow.ghost && meRow.rank) text = "Rules submitted that day: " + n + ". Your rank: " + meRow.rank + ".";
+        else if (meRow && meRow.ghost && meRow.would) text = "Rules submitted that day: " + n + ". You did not submit the one you wrote that day; had you submitted it, it would rank " + meRow.would + " of " + (n + 1) + ".";
+        else text = "Rules submitted that day: " + n + ".";
+        say(text, "db-say");
+        if (entErr) out.appendChild(h("div", { class: "warn", id: "qsbErr", text: (entErr.limited ? "GitHub has limited requests from this network (60 per hour without signing in)." : "Cannot reach GitHub, so the submitted rules could not be loaded.") + (n ? " Shown below is what was fetched last time." : "") }));
+        var tb = h("tbody");
+        all.forEach(function (r) {
+          var who;
+          if (r.who === "ref") who = [h("span", { class: "tag", text: r.bench ? "Benchmark" : "Reference" }), " ", r.name];
+          else if (r.who === "me") who = [h("b", { text: "You" }), h("span", { class: "note", text: " (not submitted that day)" })];
+          else who = [avatar(r.e.avatar), h("a", { href: r.e.url, target: "_blank", rel: "noopener", text: "@" + r.e.user }), r.me ? h("b", { text: " (you)" }) : null, h("span", { class: "note", text: " " + r.e.name }), r.e.touched ? h("span", { class: "tag qs-flag", title: "This issue changed after the deadline: the code may have been edited, or someone may only have commented", text: "changed after the deadline" }) : null];
+          tb.appendChild(h("tr", { class: (r.me ? "me" : "") + (r.who === "ref" ? " ref" : ""), "data-who": r.who === "user" ? r.e.user : r.who === "ref" ? "ref" : "me" },
+            h("td", { class: "num", text: r.rank ? String(r.rank) : "—" }), h("td", null, who),
+            h("td", { class: "num" }, r.fin ? pm(spec, r.fin.mean, r.fin.se) : h("span", { class: "note", text: r.err || "—" })),
+            h("td", { class: "num" }, r.fin && !(r.who === "ref" && r.bench) && r.fin.d === r.fin.d ? verdict(spec, r.fin.d, r.fin.dse) : "—"),
+            h("td", { class: "num", text: r.pub ? num(spec, r.pub.mean) : "—" })));
+        });
+        out.appendChild(h("div", { class: "gref" }, h("table", { class: "gtab hp-tab db-tab ar-tab", id: "qsbTab" },
+          h("caption", { text: "The " + spec.sets.fin + " settlement sets, " + spec.sets.K + " episodes each; in every episode all rules are dealt the same hand. The number after ± is the standard error." }),
+          h("thead", null, h("tr", null, h("th", { text: "Rank" }), h("th", { text: "Who" }), h("th", { text: "" + spec.sets.fin + " settlement sets" }), h("th", { text: "Above the benchmark" }), h("th", { text: "" + spec.sets.pub + " public sets" }))), tb)));
+        out.appendChild(h("div", { class: "row tight db-foot" }, h("button", { class: "btn small", type: "button", id: "qsbRefresh", text: "Fetch again", onclick: function () { settle(true); } })));
+        out.appendChild(h("p", { class: "note db-how", id: "qsbHow" }, "The settlement sets are determined by a public random number: ",
+          h("a", { href: A.questOpt.relays[0] + "/" + Q.beacon.chain + "/public/" + b.round, target: "_blank", rel: "noopener", text: "drand round " + b.round }),
+          ", published half a minute after the deadline (" + new Date(QL.beaconTime(b.round)).toISOString().slice(0, 19).replace("T", " ") + " UTC); nobody could have computed it earlier. Every rule on the board has been re-run in your browser, each in an isolated environment of its own, so they cannot touch one another; when scores are equal, the earlier submission ranks higher. \"Changed after the deadline\" marks an issue that was touched after the deadline: the code may have been edited, or someone may only have commented, and the page cannot tell which. A rule and the referee share a thread and cannot be completely isolated from each other, so this board is just for fun."));
+      }
+      settle(false);
+    }
+    start();
+    return m;
+  };
+
+  if (A.lobbyAdd) A.lobbyAdd({
+    id: "quest", order: 12, route: "quest", primary: true, kicker: "One challenge a day, solved by writing a rule", title: "Daily challenge", label: "See today's challenge", keys: "quest challenge daily problem strategy contest settlement ranking",
+    blurb: "A new challenge every day: a small game with a referee. Write a rule to solve it, try it on the public sets of data, then submit it; after the deadline, entries are settled and ranked on different sets of data.",
+    status: function () { var r = store.days[today()]; return r && r.title ? "Today: " + r.title + (r.posted ? " · submitted" : "") : ""; },
+    go: function (arg) { A.openQuest(arg); }
+  });
+})(App);
+
 /* ===== app-tour.js ===== */
 /* 应用主体（十四）：新手教程。八步，每步两三分钟：这是什么 → 亲手打一局 → 开房间 → 写规则 → 十项全能 → 规则同场 → 世界工坊 → 贴给别人。
  * 每一步是几段话加一个按钮；按钮把人带到那个地方，同时在左下角留一个"回到教程"的小条，做完了点它接着看。
@@ -14735,7 +15439,8 @@ var App = (function () {
         { list: [
           "Change an existing one. Find the \"Rule\" block (on a phone, tap \"Game & rule\" first), click \"Code & notes\" below it, switch to the \"Code\" page, change a number or two, and click \"Apply changes\": it is saved as a rule of your own.",
           "Let the AI in the page write it. Open the " + A.AI + " panel (the button at the top right on a computer; the tab of the same name on a phone) and state your idea in one sentence; it writes the rule, gives the parameters and explains why it is written that way. This way needs your own API key.",
-          "Let the AI you normally use write it. In the rule arena and the world workshop, wherever a rule is written there is a \"Copy a brief for an AI\" button: click it, paste the text to any AI, and paste the code it replies with back in." ] } ],
+          "Let the AI you normally use write it. In the daily challenge, the rule arena and the world workshop, wherever a rule is written there is a \"Copy a brief for an AI\" button: click it, paste the text to any AI, and paste the code it replies with back in." ] },
+        "Where to put a finished rule to the test: the \"Daily challenge\" in the lobby sets a new challenge every day, and everyone writes a rule to solve it. Try yours on the public sets of data first, then submit it; after the deadline, entries are ranked on different sets of data." ],
         act: { label: "See the code of the current rule", go: function () { A.openCode("code"); } } },
       { id: "deca", short: "Decathlon", title: "Does it only work in one kind of market?", body: [
         "A rule doing well in one world says little: perhaps it just happens to suit that world. The decathlon sends one rule through ten worlds and, in each, compares its long-run growth rate with \"buy and hold\" (buy once and never move). The smallest of the ten differences is its score.",

@@ -1,0 +1,167 @@
+{
+  "v": 1,
+  "day": "2026-10-17",
+  "id": "budget-bids",
+  "title": {
+    "zh": "钱不够的时候怎么出价",
+    "en": "Bidding on a budget"
+  },
+  "summary": {
+    "zh": "100 场拍卖，预算只够赢其中一部分。钱花在哪几场上？",
+    "en": "A hundred auctions and a budget that covers only some of them. Which ones do you spend it on?"
+  },
+  "about": {
+    "zh": [
+      "一共 100 场拍卖，一场一件东西，你手里的预算是 12。每一场开始时你看到这件东西对你值多少（`v`，在 0 到 1 之间均匀分布），然后出一个价。",
+      "",
+      "对手的最高出价是 m。你的出价不低于 m 就赢，付的钱是 m（第二价格拍卖），这一场赚 v − m；出价低于 m 就没赢，什么也不付。你的出价超过剩下的预算时，按剩下的预算算。",
+      "",
+      "m 怎么来：两个 0 到 1 之间的均匀随机数取大的那个，再乘上 c。c 是这一局的竞争激烈程度，你不知道，每一局在 0.5 到 1 之间均匀地抽。",
+      "",
+      "**你的规则看到的**：`s.see.v` 是这件东西对你值多少；`s.see.left` 是剩下的预算；`s.see.n` 是连这一场在内还剩几场；`s.see.paid` 是上一场付了多少（没赢是 0，第一场是 NaN）。",
+      "",
+      "**你的规则报的数**：这一场的出价。报负数或者报的不是数，算出 0。",
+      "",
+      "**计分**：100 场赚的加起来（赢的那些场的 v − m）。没花完的预算不算分。"
+    ],
+    "en": [
+      "There are 100 auctions, one item each, and your budget is 12. At the start of each auction you see what the item is worth to you (`v`, uniform between 0 and 1) and then you bid.",
+      "",
+      "The highest rival bid is m. If your bid is at least m you win and pay m (a second-price auction), so you make v − m; if your bid is below m you do not win and pay nothing. A bid above your remaining budget counts as a bid of the remaining budget.",
+      "",
+      "Where m comes from: take the larger of two uniform random numbers between 0 and 1, and multiply it by c. Here c is how fierce the competition is in this episode. You do not know it: every episode draws one uniformly between 0.5 and 1.",
+      "",
+      "**What your rule sees**: `s.see.v` is what the item is worth to you; `s.see.left` is your remaining budget; `s.see.n` is how many auctions are left including this one; `s.see.paid` is what you paid in the previous auction (0 if you did not win, NaN in the first auction).",
+      "",
+      "**What your rule returns**: your bid in this auction. A negative number, or something that is not a number, counts as a bid of 0.",
+      "",
+      "**Score**: what you make over the 100 auctions (v − m in the auctions you win). Budget you do not spend scores nothing."
+    ]
+  },
+  "note": {
+    "zh": "没有预算限制的时候，出价等于价值是最好的：出得再高，多赢的那些场都是亏的；出得再低，白白漏掉赚钱的场。预算不够的时候就不是了：照价值出，平均下来前 50 场就花掉预算的八成多，后 50 场里值得赢的大多只能看着。",
+    "en": "Without a budget, bidding exactly what the item is worth is best: bid higher and the extra auctions you win all lose money; bid lower and you pass up profitable ones. With a tight budget that is no longer true: bid your value and on average more than 80% of the budget is gone after the first 50 auctions, so most of the later auctions worth winning go by."
+  },
+  "T": 100,
+  "p": {
+    "budget": 12,
+    "clo": 0.5,
+    "chi": 1
+  },
+  "code": {
+    "zh": [
+      "// 发牌：抽一个 c，再把每一场的价值 v 和对手的最高出价 m 先定好，藏起来。",
+      "function deal(T, rng, p) {",
+      "  var c = rng.uniform(p.clo, p.chi), v = [], m = [];",
+      "  for (var t = 0; t < T; t++) { v.push(rng.u()); m.push(c * Math.max(rng.u(), rng.u())); }",
+      "  return { v: v, m: m, left: p.budget, paid: NaN };",
+      "}",
+      "// 亮牌：这件东西值多少、剩下多少预算、还剩几场、上一场付了多少。",
+      "function show(G, t) {",
+      "  return { v: G.v[t], left: G.left, n: G.v.length - t, paid: G.paid };",
+      "}",
+      "// 判分：出价超过剩下的预算时按预算算；不低于对手的最高出价就赢，付对手的那个价。",
+      "function referee(G, t, a) {",
+      "  var bid = a >= 0 ? Math.min(a, G.left) : 0;",
+      "  if (bid < G.m[t]) { G.paid = 0; return 0; }",
+      "  G.paid = G.m[t]; G.left -= G.m[t];",
+      "  return G.v[t] - G.m[t];",
+      "}"
+    ],
+    "en": [
+      "// Deal: draw c, then fix in advance each auction's value v and the highest rival bid m. All hidden.",
+      "function deal(T, rng, p) {",
+      "  var c = rng.uniform(p.clo, p.chi), v = [], m = [];",
+      "  for (var t = 0; t < T; t++) { v.push(rng.u()); m.push(c * Math.max(rng.u(), rng.u())); }",
+      "  return { v: v, m: m, left: p.budget, paid: NaN };",
+      "}",
+      "// Show: what this item is worth, the remaining budget, the auctions left, and what was paid in the previous auction.",
+      "function show(G, t) {",
+      "  return { v: G.v[t], left: G.left, n: G.v.length - t, paid: G.paid };",
+      "}",
+      "// Referee: a bid above the remaining budget counts as the budget; a bid of at least the highest rival bid wins and pays that rival bid.",
+      "function referee(G, t, a) {",
+      "  var bid = a >= 0 ? Math.min(a, G.left) : 0;",
+      "  if (bid < G.m[t]) { G.paid = 0; return 0; }",
+      "  G.paid = G.m[t]; G.left -= G.m[t];",
+      "  return G.v[t] - G.m[t];",
+      "}"
+    ]
+  },
+  "sets": {
+    "pub": 10,
+    "fin": 10,
+    "K": 200,
+    "seed": 20261017
+  },
+  "higher": true,
+  "digits": 2,
+  "refs": [
+    {
+      "id": "truthful",
+      "name": {
+        "zh": "照价值出价",
+        "en": "Bid your value"
+      },
+      "summary": {
+        "zh": "每一场都出 v，钱花完为止。拿来当基准。",
+        "en": "Bids v in every auction until the money runs out. The benchmark."
+      },
+      "p": {},
+      "code": "function decide(s, p) {\n  return s.see.v;\n}"
+    },
+    {
+      "id": "skip",
+      "name": {
+        "zh": "不值钱的不出价",
+        "en": "Skip the cheap ones"
+      },
+      "summary": {
+        "zh": "价值不到 0.6 的那些场不出价，其余的场照价值出。省下了钱，可是赢下来的每一场还是付得太贵。",
+        "en": "Does not bid when the item is worth less than 0.6 and bids its full value otherwise. This saves money, but every auction it wins is still paid for dearly."
+      },
+      "p": {
+        "min": 0.6
+      },
+      "code": "function decide(s, p) {\n  return s.see.v >= p.min ? s.see.v : 0;\n}"
+    },
+    {
+      "id": "shade",
+      "name": {
+        "zh": "打六折出价",
+        "en": "Bid 60% of your value"
+      },
+      "summary": {
+        "zh": "每一场都出 v 的六成：赢得少一些，赢下来的每一场都便宜。",
+        "en": "Bids six tenths of v in every auction: it wins fewer of them, and each one it wins comes cheap."
+      },
+      "p": {
+        "k": 0.6
+      },
+      "code": "function decide(s, p) {\n  return p.k * s.see.v;\n}"
+    }
+  ],
+  "starter": {
+    "p": {
+      "k": 0.6
+    },
+    "code": {
+      "zh": [
+        "// 起始代码：每一场都出价值的 p.k 倍。把它改成你的办法。",
+        "// s.see.v：这件东西对你值多少。s.see.left：剩下的预算。s.see.n：连这一场在内还剩几场。",
+        "// s.see.paid：上一场付了多少（没赢是 0，第一场是 NaN）。付的钱就是对手的最高出价，能从中看出竞争有多激烈。",
+        "function decide(s, p, st) {",
+        "  return p.k * s.see.v;",
+        "}"
+      ],
+      "en": [
+        "// Starter code: bids p.k times the value in every auction. Change it into your own method.",
+        "// s.see.v: what this item is worth to you. s.see.left: the remaining budget. s.see.n: auctions left, including this one.",
+        "// s.see.paid: what you paid in the previous auction (0 if you did not win, NaN in the first). What you pay is the highest rival bid, so it tells you something about how fierce the competition is.",
+        "function decide(s, p, st) {",
+        "  return p.k * s.see.v;",
+        "}"
+      ]
+    }
+  }
+}

@@ -11,7 +11,7 @@
 var QLHub = (function () {
   "use strict";
   var REPO = "ZechenBian/ZechenBian.github.io", API = "https://api.github.com/repos/" + REPO, WEB = "https://github.com/" + REPO;
-  var KINDS = { daily: 1, rule: 1, world: 1, game: 1, deca: 1 };
+  var KINDS = { daily: 1, rule: 1, world: 1, game: 1, deca: 1, quest: 1 };
   var TTL = 180000, MAX_URL = 6000, MAX_PAGES = 3, SKEY = "ql.hub.v1";
   var NOTE = "这条 Issue 由策略实验室生成（https://zechenbian.github.io/strategy-lab/）。提交即表示你同意：下面的内容在策略实验室里公开展示，别人可以载入、运行和修改。请不要改动下面的代码块。";
   var PASTE = "（内容太长，放不进地址里。请回到策略实验室点\"复制内容\"，然后把这里整段换成复制的内容。）";
@@ -68,7 +68,7 @@ var QLHub = (function () {
     var rc = it.reactions || {}, u = it.user || {};
     return {
       n: it.number | 0, kind: m[1], title: m[2].slice(0, 120), meta: p.meta, code: p.code, user: String(u.login || "").slice(0, 60), avatar: typeof u.avatar_url === "string" && /^https:\/\/avatars\.githubusercontent\.com\//.test(u.avatar_url) ? u.avatar_url : "",
-      url: issueUrl(it.number), at: Date.parse(it.created_at) || 0, up: rc["+1"] | 0, down: rc["-1"] | 0, comments: it.comments | 0
+      url: issueUrl(it.number), at: Date.parse(it.created_at) || 0, upd: Date.parse(it.updated_at) || 0, up: rc["+1"] | 0, down: rc["-1"] | 0, comments: it.comments | 0
     };
   }
   function scan(since) {

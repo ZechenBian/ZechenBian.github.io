@@ -744,6 +744,19 @@ table.sh-trace th:nth-child(2) { text-align: left; }
 #shTrace .row { margin-bottom: 6px; }
 @media (max-width: 560px) { table.sh-tab th:nth-child(5), table.sh-tab td:nth-child(5) { display: none; } .sh-host .ar-rule { flex-wrap: wrap; } }
 
+/* ---------- 每日一题（src/app-quest.js） ---------- */
+.qs-about, .qs-note { max-width: 84ch; min-width: 0; }
+.qs-note { border-left: 3px solid var(--accent); padding: 2px 0 2px 12px; color: var(--ink2); }
+.qs-host .db-title { margin-top: 6px; }
+.qs-host .codeedit { min-height: 220px; }
+.qs-in { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; min-width: 0; }
+#qsTab td.qs-sets { font: 11.5px/1.5 var(--font-mono); color: var(--ink2); text-align: left; white-space: normal; overflow-wrap: anywhere; max-width: 36ch; }
+#qsTab th:nth-child(5) { text-align: left; }
+.qs-flag { margin-left: 6px; color: var(--ink2); border-color: var(--c-axis); }
+#qsWho td:nth-child(2), #qsbTab td:nth-child(2) { overflow-wrap: anywhere; }
+#qsbTab td:nth-child(2) .note { margin-left: 4px; }
+@media (max-width: 560px) { #qsbTab th:nth-child(5), #qsbTab td:nth-child(5), #qsWho th:nth-child(3), #qsWho td:nth-child(3) { display: none; } .qs-host .ar-rule { flex-wrap: wrap; } }
+
 /* ---------- 新手教程（src/app-tour.js） ---------- */
 .modal-box.tourm-box { width: min(720px, 100%); }
 .tourm .modal-f .sp { flex: 1; }
