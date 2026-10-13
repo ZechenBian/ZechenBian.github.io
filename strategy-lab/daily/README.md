@@ -1,16 +1,22 @@
 # 每日一题：题目的接口 · Daily challenge: the content interface
 
-**In English, briefly.** A daily challenge is one JSON file, `q/<UTC date>.json`: a small game with a referee, a few reference rules, starter code, and the number of data sets. The page fetches these files at run time, so adding challenges needs no rebuild: once they are merged into `main` and GitHub Pages has deployed, they are live. `node daily/check.js` validates a file by running it in exactly the program the page runs. The rest of this document (in Chinese) gives the file format, the standard a challenge has to meet, and the weekly procedure for writing and reviewing a batch.
+**In English, briefly.** A daily challenge is one JSON file, `q/<UTC date>.json`: a small game with a referee, a few reference rules, starter code, and the number of data sets. The page fetches these files at run time, so adding challenges needs no rebuild: once they are merged into `main` and GitHub Pages has deployed, they are live. `node daily/check.js` validates a file by running it in exactly the program the page runs. Entries are sealed: the page encrypts a rule in the browser with the public key in `quest-public.pem` and posts only the ciphertext as an issue. After the deadline a scheduled GitHub Actions workflow runs `settle.js`, which holds the private key (a repository secret), opens every entry, scores each one in a container of its own without network access, and publishes the scores and the names of the rules, never the code. The rest of this document (in Chinese) gives the file format, the standard a challenge has to meet, the weekly procedure for writing and reviewing a batch, how sealing and settlement work, and what the repository owner has to set up.
 
-每日一题的题目是数据，不随页面发布：页面运行的时候按日期去取 `daily/q/日期.json`。所以加题不用重新构建，合并进 `main`、GitHub Pages 发布完就上线。这份文档写四件事：一天是怎么过的、题目文件的格式、一道题要达到的标准、每周出题和送审的流程。
+每日一题的题目是数据，不随页面发布：页面运行的时候按日期去取 `daily/q/日期.json`。所以加题不用重新构建，合并进 `main`、GitHub Pages 发布完就上线。这份文档写六件事：一天是怎么过的、题目文件的格式、一道题要达到的标准、每周出题和送审的流程、交上来的规则怎么保密和结算、仓库的主人要做什么。
 
 ```
 daily/
 ├── README.md          这份文档
-├── check.js           校验脚本（只用 Node 自带的模块）
+├── check.js           校验脚本
 ├── index.json         有题的日子的清单，由 check.js --index 生成，不要手写
-└── q/2026-10-14.json  一天一个文件，文件名就是日期（UTC）
+├── q/2026-10-14.json  一天一个文件，文件名就是日期（UTC）
+├── quest-public.pem   把规则封起来用的公钥（仓库的主人生成的那一对里公开的一半）
+├── settle.js          结算的程序：在仓库的 GitHub Actions 里每天运行，只有它拿得到私钥
+├── box.js             结算时在容器里跑的那一小段：读一件任务，算完，把结果写出来
+└── engine.js          上面三个脚本共用的引擎：把 src/ 里的内核载进来，在一个锁死的环境里跑一件任务
 ```
+
+这几个脚本只用 Node 自带的模块，不用安装任何东西；要 Node 22.8 以上。
 
 ## 一天是怎么过的
 
@@ -19,11 +25,13 @@ daily/
 | 时刻（UTC） | 北京 | 加州 | 发生什么 |
 |---|---|---|---|
 | 0 点 | 早上 8 点 | 前一天 17 点（冬令时 16 点） | 这一天的题开放。题目自带"公开的几组数据"，谁都可以拿自己的规则去试，试几次都行 |
-| 24 点 | 第二天早上 8 点 | 17 点（冬令时 16 点） | 截止。交规则就是在本仓库贴一条 Issue；同一个账号只算截止前最后交的那一条 |
-| 24 点过 30 秒 | | | 公共随机信标 drand 发布这一轮的随机数，"结算的几组数据"由它定下来。之后谁打开往期的榜，谁的浏览器就把所有交上来的规则在这几组上重跑一遍，排出名次 |
+| 24 点 | 第二天早上 8 点 | 17 点（冬令时 16 点） | 截止。交规则就是在本仓库贴一条 Issue，里面是加密过的规则；同一个账号只算截止前最后交的那一条 |
+| 24 点过 30 秒 | | | 公共随机信标 drand 发布这一轮的随机数，"结算的几组数据"由它定下来 |
+| 第二天 0 点 17 分前后 | 8 点 17 分 | 17 点 17 分（冬令时 16 点 17 分） | 仓库的 GitHub Actions 运行结算的程序：把每条规则解开，各自在结算的几组上算分，把成绩和规则的名字贴成一条 Issue。3 点 17 分再跑一遍，补上一次没跑成的。之后谁打开往期的榜，看到的就是这份结果 |
 
 - 一组数据 = 一个种子发出来的 K 局。每一局发给每条规则的是同一副牌，所以规则之间的差别不是牌运。
-- 公开的几组，种子由日期、题目的指纹和 `sets.seed` 算出来，谁都能算。结算的几组，种子还要加上 drand 那一轮的随机数：截止之前没有人算得出来，截止之后人人取到的是同一个数，所以每个人排出来的是同一张榜。
+- 公开的几组，种子由日期、题目的指纹和 `sets.seed` 算出来，谁都能算。结算的几组，种子取自 drand 那一轮的随机数：截止之前没有人算得出来，截止之后人人取到的是同一个数，所以结算的程序和每个人的浏览器用的是同一批数据。
+- 一组数据的种子其实是四个数：两个定发的牌，两个定规则自己的随机数（`s.rnd()`）。结算时这四个数各取自那个随机数（256 位）的一截，互不相干。这样做是因为规则能从 `s.rnd()` 给的数里反推出自己那两个：要是发牌用的也是它们，规则就能把这一局藏起来的东西自己重算一遍。
 - **没有题的日子**（清单里没有这一天）：页面按日期从以前的题里固定挑一道重温，公开的和结算的数据都是新的，榜也是这一天自己的。所以哪一周没来得及出题，页面不会空着。
 - **已经开始的日子不能再加题、换题**。交上来的规则带着题目的指纹（裁判的代码、`T`、`p`、`sets`、`higher` 合起来算的），指纹对不上的不算；中途换题，当天已经交的人就白交了，写到一半的草稿也会被换掉。改错别字、改注释、改基准规则不影响指纹，随时可以改。
 
@@ -112,7 +120,7 @@ function decide(s, p, st) { … }  // 必须有。每回合调用一次，返回
 
 ## 校验脚本
 
-下面的命令都在 `strategy-lab/` 这一层运行，只需要 Node，不用安装任何东西。
+下面的命令都在 `strategy-lab/` 这一层运行，只需要 Node（22.8 以上），不用安装任何东西。
 
 ```sh
 node daily/check.js daily/q/2026-10-21.json …   # 核对这几道题：格式、跑得通、可复现、分得出高下、够快
@@ -136,7 +144,7 @@ node daily/check.js --try=规则.js --p='{"r":8}' 文件…   # 把一条自己�
 3. 读一遍 `q/` 里已有的题，避开出过的题材，定下这七天各出什么。每道题照上一节的标准写成 `q/日期.json`。
 4. 每道题都要：`node daily/check.js 文件` 通过；用 `--try` 确认基准规则上面留有余地；把题面从头到尾和裁判的代码对一遍。
 5. `node daily/check.js --index`，再 `node daily/check.js --all` 和 `node test/quest.test.js`，都要通过。
-6. 提交（只改 `strategy-lab/daily/` 里的文件），推上去，开 PR。标题写清楚是哪七天；正文依次是：
+6. 提交（只改 `strategy-lab/daily/q/` 里的题目和 `strategy-lab/daily/index.json`，别的文件一概不动），推上去，开 PR。标题写清楚是哪七天；正文依次是：
    - 一张表：日期、题目、一句话、基准规则里最好的成绩、出题时试过的更强的规则比它好多少；
    - 要在什么时候之前合并：第一天的 UTC 0 点，同时写出北京时间和加州时间；
    - 校验脚本留下的提醒，以及为什么可以留着；
@@ -150,10 +158,67 @@ node daily/check.js --try=规则.js --p='{"r":8}' 文件…   # 把一条自己�
 - 想去掉某一天：删掉那个文件，跑 `node daily/check.js --index`。那一天页面会重温一道旧题。
 - **要在第一天开始之前合并**。晚了的话，先把已经开始的日子的文件删掉（并重写 `index.json`）再合并。
 
+## 交上来的规则：怎么保密，怎么结算
+
+交上来的规则只有交的人自己看得到，截止之后也不公开。榜上公布的是每个人的成绩和他给规则起的名字。
+
+**封。** 点"交上去"的时候，页面先在这台设备上把 `{ 名字, 参数, 代码 }` 加密，贴到 GitHub 上的只有密文，以及"哪一天、哪道题"。别人看得到谁交了、什么时候交的、密文有多长，别的看不到。
+
+- 用的全是浏览器自带的 WebCrypto，没有第三方的库：现生成一对一次性的 P-256 密钥，和 `quest-public.pem` 里的公钥做 ECDH，经 HKDF-SHA256 导出一把 AES-256-GCM 的密钥，把正文（先压缩）加密。
+- 日期和题目的指纹写进了导出密钥用的那串字里，所以一份密文挪到别的日子、别的题上解不开。
+- 交的那一份的原文留在交的人自己的浏览器里（localStorage），结算之后页面拿它核对公布的成绩。换了设备、清了浏览器的数据，就核对不了了，成绩不受影响。
+
+**结算。** `settle.js` 在仓库的 GitHub Actions 里按时运行（[工作流](../../.github/workflows/strategy-lab-quest.yml)），私钥是仓库 Secrets 里的 `QUEST_PRIVATE_KEY`。它依次做：
+
+1. 定下结算哪一天（不指定就是最近三天里还没结算的），读出那一天的题；取 drand 那一轮的随机数（挨个问几个公共的地址：给的数要和签名对得上，有两个地址答了的话还要一样），定出结算的几组数据。
+2. 从 GitHub 取回那一天交的规则。同一个账号只算截止前最后交的那一条；截止之后改过正文的作废（只是被人评论过的不算改）；关掉的 Issue 就是撤下了。
+3. 同一份密文出现在两个账号名下，后来的那个是照搬的，不排名。密文每次都不一样，所以不知道内容的人只能原样照搬；各自写出一模一样的规则、各自封好交上来的，都算数。
+4. 用私钥把每一份解开。解不开的、里面不像一条规则的（没有 `decide`、语法不对、参数不是数、出现了 `import` 这个词）作废。
+5. 每条规则单独开一个容器，和"基准"一起在结算的几组、公开的几组上各打一遍。容器没有网络，文件只读，不是 root，去掉了所有权限，里面没有私钥、没有令牌，也没有别人的规则；每条规则最多 90 秒，超时的没有成绩。开工之前程序先查一遍容器是不是真的关得住，有一样不对就什么也不干。
+6. 把结果贴成一条 Issue（标题以 `[SL:result]` 开头）：每个人的成绩、规则的名字，基准规则的成绩，用的是哪一轮随机数，作废了几条。代码和参数不公布，也不进日志（日志里只有 Issue 的编号、账号、每一步成没成）。
+
+一天最多结算 100 条（按交的先后）。页面只认仓库的 Actions 机器人（`github-actions[bot]`）和仓库主人自己发的结果，别人发一条长得一样的没有用。
+
+**规则在结算时受的限制**（页面上试的时候没有这么严，所以写规则的人要知道）：
+
+- 内置的东西（`Math`、`Array.prototype`、`isFinite`……）和全局的名字都是只读的。去改它们的规则，改的那一下就出错：写在顶层的整条没有成绩，写在 `decide` 里的算规则中途出错。
+- 代码里不能出现 `import` 这个词，写在注释里也不行。页面在试和交的时候就会拦下来。
+- 不能现造代码（`eval`、`new Function`），拿不到任何 Node 的东西，拿不到结算用的种子。
+- 语法要是 Node 22 认识的。
+
+**每个人能自己核对什么。** 别人的规则谁也看不到，所以别人的成绩没法验算。页面能在你的浏览器里重算的有两样：基准规则，和你自己交的那一条。基准规则对得上，说明结算用的数据和程序没有走样；你自己那一行对得上，说明你的规则是照原样算的。对不上的时候页面会标出来。
+
+## 仓库的主人要做什么
+
+**头一次：放一对密钥。** 在自己的电脑上生成，私钥不要经过任何别的地方（包括 AI 助手）。
+
+```sh
+openssl ecparam -name prime256v1 -genkey -noout -out quest-private.pem   # 私钥
+openssl ec -in quest-private.pem -pubout -out quest-public.pem           # 公钥
+```
+
+1. 私钥放进仓库的 Secrets：GitHub 上打开仓库的 Settings → Secrets and variables → Actions → New repository secret，名字写 `QUEST_PRIVATE_KEY`，内容是 `quest-private.pem` 的全文。用命令行的话是 `gh secret set QUEST_PRIVATE_KEY < quest-private.pem`。
+2. 公钥放进仓库：把 `quest-public.pem` 存成 `strategy-lab/daily/quest-public.pem`，提交。公钥是公开的。没有这个文件的时候，页面会告诉人"现在还交不了"。
+3. 试一遍：仓库的 Actions 页里选 "Strategy Lab · settle the daily challenge" → Run workflow，勾上 dry run。日志里应该依次看到 `QUEST_PRIVATE_KEY matches daily/quest-public.pem` 和 `sandbox self-test passed`。dry run 照常解开、算分，但什么也不公布。
+4. `quest-private.pem` 自己留一份放在稳妥的地方（比如密码管理器），或者删掉。Secrets 里的内容事后读不出来；丢了就换一对新的。
+
+**私钥在谁手里，谁就解得开所有人的规则。** 这一点页面上写明了。不要把私钥交给别人，不要让别的工作流用到这个 Secret。结算的工作流只在定时和手动的时候运行，从不因为别人的提交、评论、合并请求而运行。
+
+**平时。** 不用管。想看某一天结算得怎么样，看 Actions 里那一次运行的日志，或者那一天的 `[SL:result]` Issue。GitHub 对长期没有动静的仓库会停掉定时的工作流（60 天），每周合并新题就不会碰到。
+
+- **某一天没结算出来**（日志里是 FAILED）：多半是 drand 或者 GitHub 一时连不上，下一次运行会补（往回补三天）。超过三天的，手动运行一次，`day` 填那一天。
+- **结果公布错了**：把那条 `[SL:result]` Issue 关掉（页面只读开着的），再手动运行一次，`day` 填那一天，勾上 force。
+- **在自己的电脑上结算**（Actions 用不了的时候）：要装好 Docker，先 `docker pull node:22-alpine`，再在 `strategy-lab/` 里运行 `QUEST_PRIVATE_KEY="$(cat quest-private.pem)" GITHUB_TOKEN=你的令牌 node daily/settle.js --day=2026-10-14`。这样发出来的结果署的是你自己的账号，页面同样认。先加 `--dry-run` 看一遍。
+- **换密钥**：生成新的一对，Secrets 和 `quest-public.pem` 一起换。换之前用旧公钥封的、还没结算的规则，换了之后就解不开了，所以挑刚结算完的时候换，并且先确认当天还没有人交。
+- **整理 Issue**：结算过的日子，参赛的那些 Issue 可以关掉，不影响已经公布的结果；`[SL:result]` 那一条要留着，页面靠它显示那一天的榜。
+
 ## 防得了什么，防不了什么
 
-- 结算的数据在截止之前没有人知道，所以去凑公开那几组的数没有用。这一条靠的是 drand；页面拿到随机数以后会核对它和签名对得上（随机数应该是签名的 SHA-256），但不验证签名本身。
-- 交上来的代码是公开的 Issue，截止之前别人看得到，可以照抄；同分的时候先交的排前面。
-- 截止之后改 Issue 的人拦不住，只能标出来："截止后有变动"的意思是那条 Issue 在截止之后被动过，可能是改了代码，也可能只是有人留言，页面分不出来。
-- 下一批题合并的时候就公开了（仓库是公开的），想提前看题的人看得到。
-- 每个人的规则各自和裁判在一个隔离环境里跑，碰不到页面、碰不到别人的规则，也连不了网；但规则和裁判在同一个线程里，没法完全隔绝。所以这个榜图个乐，不要拿它来分奖品。
+- **凑数。** 结算的数据在截止之前没有人知道，所以去凑公开那几组的数没有用。这一条靠的是 drand；页面和结算的程序拿到随机数以后都会核对它和签名对得上（随机数应该是签名的 SHA-256），但不验证签名本身。
+- **看别人的代码、照抄。** 交上来的是密文，别人看不到。把别人的密文原样再交一遍的不排名。
+- **截止之后改。** 截止之后改过正文的作废。
+- **仓库的主人。** 私钥在他手里，他技术上解得开所有人的规则，也只有他能改结算的程序和工作流。参加的人信的是他。
+- **GitHub。** 私钥存在 GitHub 的 Secrets 里，结算跑在 GitHub 的机器上：GitHub 出了事，或者容器的隔离被攻破，规则就可能泄露。容器里只有当时在跑的那一条规则，没有私钥。
+- **规则捣鬼。** 规则和裁判在同一个环境里跑。结算的程序把已知的路都堵上了：换不掉内置的东西，够不着任务的参数和发消息的口子，逃不出那层环境。但这种事没法说滴水不漏，别人又看不到代码，所以这个榜图个乐，不要拿它来分奖品。分数高得离谱的，仓库的主人可以把那一条解开来看。
+- **下一批题**合并的时候就公开了（仓库是公开的），想提前看题的人看得到。
+- **谁交了、什么时候交的、密文有多长**是公开的。

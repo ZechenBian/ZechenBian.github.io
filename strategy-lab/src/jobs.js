@@ -59,9 +59,10 @@ var QLJobs = (function () {
     var extra = [QL_JOBS_INSTALL, typeof QL_DECA_INSTALL === "function" ? QL_DECA_INSTALL : null, typeof QL_ARENA_INSTALL === "function" ? QL_ARENA_INSTALL : null, typeof QL_SHOP_INSTALL === "function" ? QL_SHOP_INSTALL : null, typeof QL_QUEST_INSTALL === "function" ? QL_QUEST_INSTALL : null].filter(Boolean).map(function (f) { return "(" + f.toString() + ")(QL);"; }).join("\n");
     return base + "\nvar QL = (" + QL_CORE.toString() + ")(self);\n" + extra + "\nQL.harden();\nvar __CODE = {};\n";
   }
-  /** 拼出线程的源码。codes: [{ id, code }]；返回 { src, spans: [{ id, from, to }] }（每段代码落在源码的哪几行，报错时用） */
-  function source(codes) {
-    var src = fns(), spans = [];
+  /** 拼出线程的源码。codes: [{ id, code }]；返回 { src, spans: [{ id, from, to }] }（每段代码落在源码的哪几行，报错时用）。
+   *  opt.ready：内核装好、冻住之后，这几段代码执行之前，先执行的一小段（结算的程序用它把全局对象整个锁死，见 daily/engine.js） */
+  function source(codes, opt) {
+    var src = fns() + (opt && opt.ready ? String(opt.ready) + "\n" : ""), spans = [];
     (codes || []).forEach(function (c) {
       var pre = "__CODE[" + JSON.stringify(String(c.id)) + "] = (function () { \"use strict\"; " + SHADOW + "\n", from = lines(src + pre) + 1, body = String(c.code == null ? "" : c.code);
       src += pre + body + RET + "\n";

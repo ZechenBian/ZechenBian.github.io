@@ -11,7 +11,7 @@
 var QLHub = (function () {
   "use strict";
   var REPO = "ZechenBian/ZechenBian.github.io", API = "https://api.github.com/repos/" + REPO, WEB = "https://github.com/" + REPO;
-  var KINDS = { daily: 1, rule: 1, world: 1, game: 1, deca: 1, quest: 1 };
+  var KINDS = { daily: 1, rule: 1, world: 1, game: 1, deca: 1, quest: 1, result: 1 };
   var TTL = 180000, MAX_URL = 6000, MAX_PAGES = 3, SKEY = "ql.hub.v1";
   var NOTE = "这条 Issue 由策略实验室生成（https://zechenbian.github.io/strategy-lab/）。提交即表示你同意：下面的内容在策略实验室里公开展示，别人可以载入、运行和修改。请不要改动下面的代码块。";
   var PASTE = "（内容太长，放不进地址里。请回到策略实验室点\"复制内容\"，然后把这里整段换成复制的内容。）";
@@ -19,9 +19,9 @@ var QLHub = (function () {
 
   function tag(kind) { return "[SL:" + kind + "]"; }
   function title(kind, text) { return (tag(kind) + " " + String(text == null ? "" : text).replace(/\s+/g, " ").trim()).slice(0, 120); }
-  /** 把一份东西写成 Issue 的正文。meta 是一个普通对象（会补上 sl: 1）；code 可以没有 */
-  function pack(meta, code) {
-    var m = Object.assign({ sl: 1 }, meta), out = [NOTE, "", "```json", JSON.stringify(m).replace(/`/g, "\\u0060"), "```"];
+  /** 把一份东西写成 Issue 的正文。meta 是一个普通对象（会补上 sl: 1）；code 可以没有；note 是开头那句说明，不给就用通常的那一句 */
+  function pack(meta, code, note) {
+    var m = Object.assign({ sl: 1 }, meta), out = [note ? String(note).replace(/\s+/g, " ").trim() : NOTE, "", "```json", JSON.stringify(m).replace(/`/g, "\\u0060"), "```"];
     if (code) {
       code = String(code).replace(/\r\n?/g, "\n").replace(/\s+$/, "");
       if (code.indexOf("````") >= 0) throw new Error("代码里不能出现连续四个反引号。");
@@ -67,14 +67,15 @@ var QLHub = (function () {
     var p = unpack(it.body); if (!p || p.meta.kind !== m[1]) return null;
     var rc = it.reactions || {}, u = it.user || {};
     return {
-      n: it.number | 0, kind: m[1], title: m[2].slice(0, 120), meta: p.meta, code: p.code, user: String(u.login || "").slice(0, 60), avatar: typeof u.avatar_url === "string" && /^https:\/\/avatars\.githubusercontent\.com\//.test(u.avatar_url) ? u.avatar_url : "",
+      n: it.number | 0, kind: m[1], title: m[2].slice(0, 120), meta: p.meta, code: p.code, user: String(u.login || "").slice(0, 60), uid: u.id | 0, avatar: typeof u.avatar_url === "string" && /^https:\/\/avatars\.githubusercontent\.com\//.test(u.avatar_url) ? u.avatar_url : "",
       url: issueUrl(it.number), at: Date.parse(it.created_at) || 0, upd: Date.parse(it.updated_at) || 0, up: rc["+1"] | 0, down: rc["-1"] | 0, comments: it.comments | 0
     };
   }
-  function scan(since) {
+  /** asc：从旧的往新的取（找"某个时刻之后最早发的那几条"时用，比如某一天的结算结果）；不给就是从新的往旧的取 */
+  function scan(since, asc) {
     var out = [];
     function page(k) {
-      var url = API + "/issues?state=open&per_page=100&sort=created&direction=desc&page=" + k + (since ? "&since=" + encodeURIComponent(since) : "");
+      var url = API + "/issues?state=open&per_page=100&sort=created&direction=" + (asc ? "asc" : "desc") + "&page=" + k + (since ? "&since=" + encodeURIComponent(since) : "");
       return getJson(url).then(function (arr) {
         if (!Array.isArray(arr)) throw { status: 0 };
         arr.forEach(function (it) { var x = norm(it); if (x) out.push(x); });
@@ -85,14 +86,14 @@ var QLHub = (function () {
   }
   function sget() { try { return JSON.parse(sessionStorage.getItem(SKEY) || "null") || {}; } catch (e) { return {}; } }
   function sput(key, rec) { try { var o = sget(); o[key] = rec; var s = JSON.stringify(o); if (s.length < 1500000) sessionStorage.setItem(SKEY, s); } catch (e) {} }
-  /** 取回大家交上来的东西。opt: { kind, since（ISO 时间：只要这之后动过的）, fresh（不用缓存） }
+  /** 取回大家交上来的东西。opt: { kind, since（ISO 时间：只要这之后动过的）, asc（从旧的往新的取）, fresh（不用缓存） }
    *  返回 { items, at, stale, error }：取不到新的但手里有旧的，就给旧的（stale 为真，error 说明为什么） */
   function list(opt) {
     opt = opt || {};
-    var key = opt.since || "all", now = Date.now(), c = mem[key] || (mem[key] = sget()[key] || null);
+    var key = (opt.since || "all") + (opt.asc ? "|asc" : ""), now = Date.now(), c = mem[key] || (mem[key] = sget()[key] || null);
     function pick(rec, extra) { return Object.assign({ items: rec.items.filter(function (x) { return !opt.kind || x.kind === opt.kind; }), at: rec.at, stale: false, error: null }, extra || {}); }
     if (c && !opt.fresh && now - c.at < TTL) return Promise.resolve(pick(c));
-    return scan(opt.since).then(function (items) {
+    return scan(opt.since, !!opt.asc).then(function (items) {
       var rec = mem[key] = { at: Date.now(), items: items }; sput(key, rec);
       return pick(rec);
     }, function (e) {

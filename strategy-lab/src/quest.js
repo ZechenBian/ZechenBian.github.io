@@ -2,11 +2,14 @@
 // Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* 策略实验室 · 每日一题（引擎这一半）
  * 一道题 = 一套带裁判的玩法（和世界工坊里的玩法是同一个接口：deal / show / referee，见 shop.js），加上几条基准规则。
- * 大家各写一条规则（decide），在"公开的几组数据"上随便试；交上去以后，到截止的时候换"结算的几组数据"排名。
+ * 大家各写一条规则（decide），在"公开的几组数据"上随便试；封起来（加密）交上去以后，到截止的时候换"结算的几组数据"排名。
  *
  * 一组数据 = 一个种子发出来的 K 局。公开的几组，种子由题目自己定，谁都能算；
  * 结算的几组，种子取自一个公共随机信标（drand）在截止之后那一刻发布的随机数：截止之前谁也算不出来，
- * 截止之后人人取到的都是同一个数，所以每个人的浏览器各自重放，排出来的是同一张榜。
+ * 截止之后人人取到的都是同一个数，所以结算的程序和每个人的浏览器用的是同一批数据。
+ *
+ * 交上来的规则别人看不到，截止之后也只有结算的程序解得开（daily/settle.js，私钥只在它那里）；它算完分，公布成绩和名字。
+ * 页面不执行别人的规则，只把基准规则和自己交的那一条重算一遍，和公布的对一对。封、认结果、排名次的办法都在这个文件里。
  *
  * 题目是数据（daily/q/日期.json），不随页面发布；格式的检查在这个文件里（QL.questCheck），页面和校验脚本用的是同一份。
  * 题目里的文字都有中、英两份；代码里只许有整行的 // 注释，执行的是去掉注释以后的那一份，所以两种语言的页面跑的是同一段代码。
@@ -136,31 +139,162 @@ QL.questCheck = function (raw, strict) {
 QL.questOk = function (raw) { return QL.questCheck(raw, false).spec; };
 
 /* ---------- 几组数据的种子 ---------- */
-/** kind: "pub"（公开的）或 "fin"（结算的）。salt：公开的用题目自己的种子，结算的用信标给的那串随机数。返回 n 个 32 位的种子 */
-QL.questSeeds = function (kind, spec, salt, n) {
-  var out = [], i;
-  for (i = 0; i < n; i++) out.push(qhash(kind + "|" + spec.day + "|" + spec.cid + "|" + salt + "|" + i) | 0);
+/** 一组数据的种子是四个 32 位的整数：[发牌的种子, 发牌的批次, 规则自己的随机数的种子, 批次]（怎么用见 shop.js 的 shopEpisode）。
+ *  kind: "pub"（公开的）或 "fin"（结算的）。salts：四段字，各管一个数。返回 n 组。
+ *  结算时这四段是信标那个随机数（256 位）的四截，互不相干。这样做是因为规则能从 s.rnd() 给的数里反推出自己那两个数：
+ *  要是发牌用的也是同一个数，或者几个数是从同一个 32 位的中间结果里出来的，规则就能把这一局藏起来的东西自己重算一遍。 */
+QL.questSeeds = function (kind, spec, salts, n) {
+  var out = [], i, j, one;
+  for (i = 0; i < n; i++) { one = []; for (j = 0; j < 4; j++) one.push(qhash(kind + "|" + spec.day + "|" + spec.cid + "|" + i + "|" + j + "|" + salts[j]) | 0); out.push(one); }
   return out;
 };
-QL.questPubSeeds = function (spec) { return QL.questSeeds("pub", spec, spec.sets.seed, spec.sets.pub); };
-QL.questFinSeeds = function (spec, randomness) { return QL.questSeeds("fin", spec, String(randomness).toLowerCase(), spec.sets.fin); };
+QL.questPubSeeds = function (spec) { var s = String(spec.sets.seed); return QL.questSeeds("pub", spec, [s, s, s, s], spec.sets.pub); };
+QL.questFinSeeds = function (spec, randomness) {
+  var r = String(randomness).toLowerCase();
+  return QL.questSeeds("fin", spec, /^[0-9a-f]{64}$/.test(r) ? [r.slice(0, 16), r.slice(16, 32), r.slice(32, 48), r.slice(48)] : [r, r, r, r], spec.sets.fin);
+};
+
+/* ---------- 这一天是哪一道题 ---------- */
+/** 清单里有这一天，就是它自己的题；没有，就从更早的题里按日期挑一道（人人挑到的是同一道）。
+ *  返回 { src, rerun, first }：src 是题目文件的日期（一道也挑不出来时是 ""），rerun 是重温的那道题原来的日子（不是重温时是 ""），first 是清单里的第一天 */
+QL.questPick = function (days, day) {
+  var list = (Array.isArray(days) ? days : []).filter(function (d) { return typeof d === "string" && dayMs(d) === dayMs(d); }).sort(), first = list.length ? list[0] : "";
+  if (list.indexOf(day) >= 0) return { src: day, rerun: "", first: first };
+  var past = list.filter(function (d) { return d < day; });
+  if (!past.length) return { src: "", rerun: "", first: first };
+  var src = past[qhash("rerun|" + day) % past.length];
+  return { src: src, rerun: src, first: first };
+};
+
+/* ---------- 封起来交 ---------- */
+/* 交上去的规则是加密的，别人看不到；截止之后也只有结算的程序解得开（daily/settle.js，在仓库的 GitHub Actions 里跑），榜上只公布成绩和名字。
+ * 做法：公钥在 daily/quest-public.pem（P-256）。交的时候现生成一对一次性的密钥，和公钥做 ECDH，再用 HKDF-SHA256 导出一把 AES-256-GCM 的密钥，
+ * 把 { 名字, 参数, 代码 } 加密。全部用浏览器自带的 WebCrypto，没有第三方的库。
+ * 封好的一份 = base64url( 版本 1 字节 | 标志 1 字节（1：正文压缩过）| 一次性公钥 65 字节 | 随机数 12 字节 | 密文连同校验 )。
+ * 日期和题目的指纹写进了导出密钥用的那串字里，所以这一份挪到别的日子、别的题上解不开。 */
+Q.seal = { ver: 1, head: 79, min: 128, max: 60000, settlers: ["github-actions[bot]"] };
+QL.questSealInfo = function (day, cid) { return "strategy-lab/quest/v1|" + day + "|" + cid; };
+var B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+/** 字节 → base64url（不带等号）；反过来，写得不对时返回 null */
+function b64u(bytes) {
+  var s = "", i, n = bytes.length, a, b, c;
+  for (i = 0; i < n; i += 3) {
+    a = bytes[i]; b = i + 1 < n ? bytes[i + 1] : 0; c = i + 2 < n ? bytes[i + 2] : 0;
+    s += B64.charAt(a >> 2) + B64.charAt(((a & 3) << 4) | (b >> 4)) + (i + 1 < n ? B64.charAt(((b & 15) << 2) | (c >> 6)) : "") + (i + 2 < n ? B64.charAt(c & 63) : "");
+  }
+  return s;
+}
+function unb64u(str) {
+  if (typeof str !== "string" || !/^[A-Za-z0-9_-]*$/.test(str) || str.length % 4 === 1) return null;
+  var n = Math.floor(str.length * 3 / 4), out = new Uint8Array(n), i, j = 0, v = [0, 0, 0, 0], k;
+  for (i = 0; i < str.length; i += 4) {
+    for (k = 0; k < 4; k++) v[k] = i + k < str.length ? B64.indexOf(str.charAt(i + k)) : 0;
+    if (j < n) out[j++] = (v[0] << 2) | (v[1] >> 4);
+    if (j < n) out[j++] = ((v[1] & 15) << 4) | (v[2] >> 2);
+    if (j < n) out[j++] = ((v[2] & 3) << 6) | v[3];
+  }
+  return out;
+}
+QL.questB64 = { enc: b64u, dec: unb64u };
+function hexOf(bytes) { var s = "", i; for (i = 0; i < bytes.length; i++) s += (bytes[i] < 16 ? "0" : "") + bytes[i].toString(16); return s; }
+/** PEM 格式的公钥 → DER 的字节；不像样时返回 null */
+QL.questPem = function (pem) {
+  var m = /-----BEGIN PUBLIC KEY-----([A-Za-z0-9+\/=\s]+)-----END PUBLIC KEY-----/.exec(String(pem == null ? "" : pem)); if (!m) return null;
+  var der = unb64u(m[1].replace(/\s+/g, "").replace(/=+$/, "").replace(/\+/g, "-").replace(/\//g, "_"));
+  return der && der.length >= 80 && der.length <= 200 ? der : null;
+};
+/** 封好的一份，样子对不对（只看样子，解不解得开要等结算） */
+QL.questBoxOk = function (box) { return typeof box === "string" && box.length >= Q.seal.min && box.length <= Q.seal.max && /^[A-Za-z0-9_-]+$/.test(box) && box.length % 4 !== 1; };
+/** 压缩（浏览器不会就不压，返回 null） */
+function deflate(bytes) {
+  try {
+    if (typeof CompressionStream !== "function" || typeof Response !== "function" || typeof Blob !== "function") return Promise.resolve(null);
+    return new Response(new Blob([bytes]).stream().pipeThrough(new CompressionStream("deflate-raw"))).arrayBuffer().then(function (b) { return new Uint8Array(b); }, function () { return null; });
+  } catch (e) { return Promise.resolve(null); }
+}
+/** 把一份东西封起来。spki：公钥（DER 的字节）；obj：要封的东西；info：questSealInfo 给的那串字。
+ *  返回 { box, ch }：box 是封好的一份，ch 是它的 SHA-256 的前 16 位（榜上拿它认出"这一行是我的"）。这个环境不会加密时拒绝，原因是 "no-crypto" */
+QL.questSeal = function (spki, obj, info) {
+  var C = typeof crypto !== "undefined" && crypto && crypto.subtle && typeof TextEncoder === "function" ? crypto : null;
+  if (!C) return Promise.reject(new Error("no-crypto"));
+  var S = C.subtle, te = new TextEncoder(), plain = te.encode(JSON.stringify(obj)), infoB = te.encode(info), iv = C.getRandomValues(new Uint8Array(12)), flags = 0, pubRaw, ephRaw;
+  return S.importKey("spki", spki, { name: "ECDH", namedCurve: "P-256" }, true, []).then(function (pub) {
+    return Promise.all([S.exportKey("raw", pub), S.generateKey({ name: "ECDH", namedCurve: "P-256" }, true, ["deriveBits"]), pub]);
+  }).then(function (a) {
+    pubRaw = new Uint8Array(a[0]);
+    return Promise.all([S.exportKey("raw", a[1].publicKey), S.deriveBits({ name: "ECDH", public: a[2] }, a[1].privateKey, 256)]);
+  }).then(function (a) {
+    ephRaw = new Uint8Array(a[0]);
+    if (pubRaw.length !== 65 || ephRaw.length !== 65) throw new Error("bad-key");
+    return S.importKey("raw", a[1], "HKDF", false, ["deriveKey"]);
+  }).then(function (ikm) {
+    var salt = new Uint8Array(130); salt.set(ephRaw, 0); salt.set(pubRaw, 65);
+    return S.deriveKey({ name: "HKDF", hash: "SHA-256", salt: salt, info: infoB }, ikm, { name: "AES-GCM", length: 256 }, false, ["encrypt"]);
+  }).then(function (key) {
+    return deflate(plain).then(function (z) {
+      if (z && z.length && z.length < plain.length) { plain = z; flags = 1; }
+      return S.encrypt({ name: "AES-GCM", iv: iv, additionalData: infoB }, key, plain);
+    });
+  }).then(function (ct) {
+    ct = new Uint8Array(ct);
+    var out = new Uint8Array(Q.seal.head + ct.length); out[0] = Q.seal.ver; out[1] = flags; out.set(ephRaw, 2); out.set(iv, 67); out.set(ct, Q.seal.head);
+    var box = b64u(out);
+    if (!QL.questBoxOk(box)) throw new Error("too-long");
+    return S.digest("SHA-256", te.encode(box)).then(function (h) { return { box: box, ch: hexOf(new Uint8Array(h)).slice(0, 16) }; });
+  });
+};
 
 /* ---------- 交上来的规则 ---------- */
-/** 从 GitHub 上取回的东西（hub.js 收拾过的）里挑出这道题的：当天（UTC）交的、指纹对得上的、代码像样的；
- *  同一个账号只算截止前最后交的那一条。touched：截止之后这条 Issue 又有过变动（可能是改了代码，也可能只是有人评论） */
+/** 从 GitHub 上取回的东西（hub.js 收拾过的）里挑出这道题的：当天（UTC）交的、指纹对得上的、封好的一份样子像样的；
+ *  同一个账号只算截止前最后交的那一条。封着的东西这里打不开，所以只知道谁交了、什么时候交的。
+ *  touched：截止之后这条 Issue 又有过变动（可能是改了正文，也可能只是有人评论；结算的程序会去查到底是哪一种） */
 QL.questEntries = function (items, spec) {
   var open = dayMs(spec.day), dead = open + 864e5, by = {};
   (items || []).forEach(function (it) {
-    var m = it && it.meta; if (!m || it.kind !== "quest" || m.day !== spec.day || m.cid !== spec.cid || !it.user) return;
-    if (typeof it.code !== "string" || !it.code.trim() || it.code.length > Q.maxCode || !/\bfunction\s+decide\s*\(/.test(it.code)) return;
-    if (!(it.at >= open && it.at < dead)) return;
-    var p = {}; if (m.p && typeof m.p === "object") Object.keys(m.p).slice(0, 12).forEach(function (k) { if (KEYRE.test(k) && finite(m.p[k])) p[k] = m.p[k]; });
-    var e = { n: it.n | 0, user: String(it.user), avatar: it.avatar || "", url: it.url || "", at: it.at, name: typeof m.name === "string" ? m.name.replace(/[\u0000-\u001f\u007f]/g, "").trim().slice(0, 40) : "", p: p, code: it.code, touched: it.upd > dead, up: it.up | 0, tries: 1 };
+    var m = it && it.meta; if (!m || it.kind !== "quest" || m.day !== spec.day || m.cid !== spec.cid || m.v !== 2 || !it.user) return;
+    if (!QL.questBoxOk(m.box) || !(it.at >= open && it.at < dead)) return;
+    var e = { n: it.n | 0, user: String(it.user), uid: it.uid | 0, avatar: it.avatar || "", url: it.url || "", at: it.at, box: m.box, kid: typeof m.kid === "string" ? m.kid.slice(0, 16) : "", touched: it.upd > dead, tries: 1 };
     var old = by[e.user];
     if (old) e.tries = old.tries + 1;
     if (!old || e.at > old.at || (e.at === old.at && e.n > old.n)) by[e.user] = e; else old.tries = e.tries;
   });
   return Object.keys(by).map(function (k) { return by[k]; }).sort(function (a, b) { return a.at - b.at || a.n - b.n; });
+};
+
+/* ---------- 结算的结果 ---------- */
+/* 结算的程序把结果贴成一条 Issue（类别 result）。页面只认"仓库的 Actions 机器人"和仓库主人发的：别人发一条长得一样的没有用。
+ * 结果里有每个人的成绩和名字，没有代码。 */
+function numOr(x) { return finite(x) ? x : NaN; }
+function partOf(x, full) { if (!x || typeof x !== "object") return null; var o = { mean: numOr(x.mean), se: numOr(x.se), d: numOr(x.d), dse: numOr(x.dse) }; return o.mean === o.mean && (!full || o.se === o.se) ? o : null; }
+var USERRE = /^[A-Za-z0-9-]{1,39}(\[bot\])?$/;   // GitHub 账号的样子
+function cleanName(s, n) { return typeof s === "string" ? s.replace(/[\u0000-\u001f\u007f]/g, "").trim().slice(0, n) : ""; }
+/** 一份结果的内容收拾成这里用的样子；对不上这道题、缺东少西的返回 null */
+QL.questResultNorm = function (m, spec) {
+  if (!m || typeof m !== "object" || m.v !== 1 || m.day !== spec.day || m.cid !== spec.cid) return null;
+  if (m.round !== QL.questRound(spec.day) || !/^[0-9a-f]{64}$/.test(m.randomness) || !Array.isArray(m.rows) || m.rows.length > 400 || !Array.isArray(m.refs)) return null;
+  var rows = [], ok = true, seen = {};
+  m.rows.forEach(function (r) {
+    if (!r || typeof r !== "object" || !isInt(r.n) || r.n < 1 || seen[r.n] || typeof r.user !== "string" || !USERRE.test(r.user) || !finite(r.at)) { ok = false; return; }
+    seen[r.n] = 1;
+    rows.push({ n: r.n, user: r.user, uid: isInt(r.uid) && r.uid > 0 ? r.uid : 0, at: r.at, name: cleanName(r.name, 40), ch: typeof r.ch === "string" && /^[0-9a-f]{16}$/.test(r.ch) ? r.ch : "",
+      fin: partOf(r.fin, true), pub: partOf(r.pub, false), err: cleanName(r.err, 160), dup: isInt(r.dup) && r.dup > 0 ? r.dup : 0, dupUser: typeof r.dupUser === "string" && USERRE.test(r.dupUser) ? r.dupUser : "", tries: isInt(r.tries) && r.tries > 0 ? r.tries : 1 });
+  });
+  if (!ok) return null;
+  var refs = m.refs.slice(0, Q.maxRefs).map(function (r) { return r && typeof r === "object" && typeof r.id === "string" ? { id: r.id.slice(0, 40), fin: partOf(r.fin, true), pub: partOf(r.pub, false) } : null; }).filter(Boolean);
+  var sk = m.skipped && typeof m.skipped === "object" ? m.skipped : {}, cnt = function (k) { return isInt(sk[k]) && sk[k] > 0 ? sk[k] : 0; };
+  return { day: spec.day, cid: spec.cid, round: m.round, randomness: m.randomness, at: finite(m.at) ? m.at : 0, rows: rows, refs: refs,
+    skipped: { edited: cnt("edited"), sealed: cnt("sealed"), more: cnt("more") }, issue: 0, url: "", posted: 0, by: "" };
+};
+/** 从取回的东西里找出这道题的结算结果：只认 trusted 里的账号发的、截止之后发的；有几份就用最新的。没有就是 null */
+QL.questResult = function (items, spec, trusted) {
+  var dead = dayMs(spec.day) + 864e5, best = null;
+  (items || []).forEach(function (it) {
+    if (!it || it.kind !== "result" || (trusted || []).indexOf(it.user) < 0 || !(it.at >= dead)) return;
+    var r = QL.questResultNorm(it.meta, spec); if (!r) return;
+    r.issue = it.n | 0; r.url = it.url || ""; r.posted = it.at; r.by = it.user;
+    if (!best || r.posted > best.posted || (r.posted === best.posted && r.issue > best.issue)) best = r;
+  });
+  return best;
 };
 /** 排名次。rows: [{ score, at, n, err }]；higher：分数是不是越高越好。同分时先交的在前。返回每一行的名次（从 1 起；没有成绩的是 0） */
 QL.questRank = function (rows, higher) {
@@ -186,7 +320,7 @@ QL.jobs.quest = function (m, CODE, progress) {
   var S = CODE[m.game];
   if (!S || typeof S.deal !== "function" || typeof S.referee !== "function") throw new Error("这道题的代码里没有 deal(T, rng, p) 和 referee(G, t, a) 这两个函数");
   var game = { deal: S.deal, show: typeof S.show === "function" ? S.show : null, referee: S.referee }, gp = QL.jobParams(m.gp);
-  var T = Math.max(1, Math.min(2000, m.T | 0 || 1)), K = Math.max(1, Math.min(Q.maxK, m.K | 0 || 1)), seeds = (Array.isArray(m.seeds) ? m.seeds : []).slice(0, 2 * Q.maxSets).map(function (x) { return x | 0; }), n = seeds.length, N = n * K;
+  var T = Math.max(1, Math.min(2000, m.T | 0 || 1)), K = Math.max(1, Math.min(Q.maxK, m.K | 0 || 1)), seeds = (Array.isArray(m.seeds) ? m.seeds : []).slice(0, 2 * Q.maxSets).map(function (x) { return Array.isArray(x) && x.length === 4 ? [x[0] | 0, x[1] | 0, x[2] | 0, x[3] | 0] : x | 0; }), n = seeds.length, N = n * K;
   if (!n) throw new Error("没有给数据的种子");
   if (N * T > 2 * Q.maxCost) throw new Error("这道题的计算量超过了上限");
   var cut = m.cut | 0, players = [], skipped = [], rows = [], trace = [], base = null;
@@ -194,7 +328,8 @@ QL.jobs.quest = function (m, CODE, progress) {
   (m.entries || []).slice(0, 12).forEach(function (en) {
     var R = CODE[en.id];
     if (!R || typeof R.decide !== "function") { skipped.push({ id: en.id, err: "代码里没有定义 decide(s, p, st) 函数" }); return; }
-    players.push({ id: en.id, decide: R.decide, init: R.init || null, p: QL.jobParams(en.p), slot: Math.max(0, Math.min(63, en.slot | 0)) });
+    // 冻住：规则被调用时 this 就是这份记录，不冻的话它可以改自己的编号、参数和随机数的位置
+    players.push(Object.freeze({ id: en.id, decide: R.decide, init: R.init || null, p: QL.jobParams(en.p), slot: Math.max(0, Math.min(63, en.slot | 0)) }));
   });
   /** 第 lo 到 hi 局的平均数和标准误，以及和基准逐局相减之后的 */
   function part(sc, lo, hi, isBase) {

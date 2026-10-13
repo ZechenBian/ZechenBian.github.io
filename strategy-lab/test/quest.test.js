@@ -2,6 +2,9 @@
 // Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 // 每日一题的引擎（quest.js）：题目的格式、公开和结算的几组数据、结算随机数是哪一轮、任务算出来的数和直接算的一样、
 // 交上来的规则怎么挑、名次怎么排；仓库里现有的每一道题都过一遍，题面里写的几个数拿精确计算去对；校验脚本的退出码。
+// 封起来交：页面那一头封、结算那一头开。结算的程序（daily/settle.js）对着假的 GitHub 和 drand 从头到尾跑一遍，
+// 沙盒用子进程代替容器；交上来的规则别人看不到，所以规则想捣鬼的那些路（逃出执行环境、换掉内置的东西、
+// 造假结果、摸到结算的种子）在这里一条一条试，都得办不到。容器的命令行用一个假的 docker 命令核对。
 const vm = require("vm"), fs = require("fs"), path = require("path"), cp = require("child_process"), { QL, ok, near, section, done } = require("./harness.js");
 global.QL_CORE = require(path.join(__dirname, "../src/core.js"));
 global.QL_SHOP_INSTALL = require(path.join(__dirname, "../src/shop.js"));
@@ -77,7 +80,11 @@ section("二、日子、截止和结算用的那一轮随机数");
 section("三、公开的几组和结算的几组");
 {
   const pub = QL.questPubSeeds(spec0), fin = QL.questFinSeeds(spec0, "ab".repeat(32)), fin2 = QL.questFinSeeds(spec0, "AB".repeat(32)), fin3 = QL.questFinSeeds(spec0, "cd".repeat(32));
-  ok(pub.length === 4 && fin.length === 3 && pub.concat(fin).every(x => Number.isInteger(x) && x === (x | 0)) && new Set(pub.concat(fin)).size === 7, "公开 4 组、结算 3 组，种子都是 32 位整数，互不相同");
+  const flat = pub.concat(fin);
+  ok(pub.length === 4 && fin.length === 3 && flat.every(s => Array.isArray(s) && s.length === 4 && s.every(x => Number.isInteger(x) && x === (x | 0))) && new Set(flat.map(s => s.join())).size === 7 && new Set([].concat(...flat)).size === 28, "公开 4 组、结算 3 组；一组的种子是四个 32 位整数，互不相同");
+  // 结算的四个数各用随机数的一截：规则能从自己的随机数里反推出后两个，所以它们不能和发牌用的前两个有任何瓜葛
+  const R = "0123456789abcdef".repeat(4), alt = j => R.slice(0, 16 * j) + "f".repeat(16) + R.slice(16 * j + 16), f0 = QL.questFinSeeds(spec0, R);
+  ok([0, 1, 2, 3].every(j => QL.questFinSeeds(spec0, alt(j)).every((s, i) => s.every((v, q) => (q === j) === (v !== f0[i][q])))), "结算的四个数各用随机数的一截：改掉哪一截，只有那一个数跟着变");
   ok(JSON.stringify(pub) === JSON.stringify(QL.questPubSeeds(QL.questOk(BASE))) && JSON.stringify(fin) === JSON.stringify(fin2) && JSON.stringify(fin) !== JSON.stringify(fin3), "同一道题、同一个随机数，种子每次都一样（随机数的大小写不影响）；随机数不同，结算的种子就不同");
   const other = QL.questOk(Object.assign(clone(BASE), { day: "2026-10-15" }));
   ok(other.cid === spec0.cid && JSON.stringify(QL.questPubSeeds(other)) !== JSON.stringify(pub) && JSON.stringify(QL.questFinSeeds(other, "ab".repeat(32))) !== JSON.stringify(fin), "同一道题换一天再出（重温旧题），公开的和结算的数据都换一批");
@@ -104,6 +111,13 @@ section("四、任务：算出来的数和直接算的一样");
   const alone = runJob([{ id: "game", code: spec0.canon }, { id: "c", code: coin.canon }], { game: "game", gp: spec0.p, T: spec0.T, K, seeds: pub, entries: [{ id: "c", p: {}, slot: 2 }] }).result.rows[0];
   const moved = runJob([{ id: "game", code: spec0.canon }, { id: "c", code: coin.canon }], { game: "game", gp: spec0.p, T: spec0.T, K, seeds: pub, entries: [{ id: "c", p: {}, slot: Q.slot }] }).result.rows[0];
   ok(alone.mean === J.rows[2].mean && alone.se === J.rows[2].se && moved.mean !== alone.mean && Math.abs(moved.mean - mean(direct(coin, Q.slot, pub))) < 1e-12, "用到随机数的规则：slot 相同结果相同，slot 不同结果不同");
+  // 一组的四个数各管各的：前两个定发牌，后两个定规则自己的随机数
+  {
+    const sd = pub[0], k = 3, slot = Q.slot, look = seed => { const see = [], rnd = []; QL.shopEpisode(game, gp, spec0.T, seed, k, { init: null, decide: s => { see.push(s.see); rnd.push(s.rnd()); return 0; }, p: {} }, slot, null); return { see: see.join(), rnd: rnd.join() }; };
+    const a = look(sd), b = look([sd[0], sd[1], sd[2] ^ 1, sd[3]]), c = look([sd[0], sd[1], sd[2], sd[3] ^ 1]), d = look([sd[0] ^ 1, sd[1], sd[2], sd[3]]), e = look([sd[0], sd[1] ^ 1, sd[2], sd[3]]);
+    ok(b.see === a.see && c.see === a.see && b.rnd !== a.rnd && c.rnd !== a.rnd && d.rnd === a.rnd && e.rnd === a.rnd && d.see !== a.see && e.see !== a.see, "一组的四个数：前两个定发的牌，后两个定规则自己的随机数，互不相干");
+    ok(+a.rnd.split(",")[0] === new QL.RNG(sd[2], k * 64 + slot, sd[3]).u() && +look(7).rnd.split(",")[0] === new QL.RNG(7, k * 64 + slot, 9102).u(), "规则的第一个随机数就是那两个数定出来的那条流的第一个数（只给一个数的老用法不变）");
+  }
   // 结算的几组和公开的几组一次跑完，分开报
   const both = runJob(codes, { game: "game", gp: spec0.p, T: spec0.T, K, seeds: fin.concat(pub), cut: fin.length, entries }).result, onlyFin = runJob(codes, { game: "game", gp: spec0.p, T: spec0.T, K, seeds: fin, entries }).result;
   ok(both.cut === 3 && both.rows.every((r, i) => r.parts.length === 2 && r.parts[0].mean === onlyFin.rows[i].mean && r.parts[0].se === onlyFin.rows[i].se && r.parts[0].d === onlyFin.rows[i].d && r.parts[0].dse === onlyFin.rows[i].dse && r.parts[1].mean === J.rows[i].mean && r.parts[1].dse === J.rows[i].dse), "一次跑完再分开报，和分两次跑一个数都不差");
@@ -132,28 +146,34 @@ section("五、任务：出了错算谁的");
 
 section("六、交上来的规则怎么挑，名次怎么排");
 {
-  const day = spec0.day, cid = spec0.cid, t0 = Date.UTC(2026, 9, 14), code = "function decide(s, p) { return 1; }";
-  const it = (n, user, at, over) => Object.assign({ n, kind: "quest", meta: { kind: "quest", day, cid, name: "规则 " + n, p: { c: 0.5, bad: "x" } }, code, user, avatar: "", url: "u" + n, at: t0 + at * 36e5, upd: t0 + at * 36e5, up: 0 }, over || {});
+  const day = spec0.day, cid = spec0.cid, t0 = Date.UTC(2026, 9, 14), box = n => "A".repeat(200 - String(n).length) + n;   // 样子像样的一份（200 个字符），里面是什么这里不管
+  const it = (n, user, at, over) => Object.assign({ n, kind: "quest", meta: { kind: "quest", day, cid, v: 2, kid: "k", box: box(n) }, code: "", user, uid: 100 + n, avatar: "", url: "u" + n, at: t0 + at * 36e5, upd: t0 + at * 36e5, up: 0 }, over || {});
   const items = [
     it(1, "alice", 1), it(2, "alice", 5), it(3, "alice", 3),                        // 同一个人交了三次：算最后一次（第 2 条）
     it(4, "bob", 2, { upd: t0 + 30 * 36e5 }),                                       // 截止之后又动过
     it(5, "carol", 24),                                                             // 正好在截止那一刻：不算
     it(6, "dave", -1),                                                              // 前一天交的：不算
-    it(7, "erin", 4, { meta: { kind: "quest", day, cid: "other.1", name: "x" } }),  // 别的题
-    it(8, "frank", 4, { meta: { kind: "quest", day: "2026-10-13", cid, name: "x" } }),
-    it(9, "gina", 4, { code: "var x = 1;" }),                                       // 没有 decide
+    it(7, "erin", 4, { meta: { kind: "quest", day, cid: "other.1", v: 2, box: box(7) } }),  // 别的题
+    it(8, "frank", 4, { meta: { kind: "quest", day: "2026-10-13", cid, v: 2, box: box(8) } }),
+    it(9, "gina", 4, { meta: { kind: "quest", day, cid, v: 2, box: "太短" } }),       // 封好的那一份不像样
     it(10, "", 4), it(11, "hank", 4, { kind: "rule" }),
-    it(12, "ivy", 23.999, { meta: { kind: "quest", day, cid, name: "  带\u0001控制符  " + "长".repeat(60) } })
+    it(12, "ivy", 4, { meta: { kind: "quest", day, cid, name: "没封的", p: {} }, code: "function decide(s, p) { return 1; }" }),   // 没有封起来的（明文）：不收
+    it(13, "jack", 4, { meta: { kind: "quest", day, cid, v: 2, box: "A".repeat(199) + "!" } }),
+    it(14, "kim", 4, { meta: { kind: "quest", day, cid, v: 2, box: "A".repeat(60001) } })
   ];
   const E = QL.questEntries(items, spec0);
-  ok(E.map(e => e.user).join() === "bob,alice,ivy", "只留当天交的、指纹对得上的、有 decide 的；按交的时间排", E.map(e => e.user + ":" + e.n).join());
-  const a = E.filter(e => e.user === "alice")[0], b = E.filter(e => e.user === "bob")[0], i = E.filter(e => e.user === "ivy")[0];
+  ok(E.map(e => e.user).join() === "bob,alice", "只留当天交的、指纹对得上的、封好的那一份像样的；没封的不收；按交的时间排", E.map(e => e.user + ":" + e.n).join());
+  const a = E.filter(e => e.user === "alice")[0], b = E.filter(e => e.user === "bob")[0];
   ok(a.n === 2 && a.tries === 3 && b.tries === 1 && b.touched === true && a.touched === false, "同一个账号只算截止前最后交的那一条，并且记下交了几次；截止之后动过的标出来");
-  ok(JSON.stringify(a.p) === '{"c":0.5}' && i.name.length === 40 && !/[\u0000-\u001f]/.test(i.name) && i.name.startsWith("带控制符"), "参数只留是数的；名字去掉控制符、截到 40 个字");
+  ok(a.box === box(2) && a.uid === 102 && !("code" in a) && !("name" in a) && !("p" in a), "一条记录里只有谁、什么时候、封好的那一份：名字、参数、代码这里都没有");
   ok(QL.questEntries(null, spec0).length === 0 && QL.questEntries([null, {}, { kind: "quest" }], spec0).length === 0, "空的、残缺的都不出错");
   const rk = QL.questRank([{ score: 5, at: 3, n: 1 }, { score: 7, at: 9, n: 2 }, { score: 5, at: 1, n: 3 }, { score: NaN, at: 0, n: 4 }, { score: 9, at: 0, n: 5, err: "x" }, { score: 5, at: 1, n: 2 }], true);
   ok(rk.join() === "4,1,3,0,0,2", "分数高的在前；同分先交的在前，再同就按编号；没有成绩的不排名", rk.join());
   ok(QL.questRank([{ score: 5, at: 3 }, { score: 7, at: 9 }, { score: -1, at: 1 }], false).join() === "2,3,1", "越低越好的题反过来排");
+  const P = (days, d) => QL.questPick(days, d), D7 = ["2026-10-14", "2026-10-15", "2026-10-16"];
+  ok(P(D7, "2026-10-15").src === "2026-10-15" && P(D7, "2026-10-15").rerun === "" && P(D7, "2026-10-13").src === "" && P(D7, "2026-10-13").first === "2026-10-14" && P([], "2026-10-15").src === "" && P(null, "2026-10-15").first === "", "清单里有这一天就是它自己；比第一天还早、一道题都没有时挑不出来");
+  const g = P(D7, "2026-10-25"), g2 = P(D7.slice().reverse().concat(["乱写", 5]), "2026-10-25");
+  ok(D7.indexOf(g.src) >= 0 && g.rerun === g.src && g2.src === g.src && D7.some(d => P(D7, "2026-11-0" + (1 + D7.indexOf(d))).src !== g.src), "没有题的日子：从更早的题里按日期固定挑一道（清单的顺序、里面的杂质不影响），不同的日子挑到的不全一样", g.src);
 }
 
 section("七、仓库里现有的每一道题");
@@ -263,4 +283,157 @@ section("八、校验脚本");
   fs.rmSync(tmp, { recursive: true, force: true });
 }
 
+/* 下面几节要等加密、子进程这些异步的东西，包在一个函数里 */
+(async () => {
+const crypto = require("crypto"), S = require(path.join(DAILY, "settle.js")), QLHub = require(path.join(__dirname, "../src/hub.js"));
+const kp = crypto.generateKeyPairSync("ec", { namedCurve: "prime256v1" }), spki = new Uint8Array(kp.publicKey.export({ type: "spki", format: "der" })), pem = kp.publicKey.export({ type: "spki", format: "pem" });
+const DAY = "2026-10-14", NEXT = "2026-10-15", L = S.loadSpec(DAY), spec = L.spec, info = QL.questSealInfo(DAY, spec.cid), dead = QL.questDeadline(DAY), round = QL.questRound(DAY);
+const UPDOWN = "function init(p) {\n  return { price: p.start };\n}\nfunction decide(s, p, st) {\n  if (s.see === 1) st.price *= 1 + p.step;\n  if (s.see === 0) st.price *= 1 - p.step;\n  return st.price;\n}";
+const fails = async f => { try { await f(); return false; } catch (e) { return true; } };
+
+section("九、封起来交：页面那一头封，结算那一头开");
+{
+  const obj = { name: "涨跌各一成", p: { start: 1, step: 0.1 }, code: UPDOWN }, a = await QL.questSeal(spki, obj, info), b = await QL.questSeal(spki, obj, info);
+  ok(QL.questBoxOk(a.box) && /^[0-9a-f]{16}$/.test(a.ch) && a.ch === crypto.createHash("sha256").update(a.box).digest("hex").slice(0, 16), "封好的一份只有字母、数字、- 和 _；记号是它的 SHA-256 的前 16 位", a.box.length + " " + a.ch);
+  ok(a.box !== b.box && a.ch !== b.ch, "同样的东西封两次，得到的两份不一样（每次都现生成密钥和随机数）");
+  ok(JSON.stringify(S.unseal(kp.privateKey, a.box, info)) === JSON.stringify(obj) && JSON.stringify(S.unseal(kp.privateKey, b.box, info)) === JSON.stringify(obj), "拿私钥解开，里面的东西一字不差");
+  const big = { name: "长", p: {}, code: "function decide(s, p) {\n" + "  // 这是一行很长的注释，用来把代码撑大\n".repeat(300) + "  return 1;\n}" }, sb = await QL.questSeal(spki, big, info), raw = QL.questB64.dec(sb.box);
+  ok(raw[0] === 1 && raw[1] === 1 && sb.box.length < JSON.stringify(big).length / 4 && S.unseal(kp.privateKey, sb.box, info).code === big.code, "正文先压缩再加密：重复多的代码封好以后短得多，解开还是原样", sb.box.length + " vs " + JSON.stringify(big).length);
+  ok(await fails(async () => S.unseal(kp.privateKey, a.box, QL.questSealInfo(NEXT, spec.cid))) && await fails(async () => S.unseal(kp.privateKey, a.box, QL.questSealInfo(DAY, "other.1"))), "挪到别的日子、别的题上解不开");
+  const flip = s => s.slice(0, 150) + (s[150] === "A" ? "B" : "A") + s.slice(151), other = crypto.generateKeyPairSync("ec", { namedCurve: "prime256v1" });
+  ok(await fails(async () => S.unseal(kp.privateKey, flip(a.box), info)) && await fails(async () => S.unseal(other.privateKey, a.box, info)) && await fails(async () => S.unseal(kp.privateKey, "A".repeat(300), info)) && await fails(async () => S.unseal(kp.privateKey, "", info)), "改过一个字符的、换一把私钥的、乱写的，都解不开");
+  const der = QL.questPem(pem);
+  ok(der && Buffer.compare(Buffer.from(der), Buffer.from(spki)) === 0 && QL.questPem("-----BEGIN PUBLIC KEY-----\n!!!\n-----END PUBLIC KEY-----") === null && QL.questPem("") === null && QL.questPem(null) === null, "公钥从 PEM 里读出来；不像样的读不出来");
+  ok(await fails(() => QL.questSeal(new Uint8Array(91), obj, info)), "公钥不对时封不了，报错而不是给出一份没用的东西");
+  ok(!QL.questBoxOk("A".repeat(127)) && !QL.questBoxOk("A".repeat(60001)) && !QL.questBoxOk("A".repeat(200) + "=") && !QL.questBoxOk("A".repeat(201)) && !QL.questBoxOk(null) && QL.questBoxOk("A".repeat(200)), "太短、太长、带别的字符、长度不可能的，样子就不对");
+  const P = S.payloadOf;
+  ok(typeof P({ name: "x", p: { a: 1 }, code: UPDOWN }) === "object" && P({ code: UPDOWN }).name === "" && JSON.stringify(P({ code: UPDOWN }).p) === "{}", "解开以后像一条规则的：名字、参数可以没有");
+  ok([null, [], {}, { code: "" }, { code: "var x = 1;" }, { code: "function decide(s, p) { return 1 +; }" }, { code: UPDOWN, p: { "bad key": 1 } }, { code: UPDOWN, p: { a: "1" } }, { code: UPDOWN, p: [1] }, { code: "function decide(s,p){return 1;}" + " ".repeat(20001) }].every(x => typeof P(x) === "string"), "不像样的（没有 decide、语法错、参数不是数、太长）一律不收，原因里不带内容");
+  ok(P({ name: "  带\u0001控制符  " + "长".repeat(60), code: UPDOWN }).name.length === 40 && !/[\u0000-\u001f]/.test(P({ name: "a\u0001b\nc", code: UPDOWN }).name), "名字去掉控制符、截到 40 个字");
+}
+
+section("十、结算：从取回封着的规则，到公布成绩");
+{
+  const seal = o => QL.questSeal(spki, o, info);
+  const A1 = await seal({ name: "先试试", p: {}, code: "function decide(s, p) { return 0.5; }" }), A2 = await seal({ name: "涨跌各一成", p: { start: 1, step: 0.1 }, code: UPDOWN });
+  const B = await seal({ name: "一口价两块", p: { x: 2 }, code: "function decide(s, p) { return p.x; }" }), C = await seal({ name: "事后改的", p: {}, code: "function decide(s, p) { return 3; }" });
+  const F = await seal({ name: "死循环", p: {}, code: "function decide(s, p) { while (true) {} }" }), G = await seal({ name: "半路出错", p: {}, code: "function decide(s, p) { if (s.t === 3) throw new Error('boom'); return 1; }" });
+  const B2 = await seal({ name: "也是两块", p: { x: 2 }, code: "function decide(s, p) { return p.x; }" }), KT = await seal({ name: "撤下的", p: {}, code: "function decide(s, p) { return 4; }" });
+  const H = await seal({ name: "语法错", p: {}, code: "function decide(s, p) { return 1 +; }" }), X = await seal({ name: "想偷东西", p: {}, code: "var leak = typeof process + typeof require + typeof fetch;\nfunction decide(s, p) { if (leak !== 'undefinedundefinedundefined') throw new Error(leak); return 1; }" });
+  let num = 10;
+  const issue = (user, box, at, over) => { const n = ++num, o = Object.assign({ day: DAY, cid: spec.cid }, over || {}); return { number: n, title: QLHub.title("quest", DAY + " x · 封好的规则"), body: QLHub.pack({ kind: "quest", day: o.day, cid: o.cid, v: 2, kid: "t", box }, "", "说明"), user: { login: user, id: 1000 + n, avatar_url: "https://avatars.githubusercontent.com/u/" + (1000 + n) + "?v=4" }, html_url: "https://github.com/x/y/issues/" + n, created_at: at, updated_at: o.upd || at, reactions: {}, comments: 0 }; };
+  const issues = [issue("alice", A1.box, DAY + "T02:00:00Z"), issue("alice", A2.box, DAY + "T03:00:00Z"), issue("bob", B.box, DAY + "T05:00:00Z", { upd: NEXT + "T00:05:00Z" }), issue("carol", C.box, DAY + "T06:00:00Z", { upd: NEXT + "T00:03:00Z" }),
+    issue("dave", A2.box, DAY + "T07:00:00Z"), issue("erin", "A".repeat(300), DAY + "T08:00:00Z"), issue("frank", F.box, DAY + "T09:00:00Z"), issue("gina", G.box, DAY + "T10:00:00Z"), issue("hank", H.box, DAY + "T11:00:00Z"),
+    issue("ivy", B.box, DAY + "T12:00:00Z", { cid: "other.1" }), issue("late", B.box, NEXT + "T00:00:05Z"), issue("xena", X.box, DAY + "T13:00:00Z"),
+    issue("ivan", A1.box, DAY + "T14:00:00Z"), issue("judy", B2.box, DAY + "T15:00:00Z"), Object.assign(issue("kate", KT.box, DAY + "T16:00:00Z"), { state: "closed" }), issue("leo", KT.box, DAY + "T17:00:00Z")];
+  const sig = crypto.randomBytes(48), rnd = crypto.createHash("sha256").update(sig).digest("hex"), posted = [], calls = [], logs = [], env = { drand: "ok", gql: "ok" };
+  const res = (status, obj) => ({ ok: status >= 200 && status < 300, status, json: async () => obj });
+  const fetch = async (url, init) => {
+    calls.push((init && init.method || "GET") + " " + url.replace(/\?.*$/, ""));
+    if (/\/issues\?/.test(url)) return res(200, /page=1&/.test(url) ? issues.concat(posted) : []);
+    if (/\/graphql$/.test(url)) { if (env.gql === "bad") return res(200, { errors: [{ message: "nope" }] }); const q = JSON.parse(init.body).query, d = {}; (q.match(/i(\d+):/g) || []).forEach(x => { const n = +x.slice(1, -1); d["i" + n] = env.gql === "gone" && n === 13 ? null : { lastEditedAt: n === 14 ? NEXT + "T00:02:30Z" : null }; }); return res(200, env.gql === "gone" ? { data: { repository: d }, errors: [{ type: "NOT_FOUND", message: "Could not resolve to an Issue" }] } : { data: { repository: d } }); }
+    if (/drand/.test(url)) { if (env.drand === "down") throw new Error("down"); const s2 = env.drand === "split" && /api2/.test(url) ? crypto.randomBytes(48) : sig; return res(200, { round, randomness: crypto.createHash("sha256").update(s2).digest("hex"), signature: s2.toString("hex") }); }
+    if (/\/issues$/.test(url) && init.method === "POST") { const b = JSON.parse(init.body), n = ++num; posted.push({ number: n, title: b.title, body: b.body, user: { login: S.BOT, id: 41898282 }, html_url: "https://github.com/x/y/issues/" + n, created_at: NEXT + "T00:20:00Z", updated_at: NEXT + "T00:20:00Z" }); return res(201, { number: n }); }
+    return res(404, {});
+  };
+  const base = { day: DAY, key: kp.privateKey, fetch, repo: "ZechenBian/ZechenBian.github.io", token: "t", mode: "process", image: "", now: () => Date.parse(NEXT + "T00:20:00Z"), log: s => logs.push(s), entryMs: 3000, allowUnsandboxed: true };
+  ok((await S.settleDay(Object.assign({}, base, { now: () => dead + 10000 }))).status === "early" && (await S.settleDay(Object.assign({}, base, { day: "2026-10-13" }))).status === "none" && calls.length === 0, "截止之后没过多久（随机数还没出来）不结算；比第一道题还早的日子没有题；这两种情况什么也不去取");
+  ok(await fails(() => S.settleDay(Object.assign({}, base, { allowUnsandboxed: false }))) && posted.length === 0, "没有真的隔离（子进程）算出来的结果不许公布");
+  const dry = await S.settleDay(Object.assign({}, base, { dryRun: true }));
+  ok(dry.status === "dry" && posted.length === 0 && dry.meta.rows.length === 9, "演练：照常解开、跑一遍，但不公布");
+  const r = await S.settleDay(base), rows = r.meta.rows, by = u => rows.filter(x => x.user === u)[0];
+  ok(r.status === "posted" && posted.length === 1 && rows.map(x => x.user).join() === "alice,bob,judy,xena,dave,frank,gina,ivan,leo", "结算：有成绩的按成绩排在前面，没成绩的在后面", rows.map(x => x.user + (x.fin ? "=" + x.fin.mean.toFixed(2) : "")).join());
+  // 引擎直接算：结算的几组上各打 K 局
+  const fin = QL.questFinSeeds(spec, rnd), game = comp(spec.canon, ["deal", "show", "referee"]), gp = Object.freeze(Object.assign({}, spec.p));
+  const direct = (code, p, slot) => { const Pl = Object.assign(comp(code, ["init", "decide"]), { id: "x", p: Object.freeze(Object.assign({}, p)) }); let s = 0, n = 0; for (const sd of fin) for (let k = 0; k < spec.sets.K; k++) { s += QL.shopEpisode(game, gp, spec.T, sd, k, Pl, slot, null).score; n++; } return s / n; };
+  near(by("alice").fin.mean, direct(UPDOWN, { start: 1, step: 0.1 }, Q.slot), 1e-9, "结算出来的成绩，和引擎在结算的几组上直接算的一样（alice）");
+  near(by("bob").fin.mean, direct("function decide(s, p) { return p.x; }", { x: 2 }, Q.slot), 1e-9, "…（bob）");
+  ok(by("alice").n === 12 && by("alice").tries === 2 && by("alice").name === "涨跌各一成" && by("alice").ch === A2.ch && by("alice").uid === 1012 && by("alice").pub && Number.isFinite(by("alice").fin.se) && Number.isFinite(by("alice").fin.d), "同一个账号只算截止前最后交的那一条；公布的有名字、记号、结算和公开两头的成绩");
+  ok(by("bob").fin && r.meta.skipped.edited === 1 && !by("carol"), "截止之后只是被评论过的照算；截止之后改过正文的作废（问 GraphQL 才分得清）");
+  ok(by("dave").dup === 12 && by("dave").dupUser === "alice" && by("dave").fin === null && by("dave").name === "", "把别人封好的那一份原样再交一遍：同一份密文出现在两个账号名下，后来的那个不排名，也不去解它（名字是空的）");
+  ok(by("ivan").dup === 11 && by("ivan").dupUser === "alice" && by("ivan").fin === null, "照搬的是别人中途交过、后来又换掉的那一份：一样不排名");
+  ok(by("leo").dup === 25 && by("leo").dupUser === "kate" && !by("kate"), "照搬的是别人交了又撤下（关掉）的那一份：一样不排名；撤下的那一条自己也不算");
+  ok(by("judy").fin && by("judy").dup === 0 && by("judy").fin.mean === by("bob").fin.mean && rows.indexOf(by("bob")) < rows.indexOf(by("judy")), "两个人各自写出一模一样的规则、各自封好交上来：都算数，同分，先交的排前面");
+  ok(r.meta.skipped.sealed === 2 && !by("erin") && !by("hank") && !by("ivy") && !by("late"), "解不开的、解开以后不成样子的不算；别的题的、截止之后交的根本不在其中");
+  ok(by("frank").err === "timeout" && by("frank").fin === null && by("gina").err === "error" && by("xena").fin && by("xena").err === "", "死循环的算超时，中途出错的记一笔，都不影响别人；想摸 process、require、fetch 的那条什么也摸不到");
+  const refD = spec.refs.map((x, i) => direct(x.canon, x.p, i));
+  ok(r.meta.refs.length === spec.refs.length && r.meta.refs.every((x, i) => x.id === spec.refs[i].id && Math.abs(x.fin.mean - refD[i]) < 1e-9) && r.meta.round === round && r.meta.randomness === rnd && r.meta.cid === spec.cid, "结果里带着基准规则的成绩（页面拿它和自己算的对）、用的是哪一轮随机数、哪一道题");
+  const text = logs.join("\n") + "\n" + calls.join("\n");
+  ok(!/涨跌|一口价|死循环|st\.price|return p\.x|boom/.test(text) && /#12 @alice: scored/.test(text) && /#14 @carol: edited after the deadline/.test(text), "日志里只有编号、账号和每一步成没成；名字、参数、代码一个字都没有");
+  ok(!/涨跌各一成"[^}]*"code"|st\.price|function decide/.test(posted[0].body) && posted[0].body.includes("没有代码") && posted[0].title === "[SL:result] " + DAY + " 给新产品定价 · 结算", "公布的那条 Issue 里没有代码", posted[0].title);
+  // 页面那一头读结果
+  const trusted = [S.BOT, "ZechenBian"], N = QLHub.norm, got = QL.questResult(posted.map(N), spec, trusted);
+  ok(got && got.issue === posted[0].number && got.rows.length === 9 && got.rows[0].user === "alice" && got.rows[0].fin.mean === by("alice").fin.mean && got.rows[4].dup === 12 && got.rows[4].dupUser === "alice" && got.rows[5].err === "timeout" && got.skipped.edited === 1 && got.skipped.sealed === 2 && got.refs.length === spec.refs.length && got.by === S.BOT, "页面把这条 Issue 读成结果：名次、成绩、作废了几条都在");
+  ok(QL.questResult(posted.map(x => N(Object.assign({}, x, { user: { login: "mallory", id: 5 } }))), spec, trusted) === null && QL.questResult(posted.map(x => N(Object.assign({}, x, { user: { login: "ZechenBian", id: 6 } }))), spec, trusted) !== null, "别人发一条一模一样的不认；仓库主人自己发的认");
+  ok(QL.questResult(posted.map(x => N(Object.assign({}, x, { created_at: DAY + "T23:59:59Z" }))), spec, trusted) === null && QL.questResult(posted.map(N), Object.assign({}, spec, { cid: "other.1" }), trusted) === null && QL.questResult([], spec, trusted) === null && QL.questResult(null, spec, trusted) === null, "截止之前发的、别的题的不认；没有就是没有");
+  const m0 = JSON.parse(JSON.stringify(r.meta)), bad = f => { const m = JSON.parse(JSON.stringify(m0)); f(m); return QL.questResultNorm(Object.assign({ sl: 1 }, m), spec); };
+  ok(bad(m => {}) !== null && bad(m => { m.round++; }) === null && bad(m => { m.randomness = "zz"; }) === null && bad(m => { m.rows[0].user = "<img>"; }) === null && bad(m => { m.rows[1].n = m.rows[0].n; }) === null && bad(m => { m.rows = "x"; }) === null && bad(m => { m.v = 2; }) === null, "结果里的东西对不上（轮数、随机数、账号的样子、重复的编号）就整份不认");
+  ok(bad(m => { m.rows[0].fin = { mean: "9e9", se: 1 }; }).rows[0].fin === null && bad(m => { m.rows[0].name = "x".repeat(99) + "\u0001"; }).rows[0].name.length === 40 && bad(m => { m.rows[4].dupUser = "<b>"; }).rows[4].dupUser === "", "成绩不是数的当没有成绩；名字照样去控制符、截短；照搬的是谁，不像账号的不要");
+  // 已经公布过；重新结算；出岔子
+  const n1 = posted.length; calls.length = 0;
+  ok((await S.settleDay(base)).status === "done" && posted.length === n1 && !calls.some(c => /POST/.test(c)), "已经公布过的日子不再结算");
+  const again = await S.settleDay(Object.assign({}, base, { force: true, now: () => Date.parse(NEXT + "T03:00:00Z") }));
+  posted[posted.length - 1].created_at = NEXT + "T03:00:00Z";
+  ok(again.status === "posted" && posted.length === n1 + 1 && QL.questResult(posted.map(N), spec, trusted).issue === posted[n1].number, "要求重新结算就再贴一条；页面认最新的那一条");
+  posted.length = 0;
+  env.drand = "split"; const split = await fails(() => S.settleDay(base)); env.drand = "down"; const down = await fails(() => S.settleDay(base)); env.drand = "ok";
+  env.gql = "bad"; const gql = await fails(() => S.settleDay(base)); env.gql = "ok";
+  ok(split && down && gql && posted.length === 0, "两个地址给的随机数不一样、随机数取不到、查不清谁在截止之后改过：都停下来，什么也不公布");
+  env.gql = "gone"; const gone = await S.settleDay(Object.assign({}, base, { dryRun: true })); env.gql = "ok";
+  ok(gone.status === "dry" && !gone.meta.rows.some(x => x.user === "bob") && gone.meta.skipped.edited === 2 && gone.meta.rows.some(x => x.user === "alice" && x.fin), "只有一条问不清（那条 Issue 刚好没了）：作废它自己，别人照常结算", JSON.stringify(gone.meta.skipped));
+  // 沙盒里跑的那一小段（box.js）自己守住的几样
+  const boxJob = code => S.runBox({ codes: [{ id: "game", code: spec.canon }, { id: "you", code }], msg: { kind: "quest", game: "game", gp: spec.p, T: spec.T, K: 20, seeds: [1, 2], cut: 1, entries: [{ id: "you", p: {}, slot: Q.slot }] } }, { mode: "process", image: "", timeout: 20000 });
+  const plain = await boxJob("function decide(s, p) { return 1; }");
+  const sneaky = await boxJob("import(\"fs\").catch(function (e) { var P = e.constructor.constructor(\"return process\")(); P.stdout.write(\"GARBAGE\"); });\nfunction decide(s, p) { return 1; }");
+  ok(plain.ok && sneaky.ok && sneaky.result.rows[0].mean === plain.result.rows[0].mean, "规则里用 import() 想借着报错摸到外面的东西：结果一写完进程就退出，它留下的回调没有机会运行，成绩也改不了");
+  const trace = await boxJob("Error.prepareStackTrace = function (e, fr) { return fr; };\nfunction decide(s, p) { return 1; }"), evil = await boxJob("var g = (0, eval)(\"this\");\nfunction decide(s, p) { return 1; }");
+  ok(!trace.ok && /not extensible/.test(trace.error) && !evil.ok && /Code generation/.test(evil.error), "想改 Error.prepareStackTrace（借调用栈摸到全局对象）、想用 eval：都办不到，这条规则直接算失败");
+  ok(S.payloadOf({ code: "import(\"fs\");\n" + UPDOWN }) === "uses import" && S.payloadOf({ code: "var m = import/* x */(\"fs\");\n" + UPDOWN }) === "uses import" && S.payloadOf({ code: "// import nothing\n" + UPDOWN }) === "uses import" && typeof S.payloadOf({ code: UPDOWN.replace("return st.price;", "var important = 1, reimport_ = 2; return st.price;") }) === "object", "代码里出现 import 这个词的规则结算的时候不收（中间夹注释、写在注释里的也一样；只是名字里带这几个字母的不受牵连）");
+  // 封着的规则没有人看得到，所以下面这些得靠程序自己守住
+  const rowOf = (r, id) => r.ok && r.result.rows.filter(x => x.id === id)[0], NAMES = "typeof self + typeof globalThis + typeof postMessage + typeof onmessage + typeof QL + typeof __CODE + typeof __posts + typeof __msg + typeof process + typeof require + typeof module + typeof fetch + typeof performance";
+  const names = await boxJob("var leak = " + NAMES + ";\nfunction decide(s, p) { if (leak !== \"" + "undefined".repeat(13) + "\") throw new Error(leak); return (" + NAMES + ") === \"" + "undefined".repeat(13) + "\" ? 1 : 0; }");
+  ok(names.ok && !rowOf(names, "you").err && rowOf(names, "you").mean === rowOf(plain, "you").mean, "规则叫得出名字的东西里，没有线程自己、全局对象、发消息的函数、任务的参数（里面有结算的种子），也没有 Node 的任何东西", JSON.stringify(names).slice(0, 300));
+  const host = await boxJob("var P = constructor.constructor(\"return process\")();\nfunction decide(s, p) { return 1; }"), host2 = await boxJob("function decide(s, p) { return toString.constructor(\"return 1\")(); }");
+  ok(!host.ok && /Code generation/.test(host.error) && host2.ok && /Code generation/.test(rowOf(host2, "you").err), "顺着 constructor、toString 这些名字摸不到外面那一层的 Function：上下文的全局对象不是从外面带进去的");
+  const base0 = spec.refs[0], boxPair = code => S.runBox({ codes: [{ id: "game", code: spec.canon }, { id: "ref", code: base0.canon }, { id: "you", code }], msg: { kind: "quest", game: "game", gp: spec.p, T: spec.T, K: 20, seeds: QL.questPubSeeds(spec).slice(0, 2), cut: 1, entries: [{ id: "ref", p: base0.p, slot: 0 }, { id: "you", p: {}, slot: Q.slot }] } }, { mode: "process", image: "", timeout: 20000 });
+  const pair = await boxPair("function decide(s, p) { return 1; }");
+  const rebind = await boxJob("Math = { min: function () { return 1e9; }, max: function () { return 1e9; } };\nfunction decide(s, p) { return 1; }"), lazy = await boxPair("function decide(s, p) { isFinite = function () { return true; }; return 1; }");
+  ok(!rebind.ok && /read only/.test(rebind.error) && lazy.ok && /read only/.test(rowOf(lazy, "you").err) && pair.ok && !rowOf(pair, "you").err && rowOf(lazy, "ref").mean === rowOf(pair, "ref").mean && rowOf(lazy, "ref").parts[0].mean === rowOf(pair, "ref").parts[0].mean, "想把 Math、isFinite 这些全局的名字整个换掉（裁判要用它们）：办不到。写在顶层的整条失败，写在 decide 里的算规则自己出错", String(rebind.error) + " | " + JSON.stringify(lazy).slice(0, 200));
+  const tamper = await boxJob("var won = 0;\ntry { Object.getPrototypeOf(new Map().entries()).next = function () {}; won++; } catch (e) {}\ntry { BigInt.prototype.toString = function () {}; won++; } catch (e) {}\ntry { Promise.resolve = null; won++; } catch (e) {}\ntry { parseFloat = function () { return 1; }; won++; } catch (e) {}\ntry { Intl.x = 1; won++; } catch (e) {}\ntry { Object.defineProperty(Object.prototype, \"g0\", { get: function () { return this; } }); won++; } catch (e) {}\ntry { console.log = 1; won++; } catch (e) {}\ntry { Object.defineProperty(Math.max, \"apply\", { value: function () { return 1e9; } }); won++; } catch (e) {}\ntry { Object.defineProperty(Object.prototype.hasOwnProperty, \"call\", { value: function () { return true; } }); won++; } catch (e) {}\ntry { Array.prototype.push.mark = 1; won++; } catch (e) {}\ntry { Object.defineProperty(Object.getOwnPropertyDescriptor(Map.prototype, \"size\").get, \"call\", { value: 1 }); won++; } catch (e) {}\nfunction decide(s, p) { if (won) throw new Error(\"won \" + won); return 1; }");
+  ok(tamper.ok && !rowOf(tamper, "you").err && rowOf(tamper, "you").mean === rowOf(plain, "you").mean, "内置的东西一样也改不动：迭代器的原型、BigInt、Promise、parseFloat、Intl、Object.prototype（想借它拿到全局对象）；连内置函数本身也添不了东西（不然给 Math.max 添一个 apply，裁判用 Math.max.apply 时调到的就是规则的函数）", JSON.stringify(tamper).slice(0, 300));
+  const usual = await boxJob("function Foo() { this.a = 1; }\nFoo.prototype.go = function () { return this.a; };\nvar m = new Map(); m.set(1, 2); var arr = [3, 1, 2].sort(function (a, b) { return a - b; });\nclass K { constructor() { this.v = 1; } get w() { return this.v; } }\nfunction* g() { yield 1; }\nfunction decide(s, p, st) { st.n = (st.n || 0) + 1; return new Foo().go() * new K().w * g().next().value * arr[0] * (m.get(1) - 1) * Math.max.apply(null, [0, 1]) * JSON.parse(\"1\"); }");
+  ok(usual.ok && !rowOf(usual, "you").err && rowOf(usual, "you").mean === rowOf(plain, "you").mean, "冻成这样，规则里平常的写法照样能用：自己的构造函数和类、Map、排序、生成器、Math.max.apply、JSON", JSON.stringify(usual).slice(0, 300));
+  const self2 = await boxJob("function decide(s, p) { this.slot = 0; return 1; }"), self3 = await boxJob("function decide(s, p) { return Object.isFrozen(this) && Object.isFrozen(s) && Object.isFrozen(p) && Object.isFrozen(s.g) ? 1 : 0; }");
+  ok(self2.ok && /read only|Cannot assign/.test(rowOf(self2, "you").err) && self3.ok && rowOf(self3, "you").mean === rowOf(plain, "you").mean, "规则被调用时拿到的 this（它自己的那份记录）、看到的东西、参数都是冻住的");
+  const out1 = "return {}; })(); self.postMessage({ type: \"done\", result: { rows: [] } }); (function () { \"use strict\"; function decide(s, p) { return 1; }";
+  const broke = await boxJob(out1);
+  ok(!broke.ok && /syntax error in you/.test(broke.error) && S.payloadOf({ code: out1 }) === "syntax error" && QLJobs.syntax(out1) !== "", "想提前把包着规则的那层函数收掉、跑到外面去发一条假的“算完了”：这样的代码自己不是一段完整的函数体，语法检查就过不了", String(broke.error));
+  const self = await S.sandboxOk({ mode: "process", image: "" });
+  ok(typeof self === "string" && self.length > 0, "开工之前的自查：没有真的关住（这里是普通的子进程）就查得出来，不往下干", self);
+  // 容器那一层在测试里起不来。拿一个假的 docker 命令顶替（它把 box.js 直接当子进程跑，什么也没隔离），查三件事：
+  // 开容器时带的那些限制一样不少；超时了会去把容器停掉；开工之前的自查发现"根本没关住"，就什么也不干
+  {
+    const os = require("os"), shim = fs.mkdtempSync(path.join(os.tmpdir(), "sl-docker-")), shimLog = path.join(shim, "calls.log"), oldPath = process.env.PATH;
+    fs.writeFileSync(path.join(shim, "docker"), "#!/bin/sh\necho \"$@\" >> \"" + shimLog + "\"\nif [ \"$1\" = \"run\" ]; then exec \"" + process.execPath + "\" \"" + path.join(DAILY, "box.js") + "\"; fi\nif [ \"$1\" = \"kill\" ]; then exit 0; fi\nexit 1\n", { mode: 0o755 });
+    process.env.PATH = shim + path.delimiter + oldPath;
+    const job1 = { codes: [{ id: "game", code: spec.canon }, { id: "you", code: "function decide(s, p) { return 1; }" }], msg: { kind: "quest", game: "game", gp: spec.p, T: spec.T, K: 20, seeds: [1, 2], cut: 1, entries: [{ id: "you", p: {}, slot: Q.slot }] } };
+    const viaDocker = await S.runBox(job1, { mode: "docker", image: "node:22-alpine", timeout: 20000 }), line = fs.readFileSync(shimLog, "utf8").split("\n").filter(l => /^run /.test(l))[0] || "";
+    ok(viaDocker.ok && viaDocker.result.rows[0].mean === plain.result.rows[0].mean, "容器模式：任务从标准输入进去，结果从标准输出出来，和子进程模式算的一样");
+    ok(["run --rm -i --name sl-quest-", "--network none", "--read-only", "--cap-drop ALL", "--security-opt no-new-privileges", "--user 65534:65534", "--pids-limit 128", "--memory 1g", "--memory-swap 1g", "--cpus 1", "--workdir /", "-v " + path.join(DAILY, "..") + ":/sl:ro", "node:22-alpine node --max-old-space-size=768 /sl/daily/box.js"].every(x => line.includes(x)) && !/ -e |--env|--privileged|docker\.sock|--network host|:rw/.test(line), "开容器的命令：没有网络、文件只读、去掉所有权限、不是 root、限内存和进程数，引擎只读挂进去；不带任何环境变量，也不挂别的东西", line);
+    const slow = await S.runBox({ codes: [{ id: "game", code: spec.canon }, { id: "you", code: "function decide(s, p) { while (true) {} }" }], msg: job1.msg }, { mode: "docker", image: "node:22-alpine", timeout: 1500 });
+    // "去停容器"的那条命令是另起的一个进程，和这边收到"超时"的先后不一定：等它一小会儿
+    let killed = false; for (let i = 0; i < 40 && !killed; i++) { killed = /^kill sl-quest-[0-9a-f]{12}$/m.test(fs.readFileSync(shimLog, "utf8")); if (!killed) await new Promise(r => setTimeout(r, 50)); }
+    ok(slow.timedOut && !slow.ok && slow.error === "timeout" && killed, "容器模式下超时：记成超时，并且按名字去把那个容器停掉");
+    const notSafe = await S.sandboxOk({ mode: "docker", image: "node:22-alpine" });
+    ok(typeof notSafe === "string" && /can write to|runs as root|network works|DNS works/.test(notSafe), "这个假的 docker 什么也没隔离：自查查得出来", notSafe);
+    const cli = cp.spawnSync(process.execPath, [path.join(DAILY, "settle.js"), "--day=" + DAY], { encoding: "utf8", env: { PATH: process.env.PATH, QUEST_PRIVATE_KEY: kp.privateKey.export({ type: "sec1", format: "pem" }) } });
+    ok(cli.status === 1 && /The sandbox is not safe to use/.test(cli.stdout) && /Nothing was run/.test(cli.stdout) && !/challenge|published|sealed entr/.test(cli.stdout) && !cli.stdout.includes("BEGIN"), "命令行：自查不过就停在那里，什么也不取、什么也不解；私钥不进日志", cli.stdout.slice(0, 400));
+    process.env.PATH = oldPath; fs.rmSync(shim, { recursive: true, force: true });
+  }
+  const run = args => cp.spawnSync(process.execPath, [path.join(DAILY, "settle.js")].concat(args), { encoding: "utf8", env: { PATH: process.env.PATH } });
+  const noKey = run([]), noBox = cp.spawnSync(process.execPath, [path.join(DAILY, "settle.js"), "--sandbox=process"], { encoding: "utf8", env: { PATH: process.env.PATH, QUEST_PRIVATE_KEY: kp.privateKey.export({ type: "sec1", format: "pem" }) } });
+  ok(noKey.status === 0 && /QUEST_PRIVATE_KEY is not set/.test(noKey.stdout) && noBox.status === 1 && /no isolation/.test(noBox.stdout), "命令行：没有私钥就什么也不做（不算出错）；不开容器又不是演练，拒绝");
+}
+
 done();
+})().catch(e => { console.log("CRASH", e && e.stack || e); process.exit(1); });

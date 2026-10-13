@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
 // Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
-/* 每日一题的校验脚本。只用 Node 自带的模块，不需要安装任何东西。
+/* 每日一题的校验脚本。只用 Node 自带的模块，不需要安装任何东西（要 Node 22.8 以上，见 engine.js）。
  *
  *   node daily/check.js daily/q/2026-10-14.json …   核对这几道题
  *   node daily/check.js --all                        核对 daily/q/ 里的每一道题，并核对 index.json
@@ -18,30 +18,15 @@
  *   6. 裁判受得了乱报的数：不是数、极大的正负数、小数、范围外的整数，裁判都要回一个有限的数
  * 有一条不过，退出码就是 1。 */
 "use strict";
-const fs = require("fs"), path = require("path"), vm = require("vm");
-const ROOT = path.join(__dirname, ".."), SRC = f => path.join(ROOT, "src", f), QDIR = path.join(__dirname, "q"), INDEX = path.join(__dirname, "index.json");
-for (const [name, file] of [["QL_ML_INSTALL", "ml.js"], ["QL_GAMES_INSTALL", "games.js"], ["QL_OBS_INSTALL", "obs-games.js"], ["QL_LIVE_INSTALL", "live.js"]]) { try { global[name] = require(SRC(file)); } catch (e) { if (e.code !== "MODULE_NOT_FOUND") throw e; } }
-global.QL_CORE = require(SRC("core.js"));
-global.QL_SHOP_INSTALL = require(SRC("shop.js"));
-global.QL_QUEST_INSTALL = require(SRC("quest.js"));
-const JI = require(SRC("jobs.js")), QLJobs = JI.QLJobs;
-const QL = global.QL_CORE({});
-JI(QL); global.QL_SHOP_INSTALL(QL); global.QL_QUEST_INSTALL(QL);
+const fs = require("fs"), path = require("path");
+const { QL, QLJobs, job } = require("./engine.js");
+const QDIR = path.join(__dirname, "q"), INDEX = path.join(__dirname, "index.json");
 const Q = QL.QUEST;
 
 const LIMIT_MS = 4000;      // 一条规则跑完公开的几组，最多这么久（毫秒）
 const DRAWS = Math.max(1, +process.env.QUEST_DRAWS || 30);   // 换多少批数据来看名次稳不稳（测试里用环境变量调小）
 const args = process.argv.slice(2), flags = new Set(args.filter(a => a.startsWith("--"))), files0 = args.filter(a => !a.startsWith("--"));
 
-/** 把几段代码放进和页面后台线程一样的程序里，跑一件任务，返回结果（出错时抛出来） */
-function job(codes, msg) {
-  const built = QLJobs.source(codes), posts = [], self = { postMessage: m => posts.push(m), onmessage: null };
-  vm.runInContext(built.src, vm.createContext({ self, console, performance }), { filename: "job.js", timeout: 120000 });
-  self.onmessage({ data: Object.assign({ type: "job" }, msg) });
-  const last = posts[posts.length - 1];
-  if (!last || last.type !== "done") throw new Error(last && last.message ? last.message : "任务没有跑完");
-  return last.result;
-}
 function codesOf(spec, extra) { return [{ id: "game", code: spec.canon }].concat(spec.refs.map(r => ({ id: "ref:" + r.id, code: r.canon })), extra || []); }
 function entriesOf(spec, extra) { return spec.refs.map((r, i) => ({ id: "ref:" + r.id, p: r.p, slot: i })).concat(extra || []); }
 function run(spec, seeds, extraCodes, extraEntries, trace) {
