@@ -1,0 +1,168 @@
+{
+  "v": 1,
+  "day": "2026-10-14",
+  "id": "price-probe",
+  "title": {
+    "zh": "给新产品定价",
+    "en": "Pricing a new product"
+  },
+  "summary": {
+    "zh": "不知道顾客最多肯付多少。一边卖一边试，60 位顾客卖下来收得越多越好。",
+    "en": "You do not know what customers will pay. Learn while you sell, and collect as much as you can from 60 customers."
+  },
+  "about": {
+    "zh": [
+      "你有一件新产品，60 位顾客一个接一个来。每位顾客心里有一个最多肯付的价钱，在 0 到 θ 之间均匀分布。θ 是多少你不知道：每一局换一个 θ，在 0.5 到 8 之间按对数均匀地抽，也就是落在 0.5 到 1、1 到 2、2 到 4、4 到 8 这四段的机会一样大。",
+      "",
+      "每一回合你报一个价。顾客肯付的价钱不低于你的报价就成交，你收到报的那个价；否则这位顾客走掉，这一回合什么也没有。",
+      "",
+      "**你的规则看到的**：`s.see` 是上一位顾客买了没有（1 是买了，0 是没买；第一回合还没有顾客，是 NaN）。自己报过什么价，要自己记在 `st` 里。",
+      "",
+      "**你的规则报的数**：这一回合的价钱。报负数或者报的不是数，算报 0（白送）。",
+      "",
+      "**计分**：一局里 60 位顾客的成交额加起来。"
+    ],
+    "en": [
+      "You have a new product, and 60 customers arrive one at a time. Each customer has a highest price they are willing to pay, uniform between 0 and θ. You do not know θ: every episode draws a new one, log-uniformly between 0.5 and 8, so it is equally likely to fall in 0.5 to 1, 1 to 2, 2 to 4 or 4 to 8.",
+      "",
+      "Each round you quote a price. If the customer is willing to pay at least your price, the sale goes through and you receive your price; otherwise the customer leaves and the round pays nothing.",
+      "",
+      "**What your rule sees**: `s.see` is whether the previous customer bought (1 for yes, 0 for no; NaN in the first round, when there has been no customer yet). Keep track of your own past prices in `st`.",
+      "",
+      "**What your rule returns**: the price for this round. A negative number, or something that is not a number, counts as 0 (giving it away).",
+      "",
+      "**Score**: the total revenue from the 60 customers of an episode."
+    ]
+  },
+  "note": {
+    "zh": "要是知道 θ，最好的价钱是 θ/2，平均每位顾客收到 θ/4。不知道 θ，就得一边卖一边试：价报高了卖不掉，但你知道了 θ 没有那么大；价报低了卖得掉，但少收了钱，而且不知道还能高多少。",
+    "en": "If you knew θ, the best price would be θ/2, worth θ/4 per customer on average. Without knowing θ you have to learn while selling: a price that is too high sells nothing, but tells you θ is not that large; a price that is too low sells, but leaves money on the table and does not tell you how much higher you could go."
+  },
+  "T": 60,
+  "p": {
+    "lo": 0.5,
+    "hi": 8
+  },
+  "code": {
+    "zh": [
+      "// 发牌：抽一个 θ（在 lo 到 hi 之间按对数均匀），再把这一局 T 位顾客各自最多肯付的价钱先定好，藏起来。",
+      "function deal(T, rng, p) {",
+      "  var theta = p.lo * Math.exp(rng.u() * Math.log(p.hi / p.lo)), v = [];",
+      "  for (var t = 0; t < T; t++) v.push(theta * rng.u());",
+      "  return { v: v, sold: NaN };",
+      "}",
+      "// 亮牌：规则看到的是上一位顾客买了没有。",
+      "function show(G, t) {",
+      "  return G.sold;",
+      "}",
+      "// 判分：顾客肯付的价钱不低于报价就成交，得分是报的那个价。",
+      "function referee(G, t, a) {",
+      "  var price = a >= 0 ? a : 0;",
+      "  G.sold = G.v[t] >= price ? 1 : 0;",
+      "  return G.sold ? price : 0;",
+      "}"
+    ],
+    "en": [
+      "// Deal: draw θ (log-uniform between lo and hi), then fix in advance what each of the T customers is willing to pay. All hidden.",
+      "function deal(T, rng, p) {",
+      "  var theta = p.lo * Math.exp(rng.u() * Math.log(p.hi / p.lo)), v = [];",
+      "  for (var t = 0; t < T; t++) v.push(theta * rng.u());",
+      "  return { v: v, sold: NaN };",
+      "}",
+      "// Show: the rule sees whether the previous customer bought.",
+      "function show(G, t) {",
+      "  return G.sold;",
+      "}",
+      "// Referee: the sale goes through if the customer is willing to pay at least the quoted price; the gain is that price.",
+      "function referee(G, t, a) {",
+      "  var price = a >= 0 ? a : 0;",
+      "  G.sold = G.v[t] >= price ? 1 : 0;",
+      "  return G.sold ? price : 0;",
+      "}"
+    ]
+  },
+  "sets": {
+    "pub": 10,
+    "fin": 10,
+    "K": 200,
+    "seed": 20261014
+  },
+  "higher": true,
+  "digits": 2,
+  "refs": [
+    {
+      "id": "fixed",
+      "name": {
+        "zh": "一口价 1",
+        "en": "Always quote 1"
+      },
+      "summary": {
+        "zh": "什么也不学，每位顾客都报 1。拿来当基准。",
+        "en": "Learns nothing: quotes 1 to every customer. The benchmark."
+      },
+      "p": {
+        "price": 1
+      },
+      "code": "function decide(s, p) {\n  return p.price;\n}"
+    },
+    {
+      "id": "updown",
+      "name": {
+        "zh": "卖掉就涨，没卖掉就降",
+        "en": "Up after a sale, down after a miss"
+      },
+      "summary": {
+        "zh": "从 1 起步。上一位买了，涨一成；没买，降一成。",
+        "en": "Starts at 1. Raises the price by a tenth after a sale and cuts it by a tenth after a miss."
+      },
+      "p": {
+        "start": 1,
+        "step": 0.1
+      },
+      "code": "function init(p) {\n  return { price: p.start };\n}\nfunction decide(s, p, st) {\n  if (s.see === 1) st.price *= 1 + p.step;\n  if (s.see === 0) st.price *= 1 - p.step;\n  return st.price;\n}"
+    },
+    {
+      "id": "double",
+      "name": {
+        "zh": "先翻倍探顶，再小步调",
+        "en": "Double until refused, then fine-tune"
+      },
+      "summary": {
+        "zh": "从 0.25 起，每卖掉一件就翻倍，直到第一次没卖掉；之后减半，再照上一条那样一成一成地调。",
+        "en": "Starts at 0.25 and doubles after every sale until the first miss; then halves and adjusts by a tenth at a time like the rule above."
+      },
+      "p": {
+        "start": 0.25,
+        "step": 0.1
+      },
+      "code": "function init(p) {\n  return { price: p.start, fine: 0 };\n}\nfunction decide(s, p, st) {\n  if (s.see === 1) st.price *= st.fine ? 1 + p.step : 2;\n  if (s.see === 0) { st.price *= st.fine ? 1 - p.step : 0.5; st.fine = 1; }\n  return st.price;\n}"
+    }
+  ],
+  "starter": {
+    "p": {
+      "start": 1
+    },
+    "code": {
+      "zh": [
+        "// 起始代码：从 p.start 起步，以后一直报同一个价。把它改成你的办法。",
+        "// s.see：上一位顾客买了没有（1 买了，0 没买，第一回合是 NaN）。st 是你自己的记事本，一局之内一直在。",
+        "function init(p) {",
+        "  return { price: p.start };",
+        "}",
+        "function decide(s, p, st) {",
+        "  return st.price;",
+        "}"
+      ],
+      "en": [
+        "// Starter code: begins at p.start and quotes the same price forever. Change it into your own method.",
+        "// s.see: whether the previous customer bought (1 yes, 0 no, NaN in the first round). st is your own notebook; it lasts for the whole episode.",
+        "function init(p) {",
+        "  return { price: p.start };",
+        "}",
+        "function decide(s, p, st) {",
+        "  return st.price;",
+        "}"
+      ]
+    }
+  }
+}

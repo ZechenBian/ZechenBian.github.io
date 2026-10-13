@@ -58,7 +58,7 @@ const NOW = "2026-10-12T10:00:00Z", DAY = "2026-10-12", YDAY = "2026-10-11";   /
 
   console.log("== 1. lobby and tutorial");
   await stage("lobby"); await page.click("#btnLobby"); await page.waitForSelector(".modal.lbm .lb-card"); await look("lobby");
-  ok((await page.locator(".lb-card").count()) === 6 && (await page.locator('.lb-card[data-card="tutorial"] [data-go]').innerText()) === "Start", "英文页的大厅：六张卡片，教程排第一");
+  ok((await page.locator(".lb-card").count()) === 7 && (await page.locator('.lb-card[data-card="tutorial"] [data-go]').innerText()) === "Start", "英文页的大厅：七张卡片，教程排第一");
   await page.screenshot({ path: SH("en-lobby.png") }); await closeAll();
   await stage("tutorial"); await page.evaluate(() => window.App.openTour(0)); await page.waitForSelector("#tourTitle");
   for (let i = 0; i < 7; i++) { await look("tutorial step " + (i + 1)); await page.click("#tourNext"); await page.waitForTimeout(60); }

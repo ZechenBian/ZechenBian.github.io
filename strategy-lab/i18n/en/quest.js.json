@@ -1,0 +1,6 @@
+[
+{"zh":"这道题的代码里没有 deal(T, rng, p) 和 referee(G, t, a) 这两个函数","en":"The challenge's code does not define the two functions deal(T, rng, p) and referee(G, t, a)"},
+{"zh":"没有给数据的种子","en":"No seeds were given for the data"},
+{"zh":"这道题的计算量超过了上限","en":"This challenge needs more computation than the limit allows"},
+{"zh":"代码里没有定义 decide(s, p, st) 函数","en":"The code does not define a decide(s, p, st) function"}
+]

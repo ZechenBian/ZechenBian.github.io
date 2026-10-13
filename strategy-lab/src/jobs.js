@@ -51,17 +51,18 @@ QL.jobMain = function (scope, CODE) {
 var QLJobs = (function () {
   "use strict";
   // 编进线程的代码里碰不到这些名字。比 engine-client.js 的那一份多：别人的代码连"给自己发消息""再开一个线程"的门也不留
-  var SHADOW = "var self, globalThis, postMessage, onmessage, onerror, onmessageerror, addEventListener, removeEventListener, dispatchEvent, importScripts, fetch, XMLHttpRequest, WebSocket, EventSource, WebTransport, BroadcastChannel, MessageChannel, MessageEvent, Worker, SharedWorker, URL, Blob, FileReader, close, navigator, location, indexedDB, caches, crypto, setTimeout, setInterval, queueMicrotask, requestAnimationFrame, reportError, structuredClone, QL, __CODE, QL_CORE, QL_ML_INSTALL, QL_GAMES_INSTALL, QL_OBS_INSTALL, QL_LIVE_INSTALL, QL_JOBS_INSTALL, QL_DECA_INSTALL, QL_ARENA_INSTALL, QL_SHOP_INSTALL;";
+  var SHADOW = "var self, globalThis, postMessage, onmessage, onerror, onmessageerror, addEventListener, removeEventListener, dispatchEvent, importScripts, fetch, XMLHttpRequest, WebSocket, EventSource, WebTransport, BroadcastChannel, MessageChannel, MessageEvent, Worker, SharedWorker, URL, Blob, FileReader, close, navigator, location, indexedDB, caches, crypto, setTimeout, setInterval, queueMicrotask, requestAnimationFrame, reportError, structuredClone, QL, __CODE, QL_CORE, QL_ML_INSTALL, QL_GAMES_INSTALL, QL_OBS_INSTALL, QL_LIVE_INSTALL, QL_JOBS_INSTALL, QL_DECA_INSTALL, QL_ARENA_INSTALL, QL_SHOP_INSTALL, QL_QUEST_INSTALL;";
   var RET = "\n;return { init: typeof init === \"function\" ? init : null, decide: typeof decide === \"function\" ? decide : null, fit: typeof fit === \"function\" ? fit : null, simulate: typeof simulate === \"function\" ? simulate : null, deal: typeof deal === \"function\" ? deal : null, show: typeof show === \"function\" ? show : null, referee: typeof referee === \"function\" ? referee : null };\n})();";
   function lines(s) { var n = 0, i = -1; while ((i = s.indexOf("\n", i + 1)) >= 0) n++; return n; }
   function fns() {
     var base = [typeof QL_ML_INSTALL === "function" ? QL_ML_INSTALL : null, typeof QL_GAMES_INSTALL === "function" ? QL_GAMES_INSTALL : null, typeof QL_OBS_INSTALL === "function" ? QL_OBS_INSTALL : null, typeof QL_LIVE_INSTALL === "function" ? QL_LIVE_INSTALL : null].filter(Boolean).map(function (f) { return f.toString(); }).join("\n");
-    var extra = [QL_JOBS_INSTALL, typeof QL_DECA_INSTALL === "function" ? QL_DECA_INSTALL : null, typeof QL_ARENA_INSTALL === "function" ? QL_ARENA_INSTALL : null, typeof QL_SHOP_INSTALL === "function" ? QL_SHOP_INSTALL : null].filter(Boolean).map(function (f) { return "(" + f.toString() + ")(QL);"; }).join("\n");
+    var extra = [QL_JOBS_INSTALL, typeof QL_DECA_INSTALL === "function" ? QL_DECA_INSTALL : null, typeof QL_ARENA_INSTALL === "function" ? QL_ARENA_INSTALL : null, typeof QL_SHOP_INSTALL === "function" ? QL_SHOP_INSTALL : null, typeof QL_QUEST_INSTALL === "function" ? QL_QUEST_INSTALL : null].filter(Boolean).map(function (f) { return "(" + f.toString() + ")(QL);"; }).join("\n");
     return base + "\nvar QL = (" + QL_CORE.toString() + ")(self);\n" + extra + "\nQL.harden();\nvar __CODE = {};\n";
   }
-  /** 拼出线程的源码。codes: [{ id, code }]；返回 { src, spans: [{ id, from, to }] }（每段代码落在源码的哪几行，报错时用） */
-  function source(codes) {
-    var src = fns(), spans = [];
+  /** 拼出线程的源码。codes: [{ id, code }]；返回 { src, spans: [{ id, from, to }] }（每段代码落在源码的哪几行，报错时用）。
+   *  opt.ready：内核装好、冻住之后，这几段代码执行之前，先执行的一小段（结算的程序用它把全局对象整个锁死，见 daily/engine.js） */
+  function source(codes, opt) {
+    var src = fns() + (opt && opt.ready ? String(opt.ready) + "\n" : ""), spans = [];
     (codes || []).forEach(function (c) {
       var pre = "__CODE[" + JSON.stringify(String(c.id)) + "] = (function () { \"use strict\"; " + SHADOW + "\n", from = lines(src + pre) + 1, body = String(c.code == null ? "" : c.code);
       src += pre + body + RET + "\n";

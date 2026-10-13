@@ -1,0 +1,174 @@
+{
+  "v": 1,
+  "day": "2026-10-16",
+  "id": "newsstand",
+  "title": {
+    "zh": "报摊每天进多少货",
+    "en": "How much to stock"
+  },
+  "summary": {
+    "zh": "每天进货，卖不完的作废。卖光了的那天，你不知道还有多少人想买。",
+    "en": "You stock up every morning and leftovers are worthless. On a day you sell out, you never learn how many more people wanted to buy."
+  },
+  "about": {
+    "zh": [
+      "你有一个报摊，连开 30 天。每天早上进货：一份的进价是 1，卖价是 2.5，当天卖不完的作废。每天想买的人数服从泊松分布，平均数是 λ；λ 是多少你不知道，每一局换一个，在 8 到 30 之间均匀地抽，30 天里不变。",
+      "",
+      "麻烦在于你看到的是卖掉了几份，不是有几个人想买。进了 12 份、卖光了，你只知道想买的人不少于 12 个。",
+      "",
+      "**你的规则看到的**：`s.see.sold` 是昨天卖掉几份；`s.see.out` 是昨天卖光了没有（1 卖光了，0 有剩）。第一天这两个都是 NaN。",
+      "",
+      "**你的规则报的数**：今天进几份。会四舍五入成整数，并且限制在 0 到 100 之间；报的不是数，算进 0 份。",
+      "",
+      "**计分**：30 天的利润加起来。一天的利润 = 2.5 × 卖掉的份数 − 1 × 进货的份数。"
+    ],
+    "en": [
+      "You run a newsstand for 30 days. Every morning you stock up: a copy costs you 1 and sells for 2.5, and whatever is left at the end of the day is worthless. The number of people who want a copy each day is Poisson with mean λ. You do not know λ: every episode draws a new one, uniformly between 8 and 30, and it stays the same for the 30 days.",
+      "",
+      "The catch is that you see how many copies you sold, not how many people wanted one. If you stocked 12 and sold out, all you know is that at least 12 people wanted a copy.",
+      "",
+      "**What your rule sees**: `s.see.sold` is how many copies you sold yesterday; `s.see.out` says whether you sold out yesterday (1 sold out, 0 had copies left). On the first day both are NaN.",
+      "",
+      "**What your rule returns**: how many copies to stock today. It is rounded to a whole number and kept between 0 and 100; something that is not a number counts as 0 copies.",
+      "",
+      "**Score**: the total profit over the 30 days. One day's profit = 2.5 × copies sold − 1 × copies stocked."
+    ]
+  },
+  "note": {
+    "zh": "要是知道想买的人数的分布，进货量应该取它的 0.6 分位数（少进一份少赚 1.5，多进一份亏 1，所以是 1.5 / (1.5 + 1) = 0.6）。不知道分布的时候，“昨天卖多少今天就进多少”听起来稳妥，其实会越进越少：卖光的那天，你把真正的需求低估了。",
+    "en": "If you knew the distribution of demand, the right stock would be its 0.6 quantile (one copy too few loses 1.5 of profit, one too many loses 1, hence 1.5 / (1.5 + 1) = 0.6). When you do not know it, \"stock what you sold yesterday\" sounds prudent but shrinks day after day: on a day you sell out, you have underestimated the true demand."
+  },
+  "T": 30,
+  "p": {
+    "price": 2.5,
+    "cost": 1,
+    "lo": 8,
+    "hi": 30
+  },
+  "code": {
+    "zh": [
+      "// 发牌：抽一个 λ，再把 30 天里每天想买的人数先定好，藏起来。",
+      "function deal(T, rng, p) {",
+      "  var lam = rng.uniform(p.lo, p.hi), want = [];",
+      "  for (var t = 0; t < T; t++) want.push(rng.poisson(lam));",
+      "  return { want: want, price: p.price, cost: p.cost, sold: NaN, out: NaN };",
+      "}",
+      "// 亮牌：昨天卖掉几份，卖光了没有。",
+      "function show(G, t) {",
+      "  return { sold: G.sold, out: G.out };",
+      "}",
+      "// 判分：进货量取整、限制在 0 到 100；卖掉的是进货量和想买人数里小的那个。",
+      "function referee(G, t, a) {",
+      "  var q = a >= 0 ? Math.min(100, Math.round(a)) : 0;",
+      "  G.sold = Math.min(q, G.want[t]);",
+      "  G.out = G.want[t] >= q ? 1 : 0;",
+      "  return G.price * G.sold - G.cost * q;",
+      "}"
+    ],
+    "en": [
+      "// Deal: draw λ, then fix in advance how many people want a copy on each of the days. All hidden.",
+      "function deal(T, rng, p) {",
+      "  var lam = rng.uniform(p.lo, p.hi), want = [];",
+      "  for (var t = 0; t < T; t++) want.push(rng.poisson(lam));",
+      "  return { want: want, price: p.price, cost: p.cost, sold: NaN, out: NaN };",
+      "}",
+      "// Show: how many copies were sold yesterday, and whether you sold out.",
+      "function show(G, t) {",
+      "  return { sold: G.sold, out: G.out };",
+      "}",
+      "// Referee: the order is rounded and kept between 0 and 100; sales are the smaller of the stock and the number of people who want a copy.",
+      "function referee(G, t, a) {",
+      "  var q = a >= 0 ? Math.min(100, Math.round(a)) : 0;",
+      "  G.sold = Math.min(q, G.want[t]);",
+      "  G.out = G.want[t] >= q ? 1 : 0;",
+      "  return G.price * G.sold - G.cost * q;",
+      "}"
+    ]
+  },
+  "sets": {
+    "pub": 10,
+    "fin": 10,
+    "K": 300,
+    "seed": 20261016
+  },
+  "higher": true,
+  "digits": 1,
+  "refs": [
+    {
+      "id": "fixed",
+      "name": {
+        "zh": "每天进 15 份",
+        "en": "Stock 15 every day"
+      },
+      "summary": {
+        "zh": "什么也不学，每天进同样多。拿来当基准。",
+        "en": "Learns nothing: stocks the same number every day. The benchmark."
+      },
+      "p": {
+        "q": 15
+      },
+      "code": "function decide(s, p) {\n  return p.q;\n}"
+    },
+    {
+      "id": "chase",
+      "name": {
+        "zh": "昨天卖多少，今天进多少",
+        "en": "Stock what you sold yesterday"
+      },
+      "summary": {
+        "zh": "第一天进 15 份，以后每天进昨天卖掉的份数。会越进越少。",
+        "en": "Stocks 15 on the first day and then whatever was sold the day before. It shrinks day after day."
+      },
+      "p": {
+        "q": 15
+      },
+      "code": "function decide(s, p) {\n  return s.t === 0 ? p.q : s.see.sold;\n}"
+    },
+    {
+      "id": "bump",
+      "name": {
+        "zh": "卖光了就加码",
+        "en": "Raise the order after selling out"
+      },
+      "summary": {
+        "zh": "卖光了，比昨天多进三成再加一份；有剩，就进昨天卖掉的份数再加一成。",
+        "en": "After selling out, stocks 30% more than yesterday plus one copy; otherwise stocks what was sold yesterday plus 10%."
+      },
+      "p": {
+        "q": 15,
+        "up": 0.3,
+        "pad": 0.1
+      },
+      "code": "function init(p) {\n  return { q: p.q };\n}\nfunction decide(s, p, st) {\n  if (s.see.out === 1) st.q = Math.ceil(st.q * (1 + p.up)) + 1;\n  if (s.see.out === 0) st.q = Math.ceil(s.see.sold * (1 + p.pad));\n  return st.q;\n}"
+    }
+  ],
+  "starter": {
+    "p": {
+      "q": 15
+    },
+    "code": {
+      "zh": [
+        "// 起始代码：每天进 p.q 份。把它改成你的办法。",
+        "// s.see.sold：昨天卖掉几份。s.see.out：昨天卖光了没有（1 卖光了，0 有剩）。第一天都是 NaN。",
+        "// st 是你自己的记事本，一局之内一直在：昨天进了几份，要自己记。",
+        "function init(p) {",
+        "  return { q: p.q };",
+        "}",
+        "function decide(s, p, st) {",
+        "  return st.q;",
+        "}"
+      ],
+      "en": [
+        "// Starter code: stocks p.q copies every day. Change it into your own method.",
+        "// s.see.sold: copies sold yesterday. s.see.out: whether you sold out yesterday (1 sold out, 0 had copies left). Both are NaN on the first day.",
+        "// st is your own notebook and lasts for the whole episode: how many copies you stocked yesterday is something you have to remember yourself.",
+        "function init(p) {",
+        "  return { q: p.q };",
+        "}",
+        "function decide(s, p, st) {",
+        "  return st.q;",
+        "}"
+      ]
+    }
+  }
+}

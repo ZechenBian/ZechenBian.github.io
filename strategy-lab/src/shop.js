@@ -139,9 +139,12 @@ function finite(x) { return typeof x === "number" && x === x && x !== Infinity &
  *  返回 { score, rounds, bad }；log 是数组时把前几回合记进去。
  *  规则抛的错带着 rule 标记（这条规则出局，别的规则照常比）；玩法自己抛的错不带（整件事停下来） */
 QL.shopEpisode = function (game, gp, T, seed, k, pl, slot, log) {
-  var G = game.deal(T, new RNG(seed, k, 9101), gp);
+  // seed 也可以是四个整数 [发牌的种子, 发牌的批次, 规则自己的随机数的种子, 批次]（每日一题这样用）：
+  // 发牌和规则自己的随机数各用各的，规则就算从 s.rnd() 给的数里反推出自己那两个，也推不出发牌用的那两个
+  var four = typeof seed !== "number" && !!seed && seed.length === 4;
+  var G = game.deal(T, four ? new RNG(seed[0], k, seed[1]) : new RNG(seed, k, 9101), gp);
   if (!G || typeof G !== "object") throw new Error("deal 要返回一个对象（这一局藏起来的东西），现在返回的是 " + (G === null ? "null" : typeof G));
-  var r = new RNG(seed, k * 64 + (slot | 0), 9102), rnd = function () { return r.u(); }, st, total = 0, last = NaN, bad = 0, t = 0, a, see, gain;
+  var r = four ? new RNG(seed[2], k * 64 + (slot | 0), seed[3]) : new RNG(seed, k * 64 + (slot | 0), 9102), rnd = function () { return r.u(); }, st, total = 0, last = NaN, bad = 0, t = 0, a, see, gain;
   try { st = pl.init ? pl.init(pl.p) || {} : {}; } catch (e) { throw ruleErr(e); }
   for (; t < T; t++) {
     see = game.show ? QL.shopSee(game.show(G, t)) : NaN;

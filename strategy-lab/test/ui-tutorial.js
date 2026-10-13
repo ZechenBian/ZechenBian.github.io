@@ -15,7 +15,7 @@ let pass = 0, fail = 0; const ok = (c, name, d) => { if (c) { pass++; if (proces
   console.log("== 一、入口");
   await page.click("#btnLobby"); await page.waitForSelector(".modal.lbm .lb-card");
   const cards = await page.evaluate(() => Array.from(document.querySelectorAll(".lb-card")).map(c => ({ id: c.getAttribute("data-card"), wide: c.classList.contains("wide"), btn: c.querySelector("[data-go]").innerText, primary: c.querySelector("[data-go]").classList.contains("primary"), status: (c.querySelector(".lb-status") || {}).innerText || "", text: c.innerText })));
-  ok(cards.map(c => c.id).join() === "tutorial,daily,room,deca,arena,workshop" && cards[0].wide && cards[0].primary && cards[0].btn === "开始" && cards[0].status === "" && cards[0].text.includes("新手教程") && cards[0].text.includes("八步"), "大厅里第一张、占整行的是新手教程；还没看过时按钮是\"开始\"", JSON.stringify(cards.map(c => c.id + ":" + c.btn)));
+  ok(cards.map(c => c.id).join() === "tutorial,daily,quest,room,deca,arena,workshop" && cards[0].wide && cards[0].primary && cards[0].btn === "开始" && cards[0].status === "" && cards[0].text.includes("新手教程") && cards[0].text.includes("八步"), "大厅里第一张、占整行的是新手教程；还没看过时按钮是\"开始\"", JSON.stringify(cards.map(c => c.id + ":" + c.btn)));
   await page.click('.lb-card[data-card="tutorial"] [data-go]'); await page.waitForSelector(".modal.tourm #tourTitle");
   let s = await state();
   const pills = await page.evaluate(() => Array.from(document.querySelectorAll(".tour-pill")).map(p => p.getAttribute("data-step") + ":" + p.innerText.replace(/\s+/g, " ")));
@@ -29,7 +29,7 @@ let pass = 0, fail = 0; const ok = (c, name, d) => { if (c) { pass++; if (proces
     await page.click("#tourNext"); await page.waitForFunction(i => document.querySelector("#tourPos").innerText.startsWith("第 " + i + " 步"), i);
     s = await state(); labels.push(s.act); titles.push(s.title);
     if (i === 2) { const names = await page.evaluate(() => window.App.QL.dailyGames().map(t => window.App.QL.WORLDS[t].short)); ok(names.length === 4 && names.every(n => s.body.includes(n)) && !s.nextPrimary && !s.prevOff, "第 2 步列出每日一局轮着来的四套玩法；有要去的地方时，主按钮是那一个", names.join("、")); }
-    if (i === 4) { const li = await page.evaluate(() => Array.from(document.querySelectorAll("#tourPane ol li")).map(x => x.innerText)), ai = await page.evaluate(() => window.App.AI); ok(li.length === 3 && li[0].includes("代码与说明") && li[1].includes(ai) && li[2].includes("复制给 AI 的说明"), "第 4 步列出写规则的三条路", li.map(x => x.slice(0, 12)).join(" | ")); await page.screenshot({ path: SH("tutorial-4.png") }); }
+    if (i === 4) { const li = await page.evaluate(() => Array.from(document.querySelectorAll("#tourPane ol li")).map(x => x.innerText)), ai = await page.evaluate(() => window.App.AI); ok(li.length === 3 && li[0].includes("代码与说明") && li[1].includes(ai) && li[2].includes("复制给 AI 的说明") && s.body.includes("写好了去哪里比") && s.body.includes("每日一题"), "第 4 步列出写规则的三条路，并且说了写好的规则可以拿去做每日一题", li.map(x => x.slice(0, 12)).join(" | ")); await page.screenshot({ path: SH("tutorial-4.png") }); }
   }
   ok(labels.join("|") === "打今天这一局|开一个房间|看看眼下这条规则的代码|走一遍十项|摆一场|进工坊|回到大厅" && titles.every(x => x.length >= 4) && new Set(titles).size === 7, "后面七步各有一个带你过去的按钮", labels.join("|"));
   s = await state();

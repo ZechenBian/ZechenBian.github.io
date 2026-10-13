@@ -1,0 +1,180 @@
+{
+  "v": 1,
+  "day": "2026-10-18",
+  "id": "put-exercise",
+  "title": {
+    "zh": "什么时候行权",
+    "en": "When to exercise"
+  },
+  "summary": {
+    "zh": "手里有一张可以随时行权的看跌期权。早行权早拿钱，可是也放弃了以后跌得更多的机会；该等多久，要看这只股票的波动有多大。",
+    "en": "You hold a put option that can be exercised at any time. Exercise early and you are paid sooner but give up a bigger fall later; how long to wait depends on the stock's volatility."
+  },
+  "about": {
+    "zh": [
+      "一只股票现在的价格是 100。你有一张看跌期权：一年之内的任何时候，你都可以按 100 把这只股票卖出去，所以股价是 S 的时候行权，拿到 100 − S；S 不低于 100 的时候行权，什么也拿不到，期权也用掉了。只能行权一次。",
+      "",
+      "一年分成 60 步。股价每一步的对数收益互相独立，年化波动是 σ。σ 是多少你不知道：每一局换一个，在 10% 到 50% 之间均匀地抽，一年之内不变。",
+      "",
+      "钱放着每年有 8% 的利息，所以越晚拿到的钱越不值钱：在第 t 步拿到的钱，要乘上 e 的 −0.08 × t / 60 次方再算分。股价是按“无风险利率”漂移的，也就是说，持有股票的平均收益和把钱存起来一样。",
+      "",
+      "**你的规则看到的**：`s.see.S` 是眼下的股价；`s.see.left` 是离到期还有几步。以前的股价要自己记在 `st` 里。",
+      "",
+      "**你的规则报的数**：报 1 是现在行权；报别的，或者报的不是数，都是再等等。一直没有行权的话，到期（第 60 步）时自动结算：那时股价低于 100 就拿到差额，否则是 0。",
+      "",
+      "**计分**：拿到的钱折算到今天的数。所有局平均下来，就是这张期权在你的行权办法下值多少钱。"
+    ],
+    "en": [
+      "A stock trades at 100. You hold a put option: at any time within a year you may sell the stock at 100, so exercising when the price is S pays 100 − S; exercising when S is 100 or more pays nothing and still uses up the option. You can exercise only once.",
+      "",
+      "The year is divided into 60 steps. The stock's log returns over the steps are independent, with annual volatility σ. You do not know σ: every episode draws a new one, uniformly between 10% and 50%, and it stays the same for the year.",
+      "",
+      "Money earns 8% interest a year, so money received later is worth less: what you receive at step t is multiplied by e to the power −0.08 × t / 60 before it is scored. The stock drifts at this risk-free rate, which means that holding the stock earns the same on average as leaving the money in the bank.",
+      "",
+      "**What your rule sees**: `s.see.S` is the current stock price; `s.see.left` is the number of steps until expiry. Earlier prices are for you to keep in `st`.",
+      "",
+      "**What your rule returns**: 1 to exercise now; anything else, including something that is not a number, means wait. If you never exercise, the option settles automatically at expiry (step 60): you receive the difference if the price is below 100, and 0 otherwise.",
+      "",
+      "**Score**: the money you receive, discounted to today. Averaged over all episodes, this is what the option is worth under your exercise policy."
+    ]
+  },
+  "note": {
+    "zh": "只在到期时才能行权的看跌期权有现成的公式（Black–Scholes）；随时可以行权的没有，只能靠数值方法算。知道波动的时候，答案是一条“行权边界”：股价跌破边界就行权，离到期越近边界越高，到期时升到 100。波动越大，边界越低：波动 10% 的时候，一开始的边界大约在 95；波动 50% 的时候大约在 57。所以一个固定的门槛顾不了两头，波动得从价格的走势里估。",
+    "en": "A put that can be exercised only at expiry has a closed formula (Black–Scholes); one that can be exercised at any time does not, and has to be computed numerically. When the volatility is known, the answer is an exercise boundary: exercise once the price falls below the boundary, which is higher the closer expiry is and reaches 100 at expiry. The higher the volatility, the lower the boundary: at 10% volatility it starts at about 95, at 50% at about 57. A single fixed level therefore cannot suit both ends, and the volatility has to be estimated from the way the price moves."
+  },
+  "T": 60,
+  "p": {
+    "K": 100,
+    "r": 0.08,
+    "slo": 0.1,
+    "shi": 0.5
+  },
+  "code": {
+    "zh": [
+      "// 发牌：抽一个波动率（slo 到 shi 之间均匀），把这一年的股价先走好（T 步之后到期），藏起来。漂移取无风险利率。",
+      "function deal(T, rng, p) {",
+      "  var sigma = rng.uniform(p.slo, p.shi), dt = 1 / T, S = [100];",
+      "  for (var t = 0; t < T; t++) S.push(S[t] * Math.exp((p.r - sigma * sigma / 2) * dt + sigma * Math.sqrt(dt) * rng.normal()));",
+      "  return { S: S, K: p.K, r: p.r };",
+      "}",
+      "// 亮牌：眼下的股价，离到期还有几步。",
+      "function show(G, t) {",
+      "  return { S: G.S[t], left: G.S.length - 1 - t };",
+      "}",
+      "// 判分：报 1 就现在行权；最后一步还没行权，就按到期时的股价结算。拿到的钱都折算到今天。",
+      "function referee(G, t, a) {",
+      "  var T = G.S.length - 1;",
+      "  if (a === 1) { G.over = true; return Math.exp(-G.r * t / T) * Math.max(G.K - G.S[t], 0); }",
+      "  if (t === T - 1) { G.over = true; return Math.exp(-G.r) * Math.max(G.K - G.S[T], 0); }",
+      "  return 0;",
+      "}"
+    ],
+    "en": [
+      "// Deal: draw a volatility (uniform between slo and shi) and generate the whole year of stock prices in advance (expiry is after T steps). Hidden. The drift is the risk-free rate.",
+      "function deal(T, rng, p) {",
+      "  var sigma = rng.uniform(p.slo, p.shi), dt = 1 / T, S = [100];",
+      "  for (var t = 0; t < T; t++) S.push(S[t] * Math.exp((p.r - sigma * sigma / 2) * dt + sigma * Math.sqrt(dt) * rng.normal()));",
+      "  return { S: S, K: p.K, r: p.r };",
+      "}",
+      "// Show: the current stock price and the number of steps until expiry.",
+      "function show(G, t) {",
+      "  return { S: G.S[t], left: G.S.length - 1 - t };",
+      "}",
+      "// Referee: a 1 exercises now; if the last step passes without exercising, the option settles at the expiry price. Everything is discounted to today.",
+      "function referee(G, t, a) {",
+      "  var T = G.S.length - 1;",
+      "  if (a === 1) { G.over = true; return Math.exp(-G.r * t / T) * Math.max(G.K - G.S[t], 0); }",
+      "  if (t === T - 1) { G.over = true; return Math.exp(-G.r) * Math.max(G.K - G.S[T], 0); }",
+      "  return 0;",
+      "}"
+    ]
+  },
+  "sets": {
+    "pub": 10,
+    "fin": 10,
+    "K": 1000,
+    "seed": 20261018
+  },
+  "higher": true,
+  "digits": 3,
+  "refs": [
+    {
+      "id": "hold",
+      "name": {
+        "zh": "拿到到期",
+        "en": "Hold to expiry"
+      },
+      "summary": {
+        "zh": "从不提前行权。拿来当基准。",
+        "en": "Never exercises early. The benchmark."
+      },
+      "p": {},
+      "code": "function decide(s, p) {\n  return 0;\n}"
+    },
+    {
+      "id": "eager",
+      "name": {
+        "zh": "跌破 90 就行权",
+        "en": "Exercise below 90"
+      },
+      "summary": {
+        "zh": "股价跌到 90 以下就行权，不管离到期还有多久。波动大的那些局里，它行权得太早。",
+        "en": "Exercises as soon as the price is below 90, however long is left. In the volatile episodes it exercises far too early."
+      },
+      "p": {
+        "level": 90
+      },
+      "code": "function decide(s, p) {\n  return s.see.S < p.level ? 1 : 0;\n}"
+    },
+    {
+      "id": "patient",
+      "name": {
+        "zh": "跌破 75 才行权",
+        "en": "Exercise only below 75"
+      },
+      "summary": {
+        "zh": "把门槛降到 75。波动小的那些局里，股价到不了那么低，它等于一直拿到到期。",
+        "en": "Lowers the level to 75. In the calm episodes the price never gets that low, so it simply holds to expiry."
+      },
+      "p": {
+        "level": 75
+      },
+      "code": "function decide(s, p) {\n  return s.see.S < p.level ? 1 : 0;\n}"
+    }
+  ],
+  "starter": {
+    "p": {
+      "level": 75
+    },
+    "code": {
+      "zh": [
+        "// 起始代码：股价跌到 p.level 以下就行权。把它改成你的办法。",
+        "// s.see.S：眼下的股价。s.see.left：离到期还有几步（一年一共 60 步）。",
+        "// st 是你自己的记事本。这里已经替你记了两样，还没有用上：st.sum 是到现在每一步对数收益的平方加起来，st.n 是一共几步。",
+        "// 60 × st.sum ÷ st.n 就是年化波动的平方的一个估计。题目的参数在 s.g 里：行权价 s.g.K，利率 s.g.r，波动的范围 s.g.slo 到 s.g.shi。",
+        "function init(p) {",
+        "  return { prev: NaN, sum: 0, n: 0 };",
+        "}",
+        "function decide(s, p, st) {",
+        "  if (s.t > 0) { var x = Math.log(s.see.S / st.prev); st.sum += x * x; st.n++; }",
+        "  st.prev = s.see.S;",
+        "  return s.see.S < p.level ? 1 : 0;",
+        "}"
+      ],
+      "en": [
+        "// Starter code: exercises once the price is below p.level. Change it into your own method.",
+        "// s.see.S: the current stock price. s.see.left: steps until expiry (the year has 60 steps).",
+        "// st is your own notebook. Two things are already kept there for you and not yet used: st.sum is the sum of the squared log returns so far, and st.n is how many there are.",
+        "// 60 × st.sum ÷ st.n is an estimate of the squared annual volatility. The challenge's parameters are in s.g: the strike s.g.K, the interest rate s.g.r, and the volatility range s.g.slo to s.g.shi.",
+        "function init(p) {",
+        "  return { prev: NaN, sum: 0, n: 0 };",
+        "}",
+        "function decide(s, p, st) {",
+        "  if (s.t > 0) { var x = Math.log(s.see.S / st.prev); st.sum += x * x; st.n++; }",
+        "  st.prev = s.see.S;",
+        "  return s.see.S < p.level ? 1 : 0;",
+        "}"
+      ]
+    }
+  }
+}

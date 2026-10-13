@@ -1,0 +1,168 @@
+{
+  "v": 1,
+  "day": "2026-10-15",
+  "id": "parking",
+  "title": {
+    "zh": "把车停在哪儿",
+    "en": "Where to park"
+  },
+  "summary": {
+    "zh": "沿街找车位：停早了走得远，贪近了可能一个空位都等不到。",
+    "en": "Looking for a parking spot along a street: stop too early and you walk far; hold out for a close one and you may find none."
+  },
+  "about": {
+    "zh": [
+      "你开车去一个地方，沿街有 60 个车位，一个一个经过。目的地的门在第 46 个车位旁边。每个车位空着的概率是 q，互不相干；q 是多少你不知道，每一局换一个，在 0.05 到 0.5 之间均匀地抽。",
+      "",
+      "车不能倒：经过的车位就回不去了。开过门口以后还有 14 个车位；要是到街尾都没停，只能去远处的收费停车场，算走 60 个车位那么远。",
+      "",
+      "**你的规则看到的**：`s.see.free` 是眼前这个车位空不空（1 空，0 有车）；`s.see.dist` 是它离门口还有几个车位（没到门口是正数，正对门口是 0，开过了是负数）。",
+      "",
+      "**你的规则报的数**：报 1 是停在这里（车位空着才停得了）；报别的，或者报的不是数，都是接着开。",
+      "",
+      "**计分**：停下的车位离门口几个车位，就得负几分；进了收费停车场是 −60 分。分数越高（越接近 0）越好。"
+    ],
+    "en": [
+      "You are driving to an address. Along the street there are 60 parking spots, which you pass one by one. The door you are going to is next to spot number 46. Each spot is free with probability q, independently of the others. You do not know q: every episode draws a new one, uniformly between 0.05 and 0.5.",
+      "",
+      "You cannot reverse: once you pass a spot it is gone. After the door there are 14 more spots. If you reach the end of the street without parking, you have to use a distant paid garage, which counts as walking 60 spots.",
+      "",
+      "**What your rule sees**: `s.see.free` says whether the spot in front of you is free (1 free, 0 taken); `s.see.dist` is how many spots it is from the door (positive before the door, 0 right at the door, negative after it).",
+      "",
+      "**What your rule returns**: 1 to park here (only possible when the spot is free); anything else, including something that is not a number, means drive on.",
+      "",
+      "**Score**: minus the number of spots between where you parked and the door; the paid garage scores −60. Higher (closer to 0) is better."
+    ]
+  },
+  "note": {
+    "zh": "要是知道 q，办法很简单：离门口不超过某个距离 r 的第一个空位就停，r 只和 q 有关（q 越小，r 越大）。这道题难在 q 要靠一路上看到的空位来估。",
+    "en": "If you knew q the answer would be simple: take the first free spot within some distance r of the door, where r depends only on q (the smaller q is, the larger r). The difficulty here is that q has to be estimated from the spots you have passed."
+  },
+  "T": 60,
+  "p": {
+    "door": 45,
+    "garage": 60,
+    "qlo": 0.05,
+    "qhi": 0.5
+  },
+  "code": {
+    "zh": [
+      "// 发牌：抽一个 q，再把整条街每个车位空不空先定好，藏起来。door 是门口那个车位的编号（从 0 数起）。",
+      "function deal(T, rng, p) {",
+      "  var q = rng.uniform(p.qlo, p.qhi), free = [];",
+      "  for (var t = 0; t < T; t++) free.push(rng.u() < q ? 1 : 0);",
+      "  return { free: free, door: p.door, garage: p.garage };",
+      "}",
+      "// 亮牌：眼前这个车位空不空，离门口还有几个车位。",
+      "function show(G, t) {",
+      "  return { free: G.free[t], dist: G.door - t };",
+      "}",
+      "// 判分：报 1 而且车位空着，就停在这里，得分是负的步行距离。开到街尾还没停，进收费停车场。",
+      "function referee(G, t, a) {",
+      "  if (a === 1 && G.free[t] === 1) { G.over = true; return -Math.abs(G.door - t); }",
+      "  if (t === G.free.length - 1) { G.over = true; return -G.garage; }",
+      "  return 0;",
+      "}"
+    ],
+    "en": [
+      "// Deal: draw q, then decide in advance which spots on the street are free. All hidden. door is the index of the spot at the door (counting from 0).",
+      "function deal(T, rng, p) {",
+      "  var q = rng.uniform(p.qlo, p.qhi), free = [];",
+      "  for (var t = 0; t < T; t++) free.push(rng.u() < q ? 1 : 0);",
+      "  return { free: free, door: p.door, garage: p.garage };",
+      "}",
+      "// Show: whether the spot in front of you is free, and how many spots it is from the door.",
+      "function show(G, t) {",
+      "  return { free: G.free[t], dist: G.door - t };",
+      "}",
+      "// Referee: on a 1 at a free spot you park here and score minus the walking distance. Reaching the end of the street without parking means the paid garage.",
+      "function referee(G, t, a) {",
+      "  if (a === 1 && G.free[t] === 1) { G.over = true; return -Math.abs(G.door - t); }",
+      "  if (t === G.free.length - 1) { G.over = true; return -G.garage; }",
+      "  return 0;",
+      "}"
+    ]
+  },
+  "sets": {
+    "pub": 10,
+    "fin": 10,
+    "K": 300,
+    "seed": 20261015
+  },
+  "higher": true,
+  "digits": 2,
+  "refs": [
+    {
+      "id": "first",
+      "name": {
+        "zh": "见空就停",
+        "en": "Take the first free spot"
+      },
+      "summary": {
+        "zh": "第一个空位就停。拿来当基准。",
+        "en": "Parks at the very first free spot. The benchmark."
+      },
+      "p": {},
+      "code": "function decide(s, p) {\n  return s.see.free === 1 ? 1 : 0;\n}"
+    },
+    {
+      "id": "door",
+      "name": {
+        "zh": "开到门口再找",
+        "en": "Drive to the door first"
+      },
+      "summary": {
+        "zh": "到门口之前一律不停，从门口那个车位起见空就停。",
+        "en": "Never parks before the door; from the door on, takes the first free spot."
+      },
+      "p": {},
+      "code": "function decide(s, p) {\n  return s.see.free === 1 && s.see.dist <= 0 ? 1 : 0;\n}"
+    },
+    {
+      "id": "near",
+      "name": {
+        "zh": "离门口 8 格以内见空就停",
+        "en": "First free spot within 8 of the door"
+      },
+      "summary": {
+        "zh": "离门口还有 r 个车位以内，或者已经开过门口，见空就停。",
+        "en": "Takes the first free spot once it is within r spots of the door, or anywhere past the door."
+      },
+      "p": {
+        "r": 8
+      },
+      "code": "function decide(s, p) {\n  return s.see.free === 1 && s.see.dist <= p.r ? 1 : 0;\n}"
+    }
+  ],
+  "starter": {
+    "p": {
+      "r": 8
+    },
+    "code": {
+      "zh": [
+        "// 起始代码：离门口 p.r 个车位以内见空就停。把它改成你的办法。",
+        "// s.see.free：眼前的车位空不空（1 空，0 有车）。s.see.dist：离门口还有几个车位（开过门口以后是负数）。",
+        "// st 是你自己的记事本，一局之内一直在：比如可以记下一路上看到了几个空位。",
+        "function init(p) {",
+        "  return { seen: 0, free: 0 };",
+        "}",
+        "function decide(s, p, st) {",
+        "  st.seen++; st.free += s.see.free;",
+        "  return s.see.free === 1 && s.see.dist <= p.r ? 1 : 0;",
+        "}"
+      ],
+      "en": [
+        "// Starter code: takes the first free spot within p.r spots of the door. Change it into your own method.",
+        "// s.see.free: whether the spot in front of you is free (1 free, 0 taken). s.see.dist: spots left to the door (negative once you have passed it).",
+        "// st is your own notebook and lasts for the whole episode: for example, you could count the free spots you have seen so far.",
+        "function init(p) {",
+        "  return { seen: 0, free: 0 };",
+        "}",
+        "function decide(s, p, st) {",
+        "  st.seen++; st.free += s.see.free;",
+        "  return s.see.free === 1 && s.see.dist <= p.r ? 1 : 0;",
+        "}"
+      ]
+    }
+  }
+}
