@@ -2,9 +2,9 @@
 
 [中文](#中文) · [English](#english)
 
-大战略推演，四个开局年代（1939、1945、1979、2026）任选，几个人在各自的设备上联网对弈。单个网页文件，打开即玩，不用登录、不用安装。界面有中文和英文，联机时每人用自己的语言。推演默认用本地规则，也可以接入 ChatGPT、DeepSeek、豆包等 AI（用你自己的 API 密钥）。
+大战略推演，四个开局年代（1939、1945、1979、2026）任选，几个人在各自的设备上联网对弈。单个网页文件，打开即玩，不用登录、不用安装。界面有中文和英文，联机时每人用自己的语言。推演默认用本地规则，也可以一键接入 AI（OpenRouter 授权，不用复制密钥），或者用 ChatGPT、DeepSeek、豆包等的 API 密钥；联机时房主可以把自己的 AI 共享给所有人，其他人不用接入。
 
-A grand-strategy game with four starting years (1939, 1945, 1979, 2026), played online by several people on their own devices. One web page: open it and play, with no sign-in and nothing to install. The interface is in Chinese and English, and in online games each player uses their own language. The simulation runs on local rules, or on ChatGPT, DeepSeek, Doubao or another AI with your own API key.
+A grand-strategy game with four starting years (1939, 1945, 1979, 2026), played online by several people on their own devices. One web page: open it and play, with no sign-in and nothing to install. The interface is in Chinese and English, and in online games each player uses their own language. The simulation runs on local rules, or on an AI: connect one with a single click (OpenRouter authorization, no key to copy) or with your own ChatGPT, DeepSeek, Doubao or other API key. Online, the host can share their AI with everyone, so nobody else has to connect one.
 
 **▶ 在线玩 / Play online:** https://zechenbian.github.io/tianxia/
 
@@ -31,7 +31,7 @@ A grand-strategy game with four starting years (1939, 1945, 1979, 2026), played 
 | 1979 · 冷战高峰 | 美苏核均势，华约与北约在欧洲对峙；中美刚刚建交，伊朗爆发伊斯兰革命，苏联即将出兵阿富汗 |
 | 2026 · 当今世界 | 以 2026 年公开的军力与经济数据为起点：俄乌战争仍在继续，中美竞争加剧，中东与朝鲜半岛局势紧张 |
 
-对局列表和大厅里会显示每局的年代。
+对局列表和大厅里会显示每局的年代。四个年代里都只有一个中国，不单列中国共产党（中国按一个整体计算）。
 
 ### 新手教学
 
@@ -51,6 +51,7 @@ A grand-strategy game with four starting years (1939, 1945, 1979, 2026), played 
 - 你本回合的行动、即时命令和方针：只加密交给房主（房主的浏览器负责结算），其他玩家看不到。
 - 各人的私密数据（战报、情报、来函、危机、各国对你的记忆、你的秘密集结）：房主分别加密给每位玩家；大家都能读到的公开快照里只有公开的局势。
 - 房主能看到所有人的方案和战报（结算需要），但看不到私信。房主换人时，各玩家把自己的那份重新加密交给新房主。
+- 房主共享 AI 时：你的 AI 请求（一句话命令、危机回答、与 AI 智能体的谈判）加密交给房主，结果加密回给你；房主的 AI 服务商会看到这些提示词。
 - 公开喊话、昵称、对局名称、入座情况和公开的局势不加密。
 - 密钥保存在本浏览器里；换了浏览器或清除了网站数据，以前的私信就解不开了。
 
@@ -106,11 +107,17 @@ A grand-strategy game with four starting years (1939, 1945, 1979, 2026), played 
 - 也可以在大厅里点“复制邀请链接”（网址后面带 `?g=对局编号`），朋友点开直接进入这局。
 - 开局以后才进来的人，可以接管还没有真人玩家的国家。
 
-### 接入 AI 推演（ChatGPT、DeepSeek、豆包等）
+### 接入 AI 推演（一键授权，或 ChatGPT、DeepSeek、豆包等）
 
-接入后，各国对你行动的反应、AI 国家的年度战略、一句话命令（可以下达任意命令，AI 换算成各国数据的变化）、与 AI 智能体的外交谈判，都由 AI 实时推演。不接入时用本地规则，照样能玩。
+接入后，各国对你行动的反应、AI 国家的年度战略、一句话命令（可以下达任意命令，AI 换算成各国数据的变化）、与 AI 智能体的外交谈判，都由 AI 实时推演。不接入时用本地规则，照样能玩。联机时只要房主接入并共享，其他人什么都不用做（见[下一节](#host-ai)）。
 
-**怎么接入**：开局画面点“接入 ChatGPT / DeepSeek / 豆包…”（或者游戏里“设置 / 存档 → AI 推演接口”）→ 选服务商 → 粘贴 API 密钥（旁边有“去申请”链接）→ 模型用默认值或点“获取模型列表”挑一个 → “测试连接” → “保存并启用”。顶栏会显示“● DeepSeek 推演”这样的标记。
+**一键接入（推荐，不用复制密钥）**：开局画面点“一键接入 AI”（或者“设置 / 存档 → AI 推演接口 → 用 OpenRouter 一键接入”）→ 在弹出的 OpenRouter 页面登录（可以用 Google 或 GitHub 账号）并点“授权” → 自动回到游戏，接入完成。
+
+- 用的是 OpenRouter 的 OAuth PKCE 授权：授权后 OpenRouter 跳回本站的 [auth.html](./auth.html)，它只把一次性的授权码交给游戏页，游戏页用自己保存的校验码换取密钥。密钥和手填的一样只存在你的浏览器里。
+- 没有充值的 OpenRouter 账号会自动选用一个免费模型（每天大约 50 次请求；充值 10 美元后每天 1000 次）；充过值的账号用默认模型 openai/gpt-4.1-mini。之后可以在设置里换模型，或点“重新授权”。
+- 浏览器拦截了弹出窗口时，会改为在本页跳转授权，授权后回到游戏。
+
+**也可以自己填密钥**：开局画面点“接入 ChatGPT / DeepSeek / 豆包…”（或者游戏里“设置 / 存档 → AI 推演接口”）→ 选服务商 → 粘贴 API 密钥（旁边有“去申请”链接）→ 模型用默认值或点“获取模型列表”挑一个 → “测试连接” → “保存并启用”。顶栏会显示“● DeepSeek 推演”这样的标记。
 
 | 服务商 | 默认模型 | 网页能否直接调用 | 说明 |
 |---|---|---|---|
@@ -133,10 +140,18 @@ A grand-strategy game with four starting years (1939, 1945, 1979, 2026), played 
 
 - **密钥只在你的浏览器里**：保存在本机浏览器（localStorage），请求从浏览器直接发给所选服务商（或你填的转发代理），不经过联机中继，也不会发给其他玩家。公用电脑用完点“清除所有密钥”。（浏览器存储按网站划分：zechenbian.github.io 下的其他页面理论上也能读到，这个网站上只有作者自己的页面。）
 - **费用**：由服务商按用量向密钥的主人收费。每回合一般几次调用；推演深度选“快速”、或者在“高级设置”里填一个便宜的“快速模型”，可以省钱。
-- **联机时用谁的密钥**：世界推演（各国对玩家行动的反应）和 AI 国家的年度战略用房主的密钥；你和 AI 智能体的对话、你的一句话命令用你自己的密钥。没有接入 AI 的玩家，这些功能自动退回本地规则。房主接入 AI 后，建局时可以打开“推演各国对玩家行动的反应”，并在大厅里逐国选择本地规则或 AI 智能体。
+- **联机时用谁的 AI**：世界推演（各国对玩家行动的反应）和 AI 国家的年度战略用房主的 AI。房主共享 AI 时（默认），其他玩家的一句话命令、危机回答和与 AI 智能体的对话也都用房主的 AI；房主不共享时，各人用自己接入的 AI，没有接入的退回本地规则。房主接入 AI 后，建局时可以打开“推演各国对玩家行动的反应”，并在大厅里逐国选择本地规则或 AI 智能体。
 - **模型名称会变**：上表是 2026 年 10 月的默认值。如果提示“模型名称不对”，点“获取模型列表”从服务商当前提供的模型里挑一个。
 - **深度思考**：默认关闭（DeepSeek、豆包、千问、Kimi、智谱的混合思考模型），回合更快；可以在“高级设置”里打开。
 - 请求失败时会自动处理：服务商不认 JSON 模式或思考参数时自动去掉重试；请求太频繁（429）或服务出错时稍等重试两次；同时最多发 3 个请求。
+
+### 房主共享 AI：其他人不用接入 <a id="host-ai"></a>
+
+- 建局时勾选“把我的 AI 共享给本局所有玩家”（房主接入了 AI 时默认勾选；房主还没接入时，接入后自动共享）。大厅里会写明“本局由房主的 AI 统一推演：你不需要接入 AI，也不需要密钥”。
+- 其他玩家的一句话命令、危机的自由回答、与 AI 智能体的谈判，都经房主的浏览器交给房主的 AI 推演，结果几秒内传回；费用记在房主的 AI 账户上。
+- 房主的密钥不离开房主的浏览器。每条请求（提示词）加密给房主，结果加密给提问的玩家（与私信相同的 ECDH + AES-GCM），中继和其他玩家都看不到内容。
+- 限额：每人每回合最多 30 次、同时最多 2 次；超出时这一步改用规则，下回合恢复。只为已入座的玩家推演。
+- 房主随时可以在“⋯”菜单里关闭或重新打开共享；房主那边的 AI 出错（密钥失效、余额不足）时自动暂停共享，大家改用各自的 AI 或本地规则。换房主时，新房主接入了 AI 就接着共享。
 
 ### 转发代理 <a id="ai-proxy"></a>
 
@@ -167,8 +182,8 @@ A grand-strategy game with four starting years (1939, 1945, 1979, 2026), played 
 ### 和 claude.ai 里的联机版有什么不同
 
 - 不含精细战区（按区格、按师逐日推演的战区地图）。
-- 台湾划归中国、1939 年开局中国不会战败（见上）。
-- claude.ai 里由 Claude 推演；这里默认用本地规则推演（国家智能体用本地规则谈判，一句话命令只识别战时政策与设定变更），接入 AI 后与 claude.ai 版一样由 AI 推演。
+- 台湾划归中国、1939 年开局中国不会战败（见上）；不单列中国共产党（claude.ai 版开精细战区时中共是独立的一方）。
+- claude.ai 里由 Claude 推演；这里默认用本地规则推演（国家智能体用本地规则谈判，一句话命令只识别战时政策与设定变更），接入 AI 后与 claude.ai 版一样由 AI 推演。可以一键授权接入，房主也可以把 AI 共享给所有玩家。
 - 没有“外部智能体”。
 - 其余规则、数据、战时经济、私信与正式提议都相同。
 
@@ -205,7 +220,7 @@ When you create an online, hot-seat or solo game, pick the year first:
 | 1979 · The Cold War at its peak | US–Soviet nuclear parity, with NATO and the Warsaw Pact facing off in Europe; America and China have just normalized relations, Iran has had its Islamic revolution, and the Soviets are about to go into Afghanistan |
 | 2026 · The world today | Starts from public 2026 military and economic data: the Russia–Ukraine war goes on, US–China rivalry sharpens, and the Middle East and Korea stay tense |
 
-The game list and the lobby show each game's year.
+The game list and the lobby show each game's year. In every year China is a single side: the Chinese Communist Party is not listed separately.
 
 ### Tutorial
 
@@ -225,6 +240,7 @@ Click “Tutorial” on the start screen (it sits at the top on your first visit
 - Your actions, instant orders and strategy for the turn: encrypted for the host only (the host's browser resolves the turn); other players cannot see them.
 - Each player's private data (reports, intelligence, letters, crises, what other countries remember about you, your secret build-ups): encrypted by the host separately for each player; the public snapshot everyone can read holds only the public situation.
 - The host can see every player's plans and reports (needed to resolve the turn) but not private messages. When the host changes, each player re-encrypts their own share for the new host.
+- When the host shares their AI: your AI requests (one-line orders, crisis answers, talks with AI agents) are encrypted to the host and the results encrypted back to you; the host's AI provider sees those prompts.
 - Public statements, nicknames, game names, seating and the public situation are not encrypted.
 - Keys live in this browser; after switching browsers or clearing site data, older private messages can no longer be opened.
 
@@ -280,11 +296,17 @@ You can switch language mid-game; from the next turn the AI writes in the new la
 - Or click “Copy invite link” in the lobby (the address plus `?g=<game id>`); opening it goes straight to your game.
 - People who arrive after the start can take over any country without a human player.
 
-### Connecting an AI (ChatGPT, DeepSeek, Doubao and others)
+### Connecting an AI (one click, or ChatGPT, DeepSeek, Doubao and others)
 
-With an AI connected, other countries' reactions to your moves, the AI countries' yearly strategies, one-line orders (any order, turned into changes to every affected country) and negotiations with AI agents are all simulated live by the AI. Without one, local rules run the game and everything still works.
+With an AI connected, other countries' reactions to your moves, the AI countries' yearly strategies, one-line orders (any order, turned into changes to every affected country) and negotiations with AI agents are all simulated live by the AI. Without one, local rules run the game and everything still works. Online, if the host connects and shares an AI, nobody else needs to do anything (see [the next section](#host-ai-en)).
 
-**How**: on the start screen click “Connect ChatGPT / DeepSeek / Doubao…” (or in the game, “Settings → AI connection”) → pick a provider → paste your API key (there is a “get a key” link) → keep the default model or click “Fetch models” → “Test connection” → “Save and enable”. The top bar then shows a badge such as “● DeepSeek engine”.
+**One click (recommended, no key to copy)**: on the start screen click “One-click AI” (or “Settings → AI connection → Connect with OpenRouter”) → sign in on the OpenRouter page that opens (Google or GitHub works) and click Authorize → you are taken back to the game, connected.
+
+- This is OpenRouter's OAuth PKCE flow: OpenRouter returns to this site's [auth.html](./auth.html), which only hands the one-time code to the game page; the game page exchanges it for a key using a verifier it kept. Like a pasted key, the key stays in your browser.
+- OpenRouter accounts without credit get a free model automatically (about 50 requests a day; 1,000 a day after a $10 top-up); accounts with credit use the default model openai/gpt-4.1-mini. You can change the model in Settings later, or click “Authorize again”.
+- If the browser blocks the pop-up, the page itself goes to OpenRouter and comes back to the game afterwards.
+
+**Or paste your own key**: on the start screen click “Connect ChatGPT / DeepSeek / Doubao…” (or in the game, “Settings → AI connection”) → pick a provider → paste your API key (there is a “get a key” link) → keep the default model or click “Fetch models” → “Test connection” → “Save and enable”. The top bar then shows a badge such as “● DeepSeek engine”.
 
 | Provider | Default model | Callable from web pages? | Notes |
 |---|---|---|---|
@@ -307,10 +329,18 @@ With an AI connected, other countries' reactions to your moves, the AI countries
 
 - **Your key stays in your browser**: it is saved in this browser (localStorage) and sent only to the provider you picked (or your relay proxy), never through the online relays and never to other players. On a shared computer, click “Forget all keys” when you are done. (Browser storage is per site: other pages under zechenbian.github.io could in principle read it; only the author's own pages live there.)
 - **Cost**: the provider bills whoever owns the key, by usage. A turn usually takes a few calls; the Quick depth, or a cheaper “Fast model” under Advanced, saves money.
-- **Whose key in online games**: the world simulation (reactions to players' moves) and the AI countries' yearly strategies use the host's key; your chats with AI agents and your one-line orders use your own key. Players without an AI fall back to local rules for these. A host with an AI can turn on “AI reactions” when creating a game and set each country to local rules or an AI agent in the lobby.
+- **Whose AI in online games**: the world simulation (reactions to players' moves) and the AI countries' yearly strategies use the host's AI. When the host shares their AI (the default), other players' one-line orders, crisis answers and chats with AI agents use it too; when the host does not share, each player uses their own AI and those without one fall back to local rules. A host with an AI can turn on “AI reactions” when creating a game and set each country to local rules or an AI agent in the lobby.
 - **Model names change**: the table shows the defaults as of October 2026. If you are told the model is unknown, click “Fetch models” and pick one the provider offers now.
 - **Deep thinking** is off by default for hybrid reasoning models (DeepSeek, Doubao, Qwen, Kimi, GLM) to keep turns fast; turn it on under Advanced.
 - Failures are handled for you: if a provider rejects JSON mode or the thinking parameter, the request is retried without it; on 429 or server errors it waits and retries twice; at most 3 requests run at once.
+
+### The host shares their AI: nobody else needs one <a id="host-ai-en"></a>
+
+- When creating a game, tick “Share my AI with everyone in this game” (ticked by default when the host has an AI; if the host connects one later, it is shared then). The lobby tells the others: “The host's AI runs the simulation for everyone: you need no AI connection and no key.”
+- Other players' one-line orders, free-text crisis answers and talks with AI agents go through the host's browser to the host's AI, and the results come back within seconds; the host's AI account is billed.
+- The host's key never leaves the host's browser. Each request (the prompt) is encrypted to the host and each result to the player who asked (ECDH + AES-GCM, as for private messages), so neither the relays nor other players can read them.
+- Limits: at most 30 calls per player per turn and 2 at a time; beyond that the step falls back to rules until the next turn. Only seated players are served.
+- The host can turn sharing off and on at any time from the “⋯” menu. If the host's AI fails (key revoked, out of credit), sharing pauses by itself and everyone falls back to their own AI or local rules. When the host changes, the new host's AI takes over if they have one.
 
 ### Relay proxy <a id="ai-proxy-en"></a>
 
@@ -341,8 +371,8 @@ Optional: in the Worker's Settings → Variables, `ALLOW_ORIGINS` (allowed sites
 ### Differences from the version on claude.ai
 
 - The fine-grained theatre maps (zone-by-zone, division-level daily battles) are not included.
-- Taiwan belongs to China, and in 1939 China cannot lose (see above).
-- On claude.ai, Claude runs the simulation. Here local rules run it by default (country agents negotiate with local rules, one-line orders only recognize war policies and settings changes); with an AI connected, the AI runs it as on claude.ai.
+- Taiwan belongs to China, and in 1939 China cannot lose (see above); the Chinese Communist Party is not a separate side (on claude.ai it is one when the fine-grained theatres are on).
+- On claude.ai, Claude runs the simulation. Here local rules run it by default (country agents negotiate with local rules, one-line orders only recognize war policies and settings changes); with an AI connected, the AI runs it as on claude.ai. You can connect one with a single click, and the host can share theirs with every player.
 - There are no external agents.
 - Everything else (rules, data, war economy, messages and formal proposals) is the same.
 

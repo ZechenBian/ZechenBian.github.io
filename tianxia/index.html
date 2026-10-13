@@ -1047,6 +1047,14 @@ button.danger { border-color: var(--bad); color: var(--bad); }
 .aihelp textarea { width: 100%; height: 180px; font-family: var(--f-mono); font-size: 11.5px; }
 /* 永久领土（中华台湾）的地图标注 */
 .lbl.prov { font-size: 10.5px; font-weight: 600; opacity: .95; }
+/* 一键接入（OpenRouter 授权）与房主共享的 AI（src/web/ui/04x_ai.js、04y_hostai.js） */
+.aioa { margin: 8px 0 4px; padding: 9px 10px; border: 1px solid var(--line2); border-left: 3px solid var(--accent); border-radius: var(--r); background: var(--paper2); }
+.aioa b { font-size: 13px; }
+.aioa .aibtns { margin-top: 4px; align-items: center; }
+.aioa-ok { font-size: 12.5px; }
+.aibox .aior { margin-top: 10px; }
+.alert.hanote { border-left-color: var(--good); color: var(--ink); }
+#aiStartMsg:empty { display: none; }
 
 </style>
 </head>
@@ -1241,7 +1249,8 @@ const TXMQ = (() => {
  *   · 房间：在场信息是每 15 秒刷新的保留消息，45 秒没有刷新就算离开；事件是普通消息，按编号去重。
  *   · 身份：本机随机编号（localStorage），昵称由玩家在开局画面填写，写在 <命名空间>/u/<编号>。
  *   · 私人数据（data/users/…，与国家智能体的谈判记录）只存本机。
- * 推演层的 sample 由 02_ai.js 提供（玩家在设置里接入 ChatGPT、DeepSeek、豆包等，自带密钥；没接入时返回 null，游戏用规则引擎）；导出存档直接下载文件。
+ * 推演层的 sample 由 02_ai.js 提供（玩家在设置里接入 ChatGPT、DeepSeek、豆包等，自带密钥或一键授权；没接入时返回 null，游戏用规则引擎）；
+ * 联网对局里房主共享了自己的 AI 时，改由 src/web/ui/04y_hostai.js 经房主转发（window.__txSampleHook）。导出存档直接下载文件。
  * 地址参数：broker=ws://…（逗号分隔，覆盖默认中继，测试用）、ns=命名空间、u=/n= 测试用的编号与昵称、g=对局编号（邀请链接）。
  */
 (() => {
@@ -1559,7 +1568,10 @@ const TXMQ = (() => {
       if (n === 'room') return room;
       if (n === 'user') return user;
       if (n === 'downloads') return downloads;
-      if (n === 'sample') return window.TXAI ? window.TXAI.sample() : null; // 玩家自带密钥的 AI 推演（没接入时为 null）
+      if (n === 'sample') { // 玩家自己接入的 AI（没接入时为 null）；联网对局开了“房主的 AI 统一推演”时经房主转发（src/web/ui/04y_hostai.js）
+        const h = window.__txSampleHook, r = typeof h === 'function' ? h() : undefined;
+        return r !== undefined ? r : window.TXAI ? window.TXAI.sample() : null;
+      }
       return null;
     },
   });
@@ -1587,6 +1599,7 @@ const TXMQ = (() => {
  *   · 同时最多 3 个请求，其余排队；429 / 5xx / 流中途断开时退避后重试；单次请求最长 4 分钟。
  *   · 错误里服务商的原话（detail）只在本机的设置面板里显示，不写进 errText（errText 会进入战报与聊天记录，联机时会同步给其他玩家）。
  * 模型名称变化很快（2026 年 10 月的默认值见 PRE），设置里的“获取模型列表”会向服务商查询当前可用的模型。
+ * 一键接入（不用复制密钥）：OpenRouter 的 OAuth PKCE 授权，见下面的 oauthStart / oauthFinish 与 src/web/auth.html。
  */
 window.TXAI = (() => {
   'use strict';
@@ -1925,18 +1938,82 @@ window.TXAI = (() => {
   }
   function label(c) { const k = conf(c || CFG); return usable(k) ? { zh: k.P.b[0], en: k.P.b[1] } : null; }
 
+  /* ---------- 一键接入：OpenRouter 授权（OAuth PKCE，不用复制密钥） ----------
+   * 点按钮 → 弹出 OpenRouter 的授权页（登录后点“授权”）→ 回到本站的 auth.html，它只把授权码写进 localStorage（'tianxia.oauth.code'）→
+   * 游戏页用自己保存的 code_verifier 向 OpenRouter 换取密钥（POST /api/v1/auth/keys），存进 AI 设置（与手填的密钥一样只存在本机）。
+   * 授权码单独拿到也没用：没有本机保存的 verifier 换不出密钥；授权码 10 分钟内有效。state 防止别人塞进来的授权结果。
+   * 没有充值的账号只能用免费模型：GET /api/v1/key 的 is_free_tier 为真（或查不到）时，从 GET /api/v1/models 里挑一个免费的对话模型。
+   * 本机测试：页面开在 localhost / 127.0.0.1 上时，可以用地址参数 ?orbase=http://… 把 OpenRouter 换成模拟服务。 */
+  const OAK = 'tianxia.oauth', OAC = 'tianxia.oauth.code', OR0 = 'https://openrouter.ai';
+  function orBase() {
+    try { const q = String(new URLSearchParams(location.search).get('orbase') || '').replace(/\/+$/, ''); if (q && /^(localhost|127\.0\.0\.1)$/.test(location.hostname) && /^https?:\/\/[^/?#\s]+$/.test(q)) return q; } catch (e) { }
+    return OR0;
+  }
+  const b64u = u8 => { let s = ''; for (const b of u8) s += String.fromCharCode(b); return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); };
+  const lsGet = k => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } };
+  const lsDel = k => { try { localStorage.removeItem(k); } catch (e) { } };
+  // 免费模型的偏好（能力较强、上下文够长）；都没有时用 OpenRouter 的免费模型路由 openrouter/free
+  const FREE_PREF = [/^deepseek\/deepseek-(chat|v3)/, /^qwen\/qwen3-(235b|max|next|coder)/, /^openai\/gpt-oss-120b/, /^z-ai\/glm-4\.[5-9]/, /^moonshotai\/kimi-k2/, /^meta-llama\/llama-3\.3-70b/, /^google\/gemma-3-27b/, /^mistralai\/mistral-small/];
+  // 开始授权：返回要打开的授权页地址（mode：'popup' 弹出窗口，'redirect' 本页跳转）
+  async function oauthStart(mode) {
+    if (typeof crypto === 'undefined' || !crypto.subtle) throw mkErr('oauth_unsupported');
+    const v = b64u(crypto.getRandomValues(new Uint8Array(48))), st = b64u(crypto.getRandomValues(new Uint8Array(12)));
+    const ch = b64u(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(v))));
+    try { localStorage.setItem(OAK, JSON.stringify({ v, st, at: Date.now(), mode: mode === 'redirect' ? 'redirect' : 'popup', back: location.href.replace(/#.*$/, '') })); localStorage.removeItem(OAC); } catch (e) { throw mkErr('oauth_unsupported'); }
+    const cb = new URL('auth.html', location.href).href.replace(/[?#].*$/, '');
+    return orBase() + '/auth?' + new URLSearchParams({ callback_url: cb, code_challenge: ch, code_challenge_method: 'S256', key_label: 'Tianxia · ' + location.host, state: st }).toString();
+  }
+  const oauthPending = () => { const c = lsGet(OAC); return !!(c && (c.code || c.error)); };
+  async function freeModel() {
+    let list = [];
+    try { const r = await timed(sig => fetch(orBase() + '/api/v1/models', { signal: sig, credentials: 'omit', referrerPolicy: 'no-referrer' }), 20000); if (r.ok) { const j = await r.json(); list = Array.isArray(j && j.data) ? j.data : []; } } catch (e) { }
+    const ids = list.filter(m => m && typeof m.id === 'string');
+    const free = ids.filter(m => /:free$/.test(m.id) && (+m.context_length || 0) >= 32000 && !/vision|-vl\b|embed|guard|r1\b|think/i.test(m.id)).map(m => m.id);
+    for (const re of FREE_PREF) { const id = free.find(x => re.test(x)); if (id) return id; }
+    return free[0] || 'openrouter/free';
+  }
+  // 授权页回来以后：用授权码换密钥并保存。没有待处理的授权码时返回 null
+  async function oauthFinish() {
+    const c = lsGet(OAC); if (!c || (!c.code && !c.error)) return null;
+    lsDel(OAC);
+    const p = lsGet(OAK);
+    if (c.error) { lsDel(OAK); throw mkErr('oauth_denied'); } // 在授权页点了取消
+    if (!p || !p.v) throw mkErr('oauth_lost');
+    lsDel(OAK);
+    if (Date.now() - (+p.at || 0) > 15 * 60000) throw mkErr('oauth_expired');
+    if (p.st && c.st !== p.st) throw mkErr('oauth_state');
+    const j = await timed(async sig => {
+      let r; try { r = await fetch(orBase() + '/api/v1/auth/keys', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: String(c.code), code_verifier: p.v, code_challenge_method: 'S256' }), signal: sig, credentials: 'omit', referrerPolicy: 'no-referrer' }); }
+      catch (e) { if (e && e.name === 'AbortError') throw e; throw mkErr('network', String((e && e.message) || e)); }
+      if (!r.ok) { const e = await httpErr(r); if (r.status === 403 && /expired/i.test(e.raw || '')) throw mkErr('oauth_expired'); throw e; }
+      return r.json();
+    }, 30000);
+    const key = String((j && j.key) || '').replace(ZW, ''); if (!key || !/^[\x21-\x7e]+$/.test(key)) throw mkErr('upstream_error', 'no key in the reply');
+    let paid = null; // 是否充过值（查不到时按免费账号处理，免得产生费用）
+    try { const r = await timed(sig => fetch(orBase() + '/api/v1/key', { headers: { Authorization: 'Bearer ' + key }, signal: sig, credentials: 'omit', referrerPolicy: 'no-referrer' }), 15000); if (r.ok) { const d = ((await r.json()) || {}).data; if (d && typeof d.is_free_tier === 'boolean') paid = !d.is_free_tier; } } catch (e) { }
+    const model = paid ? '' : await freeModel();
+    const by = clone(CFG.by || {}), u = Object.assign({}, by.openrouter || {}, { key, model, fast: '', oauth: 1 });
+    if (orBase() !== OR0) u.base = orBase() + '/api/v1'; else u.base = '';
+    by.openrouter = u;
+    save({ p: 'openrouter', by, proxy: CFG.proxy });
+    return { model: model || byId('openrouter').model, free: !paid, back: String(p.back || ''), mode: p.mode };
+  }
+
   return Object.freeze({
     PRE, preset: byId, get cfg() { return clone(CFG); }, save, conf, usable, problem, ready: () => usable(conf()), isLocal, viaProxy,
     sample, test, models, label, onChange: f => subs.push(f), parseJSON, _cap: CAP,
+    oauthStart, oauthFinish, oauthPending, orBase,
   });
 })();
 
 /* 网页版的世界设定（在引擎之前生效）：
  * · 台湾在四个年代里都是中国领土：地图上按中国着色（1945、1979、2026 年开局标“中华台湾”），不能被选为玩家国家，
  *   任何国家都不能单独对它采取行动（战争、制裁、援助、贸易、驻军……），它也不会独立。引擎见 01_core.js 的 PROV 与 09_scen.js 的 provincialize。
- * · 1939 年开局的保底：中国不会被征服、不会投降、不会沦为附庸——日军的攻势最多推进到武汉、广州一线（战线进度 62%）就陷入僵持。引擎见 01_core.js 的 GUARD。 */
+ * · 1939 年开局的保底：中国不会被征服、不会投降、不会沦为附庸——日军的攻势最多推进到武汉、广州一线（战线进度 62%）就陷入僵持。引擎见 01_core.js 的 GUARD。
+ * · 四个年代都不单列中国共产党：src/scenmp/39_ccp.js 只在带精细战区的联机版里加入这一方，网页版跳过（中国按一个整体计算）。 */
 window.TX_PROV = { TWN: 'CHN' };
 window.TX_GUARD = { 1939: ['CHN'] };
+window.TX_NOCCP = true;
 
 </script>
 <script>
@@ -2961,6 +3038,7 @@ ISR EGY 20|ISR LEV -80|ISR IRN -50|ISR GLF -40|ISR MAG -40|ISR TUR 10|ISR SAF 30
  * 精细战区打开时，中共是独立势力：以陕甘宁边区为本土（延安），八路军、新四军在敌后建立根据地；
  * 名义上隶属国民政府（第十八集团军、新四军），与国民党结成统一战线（同盟 + 通行权），实际独立指挥。
  * 精细战区关闭时，中共并入中华民国（与原版一致）。其他剧本中中共一律并入中国。
+ * 网页版（window.TX_NOCCP）完全不加入这一方：四个年代都只有一个中国。
  * 地区轮廓：1940 年前后的陕甘宁边区（延属、绥德、三边、陇东、关中分区），经纬度近似；投影后的像素数据由 tools/ccp_geo.mjs 生成。
  */
 var GEO_EXTRA = GEO_EXTRA || {};
@@ -2968,6 +3046,9 @@ var GEO_EXTRA = GEO_EXTRA || {};
 /*GEO_CCP_BEGIN*/var GEO_CCP = {"path":"M1550.9 269L1554.3 268.4L1559 268.7L1563 269.7L1566.1 270.3L1570.4 272.2L1571.3 275.5L1571.6 278.7L1570.4 281.3L1567.7 283.2L1565.8 286.1L1563.7 287.1L1560.9 285.5L1558 283.2L1554.8 280.6L1552.3 277.1L1551 273.2L1550.7 270.6Z","label":[1561.4,276.6],"bbox":[1550,268,1572,288],"area":265,"cities":[["延安","Yan’an",1566.8,277.7,1],["庆阳","Qingyang",1559.7,281.6,0],["绥德","Suide",1568.8,271.9,0]]};/*GEO_CCP_END*/
 (function () {
   if (typeof ACTORS === 'undefined' || typeof SCENARIOS === 'undefined') return;
+  // 法国—中欧（经瑞士）的陆上接壤不是可行的进攻路线
+  if (SCENARIOS['1939']) { SCENARIOS['1939'].noLand = (SCENARIOS['1939'].noLand || []).concat([['FRA', 'CEU']]); SCENARIOS['1939'].noLandSet = null; }
+  if (typeof window !== 'undefined' && window.TX_NOCCP) return; // 网页版：任何年代都不单列中共（见 src/web/03_world.js）
   // 地区：加入 ACTORS（2026 等剧本中并入中国）
   if (!ACTORS.some(a => a.id === 'CCP')) ACTORS.push({
     id: 'CCP', name: '中国共产党', en: 'Chinese Communist Party', gov: 'aut', pop: 1.5, gdp: 4, growth: 2, milex: 0.3, pers: 20, nukes: 0, tech: 40, stab: 70, ppp: 2, mix: [.98, 0, .02], terr: 1.4, energy: 0, fin: 0, proj: 600, icbm: 0, intel: 60, hawk: .5, econ: .3, risk: .4, loyal: .5,
@@ -3001,8 +3082,6 @@ var GEO_EXTRA = GEO_EXTRA || {};
   S39.aggr0 = Object.assign({}, S39.aggr0, { CCP: 30 });
   if (S39.inv) S39.inv.CCP = [0, 0, 0];
   S39.noOps = (S39.noOps || []).concat(['CCP']);                 // 中共的战争在精细战区里进行，战略层 AI 不替它发动行动
-  // 法国—中欧（经瑞士）的陆上接壤不是可行的进攻路线
-  S39.noLand = (S39.noLand || []).concat([['FRA', 'CEU']]); S39.noLandSet = null;
 })();
 
 </script>
@@ -4826,6 +4905,53 @@ I18N.add({
   'ev45.prc': ['中国内战结束：中华人民共和国成立并与苏联结盟。', 'The Chinese civil war ends: the People’s Republic is proclaimed and allies with Moscow.'],
 });
 (() => { const e = I18N.dict['u.h.core_x']; if (e) I18N.add({ 'u.h.core_x': [String(e[0]).replace('中国之于台湾、', ''), String(e[1]).replace('Taiwan for China, ', '')] }); })();
+
+/* 网页版：一键接入 AI（OpenRouter 授权，src/web/02_ai.js 与 src/web/auth.html）、房主的 AI 统一推演（src/web/ui/04y_hostai.js）；
+ * 并更新联机说明里与隐私、AI 费用有关的说法（私信端到端加密、方案只加密给房主、房主共享 AI 时由房主付费）。 */
+I18N.add({
+  // 一键接入
+  'ai.oa.h': ['一键接入（推荐，不用复制密钥）', 'One-click connect (recommended, no key to copy)'],
+  'ai.oa.x': ['点下面的按钮，在弹出的 OpenRouter 页面登录（可以用 Google 或 GitHub 账号）并点“授权”即可。没有充值的账号自动选用免费模型（每天约 50 次请求，充值 10 美元后每天 1000 次）。授权得到的密钥只保存在本机浏览器；联网时房主可以把 AI 共享给所有玩家。', 'Click below, sign in on the OpenRouter page that opens (Google or GitHub works) and click Authorize. Accounts without credit get a free model automatically (about 50 requests a day, 1,000 after a $10 top-up). The key stays in this browser; online, the host can share the AI with every player.'],
+  'ai.oa.go': ['用 OpenRouter 一键接入', 'Connect with OpenRouter'], 'ai.oa.again': ['重新授权', 'Authorize again'],
+  'ai.oa.done': ['✓ 已授权 · {m}', '✓ Authorized · {m}'],
+  'ai.oa.or': ['或者选择服务商，填写你自己的 API 密钥：', 'Or pick a provider and paste your own API key:'],
+  'ai.oa.start': ['一键接入 AI', 'One-click AI'],
+  'ai.oa.opening': ['正在打开 OpenRouter……', 'Opening OpenRouter…'],
+  'ai.oa.wait': ['请在弹出的窗口里登录并点“授权”……没看到窗口的话，看看浏览器是不是拦截了弹出窗口。', 'Sign in and click Authorize in the window that opened… No window? Check whether the browser blocked the pop-up.'],
+  'ai.oa.ok': ['✓ 已通过授权接入 OpenRouter · {m}{f}', '✓ Connected to OpenRouter · {m}{f}'], 'ai.oa.free': ['（免费模型）', ' (free model)'],
+  'ai.oa.fail': ['授权没有完成：{x}', 'The authorization did not complete: {x}'],
+  'ai.e.oauth_expired': ['授权超时（授权码 10 分钟内有效），请重新点一次。', 'The authorization timed out (codes last 10 minutes); please try again.'],
+  'ai.e.oauth_state': ['授权结果与本次请求对不上，请重新点一次。', 'The authorization result did not match this request; please try again.'],
+  'ai.e.oauth_lost': ['找不到这次授权的记录（可能是在别的浏览器里完成的），请在这里重新点一次。', 'No record of this authorization here (it may have been completed in another browser); please try again here.'],
+  'ai.e.oauth_denied': ['授权被取消了。', 'The authorization was cancelled.'],
+  'ai.e.oauth_unsupported': ['这个浏览器不支持一键授权，请改用填写密钥的方式。', 'This browser cannot do one-click authorization; paste a key instead.'],
+  // 房主的 AI 统一推演
+  'ha.cfg': ['把我的 AI 共享给本局所有玩家（其他人不用自己接入）', 'Share my AI with everyone in this game (nobody else needs to connect one)'],
+  'ha.cfg_x': ['其他玩家的一句话命令、危机应对和与 AI 智能体的谈判，都经你的浏览器交给你的 AI 推演，费用记在你的 AI 账户上（每人每回合最多 {n} 次）。你的密钥不离开你的浏览器；请求和结果加密传送，只有你和那位玩家看得到。', 'Other players\' one-line orders, crisis responses and talks with AI agents go through your browser to your AI and are billed to your AI account (at most {n} per player per turn). Your key never leaves your browser; requests and replies are encrypted so only you and that player can read them.'],
+  'ha.cfg_noai': ['你还没有接入 AI。接入后（设置 → AI 推演接口，可以一键授权）会自动共享给本局所有玩家，其他人就不用各自接入了。', 'You have not connected an AI yet. Once you do (Settings → AI connection, one click with OpenRouter), it is shared with everyone in the game, so nobody else has to connect one.'],
+  'ha.sum_on': ['AI：房主共享（{x}）', 'AI: shared by the host ({x})'],
+  'ha.sum_wait': ['AI：房主接入后共享给所有人', 'AI: shared once the host connects one'],
+  'ha.sum_off': ['AI：各自接入', 'AI: each player connects their own'],
+  'ha.lobby_on': ['共享我的 AI', 'Share my AI'], 'ha.lobby_off': ['停止共享 AI', 'Stop sharing my AI'],
+  'ha.lobby_you': ['本局由房主的 AI（{x}）统一推演：你不需要接入 AI，也不需要密钥。', 'The host\'s AI ({x}) runs the simulation for everyone: you need no AI connection and no key.'],
+  'ha.menu_on': ['共享我的 AI：已开启（点击关闭）', 'Sharing my AI: on (click to stop)'],
+  'ha.menu_off': ['共享我的 AI：已关闭（点击开启）', 'Sharing my AI: off (click to start)'],
+  'ha.menu_guest': ['本局由房主的 AI（{x}）统一推演。', 'The host\'s AI ({x}) runs the simulation for everyone.'],
+  'ha.on_t': ['已把你的 AI 共享给本局所有玩家', 'Your AI is now shared with everyone in this game'],
+  'ha.off_t': ['已停止共享：其他玩家改用各自接入的 AI 或本地规则', 'Sharing stopped: other players fall back to their own AI or local rules'],
+  'ha.need_ai': ['先在“设置 → AI 推演接口”里接入 AI（可以一键授权），才能共享。', 'Connect an AI first (Settings → AI connection; one click with OpenRouter), then share it.'],
+  'ha.set_note': ['本局由房主的 AI（{x}）统一推演，你不需要在这里接入。这里的设置只在你当房主、或单机与热座时使用。', 'In this game the host\'s AI ({x}) runs the simulation for everyone, so you need not connect one here. These settings apply only when you host, or in solo and hot-seat play.'],
+  'llm.err.shared_cap': ['本回合共享 AI 的次数已用完（每人每回合 30 次），下回合再试。', 'You have used up this turn\'s share of the host\'s AI (30 calls per player per turn); try again next turn.'],
+  'llm.err.shared_down': ['房主共享的 AI 暂时不可用（房主那边的接入出了问题），这一步改用规则。', 'The host\'s shared AI is unavailable right now (a problem on the host\'s side), so rules are used for this step.'],
+  'llm.err.shared_fail': ['房主的 AI 这次没有给出可用的回复，请重试。', 'The host\'s AI did not give a usable reply this time; please retry.'],
+  // 更新的说明
+  'ai.x': ['接入 AI 后，各国反应、年度战略、危机应对、自由指令和外交谈判都由 AI 实时推演；不接入时用本地规则。最省事的是下面的“一键接入”；也可以选 ChatGPT、DeepSeek、豆包等服务商，填你自己的 API 密钥（按用量收费）。密钥只保存在本机浏览器，直接发给所选服务商（或你填写的转发代理），不经过联机中继，也不会发给其他玩家。', 'Connect an AI to have reactions, yearly strategies, crises, free orders and negotiations simulated live; without one, local rules are used. One-click connect below is the easiest; or pick ChatGPT, DeepSeek, Doubao or another provider and paste your own API key (billed by usage). The key stays in this browser and goes only to the provider you pick (or the relay proxy you set), never to the online relays or to other players.'],
+  'mp.web.note': ['网页版：联网经公共中继服务器转发，无需登录；推演默认用本地规则，可以一键接入 AI（OpenRouter 授权），也可以填 ChatGPT、DeepSeek、豆包等的 API 密钥；联网时房主可以把 AI 共享给所有玩家；不含精细战区。', 'Web version: online play goes through public relay servers with no sign-in; the simulation uses local rules unless you connect an AI (one click with OpenRouter, or a ChatGPT, DeepSeek, Doubao… API key); online, the host can share their AI with every player; the fine-grained theatre maps are not included.'],
+  'mp.share_x': ['把网址发给朋友，各自在自己的设备上打开即可。对局经公共中继服务器转发：公开的局势知道对局编号的人都能看到；私信端到端加密（只有收发双方看得到），每人本回合的方案只加密给房主。AI 密钥只保存在各自的浏览器里，不会发给其他玩家；房主共享 AI 时，其他玩家的 AI 请求加密后交给房主的 AI 推演，由房主付费。', 'Send friends the address and everyone opens it on their own device. Games travel through public relay servers: the public situation can be seen by anyone with the game id; private messages are end-to-end encrypted (only sender and recipient can read them) and each player\'s plan for the turn is encrypted to the host only. AI keys stay in each player\'s own browser and are never sent to other players; when the host shares their AI, other players\' AI requests are encrypted to the host and run on the host\'s AI, at the host\'s cost.'],
+  'mp.h.limits_x': ['公开局势经公共中继转发（知道对局编号的人都能看到），私信与各人的方案是加密的；同一时刻只有房主的结算结果有效；房主关掉页面后，其他入座的玩家一两分钟后自动接任。AI 推演按用量由服务商向密钥的主人收费：房主共享 AI 时都记在房主的账上。', 'The public situation travels through public relays (anyone with the game id can see it), while private messages and each player\'s plan are encrypted; only the host\'s resolution counts; if the host closes the page, another seated player takes over within a couple of minutes. AI usage is billed by the provider to whoever owns the key — to the host when the host shares their AI.'],
+  'mp.ag.claude_x': ['用自然语言讨价还价，有个性与记忆；对话由发起者付费（房主共享 AI 时由房主付费），年度战略由房主付费', 'Bargains in natural language with its own personality; chats are billed to the speaker (to the host when the host shares their AI), yearly strategy to the host'],
+  'mp.lobby_x': ['每位玩家选一个国家入座；空着的国家由智能体控制（房主接入 AI 后，可以逐国选择本地规则或 AI 智能体，也可以把 AI 共享给所有玩家）。房主点击“开始对局”后进入第一回合。', 'Each player takes a country; empty countries are run by agents (once the host connects an AI, each one can be set to local rules or an AI agent, and the AI can be shared with every player). The host clicks “Start game” to begin the first turn.'],
+});
 
 </script>
 <script>
@@ -9988,10 +10114,28 @@ function evCond(S, c) {
 /* 可选的国家：独立且非附庸 */
 function playable(S) { return IDS.filter(id => S.actors[id].ctrl === id && !S.actors[id].overlord && !NEU(S, id)); }
 
+/* 存档里有、当前构建里没有的势力（网页版不再单列中共）：删掉它和指向它的记录，驻在那里的兵力回到本国 */
+function dropGone(o) {
+  const gone = Object.keys(o.actors).filter(id => !DEF[id]); if (!gone.length) return;
+  const g = new Set(gone), hit = k => String(k).split(/[|>]/).some(p => g.has(p)), any = (...v) => v.some(x => g.has(x));
+  for (const id of gone) delete o.actors[id];
+  for (const k of ['rel', 'rel0', 'infl', 'war', 'tension2', 'threat', 'mem', 'grudge', 'favor', 'cb', 'crossed', 'coreSeen', 'coreLLM']) { const m = o[k]; if (m && typeof m === 'object' && !Array.isArray(m)) for (const q of Object.keys(m)) if (hit(q)) delete m[q]; }
+  o.treaties = (o.treaties || []).filter(t => !any(t.a, t.b));
+  o.fronts = (o.fronts || []).filter(f => !any(f.att, f.target, f.def));
+  o.ops = (o.ops || []).filter(op => !any(op.owner, op.target));
+  if (Array.isArray(o.neutral)) o.neutral = o.neutral.filter(id => !g.has(id));
+  for (const b of Object.values(o.blocs || {})) if (Array.isArray(b.members)) b.members = b.members.filter(id => !g.has(id));
+  for (const x of Object.values(o.actors)) {
+    if (x.forces) for (const L of Object.keys(x.forces)) if (g.has(L)) { x.forces[x.id] = vadd(x.forces[x.id] || V0(), x.forces[L]); delete x.forces[L]; }
+    for (const m of (x.moves || [])) { if (g.has(m.to)) m.to = x.id; if (g.has(m.from)) m.from = x.id; }
+    if (g.has(x.ctrl)) x.ctrl = x.id; if (g.has(x.part)) x.part = null; if (g.has(x.overlord)) { x.overlord = null; x.vassalSince = null; }
+  }
+  o._exp = null;
+}
 /* ---------- 存档迁移（v4 → v5） ---------- */
 function migrate(o) {
   if (!o || !o.actors) throw new Error('bad');
-  if (o.v === 5) { useScenario(o.scen || '2026', true); applyDefOv(o); o.coreLLM = {}; if (NEUTRAL.length && !(o.neutral && o.neutral.length)) neutralize(o, NEUTRAL); if (Object.keys(PROV).length && !o.prov) { o.neutral = (o.neutral || []).concat(Object.keys(PROV).filter(k => !(o.neutral || []).includes(k))); provincialize(o); } if (GUARD[o.scen] && GUARD[o.scen].length && !o.guard) o.guard = GUARD[o.scen].filter(id => o.actors[id]); return o; } // 网页版载入以前的存档：补上中立地区、永久领土与保底
+  if (o.v === 5) { useScenario(o.scen || '2026', true); dropGone(o); applyDefOv(o); o.coreLLM = {}; if (NEUTRAL.length && !(o.neutral && o.neutral.length)) neutralize(o, NEUTRAL); if (Object.keys(PROV).length && !o.prov) { o.neutral = (o.neutral || []).concat(Object.keys(PROV).filter(k => !(o.neutral || []).includes(k))); provincialize(o); } if (GUARD[o.scen] && GUARD[o.scen].length && !o.guard) o.guard = GUARD[o.scen].filter(id => o.actors[id]); return o; } // 网页版载入以前的存档：补上中立地区、永久领土与保底
   if (o.v !== 4) throw new Error('old');
   useScenario('2026'); o.scen = '2026';
   for (const id of Object.keys(o.actors)) {
@@ -16243,6 +16387,7 @@ function mpOnTick(m) {
   if (d.j && MPS.host) MPS.db.collection(P_JOIN(gid)).get().then(q => { if (gid !== MPS.gid) return; for (const x of q.docs) MPS.joins[x.id] = x.data(); mpHostJoins(); mpRenderLobby(); }).catch(() => { });
   if (+d.ver > MPS.snapVer) MPS.db.doc(P_SNAP(gid)).get().then(sn => { if (gid === MPS.gid && sn.exists) mpOnSnap(sn.data()); }).catch(() => { });
   if (typeof d.th === 'string' && !MPS.host && typeof thOnPauseDoc === 'function') MPS.db.doc(P_TH(gid)).get().then(sn => { if (gid === MPS.gid && sn.exists) thOnPauseDoc(sn.data()); }).catch(() => { });
+  if (typeof d.ai === 'string' && MPS.host && typeof haPoke === 'function') haPoke(d.ai); // 网页版：有玩家请房主的 AI 推演
   if (d.meta && !MPS.host) MPS.db.doc(P_META(gid)).get().then(sn => { if (gid !== MPS.gid || !sn.exists) return; const v = sn.data(); if (MPS.meta && (MPS.meta.mv || 0) >= (v.mv || 0)) return; MPS.meta = mpClone(v); mpOnMeta(); }).catch(() => { });
 }
 
@@ -16743,7 +16888,7 @@ function mpAfterTurn() {
 }
 
 /* ---------- 订阅（监听意外中断时自动重新订阅） ---------- */
-function mpUnsubAll() { MPS.thDocLast = null; if (MPS.secUnsub) { try { MPS.secUnsub(); } catch (e) { } MPS.secUnsub = null; MPS.secKey = null; } for (const u of MPS.unsub) try { u(); } catch (e) { } MPS.unsub = []; for (const u of Object.values(MPS.pSubs)) try { u(); } catch (e) { } MPS.pSubs = {}; if (MPS.rm) { MPS.rm.leave().catch(() => { }); MPS.rm = null; } clearInterval(MPS.leaseT); clearInterval(MPS.hostTimer); }
+function mpUnsubAll() { MPS.thDocLast = null; if (MPS.secUnsub) { try { MPS.secUnsub(); } catch (e) { } MPS.secUnsub = null; MPS.secKey = null; } for (const u of MPS.unsub) try { u(); } catch (e) { } MPS.unsub = []; for (const u of Object.values(MPS.pSubs)) try { u(); } catch (e) { } MPS.pSubs = {}; if (MPS.rm) { MPS.rm.leave().catch(() => { }); MPS.rm = null; } clearInterval(MPS.leaseT); clearInterval(MPS.hostTimer); if (typeof haReset === 'function') haReset(); }
 function mpListen(make, next, tag) {
   const gid = MPS.gid; let unsub = null, dead = false;
   const sub = () => { if (dead || gid !== MPS.gid) return; try { unsub = make().onSnapshot(next, e => { console.warn(tag, e); if (!dead && gid === MPS.gid && e && !['revoked', 'not_granted', 'invalid_argument', 'capability_disabled', 'capability_removed'].includes(e.code)) setTimeout(sub, 3000 + Math.random() * 2000); }); } catch (e) { console.warn(tag, e); } };
@@ -16812,7 +16957,7 @@ function mpCheckTabs() {
   const passive = !!(me && others.some(o => String(o.peer) < String(me.peer)));
   if (passive === MPS.passive) return;
   MPS.passive = passive;
-  if (passive) { MPS.host = false; showModal(`<h2>${T('mp.e.passive')}</h2><p class="sub">${T('mp.e.passive_x')}</p><div class="foot"><button class="btn-primary" data-close="1">${T('u.ok')}</button></div>`, 'narrow', true); }
+  if (passive) { MPS.host = false; if (typeof haOnMeta === 'function') haOnMeta(); showModal(`<h2>${T('mp.e.passive')}</h2><p class="sub">${T('mp.e.passive_x')}</p><div class="foot"><button class="btn-primary" data-close="1">${T('u.ok')}</button></div>`, 'narrow', true); }
   else { mpSaveMine(); mpLeaseTick(); }
 }
 function mpPresence() { if (MPS.rm) MPS.rm.presence({ uid: MPS.uid, seat: MPS.seat || null, ready: !!MPS.ready, host: !!MPS.host }).catch(() => { }); }
@@ -16836,8 +16981,9 @@ async function mpLeaseTick() {
         await mpMeta({ host: MPS.uid, hostAt: Date.now(), phase: mpLive() ? S.mp.phase : (m.phase === 'resolve' ? 'plan' : m.phase || 'lobby'), hpk: MPX.mine() || null });
         for (const [u, p] of Object.entries(MPS.players)) mpOpenPlayer(u, p).then(ch => { if (ch) mpHostProcess(); });
         mpPresence(); mpHostJoins(); if (mpLive()) { mpHostProcess(); mpPublishSoon(); } mpRenderBar();
+        if (typeof haOnMeta === 'function') haOnMeta(); // 网页版：接任房主后按自己的 AI 决定能否共享
       } else await mpMeta({ hostAt: Date.now() });
-    } else if (iAmHost) MPS.host = false;
+    } else if (iAmHost) { MPS.host = false; if (typeof haOnMeta === 'function') haOnMeta(); }
   } catch (e) { console.warn('lease', e); }
 }
 function mpOnMeta() {
@@ -16856,12 +17002,13 @@ function mpOnMeta() {
   } else if (!MPS.host) mpLeaseTick();
   if (MPS.pendingSnap && MPS.pendingSnap.by === m.host) mpOnSnap(MPS.pendingSnap);
   mpSubPlayers(); mpSubSec();
+  if (typeof haOnMeta === 'function') haOnMeta(); // 网页版：房主的 AI 统一推演（开关、换房主）
   if (m.status === 'lobby') mpRenderLobby();
   else if ($('#sheet .mplobby')) { closeModal(); mpLobbyOrPlay(); } // 房主已开局：关闭大厅，等快照
   mpRenderBar();
 }
 async function mpLeaseTick0() {
-  try { const r = await MPS.db.doc(P_LEASE(MPS.gid)).acquire({ holder: mpHolder(), ttlMs: 60000 }); if (r.acquired) { MPS.host = true; await mpMeta({ host: MPS.uid, hostAt: Date.now(), hpk: MPX.mine() || null }); mpPublishSoon(); } } catch (e) { }
+  try { const r = await MPS.db.doc(P_LEASE(MPS.gid)).acquire({ holder: mpHolder(), ttlMs: 60000 }); if (r.acquired) { MPS.host = true; await mpMeta({ host: MPS.uid, hostAt: Date.now(), hpk: MPX.mine() || null }); mpPublishSoon(); if (typeof haOnMeta === 'function') haOnMeta(); } } catch (e) { }
 }
 /* 房主：处理入座/离座 */
 function mpHostJoins() {
@@ -17023,6 +17170,7 @@ function mpCfgForm(c, scen) {
       <label class="chk"><input type="checkbox" id="mpWeAI" ${c.weAI ? 'checked' : ''}> ${T('mp.cfg.weai')}</label>
       ${mpNoAI() ? '' : `<label class="chk"><input type="checkbox" id="mpLLMW" ${c.llmWorld ? 'checked' : ''}> ${T('mp.cfg.llmw')}</label>
       <div class="radio" style="margin-top:6px">${['rule', 'claude'].map(v => `<label><input type="radio" name="mpAgDef" value="${v}" ${c.agentDef === v ? 'checked' : ''}><span>${T('mp.ag.' + v)}<small>${T('mp.ag.' + v + '_x')}</small></span></label>`).join('')}</div>`}
+      ${typeof haCfgHTML === 'function' ? haCfgHTML(c) : ''}
       <h4 style="margin-top:10px">${T('mp.cfg.timer')}</h4><select id="mpTimer">${[0, 180, 300, 600].map(v => `<option value="${v}" ${c.turnSec === v ? 'selected' : ''}>${v ? T('mp.min', { n: v / 60 }) : T('mp.notimer')}</option>`).join('')}</select>
       ${W.TH_ON && mpScenOf(scen) === '1939' ? `<h4 style="margin-top:10px">${T('th.cfg.t')}</h4><label class="chk"><input type="checkbox" id="mpTh" ${c.th !== false ? 'checked' : ''}> ${T('th.cfg.on')}</label><p class="muted" style="font-size:11.5px;margin:2px 0 4px">${T('th.cfg.x')}</p><select id="mpThSec">${TH_SECS.map(v => `<option value="${v}" ${(c.thSec ?? 90) === v ? 'selected' : ''}>${v ? T('th.cfg.sec', { n: v }) : T('th.cfg.nopause')}</option>`).join('')}</select> <select id="mpThPz">${['ev', 'all'].map(v => `<option value="${v}" ${(c.thPz || 'ev') === v ? 'selected' : ''}>${T('th.cfg.pz_' + v)}</option>`).join('')}</select>` : ''}
       <h4 style="margin-top:10px">${T('u.ai_int')}</h4><select id="mpDiff">${['easy', 'normal', 'hard'].map(v => `<option value="${v}" ${c.diff === v ? 'selected' : ''}>${T('u.' + v)}</option>`).join('')}</select>
@@ -17031,11 +17179,11 @@ function mpCfgForm(c, scen) {
 function mpReadCfg(c) {
   const sh = $('#sheet');
   sh.querySelectorAll('[data-mpcost]').forEach(r => { c.we[r.dataset.mpcost] = +r.value; });
-  const g = id => sh.querySelector(id); if (g('#mpWeAI')) c.weAI = g('#mpWeAI').checked; if (g('#mpLLMW')) c.llmWorld = g('#mpLLMW').checked; if (g('#mpTimer')) c.turnSec = +g('#mpTimer').value; if (g('#mpDiff')) c.diff = g('#mpDiff').value; if (g('#mpTh')) c.th = g('#mpTh').checked; if (g('#mpThSec')) c.thSec = +g('#mpThSec').value; if (g('#mpThPz')) c.thPz = g('#mpThPz').value === 'all' ? 'all' : 'ev';
+  const g = id => sh.querySelector(id); if (g('#mpHostAI')) c.hostAI = g('#mpHostAI').checked; if (g('#mpWeAI')) c.weAI = g('#mpWeAI').checked; if (g('#mpLLMW')) c.llmWorld = g('#mpLLMW').checked; if (g('#mpTimer')) c.turnSec = +g('#mpTimer').value; if (g('#mpDiff')) c.diff = g('#mpDiff').value; if (g('#mpTh')) c.th = g('#mpTh').checked; if (g('#mpThSec')) c.thSec = +g('#mpThSec').value; if (g('#mpThPz')) c.thPz = g('#mpThPz').value === 'all' ? 'all' : 'ev';
   const ag = sh.querySelector('input[name=mpAgDef]:checked'); if (ag) c.agentDef = ag.value;
   return c;
 }
-const mpCfg0 = () => ({ we: { infl: 1, stab: 1, resist: 1, rep: 1, interest: 1, gain: 1 }, weAI: false, llmWorld: false, agentDef: 'rule', turnSec: 0, diff: 'normal', th: !!W.TH_ON, thSec: 90, thPz: 'ev' }); // 构建里没有精细战区的数据时默认关闭
+const mpCfg0 = () => ({ we: { infl: 1, stab: 1, resist: 1, rep: 1, interest: 1, gain: 1 }, weAI: false, llmWorld: false, agentDef: 'rule', turnSec: 0, diff: 'normal', th: !!W.TH_ON, thSec: 90, thPz: 'ev', hostAI: true }); // 构建里没有精细战区的数据时默认关闭；hostAI：网页版房主把自己的 AI 共享给所有玩家
 function mpBindCostSliders() { $$('#sheet [data-mpcost]').forEach(r => (r.oninput = () => { r.nextElementSibling.textContent = r.value + '×'; })); }
 function mpShowCreate() {
   MPS.view = 'create';
@@ -17055,7 +17203,8 @@ function mpShowCreate() {
     const tdef = MPS.meName && title === mpTitleDef(scen) ? { n: String(MPS.meName).slice(0, 24), y: String((W.SCENARIOS[scen] || {}).year || scen) } : null; // 没改过的默认名称：别的玩家按各自的语言显示
     const gid = ('g' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7)).toLowerCase();
     const agents = {}; for (const r of list) if (r.id !== MPS.newPick) agents[r.id] = c.agentDef;
-    const meta = { v: MP_VER, id: gid, title, ...(tdef ? { tdef } : {}), scen, created: Date.now(), status: 'lobby', host: MPS.uid, hostAt: Date.now(), hpk: MPX.mine() || null, turn: 0, phase: 'lobby', ver: 0, seats: { [MPS.newPick]: MPS.uid }, agents, cfg: { we: c.we, weAI: !!c.weAI, llmWorld: !!c.llmWorld, turnSec: c.turnSec | 0, diff: c.diff, th: c.th !== false && scen === '1939', thSec: TH_SECS.includes(+c.thSec) ? +c.thSec : 90, thPz: c.thPz === 'all' ? 'all' : 'ev' } };
+    const meta = { v: MP_VER, id: gid, title, ...(tdef ? { tdef } : {}), scen, created: Date.now(), status: 'lobby', host: MPS.uid, hostAt: Date.now(), hpk: MPX.mine() || null, turn: 0, phase: 'lobby', ver: 0, seats: { [MPS.newPick]: MPS.uid }, agents, cfg: { we: c.we, weAI: !!c.weAI, llmWorld: !!c.llmWorld, turnSec: c.turnSec | 0, diff: c.diff, th: c.th !== false && scen === '1939', thSec: TH_SECS.includes(+c.thSec) ? +c.thSec : 90, thPz: c.thPz === 'all' ? 'all' : 'ev', hostAI: c.hostAI !== false },
+      ...(window.TX_WEB && typeof haMetaAI === 'function' ? { ai: haMetaAI(c.hostAI !== false) } : {}) }; // 网页版：房主能否把自己的 AI 共享给所有玩家
     try {
       await MPS.db.doc(P_META(gid)).set(meta);
       await MPS.db.doc(P_JOIN(gid) + '/' + MPS.uid).set({ seat: MPS.newPick, at: Date.now(), lang: mpMyLang(), pk: MPX.mine() || null });
@@ -17084,13 +17233,15 @@ function mpRenderLobby(force) {
     <div class="alert">${T('mp.share_hint')}${window.TX_WEB ? ` <button class="mini" id="mpInvite">${T('mp.web.invite')}</button>` : ''}</div>
     <h4>${T('mp.majors')}</h4><div class="mpseats">${majors.map(row).join('')}</div>
     <details${others.some(r => seats[r.id]) ? ' open' : ''}><summary>${T('mp.others', { n: others.length })}</summary><div class="mpseats">${others.map(row).join('')}</div></details>
-    <p class="muted" style="font-size:12px">${T('mp.cfg_sum', { a: Object.entries(cost).map(([k, v]) => T('mp.cost.' + k) + ' ' + v + '×').join(sep()), b: c.weAI ? T('mp.on') : T('mp.off'), c: c.llmWorld ? T('mp.on') : T('mp.off'), d: tsec ? T('mp.min', { n: tsec / 60 }) : T('mp.notimer') })}${W.TH_ON && scen === '1939' ? ` · ${T('th.cfg.t')} ${c.th === false ? T('mp.off') : T('mp.on')}` : ''}</p>
+    <p class="muted" style="font-size:12px">${T('mp.cfg_sum', { a: Object.entries(cost).map(([k, v]) => T('mp.cost.' + k) + ' ' + v + '×').join(sep()), b: c.weAI ? T('mp.on') : T('mp.off'), c: c.llmWorld ? T('mp.on') : T('mp.off'), d: tsec ? T('mp.min', { n: tsec / 60 }) : T('mp.notimer') })}${W.TH_ON && scen === '1939' ? ` · ${T('th.cfg.t')} ${c.th === false ? T('mp.off') : T('mp.on')}` : ''}${typeof haSumTxt === 'function' ? haSumTxt(m) : ''}${host && window.TX_WEB && typeof haToggle === 'function' ? ` <button class="mini" id="haLobbyTog">${T(haCfgOn() ? 'ha.lobby_off' : 'ha.lobby_on')}</button>` : ''}</p>
+    ${typeof haLobbyNote === 'function' ? haLobbyNote(m) : ''}
     ${!mine ? `<p class="warn" style="font-size:12.5px">${T('mp.pick_seat')}</p>` : ''}
     <div class="foot"><button data-mpgo="games">${T('mp.back_games')}</button>${host ? `<button class="btn-primary" id="mpStart" ${mine ? '' : 'disabled'}>${T('mp.start')}</button>` : `<span class="muted">${T('mp.wait_host')}</span>`}</div></div>`, 'start', false);
   $$('#sheet [data-mpseat]').forEach(b => (b.onclick = () => mpTakeSeat(b.dataset.mpseat)));
   $$('#sheet [data-mpag]').forEach(sl => (sl.onchange = () => mpMeta({ agents: { [sl.dataset.mpag]: mpAg(sl.value) } })));
   const st = $('#mpStart'); if (st) st.onclick = mpStartGame;
   const inv = $('#mpInvite'); if (inv) inv.onclick = () => mpWebInvite(MPS.gid);
+  const hat = $('#haLobbyTog'); if (hat) hat.onclick = () => { haToggle(); mpRenderLobby(true); };
 }
 /* 网页版：邀请链接（网址后加 ?g=对局编号，点开直接进入这局） */
 function mpWebInvite(gid) {
@@ -17120,6 +17271,7 @@ function mpStartGame() {
   const m = MPS.meta; if (!MPS.host || !m) return;
   const seats = m.seats || {}, hostSeat = mpSeatOf(MPS.uid); if (!hostSeat) return;
   const c0 = m.cfg || mpCfg0(), c = { we: mpCostCfg(c0.we), weAI: !!c0.weAI, llmWorld: !!c0.llmWorld, turnSec: mpTurnSec(c0.turnSec), diff: ['easy', 'normal', 'hard'].includes(c0.diff) ? c0.diff : 'normal', th: c0.th !== false, thSec: TH_SECS.includes(+c0.thSec) ? +c0.thSec : 90, thPz: c0.thPz === 'all' ? 'all' : 'ev' };
+  if (window.TX_WEB) c.hostAI = c0.hostAI !== false; // 网页版：房主的 AI 统一推演（src/web/ui/04y_hostai.js）
   const ag0 = {}; for (const [C, a] of Object.entries(m.agents || {})) if (W.DEF[C]) ag0[C] = mpAg(a);
   const scen = mpScenOf(m.scen); if (scen !== '1939') c.th = false;
   const play = new Set(mpPlayable(c.th, scen).map(r => r.id)), ext = Object.entries(ag0).filter(([C, a]) => a === 'ext' && !seats[C] && play.has(C)).map(([C]) => C);
@@ -17256,6 +17408,7 @@ function mpShowMenu() {
       ${net && !MPS.seat ? `<button data-mpm="join">${T('mp.join_play')}</button>` : ''}
       ${net && MPS.seat ? `<button data-mpm="leave">${T('mp.leave_seat')}</button>` : ''}
       ${net && !window.TX_WEB ? `<button data-mpm="ext">${T('mp.ext_help')}</button>` : ''}
+      ${net && typeof haMenuHTML === 'function' ? haMenuHTML() : ''}
       <button data-mpm="settings">${T('u.settings')}</button>
       <button data-mpm="help">${T('mp.help')}</button>
       ${S && S.mp && S.mp.tut ? '' : `<button data-mpm="tut">🎓 ${T('tut.menu')}</button>`}
@@ -17267,6 +17420,7 @@ function mpShowMenu() {
     if (k === 'join') mpOfferSeat();
     if (k === 'leave') { closeModal(); mpLeaveSeat(); }
     if (k === 'ext') mpShowExtHelp();
+    if (k === 'hostai') { haToggle(); mpShowMenu(); }
     if (k === 'settings') openSettings();
     if (k === 'help') mpShowHelp();
     if (k === 'tut') { UI.afterClose = null; closeModal(); tutStart(); }
@@ -19202,9 +19356,9 @@ document.addEventListener('click', e => {
 });
 
 /* ===================== 网页版 · “AI 推演接口”的界面（src/web/ui，只在网页版构建里；与 src/ui 同一作用域） =====================
- * 设置面板里的一节：选服务商、填密钥与模型、获取模型列表、测试连接、转发代理（附搭建说明与代理代码）；开局画面上显示接入状态。
- * 保存后重新连接推演层（LLM.init），并把界面文字里的“Claude”换成所选服务商的名字（没有接入时换成“AI”）。
- * 服务商的调用见 src/web/02_ai.js（window.TXAI）。
+ * 设置面板里的一节：一键接入（OpenRouter 授权，不用复制密钥）、选服务商、填密钥与模型、获取模型列表、测试连接、转发代理（附搭建说明与代理代码）；
+ * 开局画面上显示接入状态。保存后重新连接推演层（LLM.init），并把界面文字里的“Claude”换成所选服务商的名字（没有接入时换成“AI”；
+ * 联网对局里用房主共享的 AI 时换成房主所用服务商的名字，见 04y_hostai.js）。服务商的调用见 src/web/02_ai.js（window.TXAI）。
  */
 const aiWeb = () => !!(window.TXAI && window.__txWeb); // 只在普通网站上（claude.ai 里用真正的 Claude）
 const AI_DOC = 'https://github.com/ZechenBian/zechenbian.github.io/blob/main/tianxia/README.md';
@@ -19221,7 +19375,7 @@ function aiBrand() {
     for (const k in NO) if (!(k in AI_ORIG)) AI_ORIG[k] = D[k] ? D[k].slice() : null;
     aiBrand.snap = true;
   }
-  const lab = window.TXAI.label() || { zh: 'AI', en: 'AI' }, han = c => !!c && /[\u{3000}-\u{303f}\u{3400}-\u{9fff}\u{ff00}-\u{ffef}]/u.test(c);
+  const lab = (typeof haLabel === 'function' && haLabel()) || window.TXAI.label() || { zh: 'AI', en: 'AI' }, han = c => !!c && /[\u{3000}-\u{303f}\u{3400}-\u{9fff}\u{ff00}-\u{ffef}]/u.test(c);
   // 中文简称（豆包、通义千问……）紧挨着汉字时去掉原来夹着“Claude”的空格：“由 Claude 实时推演”→“由豆包实时推演”，“● Claude 推演”→“● 豆包推演”
   const zh = s => (han(lab.zh) ? s.replace(/( ?)Claude( ?)/g, (m, a, b, at, all) => (a && !han(all[at - 1]) ? ' ' : '') + lab.zh + (b && !han(all[at + m.length]) ? ' ' : '')) : s.replace(/Claude/g, lab.zh));
   const sub = (s, i) => (typeof s !== 'string' || /claude\.ai/i.test(s) ? s : i === 0 ? zh(s) : s.replace(/Claude/g, lab.en));
@@ -19254,7 +19408,10 @@ function aiNote(P) {
 function aiBoxHTML() {
   const d = AID, P = d.p ? aiP(d.p) : null, u = (P && d.by[d.p]) || {};
   const opts = window.TXAI.PRE.map(p => `<option value="${p.id}" ${p.id === d.p ? 'selected' : ''}>${esc(aiNm(p, 'n'))}</option>`).join('');
-  let h = `<h4>${T('ai.h')}</h4><p class="muted aix">${T('ai.x')}</p>
+  const ou = d.by.openrouter || {}, oauthed = d.p === 'openrouter' && ou.oauth && ou.key;
+  let h = `<h4>${T('ai.h')}</h4>${typeof haSettingsNote === 'function' ? haSettingsNote() : ''}<p class="muted aix">${T('ai.x')}</p>
+    <div class="aioa"><b>${T('ai.oa.h')}</b><p class="muted aix">${T('ai.oa.x')}</p><div class="aibtns"><button class="btn-primary" id="aiOAuth" type="button">${T(oauthed ? 'ai.oa.again' : 'ai.oa.go')}</button>${oauthed ? `<span class="good aioa-ok">${T('ai.oa.done', { m: { raw: esc(ou.model || aiP('openrouter').model) } })}</span>` : ''}</div></div>
+    <p class="muted aix aior">${T('ai.oa.or')}</p>
     <label class="aif"><span>${T('ai.prov')}</span><select id="aiP"><option value="">${T('ai.none')}</option>${opts}</select></label>`;
   if (P) {
     const baseIn = `<label class="aif"><span>${T('ai.base')}</span><input id="aiBase" spellcheck="false" autocomplete="off" value="${esc(u.base || '')}" placeholder="${esc(P.base || T('ai.base_ph'))}"></label>`;
@@ -19288,6 +19445,7 @@ function aiSettingsBind() {
   const ts = $('#aiTest'); if (ts) ts.onclick = () => aiTestNow(AID, '');
   const sv = $('#aiSave'); if (sv) sv.onclick = aiSaveNow;
   const cl = $('#aiClear'); if (cl) cl.onclick = aiClearKey;
+  const oa = $('#aiOAuth'); if (oa) oa.onclick = () => aiOAuthGo('box');
   const ph = $('#aiProxyHow'); if (ph) ph.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); aiProxyHelp(); });
   box.querySelectorAll('a[target=_blank]').forEach(a => a.addEventListener('click', e => e.stopPropagation())); // 页面的全局点击处理会拦下链接
   if (aiFlash) { aiMsg(aiFlash.t, aiFlash.c); aiFlash = null; }
@@ -19389,12 +19547,269 @@ function aiStartHTML() {
   if (!aiWeb()) return '';
   const on = window.TXAI.ready(), k = window.TXAI.conf(), lab = window.TXAI.label();
   const txt = on ? T('ai.start_on', { x: { raw: `<b class="on">${esc(lab[EN() ? 'en' : 'zh'])}</b> · ${esc(k.model)}` } }) + (LLM.state === 'off' ? ' ' + T('ai.start_err') : '') : T('ai.start_off');
-  return `<div class="aistart" id="aiStart"><span>${txt}</span><button class="mini" id="aiStartGo">${T(on ? 'ai.change' : 'ai.connect')}</button></div>`;
+  return `<div class="aistart" id="aiStart"><span>${txt}</span>${on ? '' : `<button class="mini btn-primary" id="aiStartOA">${T('ai.oa.start')}</button>`}<button class="mini" id="aiStartGo">${T(on ? 'ai.change' : 'ai.connect')}</button></div><p class="aimsg" id="aiStartMsg" role="status"></p>`;
 }
 function aiStartBind() {
   const b = $('#aiStartGo'); if (!b) return;
   b.onclick = () => { UI.afterClose = () => mpShowStart(); openSettings(); const box = $('#aiBox'); if (box) box.scrollIntoView({ block: 'start' }); };
+  const oa = $('#aiStartOA'); if (oa) oa.onclick = () => aiOAuthGo('start');
 }
+
+/* ---------- 一键接入：OpenRouter 授权（不用复制密钥） ----------
+ * 先同步打开一个空白的弹出窗口（异步之后再开会被浏览器当作广告弹窗拦下），算好 PKCE 参数后把它导向 OpenRouter 的授权页；
+ * 弹出窗口被拦截时改为本页跳转（授权后 auth.html 再跳回来）。授权页回到本站的 auth.html 后，本页从 localStorage 的变化
+ * （或 auth.html 发来的消息、或下次打开页面时）得知，用授权码换取密钥（TXAI.oauthFinish）。 */
+let aiOAWhere = 'box';
+function aiOAMsg(html, cls) {
+  if ($('#aiBox')) { aiMsg(html, cls); return; }
+  const m = $('#aiStartMsg'); if (m) { m.className = 'aimsg' + (cls ? ' ' + cls : ''); m.innerHTML = html; return; }
+  toast(html.replace(/<[^>]+>/g, ''), 7000);
+}
+function aiOAuthGo(where) {
+  aiOAWhere = where || 'box';
+  if (where === 'box') aiRead();
+  let w = null; try { w = window.open('', 'txauth', 'popup,width=520,height=760'); } catch (e) { w = null; }
+  if (w) { try { w.document.title = 'OpenRouter'; w.document.body.style.cssText = 'font:15px system-ui,sans-serif;text-align:center;margin-top:30vh'; w.document.body.textContent = T('ai.oa.opening'); } catch (e) { } }
+  window.TXAI.oauthStart(w ? 'popup' : 'redirect').then(url => {
+    if (w && !w.closed) { w.location.href = url; aiOAMsg(T('ai.oa.wait'), ''); }
+    else location.href = url; // 弹出窗口被拦截：本页跳转，授权后回到这里
+  }).catch(e => { if (w) try { w.close(); } catch (x) { } aiOAMsg(T('ai.oa.fail', { x: { raw: aiErrMsg(e, window.TXAI.conf(null, 'openrouter')) } }), 'err'); });
+}
+let aiOABusy = false;
+async function aiOAuthDone() {
+  if (aiOABusy || !window.TXAI.oauthPending()) return; aiOABusy = true;
+  try {
+    let r = null;
+    try { r = await window.TXAI.oauthFinish(); }
+    catch (e) { aiOAMsg(T('ai.oa.fail', { x: { raw: aiErrMsg(e, window.TXAI.conf(null, 'openrouter')) } }), 'err'); return; }
+    if (!r) return;
+    if (UI.engine === 'rules') { UI.engine = 'auto'; savePrefs(); } // 接入 AI 就是要用它推演
+    await LLM.init(); aiRefresh(); if (S) renderTop();
+    const txt = T('ai.oa.ok', { m: { raw: esc(r.model) }, f: { raw: r.free ? T('ai.oa.free') : '' } });
+    if ($('#aiBox')) { AID = window.TXAI.cfg; aiPicked = null; aiRedraw(); }
+    else if ($('#aiStart') && typeof mpShowStart === 'function' && MPS.view === 'start') mpShowStart();
+    aiOAMsg(txt, 'ok');
+    if (typeof haOnLocalAI === 'function') haOnLocalAI(); // 房主：马上共享给本局所有玩家（开着共享时）
+  } finally { aiOABusy = false; }
+}
+if (aiWeb()) {
+  window.addEventListener('storage', e => { if (e.key === 'tianxia.oauth.code' && e.newValue) aiOAuthDone(); });
+  window.addEventListener('message', e => { if (e.origin === location.origin && e.data && e.data.type === 'tianxia-oauth') setTimeout(aiOAuthDone, 50); });
+  window.addEventListener('focus', () => { if (window.TXAI.oauthPending()) aiOAuthDone(); }); // 保险：回到本页时
+  if (window.TXAI.oauthPending()) setTimeout(aiOAuthDone, 600); // 本页跳转回来，或授权完成时本页正在刷新
+  window.TXAI.onChange(() => { LLM.init().then(() => { aiRefresh(); if (S) renderTop(); }); }); // 别的标签页改了 AI 设置
+}
+
+/* ===================== 网页版 · 房主的 AI 统一推演（src/web/ui，只在网页版构建里；与 src/ui、src/uimp 同一作用域） =====================
+ * 联网对局里，房主可以把自己接入的 AI 共享给本局所有玩家：其他玩家不用自己接入（也不用密钥），他们的一句话命令、危机应对、
+ * 与 AI 智能体的谈判都经房主的浏览器交给房主的 AI 推演，费用记在房主的 AI 账户上。各国反应与世界推演本来就由房主结算。
+ *   · 开关：建局时“把我的 AI 共享给本局所有玩家”（房主接入了 AI 时默认勾选），对局中房主在“⋯”菜单里随时开关。
+ *     设置记在对局设置里（大厅阶段 meta.cfg.hostAI，开局后 S.mp.cfg.hostAI）；房主当前能否提供写在元数据 meta.ai（{on, b: [中, 英], m: 模型}）。
+ *   · 请求：玩家写在自己的通道 txu/<uid>/<gid>/ai（{h: 房主, reqs: [{n, at, box}]}），提示词用 ECDH 加密给房主（附加数据 'ai|对局|玩家|编号'）；
+ *     房主解开后调用自己的 AI，把结果加密给这位玩家，写在 txs/<gid>/air/<uid>（'air|对局|玩家|编号'）。中继和其他玩家看不到内容。
+ *   · 房主的密钥从不离开房主的浏览器；玩家拿到的只是 AI 的回复。房主出错时只回错误代码，不回服务商的原话。
+ *   · 限额：每位玩家每回合最多 HA.cap 次、同时最多 2 次，提示词最大 200 KB，等待最长 5 分钟；只为已入座的玩家推演。
+ *   · 换房主：等待中的请求作废；新房主接入了 AI 就接着共享（开关跟着对局走），没有时大家改用各自的 AI 或本地规则。
+ */
+const HA_PAR = 2, HA_MAXQ = 200000, HA_WAIT = 300000;
+const HA_HARD = ['not_granted', 'quota', 'unavailable', 'bad_model', 'bad_url', 'proxy_refused', 'network', 'sampling_disabled']; // 房主这边的接入坏了：暂停共享
+const HA_PASS = ['rate_limited', 'timeout', 'upstream_error', 'invalid_json', 'refused', 'cancelled']; // 原样告诉玩家的错误
+const P_AIQ = (u, g) => 'txu/' + u + '/' + g + '/ai', P_AIR = (g, u) => 'txs/' + g + '/air/' + u;
+var HA = { cap: 30, key: '', mode: null, host: null, hp: null, gid: null, uid: null, reqs: [], pend: new Map(), unsubR: null, // 玩家这边
+  subs: {}, seen: new Set(), jobs: new Map(), queue: [], used: {}, out: {}, broken: false }; // 房主这边
+try { window.__HA = HA; } catch (e) { } // 测试钩子
+
+/* ---------- 共享的设置与状态 ---------- */
+function haCfgOn() { // 本局是否开了“房主的 AI 统一推演”
+  const m = MPS.meta; if (!m) return false;
+  if (mpLive() && S.mp.cfg && S.mp.cfg.hostAI !== undefined) return !!S.mp.cfg.hostAI;
+  return !!(m.cfg && m.cfg.hostAI);
+}
+const haLocalReady = () => !!(window.TXAI && window.TXAI.ready() && !HA.broken); // 本机（房主）自己接入的 AI 可用
+function haMetaAI(want) { // 写进元数据的共享状态
+  if (want && haLocalReady()) { const lab = window.TXAI.label() || { zh: 'AI', en: 'AI' }, k = window.TXAI.conf(); return { on: true, want: true, b: [String(lab.zh).slice(0, 24), String(lab.en).slice(0, 24)], m: String((k && k.model) || '').slice(0, 80), by: MPS.uid }; }
+  return { on: false, want: !!want, b: null, m: '', by: MPS.uid };
+}
+const haShared = () => { const m = MPS.meta; return !!(m && m.ai && m.ai.on && m.ai.by === m.host); }; // 房主正在共享
+function haName(m) { const a = (m || MPS.meta || {}).ai || {}, b = Array.isArray(a.b) ? a.b : null; const n = b ? String(b[EN() ? 1 : 0] || b[0] || 'AI') : 'AI'; return n + (a.m ? ' · ' + String(a.m) : ''); }
+function haLabel() { try { if (HA && HA.mode === 'remote') { const a = MPS.meta.ai, b = Array.isArray(a.b) ? a.b : ['AI', 'AI']; return { zh: String(b[0] || 'AI'), en: String(b[1] || b[0] || 'AI') }; } } catch (e) { } return null; } // 界面文字里代替“Claude”的名字
+
+/* ---------- 玩家这边：经房主推演 ---------- */
+function haWant() {
+  const m = MPS.meta;
+  return !!(window.TX_WEB && mpNet() && MPS.gid && m && m.status === 'play' && haShared() && m.host !== MPS.uid && !MPS.host && MPS.seat && !MPS.passive && MPX.mine() && mpHostPub());
+}
+function haSync() {
+  const want = haWant(), hp = want ? mpHostPub() : null;
+  const key = want ? [MPS.gid, MPS.meta.host, hp.x, hp.y, MPS.uid].join('|') : '';
+  if (key === HA.key) return;
+  const was = HA.mode === 'remote';
+  for (const n of [...HA.pend.keys()]) haDone(n, { code: 'shared_down' }, null, true); // 换了房主或不再共享：等待中的请求作废
+  if (was && HA.gid && HA.gid === MPS.gid && HA.uid === MPS.uid) { HA.reqs = []; haWriteReqs(); }
+  if (HA.unsubR) { try { HA.unsubR(); } catch (e) { } HA.unsubR = null; }
+  Object.assign(HA, { key, mode: want ? 'remote' : null, host: want ? MPS.meta.host : null, hp, gid: want ? MPS.gid : null, uid: MPS.uid, reqs: [] });
+  if (want) HA.unsubR = mpListen(() => MPS.db.doc(P_AIR(MPS.gid, MPS.uid)), haOnRes, 'air');
+  if (want || was) haReinit();
+}
+function haReinit() { LLM.init().then(() => { try { aiRefresh(); } catch (e) { } if (S) renderTop(); const box = $('#aiBox'); if (box && typeof aiRedraw === 'function') aiRedraw(); }); }
+async function haCall(input, o) {
+  o = o || {};
+  if (HA.mode !== 'remote' || !HA.hp) throw { code: 'shared_down' };
+  if (o.signal && o.signal.aborted) throw { code: 'cancelled' };
+  if (HA.pend.size >= 4) throw { code: 'rate_limited' };
+  let size = 0; try { size = JSON.stringify(input).length; } catch (e) { throw { code: 'invalid_request' }; }
+  if (size > HA_MAXQ) throw { code: 'prompt_too_large' };
+  const key = HA.key, gid = HA.gid, uid = MPS.uid, n = (Date.now().toString(36) + Math.random().toString(36).slice(2, 8)).slice(0, 20);
+  const tier = ['quick', 'default', 'complex'].includes(o.modelTier) ? o.modelTier : 'default';
+  const box = await MPX.seal(HA.hp, gid, 'ai|' + gid + '|' + uid + '|' + n, { input, tier, turn: S ? S.turn : -1, at: Date.now() });
+  if (HA.key !== key) throw { code: 'shared_down' };
+  return new Promise((res, rej) => {
+    HA.pend.set(n, { res, rej, t: setTimeout(() => haDone(n, { code: 'timeout' }), HA_WAIT) });
+    if (o.signal) o.signal.addEventListener('abort', () => haDone(n, { code: 'cancelled' }), { once: true });
+    HA.reqs.push({ n, at: Date.now(), box }); haWriteReqs();
+    mpEmit('tick', { ai: uid }); // 提醒房主马上读取
+  });
+}
+const haSample = Object.assign((input, o) => haCall(input, o).then(v => ({ text: JSON.stringify(v), truncated: false })), { json: (input, o) => haCall(input, o), limits: async () => ({ images: false, maxPromptBytes: HA_MAXQ }) });
+window.__txSampleHook = () => (HA.mode === 'remote' ? haSample : undefined); // 01_shim.js 的 claude.use('sample')
+function haWriteReqs() {
+  const gid = HA.gid || MPS.gid, uid = MPS.uid; if (!gid || !uid || !MPS.db) return;
+  mpWrite(P_AIQ(uid, gid), () => ({ v: 1, h: HA.gid === gid ? HA.host : null, at: Date.now(), reqs: HA.gid === gid ? HA.reqs.slice(-4) : [] }));
+}
+function haDone(n, err, val, quiet) {
+  const p = HA.pend.get(n); if (!p) return;
+  HA.pend.delete(n); clearTimeout(p.t);
+  const had = HA.reqs.length; HA.reqs = HA.reqs.filter(r => r.n !== n);
+  if (!quiet && HA.reqs.length !== had) haWriteReqs(); // 从通道里撤下（房主看到撤下的请求会停止推演）
+  if (err) p.rej(err); else p.res(val);
+}
+async function haOnRes(sn) {
+  const d = sn.exists ? sn.data() : null; if (!d || !Array.isArray(d.res) || HA.mode !== 'remote') return;
+  const gid = HA.gid, uid = MPS.uid, hp = HA.hp;
+  for (const r of d.res) {
+    if (!r || typeof r.n !== 'string' || !r.box || !HA.pend.has(r.n)) continue;
+    let v = null; try { v = await MPX.open(hp, gid, 'air|' + gid + '|' + uid + '|' + r.n, r.box); } catch (e) { continue; } // 不是当前房主加密给我的：不认
+    if (!v || !HA.pend.has(r.n)) continue;
+    if (v.ok && v.o && typeof v.o === 'object' && !Array.isArray(v.o)) haDone(r.n, null, v.o);
+    else haDone(r.n, { code: typeof v.code === 'string' && /^[a-z_]{2,30}$/.test(v.code) ? v.code : 'shared_fail' });
+  }
+}
+
+/* ---------- 房主这边：替玩家推演 ---------- */
+function haServe() { const m = MPS.meta; return !!(window.TX_WEB && mpNet() && MPS.host && !MPS.passive && MPS.gid && m && m.status === 'play' && m.host === MPS.uid && haShared()); }
+function haAdvertise() { // 房主：把能否共享写进元数据（只在变化时写）
+  if (!window.TX_WEB || !mpNet() || !MPS.host || MPS.passive || !MPS.meta || !MPS.gid || MPS.meta.host !== MPS.uid) { haHostSubs(); return; }
+  const ai = haMetaAI(haCfgOn()), cur = MPS.meta.ai || {};
+  if (!!cur.on === ai.on && !!cur.want === ai.want && cur.by === ai.by && JSON.stringify(cur.b || null) === JSON.stringify(ai.b) && (cur.m || '') === ai.m) { haHostSubs(); return; }
+  MPS.meta.ai = ai; mpMeta({ ai }); haHostSubs();
+}
+function haHostSubs() {
+  const want = new Set();
+  if (haServe()) for (const u of Object.values(MPS.meta.seats || {})) if (typeof u === 'string' && u && u !== MPS.uid) want.add(u);
+  for (const u of Object.keys(HA.subs)) if (!want.has(u)) { try { HA.subs[u](); } catch (e) { } delete HA.subs[u]; for (const j of HA.jobs.values()) if (j.uid === u) j.ctl.abort(); HA.queue = HA.queue.filter(q => q.uid !== u); }
+  for (const u of want) if (!HA.subs[u]) { let path; try { path = P_AIQ(u, MPS.gid); MPS.db.doc(path); } catch (e) { continue; } HA.subs[u] = mpListen(() => MPS.db.doc(path), sn => haOnReq(u, sn), 'aiq'); }
+}
+function haPoke(uid) { if (!HA.subs[uid] || !MPS.gid) return; const gid = MPS.gid; MPS.db.doc(P_AIQ(uid, gid)).get().then(sn => { if (gid === MPS.gid) haOnReq(uid, sn); }).catch(() => { }); } // 房间里的提醒：立即读取（db 推送慢时）
+function haOnReq(uid, sn) {
+  if (!haServe()) return;
+  const d = sn.exists ? sn.data() : null, list = d && d.h === MPS.uid && Array.isArray(d.reqs) ? d.reqs.slice(-4) : [];
+  const live = new Set(list.map(r => r && r.n));
+  for (const j of HA.jobs.values()) if (j.uid === uid && !live.has(j.n)) j.ctl.abort(); // 玩家撤下了请求（取消、超时）
+  HA.queue = HA.queue.filter(q => q.uid !== uid || live.has(q.n));
+  for (const r of list) {
+    if (!r || typeof r.n !== 'string' || !/^[a-z0-9]{6,24}$/.test(r.n) || !r.box) continue;
+    const k = MPS.gid + '|' + uid + '|' + r.n; if (HA.seen.has(k)) continue; HA.seen.add(k); if (HA.seen.size > 3000) HA.seen = new Set([...HA.seen].slice(-1500));
+    if (Math.abs(Date.now() - (+r.at || 0)) > HA_WAIT) continue; // 早已过期
+    HA.queue.push({ uid, n: r.n, box: r.box, gid: MPS.gid });
+  }
+  haPump();
+}
+function haPump() {
+  if (!haServe()) { HA.queue = []; return; }
+  for (let i = 0; i < HA.queue.length; i++) {
+    const q = HA.queue[i]; let busy = 0; for (const j of HA.jobs.values()) if (j.uid === q.uid) busy++;
+    if (busy >= HA_PAR) continue;
+    HA.queue.splice(i--, 1); haRun(q);
+  }
+}
+async function haRun(q) {
+  const ctl = new AbortController(), k = q.gid + '|' + q.uid + '|' + q.n;
+  HA.jobs.set(k, { uid: q.uid, n: q.n, ctl });
+  try {
+    const pk = mpPkOf(q.uid); if (!pk) return; // 没有这位玩家的公钥：无法加密回复
+    let req = null; try { req = await MPX.open(pk, q.gid, 'ai|' + q.gid + '|' + q.uid + '|' + q.n, q.box); } catch (e) { return; } // 不是这位玩家加密的：不理
+    if (!req || req.input == null || ctl.signal.aborted || Math.abs(Date.now() - (+req.at || 0)) > HA_WAIT) return; // 加密内容里的时间：重放的旧请求不理
+    let out;
+    const t = mpLive() ? S.turn : -1, u = HA.used[q.uid] && HA.used[q.uid].turn === t ? HA.used[q.uid] : (HA.used[q.uid] = { turn: t, n: 0 });
+    let size = 0; try { size = JSON.stringify(req.input).length; } catch (e) { size = Infinity; }
+    const smp = window.TXAI && haLocalReady() ? window.TXAI.sample() : null;
+    if (!mpSeatOf(q.uid)) out = { ok: 0, code: 'unavailable' }; // 只为入座的玩家推演
+    else if (u.n >= HA.cap) out = { ok: 0, code: 'shared_cap' };
+    else if (size > HA_MAXQ) out = { ok: 0, code: 'prompt_too_large' };
+    else if (!smp) out = { ok: 0, code: 'shared_down' };
+    else {
+      u.n++;
+      try { out = { ok: 1, o: await smp.json(req.input, { modelTier: ['quick', 'default', 'complex'].includes(req.tier) ? req.tier : 'default', signal: ctl.signal }) }; }
+      catch (e) {
+        const c = (e && e.code) || 'upstream_error';
+        if (c === 'cancelled' || ctl.signal.aborted) return;
+        if (HA_HARD.includes(c)) { HA.broken = true; setTimeout(haAdvertise, 0); } // 房主的接入坏了：暂停共享，玩家改用各自的 AI 或规则
+        out = { ok: 0, code: HA_PASS.includes(c) ? c : HA_HARD.includes(c) ? 'shared_down' : 'shared_fail' };
+      }
+    }
+    if (q.gid !== MPS.gid || !MPS.host) return;
+    const box = await MPX.seal(pk, q.gid, 'air|' + q.gid + '|' + q.uid + '|' + q.n, out);
+    HA.out[q.uid] = (HA.out[q.uid] || []).filter(r => Date.now() - r.at < HA_WAIT).concat([{ n: q.n, at: Date.now(), box }]).slice(-6);
+    mpWrite(P_AIR(q.gid, q.uid), () => ({ v: 1, at: Date.now(), res: (HA.out[q.uid] || []).slice(-6) }));
+  } catch (e) { console.warn('host ai', e); }
+  finally { HA.jobs.delete(k); haPump(); }
+}
+
+/* ---------- 与联网层的衔接（04m_net.js 里的钩子） ---------- */
+function haOnMeta() { haSync(); if (MPS.host) haAdvertise(); else haHostSubs(); }
+function haReset() { // 离开对局（mpUnsubAll）
+  for (const u of Object.keys(HA.subs)) { try { HA.subs[u](); } catch (e) { } }
+  HA.subs = {}; for (const j of HA.jobs.values()) j.ctl.abort(); HA.queue = []; HA.out = {};
+  const was = HA.mode === 'remote';
+  for (const n of [...HA.pend.keys()]) haDone(n, { code: 'shared_down' }, null, true);
+  if (HA.unsubR) { try { HA.unsubR(); } catch (e) { } HA.unsubR = null; }
+  Object.assign(HA, { key: '', mode: null, host: null, hp: null, gid: null, reqs: [] });
+  if (was) haReinit();
+}
+function haOnLocalAI() { HA.broken = false; if (MPS.host) haAdvertise(); } // 房主改了自己的 AI 设置（或授权成功）
+if (window.TX_WEB && window.TXAI) {
+  window.TXAI.onChange(() => { haOnLocalAI(); });
+  LLM.onState(() => { if (MPS.host && mpNet()) haAdvertise(); });
+}
+/* 房主在“⋯”菜单里开关 */
+function haToggle() {
+  if (!MPS.host || !mpNet() || !MPS.meta) return;
+  const on = !haCfgOn();
+  if (on && !(window.TXAI && window.TXAI.ready())) { toast(T('ha.need_ai'), 6000); return; }
+  HA.broken = false;
+  if (mpLive()) { S.mp.cfg = Object.assign({}, S.mp.cfg || {}, { hostAI: on }); mpPublishSoon(); }
+  MPS.meta.cfg = Object.assign({}, MPS.meta.cfg || {}, { hostAI: on }); mpMeta({ cfg: { hostAI: on } });
+  haAdvertise(); toast(T(on ? 'ha.on_t' : 'ha.off_t'), 5000);
+}
+
+/* ---------- 界面片段 ---------- */
+function haCfgHTML(c) { // 建局表单
+  if (!window.TX_WEB || MPS.view !== 'create') return '';
+  if (!(window.TXAI && window.TXAI.ready())) return `<p class="muted haopt" style="font-size:12px;margin:8px 0 0">${T('ha.cfg_noai')}</p>`;
+  return `<label class="chk haopt" style="margin-top:8px"><input type="checkbox" id="mpHostAI" ${c.hostAI !== false ? 'checked' : ''}> ${T('ha.cfg')}</label><p class="muted" style="font-size:11.5px;margin:2px 0 4px">${T('ha.cfg_x', { n: HA.cap })}</p>`;
+}
+function haSumTxt(m) { // 大厅里的设置摘要
+  if (!window.TX_WEB || !m) return '';
+  const a = m.ai || {}, want = (m.cfg && m.cfg.hostAI) || a.want;
+  return ' · ' + (a.on && a.by === m.host ? T('ha.sum_on', { x: { raw: esc(haName(m)) } }) : want ? T('ha.sum_wait') : T('ha.sum_off'));
+}
+function haLobbyNote(m) { return window.TX_WEB && m && m.host !== MPS.uid && m.ai && m.ai.on && m.ai.by === m.host ? `<div class="alert good hanote">${T('ha.lobby_you', { x: { raw: esc(haName(m)) } })}</div>` : ''; }
+function haMenuHTML() { // “⋯”菜单
+  if (!window.TX_WEB || !mpNet() || !MPS.meta) return '';
+  if (MPS.host) return `<button data-mpm="hostai">${T(haCfgOn() ? 'ha.menu_on' : 'ha.menu_off')}</button>`;
+  return haShared() ? `<p class="muted" style="font-size:12px;margin:2px 0 6px">${T('ha.menu_guest', { x: { raw: esc(haName()) } })}</p>` : '';
+}
+function haSettingsNote() { return HA && HA.mode === 'remote' ? `<p class="alert good hanote" style="font-size:12.5px">${T('ha.set_note', { x: { raw: esc(haName()) } })}</p>` : ''; }
 
 /* ===================== 界面层 v2 · 开局、设置、存档、启动 ===================== */
 function startHTML(sel) {
