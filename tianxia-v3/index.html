@@ -1158,6 +1158,8 @@ button.danger { border-color: var(--bad); color: var(--bad); }
 .deal .v3deal .mini { flex: none; color: var(--ink); }
 .ap .v3cap.plus { border-color: var(--good); }
 .ap .v3cap.plus > i { background: var(--good); }
+/* 接受的来函、命令里对方同意的协议：在队列里用虚线框，回合结束时和签署的协议一起结算 */
+.queue .qchip.v3pend { border-style: dashed; }
 
 </style>
 </head>
@@ -4931,6 +4933,27 @@ I18N.add({
   'dl.res_lost': ['{a}这一回合同时收到了{b}的协议，两者互相排斥，它选择了{b}；你的协议作废，所占的 {n}% 行动力下回合退还', '{a:C} also received an agreement from {b} this turn; the two could not both stand and it chose {b}. Yours is void, and its {n}% of capacity comes back next turn'],
   'dl.res_won': ['{b}这一回合也和{a}签了互相排斥的协议，{a}选择了你', '{b:C} also signed an incompatible agreement with {a} this turn; {a} chose you'],
   'dl.res_void': ['与{a}的协议没能生效：{x}；所占的 {n}% 行动力下回合退还', 'The agreement with {a} did not take effect: {x}. Its {n}% of capacity comes back next turn'],
+  'dl.res_lost0': ['{a}这一回合同时收到了{b}的协议，两者互相排斥，它选择了{b}；你这一份作废', '{a:C} also received an agreement from {b} this turn; the two could not both stand and it chose {b}. Yours is void'],
+  'dl.res_void0': ['与{a}的协议没能生效：{x}', 'The agreement with {a} did not take effect: {x}'],
+  'dl.res_coup': ['{a}发生政变，新政府倒向{b}，推翻了你本回合和它签的协议；所占的 {n}% 行动力下回合退还', 'A coup in {a} put in a government that leans to {b} and overturned the agreement you made with it this turn. Its {n}% of capacity comes back next turn'],
+  'dl.res_coup0': ['{a}发生政变，新政府倒向{b}，推翻了你本回合和它达成的协议', 'A coup in {a} put in a government that leans to {b} and overturned the agreement you made with it this turn'],
+  'dl.war_friend': ['{t}正和{p}的盟友{b}交战', '{t:C} is at war with {b}, which is allied with {p}'],
+  'dl.rival_bloc': ['{t}已是对立集团“{b}”的成员', '{t:C} already belongs to the rival bloc “{b}”'],
+  'dl.just_sided': ['{t}这一回合刚和{b}站到一边', '{t:C} sided with {b} this very turn'],
+  'dl.nobloc': ['集团已不存在，或你已不在其中', 'The bloc is gone, or you are no longer in it'],
+  'dl.inbloc': ['{t}已在这个集团里', '{t:C} is already in this bloc'],
+  'dl.bloc_join': ['{t}加入“{x}”', '{t:C} joins “{x}”'],
+  'dk.bloc': ['加入你的集团', 'join your bloc'],
+  'of.accepted_q': ['已接受{a:P}提议（{x}）：回合结束时和其他协议一起生效，之前可以在队列里撤回', 'Accepted {a:P} proposal ({x}): it takes effect with the other agreements at the end of the turn; you can withdraw it from the queue until then'],
+  'of.unaccepted': ['已撤回对{a:P}提议的接受，提议回到待处理', 'Took back your acceptance of {a:P} proposal; it is back among your pending items'],
+  'fx.treaty.q': ['{t}同意建立{k}（回合结束时生效）', '{t} agreed to a {k} (it takes effect at the end of the turn)'],
+  'fx.treaty.no3': ['和{t}的{k}没有成立：{x}', 'No {k} with {t}: {x}'],
+  'fx.vassal.q': ['{t}同意臣服（回合结束时生效）', '{t} agreed to submit (it takes effect at the end of the turn)'],
+  'fx.vassal.no3': ['{t}不能臣服于你：{x}', '{t} cannot become your vassal: {x}'],
+  'fx.treaty.human': ['和真人玩家{t}的协议请在外交页发提议', 'Agreements with the human player {t} go through a proposal on the Diplomacy tab'],
+  'st.bloc_made3': ['集团“{x}”成立，成员：{y}；同意加入、回合结束时生效：{w}', 'The bloc “{x}” is formed: {y}; agreed to join at the end of the turn: {w}'],
+  'st.bloc_made3p': ['集团“{x}”成立，成员：{y}；同意加入、回合结束时生效：{w}；拒绝加入：{z}', 'The bloc “{x}” is formed: {y}; agreed to join at the end of the turn: {w}; declined: {z}'],
+  'r.align3.no': ['{t}没有和{a}站到一起：{x}', '{t:C} would not side with {a}: {x}'],
 });
 
 /* 网页版（GitHub Pages 等普通网站）：联网经公共中继服务器；AI 推演由玩家自带密钥接入（src/web/02_ai.js）。覆盖联机版里与 claude.ai 有关的文字。
@@ -5310,6 +5333,19 @@ I18N.add({
   'v3.deal_unsign': ['撤回', 'Withdraw'],
   'v3.deal_back': ['已撤回与{a}的协议，行动力已退还', 'Agreement with {a} withdrawn; its capacity is back'],
   'v3.deal_wd': ['已撤回', 'Withdrawn'],
+  'v3.q.offer': ['已接受：{a:N}的提议（{x}）', 'Accepted: {a}’s proposal ({x})'],
+  'v3.q.cmd': ['待结算：与{a:N}（{x}）', 'At turn end: with {a} ({x})'],
+  'v3.q.pend_t': ['回合结束时和其他协议一起结算', 'Settled with the other agreements at the end of the turn'],
+  'v3.self_h': ['和你本回合的协议冲突', 'This clashes with your own agreement this turn'],
+  'v3.self.atk': ['「{x}」会在回合结束时执行，排在你和{a:N}的协议（{y}）生效之后——等于当场违背刚签的协议，信誉受损。', '“{x}” runs at the end of the turn, after your agreement with {a} ({y}) takes effect — breaking it on the spot and costing you credibility.'],
+  'v3.self.sanc': ['「{x}」会在回合结束时执行，排在你和{a:N}的协议（{y}）生效之后——取消制裁时承诺了 8 个回合内不再制裁，这会当场违约。', '“{x}” runs at the end of the turn, after your agreement with {a} ({y}) takes effect — you promised no new sanctions for 8 turns, so this breaks it on the spot.'],
+  'v3.self.arms': ['「{x}」会在回合结束时执行，排在你和{a:N}的军控协议生效之后——军费超过上限就是违约。', '“{x}” runs at the end of the turn, after your arms-control deal with {a} takes effect — going over the cap breaks it.'],
+  'v3.self.forces': ['「{x}」会在回合结束时执行，排在你和{a:N}的协议（{y}）生效之后——撤军时承诺了 8 个回合内不再进驻那里，这会当场违约。', '“{x}” runs at the end of the turn, after your agreement with {a} ({y}) takes effect — you promised to stay out of there for 8 turns, so this breaks it on the spot.'],
+  'v3.self.keep': ['仍然保留', 'Keep both'],
+  'v3.self.ok': ['知道了', 'Got it'],
+  'v3.self.drop_act': ['撤回这一项', 'Withdraw this item'],
+  'v3.self.drop_deal': ['撤回协议', 'Withdraw the agreement'],
+  'v3.self_toast': ['⚠ 「{x}」和你本回合与{a:N}的协议冲突', '⚠ “{x}” clashes with your agreement with {a} this turn'],
   'v3.deal_sign_t': ['签署后排进本回合队列，回合结束时生效；同一回合别的玩家也和它签了互相排斥的协议时，由它选一份，其余作废、下回合退还行动力', 'Signing puts it in this turn’s queue and it takes effect at the end of the turn; if another player signs an incompatible agreement with the same country this turn, it picks one, and the other is void with its capacity returned next turn'],
   'v2.treaties_x': ['退出某一项条约是一项行动（占一部分行动力，回合结束生效），只终止这一项；长期援助随时停止，不占行动力。', 'Leaving a treaty is an action (it takes some capacity and happens at the end of the turn) and ends only that one; standing aid can be stopped any time at no cost.'],
   // 输入框
@@ -5327,8 +5363,8 @@ I18N.add({
   'v3.h.eff': ['本国系数 ×{e}', 'Your country’s factor ×{e}'],
   'v2.h.pkg': ['多选与组合：', 'Packages: '],
   'v2.h.pkg_x': ['制裁、援助、军事施压、隐蔽行动、国内措施可以多选，金额自己填。一项就占那一项的比例；几项一起时，规则估计是各项之和打折（两项九折、三项八折、四项以上七折）；接了 AI 时由 AI 在“估计的 85% 到各项之和”之间判断。排进队列的组合整组撤回。', 'Sanctions, aid, military pressure, covert action and domestic measures take several ticks and typed amounts. One item takes its own share; for several, the rule estimate is their sum with a bundling discount (10% off for two, 20% for three, 30% for four or more); with AI connected the AI decides between 85% of the estimate and the full sum. A queued package is withdrawn as a whole.'],
-  'mp.h.flow_x': ['每回合一个季度。所有玩家同时规划（排队行动、调兵、谈判），点“就绪”；全员就绪或倒计时结束后，房主的浏览器统一结算，几秒内同步给所有人。回应提议、真人之间的协议、战时政策、实时命令等立即生效；和 AI 国家签的协议在结算时一起生效。', 'Each turn is a quarter. Everyone plans at once (queue actions, move forces, negotiate) and presses Ready; when all are ready or the timer runs out, the host\'s browser resolves the turn and syncs it to everyone within seconds. Answers to proposals, deals between humans, war policies and live orders apply immediately; agreements signed with AI countries take effect together at resolution.'],
-  'v2.h.deals_x': ['结盟、自贸、互不侵犯、驻军、军控、停火、议和、臣服、援助、出兵、扩军动员……都是协议条款，在外交页的对话里附上发出。和 AI 国家签一份占 6% 起：每多一项条款加 2%，含同盟或臣服再加 8%，我方出钱的援助按金额另算，都乘本国系数；真人之间不占行动力。和 AI 国家签的协议排进本回合队列，回合结束时统一结算，结算前可以撤回：同一回合几位玩家和同一个国家签了互相排斥的协议（同时和互为对手的两国结盟、建立伙伴关系或驻军，要它对其中一方参战，同时臣服两国，一方要它和另一方断盟），由它按自己的评估选一份，其余作废，所占行动力下回合退还；结算时已和局面冲突的条款（例如它已和你的交战国结盟）也作废。真人之间的协议双方同意后立即生效，同样复查这些冲突。只有对方本土全被占或攻势推进到 80% 以上才能要求臣服；中国和美国在四个年代都不会臣服、不会灭亡。首脑会晤也在对话里；条约可以逐项退出。', 'Alliances, free trade, non-aggression, basing, arms control, ceasefires, peace, vassalage, aid, troops, mobilization… are all agreement terms, attached in a conversation on the Diplomacy tab. Signing with an AI country takes 6% and up: 2% more per extra term, 8% more with an alliance or vassalage, plus a money share for any aid we pay, all times your country’s factor; deals between humans take no capacity. Agreements with AI countries go into this turn’s queue and are settled together at the end of the turn; you can withdraw them until then. If several players signed incompatible agreements with the same country in one turn (alliances, partnerships or basing with two rivals, asking it to fight one of them, vassalage to two lords, or one asking it to drop its alliance with the other), it picks one by its own judgement; the rest are void and their capacity comes back next turn. Terms that no longer fit the situation at settlement (say it has since allied with a country at war with you) are void too. Deals between humans take effect as soon as both sides agree, with the same checks. Vassalage can be demanded only once the other side’s homeland is fully occupied or an offensive against it passes 80%; China and the USA never submit or fall in any timeline. Summits are in the conversation too; treaties can be left one at a time.'],
+  'mp.h.flow_x': ['每回合一个季度。所有玩家同时规划（排队行动、调兵、谈判），点“就绪”；全员就绪或倒计时结束后，房主的浏览器统一结算，几秒内同步给所有人。和 AI 国家的协议——签署的、接受的来函、命令里对方同意的结盟和入集团——都在结算一开始一起生效；真人之间的协议、回应通牒和危机、战时政策、实时命令等立即生效。', 'Each turn is a quarter. Everyone plans at once (queue actions, move forces, negotiate) and presses Ready; when all are ready or the timer runs out, the host\'s browser resolves the turn and syncs it to everyone within seconds. Agreements with AI countries — signed ones, proposals you accepted, and alliances or bloc memberships an order obtained — all take effect together at the start of resolution; deals between humans, answers to ultimatums and crises, war policies and live orders apply immediately.'],
+  'v2.h.deals_x': ['结盟、自贸、互不侵犯、驻军、军控、停火、议和、臣服、援助、出兵、扩军动员……都是协议条款，在外交页的对话里附上发出。和 AI 国家签一份占 6% 起：每多一项条款加 2%，含同盟或臣服再加 8%，我方出钱的援助按金额另算，都乘本国系数；真人之间不占行动力。和 AI 国家的协议都在回合结束时统一结算，结算前可以撤回：签署的协议、接受的来函（不占行动力）、命令里对方同意的结盟和臣服、建集团时同意加入的国家，都排在队列里。同一回合几位玩家和同一个国家达成了互相排斥的协议（同时和互为对手的两国结盟、建立伙伴关系、驻军或拉进集团，要它对其中一方参战，同时臣服两国，一方要它和另一方断盟、另一方要它站到自己这边），由它按自己的评估选一份（它自己发来的提议优先），其余作废，所占行动力下回合退还。结算时已和局面冲突的条款也作废：它已和你的交战国站在一起、它正和你的盟友交战、它已在对立的集团里。同一回合对手在它那里政变成功，会推翻刚签的协议（同样退还）。真人之间的协议双方同意后立即生效，同样复查。本回合自己签的协议和自己排的行动冲突时（比如议和之后又打击对方），界面会提示。只有对方本土全被占或攻势推进到 80% 以上才能要求臣服；中国和美国在四个年代都不会臣服、不会灭亡。首脑会晤也在对话里；条约可以逐项退出。', 'Alliances, free trade, non-aggression, basing, arms control, ceasefires, peace, vassalage, aid, troops, mobilization… are all agreement terms, attached in a conversation on the Diplomacy tab. Signing with an AI country takes 6% and up: 2% more per extra term, 8% more with an alliance or vassalage, plus a money share for any aid we pay, all times your country’s factor; deals between humans take no capacity. Every agreement with an AI country is settled at the end of the turn and can be withdrawn until then: signed agreements, proposals you accepted (they take no capacity), alliances and vassalage an order obtained, and countries that agreed to join a bloc you formed all wait in the queue. If several players reached incompatible agreements with the same country in one turn (allying, partnering, basing or bloc membership with two rivals, asking it to fight one of them, vassalage to two lords, or one asking it to drop its alliance with the other while the other asks it to side with them), it picks one by its own judgement (its own proposals first); the rest are void and their capacity comes back next turn. Terms that no longer fit the situation at settlement are void too: it already sides with a country at war with you, it is at war with one of your allies, or it is in a rival bloc. A rival’s successful coup there in the same turn overturns the fresh agreement (capacity returned). Deals between humans take effect as soon as both agree, with the same checks. When an agreement you sign clashes with an action you queued this turn (say a strike after making peace), the game warns you. Vassalage can be demanded only once the other side’s homeland is fully occupied or an offensive against it passes 80%; China and the USA never submit or fall in any timeline. Summits are in the conversation too; treaties can be left one at a time.'],
   'v2.h.cmd_x': ['发送前选一种：执行（一句话命令）、方针（本回合打算，只交给推演）、公开（勾“正式表态”就成了谴责、警告或核威慑）、对某国（AI 国家是谈判，真人是私信）。执行的命令能对应标准操作就照按钮的规则办，对应不上才交给 AI 换算，由 AI 定占多少行动力（5%–40%，乘本国系数）。', 'Choose before sending: Do (a one-line order), Strategy (your intent, for the simulation only), Public (tick “formal statement” to condemn, warn or threaten) or To a country (talks with an AI country, a private message to a human). Orders that match a standard action follow the button rules; only the rest go to the AI, which decides their share of capacity (5–40%, times your country’s factor).'],
   'v2.h.mob_x': ['动员等级 0–5（3–5 是总体战），每提高一级占 6%（乘本国系数）、立即生效。征兵人数、订单金额自己填，按金额占少量行动力；战时政策每行旁边是一次性加码（紧急征召、突击生产、紧急征发、洗劫、强征）。', 'Mobilization levels 0–5 (3–5 are total war); each level up takes 6% (times your country’s factor) and is immediate. Type the number of conscripts and the size of orders, which take a little capacity by their size; each war-economy row has a one-off surge beside it (emergency draft, crash production, emergency requisition, looting, press-gangs).'],
 });
@@ -6558,7 +6594,7 @@ const ACTIONS = [
  { id: 'alliance', cat: 'dip', ap: 2, cost: () => 0,
    check: (S, me, t) => guard(S, me, t) || (isAlly(S, me, t) ? M('c.isally', { t }) : atWar(S, me, t) ? M('c.atwar', { t }) : null),
    preview: (S, me, t) => chanceMsg(evalDeal(S, me, t, { type: 'alliance' }).score),
-   exec(S, me, t, p, C) { const d = decide(S, me, t, { type: 'alliance' }); if (d.ok) { addTreaty(S, 'alliance', me, t); addRel(S, me, t, 10); if (me === S.player) addCommit(S, 'defend', t, null, 'alliance'); C.out(M('r.alliance.ok', { a: me, t }), 'good', [t], { notable: true }); pushEv(S, { type: 'alliance', actor: me, target: t, sev: -15, third: 22 }); } else C.out(M('r.alliance.no', { a: me, t, x: d.why[0] }), 'bad', [t]); } },
+   exec(S, me, t, p, C) { const w3 = alignBlock3(S, me, t); if (w3) { C.out(M('r.align3.no', { a: me, t, x: w3 }), 'bad', [t]); return; } const d = decide(S, me, t, { type: 'alliance' }); if (d.ok) { addTreaty(S, 'alliance', me, t); addRel(S, me, t, 10); if (me === S.player) addCommit(S, 'defend', t, null, 'alliance'); C.out(M('r.alliance.ok', { a: me, t }), 'good', [t], { notable: true }); pushEv(S, { type: 'alliance', actor: me, target: t, sev: -15, third: 22 }); } else C.out(M('r.alliance.no', { a: me, t, x: d.why[0] }), 'bad', [t]); } },
  { id: 'nap', cat: 'dip', ap: 1, cost: () => 0,
    check: (S, me, t) => guard(S, me, t) || (hasTreaty(S, me, t, 'nap') ? M('c.hastreaty', { k: M('tr.nap') }) : atWar(S, me, t) ? M('c.atwar_peace', { t }) : null),
    preview: (S, me, t) => chanceMsg(evalDeal(S, me, t, { type: 'nap' }).score),
@@ -6566,7 +6602,7 @@ const ACTIONS = [
  { id: 'access', cat: 'dip', ap: 1, cost: () => 0,
    check: (S, me, t) => guard(S, me, t) || (hasTreaty(S, me, t, 'access') || canStation(S, me, t) ? M('c.hasaccess', { t }) : atWar(S, me, t) ? M('c.atwar', { t }) : null),
    preview: (S, me, t) => chanceMsg(evalDeal(S, me, t, { type: 'access' }).score),
-   exec(S, me, t, p, C) { const d = decide(S, me, t, { type: 'access' }); if (d.ok) { addTreaty(S, 'access', me, t); C.out(M('r.access.ok', { a: me, t }), 'good', [t]); pushEv(S, { type: 'access', actor: me, target: t, sev: -5, third: 12 }); } else { addRel(S, me, t, -3); C.out(M('r.access.no', { a: me, t }), 'bad', [t]); } } },
+   exec(S, me, t, p, C) { const w3 = alignBlock3(S, me, t); if (w3) { C.out(M('r.align3.no', { a: me, t, x: w3 }), 'bad', [t]); return; } const d = decide(S, me, t, { type: 'access' }); if (d.ok) { addTreaty(S, 'access', me, t); C.out(M('r.access.ok', { a: me, t }), 'good', [t]); pushEv(S, { type: 'access', actor: me, target: t, sev: -5, third: 12 }); } else { addRel(S, me, t, -3); C.out(M('r.access.no', { a: me, t }), 'bad', [t]); } } },
  { id: 'armsctl', cat: 'dip', ap: 1, cost: () => 0,
    check: (S, me, t) => guard(S, me, t) || (hasTreaty(S, me, t, 'armsctl') ? M('c.hastreaty', { k: M('tr.armsctl') }) : atWar(S, me, t) ? M('c.atwar', { t }) : null),
    preview: (S, me, t) => M('pv.armsctl', { x: chanceMsg(evalDeal(S, me, t, { type: 'armsctl' }).score), n: +(S.actors[me].milPct + 1).toFixed(1) }),
@@ -6686,7 +6722,7 @@ const ACTIONS = [
    check: (S, me, t) => guard(S, me, t) || (t === S.player || isHuman(S, t) ? M('c.self') : infl(S, me, t) < 30 ? M('c.infl', { n: 30 }) : null),
    preview: (S, me, t) => M('pv.coup', { s: { pct: coupChance(S, me, t) } }),
    exec(S, me, t, p, C) { const pc = coupChance(S, me, t), x = S.actors[t]; const prevLord = x.overlord;
-     if (chance(S, pc)) { makeVassal(S, t, me); x.stab = clamp(x.stab - 15, 0, 100); setRel(S, me, t, 60); addInfl(S, me, t, 15); C.out(M('r.coup.ok', { a: me, t }), 'good', [t, prevLord].filter(Boolean), { notable: true, big: true }); pushEv(S, { type: 'coup', actor: me, target: t, sev: 55, third: 20, big: true }); if (prevLord === S.player) { C.R.toYou.push({ actor: me, msg: M('ai.coup_vassal', { a: me, t }), tone: 'bad' }); grantCB(S, me, 'covert', 10); } }
+     if (chance(S, pc)) { makeVassal(S, t, me); if (RULES3) coupUndo3(S, me, t, C.R); x.stab = clamp(x.stab - 15, 0, 100); setRel(S, me, t, 60); addInfl(S, me, t, 15); C.out(M('r.coup.ok', { a: me, t }), 'good', [t, prevLord].filter(Boolean), { notable: true, big: true }); pushEv(S, { type: 'coup', actor: me, target: t, sev: 55, third: 20, big: true }); if (prevLord === S.player) { C.R.toYou.push({ actor: me, msg: M('ai.coup_vassal', { a: me, t }), tone: 'bad' }); grantCB(S, me, 'covert', 10); } }
      else { x.stab = clamp(x.stab + 5, 0, 100); addInfl(S, me, t, -15); covertOutcome(S, C, me, t, 'coup', 0.8, -40, M('r.coup.fail', { a: me, t }), 'bad'); } } },
  { id: 'sabotage', cat: 'covert', ap: 1, hostile: true, covert: true, cost: (S, me) => pctG(S, me, 0.01),
    check: (S, me, t) => guard(S, me, t), preview: () => M('pv.sabotage'),
@@ -7021,9 +7057,9 @@ function candP(S, X, x, add, act) {
     // 友好提议（同类提议有冷却）
     const fp = friendB(S, X, P);
     const ofOk = type => (x.flags['of_' + type] || 0) <= S.turn && !S.inbox.some(o => o.from === X && o.deal.type === type);
-    if (!warP && rP > 0.35 && !isAlly(S, X, P) && commonEnemy(S, X, P) > 0.1 && ofOk('alliance')) add({ kind: 'offer', target: P, deal: { type: 'alliance' }, u: 0.05 + rP * 0.4 + commonEnemy(S, X, P) * 0.5 + fp });
+    if (!warP && rP > 0.35 && !isAlly(S, X, P) && commonEnemy(S, X, P) > 0.1 && ofOk('alliance') && !alignBlock3(S, X, P)) add({ kind: 'offer', target: P, deal: { type: 'alliance' }, u: 0.05 + rP * 0.4 + commonEnemy(S, X, P) * 0.5 + fp });
     if (!warP && rP > 0.25 && !hasTreaty(S, X, P, 'trade') && ofOk('trade')) add({ kind: 'offer', target: P, deal: { type: 'trade' }, u: -0.1 + rP * 0.3 + dep * 0.8 + fp });
-    if (!warP && th > 0.6 && powerRatio(S, P, X) > 4 && near(X, P, 2000) && x.hawk < 0.5 && !x.overlord && x.stab < 45 && rP > -0.2 && !GRD(S, X) && ofOk('protectorate')) add({ kind: 'offer', target: P, deal: { type: 'protectorate' }, u: Math.min(0.5, 0.05 + (Math.min(powerRatio(S, P, X), 20) - 4) * 0.02 + (0.5 - x.hawk) * 0.3 - (x.stab - 30) / 100) });
+    if (!warP && th > 0.6 && powerRatio(S, P, X) > 4 && near(X, P, 2000) && x.hawk < 0.5 && !x.overlord && x.stab < 45 && rP > -0.2 && !GRD(S, X) && ofOk('protectorate') && !alignBlock3(S, X, P)) add({ kind: 'offer', target: P, deal: { type: 'protectorate' }, u: Math.min(0.5, 0.05 + (Math.min(powerRatio(S, P, X), 20) - 4) * 0.02 + (0.5 - x.hawk) * 0.3 - (x.stab - 30) / 100) });
     if (!warP && th > 0.5 && rP > -0.6 && x.hawk < 0.55 && !hasTreaty(S, X, P, 'nap') && ofOk('nap')) add({ kind: 'offer', target: P, deal: { type: 'nap' }, u: th * 0.4 + (0.5 - x.hawk) * 0.3 - 0.05 });
     if (!warP && th > 0.55 && x.econ > 0.45 && x.hawk < 0.5 && !hasTreaty(S, X, P, 'armsctl') && ofOk('armsctl')) add({ kind: 'offer', target: P, deal: { type: 'armsctl' }, u: th * 0.35 + x.econ * 0.15 - 0.05 });
   }
@@ -7527,11 +7563,11 @@ function applyEffect(S, e, R, depth = 0) {
     case 'tech': if (ok(T)) { S.actors[T].tech = clamp(S.actors[T].tech + e.delta, 0, 100); return M('fx.tech', { t: T, d: e.delta }); } break;
     case 'treasury': S.actors[P].treasury += e.delta; return M('fx.treasury', { m: $m(e.delta) });
     case 'sanction': if (ok(T) && T !== P) { const kind = ['econ', 'tech', 'tariff', 'fin', 'energy'].includes(e.kind) ? e.kind : 'econ'; addSanction(S, P, T, kind, e.level || 1); addRel(S, P, T, -8 * (e.level || 1)); afterPlayerAction(S, 'sanction', T, { level: e.level }, R); return M('fx.sanction', { t: T, n: e.level || 1 }); } break;
-    case 'treaty': if (ok(T) && T !== P && TREATY_TYPES.includes(e.treaty)) { const d = decide(S, P, T, { type: e.treaty }); if (d.ok) { addTreaty(S, e.treaty, P, T); if (e.treaty === 'alliance') addCommit(S, 'defend', T, null, 'alliance'); if (e.treaty === 'nap') addCommit(S, 'no_attack', T, null, 'nap'); return M('fx.treaty.ok', { t: T, k: M('tr.' + e.treaty) }); } return M('fx.treaty.no', { t: T, k: M('tr.' + e.treaty) }); } break;
+    case 'treaty': if (ok(T) && T !== P && TREATY_TYPES.includes(e.treaty)) { if (RULES3 && isHuman(S, T)) return M('fx.treaty.human', { t: T }); const d = decide(S, P, T, { type: e.treaty }); if (d.ok) { if (RULES3) { if (!S._res3) { pendCmd3(S, T, [{ type: e.treaty }]); return M('fx.treaty.q', { t: T, k: M('tr.' + e.treaty) }); } const w = ['alliance', 'partner', 'access'].includes(e.treaty) ? alignBlock3(S, P, T) : null; if (w) return M('fx.treaty.no3', { t: T, k: M('tr.' + e.treaty), x: w }); } addTreaty(S, e.treaty, P, T); if (e.treaty === 'alliance') addCommit(S, 'defend', T, null, 'alliance'); if (e.treaty === 'nap') addCommit(S, 'no_attack', T, null, 'nap'); return M('fx.treaty.ok', { t: T, k: M('tr.' + e.treaty) }); } return M('fx.treaty.no', { t: T, k: M('tr.' + e.treaty) }); } break;
     case 'untreaty': if (ok(T)) { removeTreaty(S, e.treaty || 'alliance', P, T); S.commits = S.commits.filter(c => !(c.with === T && c.type === 'defend')); return M('fx.untreaty', { t: T, k: M('tr.' + (e.treaty || 'alliance')) }); } break;
     case 'war': if (ok(T) && T !== P) { if (S.actors[T].ctrl === P) break; const r = createOp(S, P, T, e.commit || 0.45, false); if (r.op) { r.op.legit = !!legitCB(S, boss(S, T)); return M('fx.war', { t: T, n: Math.max(0, r.op.ready - S.turn) }); } return M('fx.noroute', { t: T }); } break;
     case 'declare': if (ok(T) && T !== P) { const D = boss(S, T); if (!atWar(S, P, D)) { declareWar(S, P, D); logEvent(S, 'war', M('m.war', { a: P, b: D }), 'warn', [P, D]); pushEv(S, { type: 'declare', actor: P, target: D, sev: 40, legit: true }); } return M('fx.declare', { t: D }); } break;
-    case 'vassal': if (ok(T) && T !== P && indep(S, T)) { const d = decide(S, P, T, { type: 'vassal' }, 0.2); if (d.ok) { makeVassal(S, T, P); return M('fx.vassal.ok', { t: T }); } return M('fx.vassal.no', { t: T }); } break;
+    case 'vassal': if (ok(T) && T !== P && indep(S, T)) { if (RULES3 && isHuman(S, T)) return M('fx.treaty.human', { t: T }); const d = decide(S, P, T, { type: 'vassal' }, 0.2); if (d.ok) { if (RULES3) { const w = dealClash3(S, P, T, { type: 'vassal' }); if (w) return M('fx.vassal.no3', { t: T, x: w }); if (!S._res3) { pendCmd3(S, T, [{ type: 'vassal' }]); return M('fx.vassal.q', { t: T }); } } makeVassal(S, T, P); return M('fx.vassal.ok', { t: T }); } return M('fx.vassal.no', { t: T }); } break;
     case 'fac': { const d = {}; for (const k of ['mil', 'biz', 'pub']) if (e[k]) d[k] = e[k]; facAdd(S, d); return M('fx.fac', { x: { list: Object.entries(d).map(([k, v]) => M('fx.fac1', { k: M('fac.' + k), d: v })) } }); }
     case 'threat': if (ok(T) && T !== P) { S.threat[T] = clamp((S.threat[T] || 0) + e.delta, 0, 100); return M('fx.threat', { t: T, d: e.delta }); } break;
     case 'tension': if (ok(T) && T !== P) { const k = rk(P, T); S.tension2[k] = clamp((S.tension2[k] || 0) + e.delta, 0, 100); return M('fx.tension', { t: T, d: e.delta }); } break;
@@ -7615,14 +7651,14 @@ function aiDo(S, X, act, R) {
       case 'mobilize': { const L = clamp(act.level | 0 || 1, 0, 3); if (L > x.mob) { x.mob = L; return M('ra.mobilize', { k: M('mob.' + L) }); } break; }
       case 'arms_aid': case 'aid': if (t && t !== X && indep(S, t)) { const c = x.gdp * clamp(+act.pct || 0.1, 0.02, 0.5) / 100; const y = S.actors[t]; if (act.type === 'arms_aid') armsTransfer(S, X, t, c); else { y.treasury += c; y.mods.push({ g: clamp(c / y.gdp * 40, 0.05, 1), turns: 3, src: 'aid' }); } addRel(S, X, t, 5); addInfl(S, X, t, 3); x.treasury -= c; return M(act.type === 'arms_aid' ? 'ra.armsaid' : 'ra.aid', { t, m: $m(c) }); } break;
       case 'improve': if (t) { addRel(S, X, t, clamp(+act.delta || 8, 2, 15)); return M('ra.improve', { t }); } break;
-      case 'alliance': if (t && t !== X && indep(S, t) && !isAlly(S, X, t) && !atWar(S, X, t)) { if (isHuman(S, t)) { withSeat(S, t, () => pushOffer(S, mkOffer(S, X, { type: 'alliance' }, act.text || M('of.alliance', { a: X })))); return M('ra.offer_alliance'); } const d = decide(S, X, t, { type: 'alliance' }); if (d.ok) { addTreaty(S, 'alliance', X, t); addRel(S, X, t, 8); return M('ra.allied', { t }); } return M('ra.ally_try', { t }); } break;
-      case 'partner': if (t && t !== X && indep(S, t) && !isAlly(S, X, t)) { addTreaty(S, 'partner', X, t); addRel(S, X, t, 6); return M('ra.partner', { t }); } break;
+      case 'alliance': if (t && t !== X && indep(S, t) && !isAlly(S, X, t) && !atWar(S, X, t) && !alignBlock3(S, X, t)) { if (isHuman(S, t)) { withSeat(S, t, () => pushOffer(S, mkOffer(S, X, { type: 'alliance' }, act.text || M('of.alliance', { a: X })))); return M('ra.offer_alliance'); } const d = decide(S, X, t, { type: 'alliance' }); if (d.ok) { addTreaty(S, 'alliance', X, t); addRel(S, X, t, 8); return M('ra.allied', { t }); } return M('ra.ally_try', { t }); } break;
+      case 'partner': if (t && t !== X && indep(S, t) && !isAlly(S, X, t) && !alignBlock3(S, X, t)) { addTreaty(S, 'partner', X, t); addRel(S, X, t, 6); return M('ra.partner', { t }); } break;
       case 'trade': if (t && t !== X && indep(S, t) && !hasTreaty(S, X, t, 'trade')) { if (isHuman(S, t)) { withSeat(S, t, () => pushOffer(S, mkOffer(S, X, { type: 'trade' }, act.text || M('of.trade', { a: X })))); return M('ra.offer_trade'); } addTreaty(S, 'trade', X, t); return M('ra.trade', { t }); } break;
       case 'cancel_treaty': if (t) { const had = treatiesOf(S, X, t); if (had.length) { S.treaties = S.treaties.filter(h => !had.includes(h)); resetExposure(S); addRel(S, X, t, -15); return M('ra.cancel', { t, x: { list: had.map(h => M('tr.' + h.type)) } }); } } break;
       case 'exercise': if (t) { addRel(S, X, t, -5); if (isHuman(S, t)) S.actors[t].fear[X] = S.turn + 2; return M('ra.exercise', { t }); } break;
       case 'cyber': if (t && t !== X) { const y = S.actors[t]; y.gdp *= 1 - between(S, 0.4, 1.0) / 100; y.stab = clamp(y.stab - 1, 0, 100); addRel(S, X, t, -10); return M('ra.cyber', { t }); } break;
       case 'strike': if (t && t !== X && indep(S, t) && canStrike(S, X, t)) { const P_ = strikePower(S, X, t), D_ = airEff(S, t) * share(S, t, t) * 0.5 * DEF[t].terr, fr = clamp(0.04 + 0.12 * P_ / (P_ + D_ + 1), 0.03, 0.16); const y = S.actors[t]; y.land *= 1 - fr * 0.7; y.air *= 1 - fr; y.navy *= 1 - fr * 0.6; y.gdp *= 0.995; addRel(S, X, t, -30); S.tension = clamp(S.tension + 4, 0, 100); if (isHuman(S, t)) withSeat(S, t, () => grantCB(S, X, 'attacked', 12)); return M('ra.strike', { t, s: { pct: fr } }); } break;
-      case 'join_war': { const en = act.enemy && S.actors[act.enemy] ? boss(S, act.enemy) : (t || null); if (!en || en === X || atWar(S, X, en) || !indep(S, en)) break; declareWar(S, X, en); x.mob = Math.max(x.mob, 1); logEvent(S, 'war', M('m.war', { a: X, b: en }), 'warn', [X, en]); if (isHuman(S, en)) withSeat(S, en, () => grantCB(S, X, 'attacked', 20)); let msg = M('ra.join', { t: en }); if (act.offensive) { let best = null, bs = 0, bFrom = null; for (const T of realm(S, en)) { if (S.actors[T].ctrl === T && T !== en) continue; if (!aiReach(S, X, T)) continue; const so = aiStaging(S, X, T); if (!so) continue; const est = estimateOp(S, X, T, 0.4, so.kind) * aiReach(S, X, T); if (est > bs) { bs = est; best = T; bFrom = so.L; } } if (best && bs > 1.1) { const r = createOp(S, X, best, 0.4, false, bFrom); if (r.op) msg = M('ra.join_off', { t: en, b: best }); } } const d0 = S.fronts.find(f => f.att === en)?.target; if (d0) { const dest = canStation(S, X, d0) ? d0 : IDS.find(L => canStation(S, X, L) && near(L, d0, 450)); if (dest && freeAt(S, X, X) > 0.3) orderMove(S, X, X, dest, isGreat(S, X) ? 0.15 : 0.1); } return msg; }
+      case 'join_war': { const en = act.enemy && S.actors[act.enemy] ? boss(S, act.enemy) : (t || null); if (!en || en === X || atWar(S, X, en) || !indep(S, en) || (RULES3 && aligned(S, X, en))) break; declareWar(S, X, en); x.mob = Math.max(x.mob, 1); logEvent(S, 'war', M('m.war', { a: X, b: en }), 'warn', [X, en]); if (isHuman(S, en)) withSeat(S, en, () => grantCB(S, X, 'attacked', 20)); let msg = M('ra.join', { t: en }); if (act.offensive) { let best = null, bs = 0, bFrom = null; for (const T of realm(S, en)) { if (S.actors[T].ctrl === T && T !== en) continue; if (!aiReach(S, X, T)) continue; const so = aiStaging(S, X, T); if (!so) continue; const est = estimateOp(S, X, T, 0.4, so.kind) * aiReach(S, X, T); if (est > bs) { bs = est; best = T; bFrom = so.L; } } if (best && bs > 1.1) { const r = createOp(S, X, best, 0.4, false, bFrom); if (r.op) msg = M('ra.join_off', { t: en, b: best }); } } const d0 = S.fronts.find(f => f.att === en)?.target; if (d0) { const dest = canStation(S, X, d0) ? d0 : IDS.find(L => canStation(S, X, L) && near(L, d0, 450)); if (dest && freeAt(S, X, X) > 0.3) orderMove(S, X, X, dest, isGreat(S, X) ? 0.15 : 0.1); } return msg; }
       case 'declare_war': case 'invade': if (t && t !== X && indep(S, X)) { if (S.actors[t].ctrl === X) break; const r = createOp(S, X, t, clamp(+act.commit || 0.45, 0.2, 0.8), false); if (r.op) { r.op.legit = true; return M('ra.invade', { t }); } if (!atWar(S, X, boss(S, t))) { declareWar(S, X, boss(S, t)); if (isHuman(S, boss(S, t))) withSeat(S, boss(S, t), () => grantCB(S, X, 'attacked', 20)); return M('ra.declare', { t: boss(S, t) }); } } break;
       case 'deploy': { const to = act.to || t; if (to && S.actors[to] && canStation(S, X, to)) { const mv = orderMove(S, X, X, to, clamp(+act.share || 0.1, 0.03, 0.3)); if (mv > 0) return M('ra.deploy', { l: to }); } break; }
       case 'warn': if (t && act.about && S.actors[act.about]) { if (!S.warnings.some(w => w.by === X && w.to === t && w.about === act.about)) S.warnings.push({ by: X, to: t, about: act.about, conseq: 'war', until: S.turn + 8, since: S.turn }); return M('ra.warn', { t, b: act.about }); } break;
@@ -8156,13 +8192,14 @@ function actionStatus(S, id, target, params = {}, o) { // o.noAP：行动组合�
   if (id === 'procure' && procQueued(S) + cost > S.actors[me].gdp * 0.016 * weProcK(S, me)) return { ok: false, reason: M('c.capacity'), cost };
   if (id === 'conscript') { const q = S.queue.filter(z => z.type === 'conscript').reduce((s2, z) => s2 + consN(S, me, z.params || {}), 0); if ((S.actors[me].pers || 0) + inTraining(S, me) + q + consN(S, me, params) > persCap(S, me)) return { ok: false, reason: M('c.perscap', { n: fmtK(persCap(S, me)) }), cost }; }
   if (cost > 0 && S.actors[me].treasury - moneyQueued(S) < cost - S.actors[me].gdp * (0.08 + weCredit(S, me))) return { ok: false, reason: M('c.money'), cost };
-  if (S.queue.some(q => q.type === id && q.target === t) && !MULTI.has(id)) return { ok: false, reason: M('c.queued'), cost };
+  if (S.queue.some(q => (q.type === id || (RULES3 && q.type === 'deal' && q.params && q.params.act === id)) && q.target === t) && !MULTI.has(id)) return { ok: false, reason: M('c.queued'), cost };
   let preview = null; try { preview = def.preview ? def.preview(S, me, t, params) : null; } catch (e) { preview = null; }
   return { ok: true, cost, preview, ap };
 }
 function queueAction(S, id, target, params = {}) {
   const st = actionStatus(S, id, target, params); if (!st.ok) return st;
   const def = ACT[id];
+  if (RULES3 && ASK3.has(id) && !def.self) { S.queue.push({ type: 'deal', target, params: { terms: askTerms3(id, params), did: 'A' + S.turn + '.' + id + '.' + target, act: id, aparams: Object.assign({}, params) }, ap: st.ap, cost: st.cost }); return { ok: true }; } // 规则 v3：需要对方同意的旧外交行动，回合结束时和协议一起结算
   S.queue.push({ type: id, target: def.self ? S.player : target, params: Object.assign({}, params), ap: st.ap, cost: st.cost });
   return { ok: true };
 }
@@ -8326,8 +8363,14 @@ function prepareTurn(S) {
     for (const c of S.crises) if (!c.resolved && c.deadline <= S.turn) { const r = resolveCrisis(S, c.id, c.def || 0, RR); if (r) RR.pol.push({ msg: M('cr.default', { x: c.title, k: r.label }), tone: 'warn' }); }
     S.crises = S.crises.filter(c => !c.resolved || c.turn >= S.turn - 8);
   });
-  // 0) 规则 v3：和 AI 国家签的协议统一生效（有冲突时由对方选择）
-  if (RULES3) { const ds = []; forHumans(S, P => { for (const q of S.queue) if (q.type === 'deal' && q.target) ds.push({ P, X: q.target, q }); S.queue = S.queue.filter(q => q.type !== 'deal'); }); if (ds.length) resolveDeals(S, ds, R); }
+  // 0) 规则 v3：和 AI 国家的协议统一生效（签署的、接受的来函、命令里的结盟和入集团、旧版外交行动；有冲突时由对方选择）
+  if (RULES3) {
+    S._res3 = 1; const ds = [];
+    forHumans(S, P => { for (const q of S.queue) if (q.type === 'deal' && q.target) ds.push({ P, X: q.target, q, kind: q.params && q.params.act ? 'ask' : 'sign' }); S.queue = S.queue.filter(q => q.type !== 'deal'); });
+    for (const z of S.pend3 || []) if (z && isHuman(S, z.P) && S.actors[z.X]) ds.push({ P: z.P, X: z.X, q: { ap: 0, params: { terms: z.terms, did: z.did } }, kind: z.kind === 'offer' && z.offer ? 'offer' : 'cmd', offer: z.offer });
+    S.pend3 = []; S.dealt3 = { turn: S.turn, list: [] };
+    if (ds.length) resolveDeals(S, ds, R);
+  }
   // 1) 各国秘密决策（同一回合针对每个真人的动作数量有上限，避免信息轰炸）
   let plans = aiPlan(S);
   forHumans(S, () => { plans = limitPlans(S, plans); });
@@ -8369,6 +8412,7 @@ function prepareTurn(S) {
   opsTurn(S, R);
   coreScan(S, R);
   if (S.humans && S.humans.length > 1) crossEffects(S, R);
+  if (RULES3) delete S._res3;
   return R;
 }
 /* 多人局：本回合各位真人的行动之间的交叉影响（同一目标上的叠加或抵消、对盟友或对手的行动），写进有关各方的战报 */
@@ -8530,6 +8574,7 @@ function answerOffer(S, id, accept) {
   const P = S.player, X = o.from, d = o.deal;
   if (!indep(S, X)) return M('of.gone', { a: X });
   if (d.type === 'h') return answerH(S, o, accept); // 另一位真人的提议
+  if (RULES3 && accept) return acceptOffer3(S, o); // 规则 v3：接受后回合结束时和其他协议一起结算
   const R = scratchReport(S); let msg;
   if (!accept) {
     addRel(S, P, X, -3);
@@ -8649,27 +8694,56 @@ function applyDeal(S, X, terms, R0) { // R0：回合结算中统一生效时（�
   logEvent(S, 'deal', M('dl.log', { a: X, x: { list: done } }), 'good', [P, X]);
   return done;
 }
-/* ---------- 规则 v3：和 AI 国家签的协议回合结束时统一结算 ----------
- * 签署 = 排进队列（type 'deal'），行动力照扣，回合结束前可以撤回。结算一开始（各国决策之前）集中处理：
- *   1) 同一个 AI 国家这一回合收到的协议里互相排斥的：同时和互为对手（交战，或关系低于 −20）的两方结盟、做安全伙伴、给驻军权、臣服、参战或出兵；
- *      答应对某国参战或出兵打它，同时又和它签别的；同时臣服两国；一方要它和某国断盟，那个国家同时要和它结盟。
- *   2) 有冲突时由这个国家按自己的利益选（它对各方的关系、影响力、各项条款对它的好处——和谈判时同一套评估），选中的生效，其余作废；
+/* ---------- 规则 v3：和 AI 国家的协议回合结束时统一结算 ----------
+ * 来源：签署的协议（队列里的 'deal'）；接受的来函、命令里的结盟和臣服、建集团时同意加入的国家（S.pend3，房主保存）；
+ *   旧版外交行动（结盟、臣服、驻军、议和、请求出兵等，队列里带 act 的 'deal'，结算时由对方当场决定）。
+ * 结算一开始（各国决策之前）集中处理：
+ *   1) 同一个 AI 国家这一回合收到的协议里互相排斥的：同时和互为对手（交战，或关系低于 −20）的两方站边（结盟、伙伴、驻军、臣服、入集团、参战或出兵）；
+ *      答应对某国参战或出兵打它，同时又和它签别的；同时臣服两国；一方要它和某国断盟，那个国家同时要它站到自己这边。
+ *   2) 有冲突时由这个国家按自己的利益选（关系、影响力、各项条款对它的好处——和谈判时同一套评估；它自己发出的来函优先），选中的生效，其余作废；
  *      作废的协议下回合退还所占的行动力，双方都在战报里看到结果。
- *   3) 每一份协议生效时再按当时的局势逐项复查（例如它已经和你的交战国结盟、要它打自己的盟友、它已有宗主国），不成立的条款作废。
+ *   3) 每一份协议生效时再按当时的局势逐项复查（它已和你的交战国站在一起、它正和你的盟友交战、要它打自己的盟友、它已有宗主国、它已在对立的集团里），不成立的条款作废。
+ *   4) 生效之后，同一回合对手在它那里的政变成功了：协议作废并退还（coupUndo3）。AI 国家自己同一回合结盟、建立伙伴关系也做同样的检查（alignBlock3）。
  * 处理顺序固定（按评估从高到低，同分按国家代码），联机时每台机器结果一致。真人之间的协议仍在对方接受时生效，但同样逐项复查。 */
 const aligned = (S, a, b) => isAlly(S, a, b) || isPartner(S, a, b);
+const rivals3 = (S, a, b) => atWar(S, a, b) || rel(S, a, b) < -20;
+/* X 已在一个和 P 对立的集团里（集团的领导国是 P 的对手，或有成员正和 P 交战） */
+function rivalBloc3(S, P, X, keep) {
+  for (const b of Object.values(S.blocs || {})) if (b.id !== keep && b.members.includes(X) && !b.members.includes(P) && (rivals3(S, P, b.leader) || b.members.some(m => atWar(S, m, P)))) return b;
+  return null;
+}
 function dealClash3(S, P, X, t) {
-  if (['alliance', 'partner', 'access', 'vassal'].includes(t.type)) { const Q = IDS.find(c => c !== P && c !== X && S.actors[c] && atWar(S, c, P) && aligned(S, X, c)); if (Q) return M('dl.ally_enemy', { t: X, b: Q, p: P }); }
+  if (['alliance', 'partner', 'access', 'vassal', 'bloc'].includes(t.type)) { const Q = IDS.find(c => c !== P && c !== X && S.actors[c] && atWar(S, c, P) && aligned(S, X, c)); if (Q) return M('dl.ally_enemy', { t: X, b: Q, p: P }); }
+  if (['alliance', 'partner', 'access', 'bloc'].includes(t.type)) { const Q = IDS.find(c => c !== P && c !== X && S.actors[c] && atWar(S, c, X) && aligned(S, P, c)); if (Q) return M('dl.war_friend', { t: X, b: Q, p: P }); } // 反方向：它正和你的盟友交战（臣服会让它和你的盟友停战，不在此列）
+  if (t.type === 'bloc') { const b = rivalBloc3(S, P, X, t.bloc); if (b) return M('dl.rival_bloc', { t: X, b: M('bloc.' + b.id) }); }
   if (t.type === 'join_war') { const E = boss(S, String(t.enemy || '').toUpperCase()); if (S.actors[E] && E !== X && aligned(S, X, E)) return M('dl.war_ally', { t: X, b: E }); }
   if (t.type === 'send_troops') { const d = dealDest(S, t), f = d && S.fronts.find(z => z.id === d), E = f ? boss(S, f.target) : null; if (E && E !== X && aligned(S, X, E)) return M('dl.war_ally', { t: X, b: E }); }
   if (t.type === 'vassal') { const o = S.actors[X] && S.actors[X].overlord; if (o && o !== P) return M('dl.has_lord', { t: X, b: o }); }
   return null;
 }
+/* AI 国家自己站边（结盟、伙伴，AI 之间或对真人的来函）前的检查：不和交战双方同时站在一起，不在同一回合刚和对手站到一边之后又倒向另一边 */
+function alignBlock3(S, a, b) {
+  if (!RULES3 || !S.actors[a] || !S.actors[b]) return null;
+  if (atWar(S, a, b)) return M('dl.atwar');
+  for (const Q of IDS) {
+    if (Q === a || Q === b || !S.actors[Q]) continue;
+    if (atWar(S, Q, b) && aligned(S, a, Q)) return M('dl.ally_enemy', { t: a, b: Q, p: b });
+    if (atWar(S, Q, a) && aligned(S, b, Q)) return M('dl.ally_enemy', { t: b, b: Q, p: a });
+  }
+  const D = S.dealt3;
+  if (D && D.turn === S.turn) for (const z of D.list) {
+    if (z.undone) continue;
+    if (z.X === a && z.P !== b && rivals3(S, z.P, b)) return M('dl.just_sided', { t: a, b: z.P });
+    if (z.X === b && z.P !== a && rivals3(S, z.P, a)) return M('dl.just_sided', { t: b, b: z.P });
+  }
+  return null;
+}
 const DEAL_KEY = /^[a-z]{1,8}$/;
-function cleanDealTerms(terms) {
+const DEAL_INT3 = ['protectorate', 'bloc']; // 只在房主生成的待结算项里出现（来函、建集团）
+function cleanDealTerms(terms, internal) {
   const out = [];
   for (const t of (Array.isArray(terms) ? terms : []).slice(0, 6)) {
-    if (!t || typeof t !== 'object' || !DEAL_TYPES.includes(t.type)) continue;
+    if (!t || typeof t !== 'object' || !(DEAL_TYPES.includes(t.type) || (internal && DEAL_INT3.includes(t.type)))) continue;
     const o = {}; for (const [k, v] of Object.entries(t)) if (DEAL_KEY.test(k) && (typeof v === 'number' ? isFinite(v) : typeof v === 'string' && v.length <= 40)) o[k] = v;
     out.push(o);
   }
@@ -8689,6 +8763,88 @@ function queueDeal(S, X, terms, did) {
   S.queue.push({ type: 'deal', target: X, params: { terms: L, did: String(did || '').slice(0, 60) }, ap: need, cost });
   return { ok: true, ap: need };
 }
+/* 旧版外交行动（需要对方同意的）：规则 v3 里排成一份待结算的协议，结算时由对方当场决定（行动本身照旧执行） */
+const ASK3 = new Set(['trade', 'alliance', 'nap', 'access', 'armsctl', 'vassal', 'peace', 'reqtroops', 'reqmob']);
+function askTerms3(id, p) {
+  p = p || {};
+  if (id === 'peace') return [{ type: p.terms === 'ceasefire' ? 'ceasefire' : p.terms === 'vassal' ? 'vassal' : 'peace' }];
+  if (id === 'reqtroops') { const d = String(p.dest || ''); return [Object.assign({ type: 'send_troops', size: clamp(+p.size || 0, 0, 2) | 0 }, d.startsWith('D:') ? { loc: d.slice(2) } : d ? { front: d } : {})]; }
+  if (id === 'reqmob') return [{ type: 'mobilize' }];
+  return [{ type: id }];
+}
+/* 接受的来函：结算时按条款判断互斥与复查 */
+function offerTerms3(d) {
+  if (d.type === 'protectorate') return [{ type: 'vassal' }];
+  if (d.type === 'peace' && d.terms === 'vassal_self') return [{ type: 'peace' }, { type: 'vassal' }];
+  return [{ type: d.type }];
+}
+function offerApply3(S, X, d, R) {
+  const P = S.player;
+  for (const t of offerTerms3(d)) { const w = dealClash3(S, P, X, t); if (w) return { why: w }; }
+  if (['peace', 'ceasefire'].includes(d.type) && !atWar(S, P, X)) return { why: M('dl.notwar') };
+  if (['alliance', 'trade', 'nap', 'armsctl', 'partner', 'access'].includes(d.type) && atWar(S, P, X)) return { why: M('dl.atwar') };
+  switch (d.type) {
+    case 'alliance': addTreaty(S, 'alliance', P, X); addRel(S, P, X, 10); addCommit(S, 'defend', X, null, 'alliance'); break;
+    case 'trade': addTreaty(S, 'trade', P, X); addRel(S, P, X, 5); S.pol.tradeUp++; break;
+    case 'nap': addTreaty(S, 'nap', P, X); addRel(S, P, X, 6); addCommit(S, 'no_attack', X, null, 'nap'); break;
+    case 'armsctl': addTreaty(S, 'armsctl', P, X); addRel(S, P, X, 6); addCommit(S, 'armsctl', X, null, 'armsctl', { cap: S.actors[P].milPct + 1 }); S.threat[X] = Math.max(0, (S.threat[X] || 0) - 15); repAdd(S, { trust: 3 }); break;
+    case 'partner': case 'access': addTreaty(S, d.type, P, X); addRel(S, P, X, 5); break;
+    case 'ceasefire': makePeace(S, P, X, 'ceasefire', R); break;
+    case 'peace': makePeace(S, P, X, 'white', R); if (d.terms === 'vassal_self') makeVassal(S, X, P); break;
+    case 'protectorate': makeVassal(S, X, P); break;
+    default: return { why: M('of.invalid') };
+  }
+  const k = M(d.type === 'peace' && d.terms === 'vassal_self' ? 'dt.peace_vassal' : 'dt.' + d.type);
+  remember(S, X, M('mem.accepted', { x: k }), 6);
+  logEvent(S, 'offer', M('of.accepted', { a: X, x: k }), 'good', [X, P]);
+  return { done: [k] };
+}
+/* 接受 AI 国家的来函：规则 v3 里不当场生效，留到回合结束和其他协议一起结算；结算前可以撤回 */
+function acceptOffer3(S, o) {
+  const k = M(o.deal.type === 'peace' && o.deal.terms === 'vassal_self' ? 'dt.peace_vassal' : 'dt.' + o.deal.type);
+  S.pend3 = S.pend3 || []; S.pend3.push({ P: S.player, X: o.from, kind: 'offer', did: o.id, offer: o, terms: offerTerms3(o.deal) });
+  return M('of.accepted_q', { a: o.from, x: k });
+}
+function unacceptOffer(S, id) {
+  if (!RULES3) return null;
+  const i = (S.pend3 || []).findIndex(z => z.kind === 'offer' && z.did === id && z.P === S.player); if (i < 0) return null;
+  const z = S.pend3.splice(i, 1)[0];
+  if (z.offer && !S.inbox.some(o => o.id === z.offer.id)) S.inbox.push(z.offer);
+  return M('of.unaccepted', { a: z.X });
+}
+/* 命令里的结盟、臣服（自然语言修订的效果）：对方同意后排成待结算的协议 */
+function pendCmd3(S, X, terms, did) { S.pend3 = S.pend3 || []; S.pend3.push({ P: S.player, X, kind: 'cmd', did: did || ('K' + S.seq++), terms }); }
+/* 入集团 */
+function blocCheck3(S, X, t) {
+  const P = S.player, b = S.blocs && S.blocs[t.bloc];
+  if (!b || !b.members.includes(P)) return M('dl.nobloc');
+  if (b.members.includes(X)) return M('dl.inbloc', { t: X });
+  if (atWar(S, P, X)) return M('dl.atwar');
+  return dealClash3(S, P, X, t);
+}
+function blocJoin3(S, X, t) {
+  const w = blocCheck3(S, X, t); if (w) return M('dl.void', { x: M('dk.bloc'), r: w });
+  const b = S.blocs[t.bloc]; for (const m of b.members) addRel(S, m, X, 5); b.members.push(X);
+  return M('dl.bloc_join', { t: X, x: M('bloc.' + b.id) });
+}
+const dealCheck3 = (S, X, t) => (t.type === 'bloc' ? blocCheck3(S, X, t) : dealCheck(S, X, t));
+function dealApply3(S, X, terms, R) {
+  const ok = terms.filter(t => !dealCheck3(S, X, t));
+  if (!ok.length) return { why: dealCheck3(S, X, terms[0]) || M('dl.unknown') };
+  const rest = terms.filter(t => t.type !== 'bloc'), done = rest.length ? applyDeal(S, X, rest, R) : [];
+  for (const t of terms) if (t.type === 'bloc') done.push(blocJoin3(S, X, t));
+  return { done };
+}
+/* 旧版外交行动：复查之后照旧执行（对方在行动里当场决定，报告也由行动写）；对方拒绝时不算选中，别人的协议还能生效 */
+function askApply3(S, X, d, R) {
+  const P = S.player, p = d.q.params || {}, id = p.act;
+  if (!ACT[id] || !ASK3.has(id)) return { why: M('dl.unknown') };
+  for (const t of d.terms) { const w = dealClash3(S, P, X, t); if (w) return { why: w }; }
+  const ap = Object.assign({}, p.aparams || {});
+  execPlayerItem(S, { actor: P, kind: 'act', id, target: X, params: ap, q: { type: id, target: X, params: ap } }, R);
+  const held = id === 'vassal' || (id === 'peace' && ap.terms === 'vassal') ? S.actors[X].overlord === P : id === 'peace' ? !atWar(S, P, X) : ['trade', 'alliance', 'nap', 'access', 'armsctl'].includes(id) ? hasTreaty(S, P, X, id) : true;
+  return held ? { act: true } : { no: true };
+}
 /* 协议在 AI 国家眼里值多少（同一套评估：关系、影响力、各项条款的好处） */
 function dealValue(S, P, X, terms) {
   const x = S.actors[X]; let v = rel(S, X, P) / 200 + infl(S, P, X) / 300;
@@ -8696,6 +8852,7 @@ function dealValue(S, P, X, terms) {
     if (['trade', 'alliance', 'nap', 'access', 'partner', 'armsctl', 'vassal', 'peace', 'ceasefire', 'join_war'].includes(t.type)) { v += evalDeal(S, P, X, t).score; continue; }
     const amt = +t.amount || S.actors[P].gdp * 0.002, base = Math.max(0.1, x.gdp * 0.01);
     switch (t.type) {
+      case 'bloc': v += evalDeal(S, P, X, { type: 'alliance' }).score; break;
       case 'aid': v += Math.min(1.2, amt / base * 0.25); break;
       case 'arms': v += Math.min(1, amt / base * 0.2) * (enemies(S, X).length ? 1.3 : 0.6); break;
       case 'lift_my_sanctions': v += 0.4; break;
@@ -8714,49 +8871,90 @@ function dealValue(S, P, X, terms) {
 function dealSides(S, terms) {
   const s = { align: false, vassal: false, ally: false, hostile: new Set(), breakw: new Set() };
   for (const t of terms) {
-    if (['alliance', 'partner', 'access', 'vassal', 'join_war', 'send_troops'].includes(t.type)) s.align = true;
+    if (['alliance', 'partner', 'access', 'vassal', 'bloc', 'join_war', 'send_troops'].includes(t.type)) s.align = true;
     if (t.type === 'vassal') s.vassal = true;
-    if (t.type === 'alliance' || t.type === 'partner') s.ally = true;
+    if (['alliance', 'partner', 'bloc'].includes(t.type)) s.ally = true;
     if (t.type === 'join_war') { const E = boss(S, String(t.enemy || '').toUpperCase()); if (S.actors[E]) s.hostile.add(E); }
     if (t.type === 'send_troops') { const d = dealDest(S, t), f = d && S.fronts.find(z => z.id === d); if (f) s.hostile.add(boss(S, f.target)); }
     if (t.type === 'break_alliance') { const w = String(t.with || '').toUpperCase(); if (S.actors[w]) s.breakw.add(w); }
   }
   return s;
 }
-const rivals3 = (S, a, b) => atWar(S, a, b) || rel(S, a, b) < -20;
 function dealsClash(S, a, b) {
   if (a.P === b.P) return false;
   const A = a.s, B = b.s, pa = a.P, pb = b.P;
   if (A.hostile.has(pb) || A.hostile.has(boss(S, pb)) || B.hostile.has(pa) || B.hostile.has(boss(S, pa))) return true; // 要它打其中一方
   if (A.align && B.align && rivals3(S, pa, pb)) return true; // 同时站到互为对手的两边
   if (A.vassal && B.vassal) return true; // 不能同时臣服两国
-  if ((A.breakw.has(pb) && B.ally) || (B.breakw.has(pa) && A.ally)) return true; // 一方要它和另一方断盟
+  if ((A.breakw.has(pb) && B.align) || (B.breakw.has(pa) && A.align)) return true; // 一方要它和另一方断盟，另一方要它站到自己这边
   return false;
 }
 function dealRefund(S, P, n) { if (!(n > 0)) return; S.apRefund = S.apRefund || {}; S.apRefund[P] = (S.apRefund[P] || 0) + n; }
 function resolveDeals(S, ds, R) {
   const byX = {}; for (const d of ds) (byX[d.X] = byX[d.X] || []).push(d);
+  const D3 = S.dealt3 && S.dealt3.turn === S.turn ? S.dealt3 : (S.dealt3 = { turn: S.turn, list: [] });
+  const voidIt = (d, why) => { RP(S, d.P, R).actions.push({ msg: M(d.ap ? 'dl.res_void' : 'dl.res_void0', { a: d.X, x: why || M('dl.unknown'), n: d.ap }), tone: 'bad', did: d.did }); dealRefund(S, d.P, d.ap); };
   for (const X of Object.keys(byX).sort()) {
     const list = byX[X];
-    for (const d of list) { d.terms = cleanDealTerms(d.q.params && d.q.params.terms); d.did = (d.q.params && d.q.params.did) || ''; }
-    if (!S.actors[X] || !indep(S, X) || isHuman(S, X)) { for (const d of list) { RP(S, d.P, R).actions.push({ msg: M('dl.res_void', { a: X, x: M('of.gone', { a: X }), n: d.q.ap || 0 }), tone: 'bad', did: d.did }); dealRefund(S, d.P, d.q.ap); } continue; }
-    for (const d of list) withSeat(S, d.P, () => { d.v = dealValue(S, d.P, X, d.terms); d.s = dealSides(S, d.terms); });
+    for (const d of list) { const p = d.q.params || {}; d.kind = d.kind || 'sign'; d.terms = cleanDealTerms(p.terms, d.kind === 'offer' || d.kind === 'cmd'); d.did = p.did || ''; d.ap = d.q.ap || 0; }
+    if (!S.actors[X] || !indep(S, X) || isHuman(S, X)) { for (const d of list) voidIt(d, M('of.gone', { a: X })); continue; }
+    for (const d of list) withSeat(S, d.P, () => { d.v = dealValue(S, d.P, X, d.terms) + (d.kind === 'offer' ? 2 : 0); d.s = dealSides(S, d.terms); }); // 它自己发出的来函优先
     list.sort((a, b) => b.v - a.v || (a.P < b.P ? -1 : a.P > b.P ? 1 : 0));
     const won = [];
     for (const d of list) {
       const RR = RP(S, d.P, R), w = won.find(z => dealsClash(S, z, d));
       if (w) {
-        RR.actions.push({ msg: M('dl.res_lost', { a: X, b: w.P, n: d.q.ap || 0 }), tone: 'bad', did: d.did, about: [X, w.P] });
+        RR.actions.push({ msg: M(d.ap ? 'dl.res_lost' : 'dl.res_lost0', { a: X, b: w.P, n: d.ap }), tone: 'bad', did: d.did, about: [X, w.P] });
         RP(S, w.P, R).intel.push({ msg: M('dl.res_won', { a: X, b: d.P }), tone: 'good', about: [X, d.P] });
-        dealRefund(S, d.P, d.q.ap); continue;
+        dealRefund(S, d.P, d.ap); continue;
       }
-      const ok = withSeat(S, d.P, () => d.terms.filter(t => !dealCheck(S, X, t)));
-      if (!ok.length) { const why = withSeat(S, d.P, () => dealCheck(S, X, d.terms[0])); RR.actions.push({ msg: M('dl.res_void', { a: X, x: why || M('dl.unknown'), n: d.q.ap || 0 }), tone: 'bad', did: d.did }); dealRefund(S, d.P, d.q.ap); continue; }
-      const done = withSeat(S, d.P, () => applyDeal(S, X, d.terms, RR));
-      RR.actions.push({ msg: M('dl.res_ok', { a: X, x: { list: done } }), tone: 'good', did: d.did, about: [X] });
+      if (!d.terms.length) { voidIt(d, M('dl.unknown')); continue; }
+      const res = withSeat(S, d.P, () => (d.kind === 'offer' ? offerApply3(S, X, d.offer.deal, RR) : d.kind === 'ask' ? askApply3(S, X, d, RR) : dealApply3(S, X, d.terms, RR)));
+      if (res.why) { voidIt(d, res.why); continue; }
+      if (res.no) continue; // 旧版行动：对方拒绝了（行动自己写了战报，行动力不退）
+      if (res.done) RR.actions.push({ msg: M('dl.res_ok', { a: X, x: { list: res.done } }), tone: 'good', did: d.did, about: [X] });
       won.push(d);
+      if (d.s.align) D3.list.push({ P: d.P, X, did: d.did, ap: d.ap, kind: d.kind, types: d.terms.map(t => t.type) });
     }
   }
+}
+/* 政变成功：同一回合刚和它签了站边协议、又是政变方对手的玩家，协议被推翻（同盟、伙伴、驻军、入集团撤销），行动力退还 */
+function coupUndo3(S, me, X, R) {
+  const D = S.dealt3; if (!RULES3 || !D || D.turn !== S.turn) return;
+  for (const z of D.list) {
+    if (z.X !== X || z.P === me || z.undone) continue;
+    const lostVassal = z.types.includes('vassal') && S.actors[X].overlord !== z.P;
+    if (!lostVassal && !rivals3(S, z.P, me)) continue;
+    z.undone = true;
+    for (const k of ['alliance', 'partner', 'access']) removeTreaty(S, k, z.P, X);
+    for (const b of Object.values(S.blocs || {})) if (b.members.includes(z.P) && b.members.includes(X) && z.types.includes('bloc')) b.members = b.members.filter(m => m !== X);
+    if (isHuman(S, z.P)) withSeat(S, z.P, () => { S.commits = S.commits.filter(c => !(c.with === X && c.type === 'defend' && c.since === S.turn)); });
+    dealRefund(S, z.P, z.ap);
+    RP(S, z.P, R).actions.push({ msg: M(z.ap ? 'dl.res_coup' : 'dl.res_coup0', { a: X, b: me, n: z.ap }), tone: 'bad', did: z.did, about: [X, me] });
+  }
+}
+/* 自己和自己矛盾：本回合的协议（结算一开始生效）和本回合排的行动（随后执行）冲突。界面据此提示，不禁止 */
+const SELF3 = { atk: ['strike', 'invade', 'blockade', 'nuke'], sanc: ['sanction', 'tariff', 'techban', 'finsanction', 'energy'], arms: ['buildup', 'mobilize'] };
+function selfConflicts3(S) {
+  if (!RULES3) return [];
+  const P = S.player, deals = [], out = [];
+  for (const q of S.queue) if (q.type === 'deal' && q.target) deals.push({ X: q.target, terms: (q.params && q.params.terms) || [], ref: q });
+  for (const z of S.pend3 || []) if (z.P === P) deals.push({ X: z.X, terms: z.terms || [], ref: z });
+  for (const d of deals) {
+    const ty = new Set(d.terms.map(t => t.type)), calm = ['nap', 'peace', 'ceasefire', 'alliance', 'partner', 'vassal', 'access', 'bloc'].filter(k => ty.has(k));
+    const wl = d.terms.filter(t => t.type === 'withdraw').map(t => String(t.loc || '').toUpperCase());
+    for (const q of S.queue) {
+      if (q.type === 'deal') continue;
+      const hit = q.target && S.actors[q.target] && (q.target === d.X || boss(S, q.target) === d.X);
+      let why = null, term = null;
+      if (calm.length && hit && SELF3.atk.includes(q.type)) { why = 'atk'; term = calm[0]; }
+      else if (ty.has('lift_my_sanctions') && hit && SELF3.sanc.includes(q.type)) { why = 'sanc'; term = 'lift_my_sanctions'; }
+      else if (ty.has('armsctl') && SELF3.arms.includes(q.type)) { why = 'arms'; term = 'armsctl'; }
+      else if (q.type === 'deploy' && wl.includes(q.to)) { why = 'forces'; term = 'withdraw'; }
+      if (why) out.push({ deal: d.ref, item: q, X: d.X, why, term });
+    }
+  }
+  return out;
 }
 
 function dealDest(S, t) { const f = t.front && S.fronts.find(z => z.id === String(t.front)); if (f && f.att === S.player) return f.id; const L = String(t.loc || '').toUpperCase(); if (S.actors[L]) return 'D:' + L; const g = S.fronts.find(z => z.att === S.player); return g ? g.id : null; }
@@ -9930,12 +10128,14 @@ function applySetting(S, e, R) {
       if (e.action === 'leave') { const b = (e.id && S.blocs[e.id] && S.blocs[e.id].members.includes(P) && S.blocs[e.id]) || mine[0]; b.members = b.members.filter(m => m !== P); for (const m of b.members) addRel(S, P, m, m === b.leader ? -25 : -15); if (b.leader === P && b.members.length) b.leader = b.members.slice().sort((a, c) => power(S, c) - power(S, a))[0]; pushEv(S, { type: 'leavebloc', actor: P, target: b.leader, sev: 25, third: 10 }); return M('st.bloc_leave', { x: M('bloc.' + b.id) }); }
       if (e.action === 'rename') { const b = (e.id && S.blocs[e.id]) || mine.find(z => z.leader === P); const old = M('bloc.' + b.id), a = { c: [I18N_raw('bloc.' + b.id, 0, old), I18N_raw('bloc.' + b.id, 1, old)] }; S.i18nOv = S.i18nOv || {}; S.i18nOv['bloc.' + b.id] = [e.name, e.en]; applyDefOv(S, '-'); return M('st.bloc_rename', { a, x: { c: [e.name, e.en] } }); }
       // 新建集团：附庸直接加入，其他国家按结盟意愿决定
-      const joined = [], refused = [];
-      for (const m of e.members) { if (!indep(S, m) || atWar(S, P, m)) continue; if (S.actors[m].overlord === P || isAlly(S, P, m) && rel(S, P, m) > 30 || decide(S, P, m, { type: 'alliance' }, 0.2).ok) joined.push(m); else refused.push(m); }
+      const joined = [], refused = [], later = []; // 规则 v3：其他国家同意加入后，回合结束时和协议一起结算（同一国家不能同时进两个对立的集团）
+      for (const m of e.members) { if (!indep(S, m) || atWar(S, P, m)) continue; if (S.actors[m].overlord === P || isAlly(S, P, m) && rel(S, P, m) > 30) joined.push(m); else if (RULES3 && isHuman(S, m)) refused.push(m); else if (decide(S, P, m, { type: 'alliance' }, 0.2).ok) (RULES3 && !S._res3 ? later : joined).push(m); else refused.push(m); }
       const id = 'U' + S.seq++; S.blocs[id] = { id, type: 'mil', leader: P, members: [P].concat(joined) };
+      for (const m of later) pendCmd3(S, m, [{ type: 'bloc', bloc: id }], 'B' + id + '.' + m);
       for (const m of joined) for (const k of joined) if (m < k) addRel(S, m, k, 5);
       S.i18nOv = S.i18nOv || {}; S.i18nOv['bloc.' + id] = [e.name, e.en]; applyDefOv(S, '-');
       pushEv(S, { type: 'alliance', actor: P, target: joined[0] || null, sev: -10, third: 20 });
+      if (later.length) return M(refused.length ? 'st.bloc_made3p' : 'st.bloc_made3', { x: { c: [e.name, e.en] }, y: { list: [P].concat(joined).map(id2 => ({ id: id2 })) }, w: { list: later.map(id2 => ({ id: id2 })) }, z: { list: refused.map(id2 => ({ id: id2 })) } });
       return M(refused.length ? 'st.bloc_made_part' : 'st.bloc_made', { x: { c: [e.name, e.en] }, y: { list: joined.map(id2 => ({ id: id2 })) }, z: { list: refused.map(id2 => ({ id: id2 })) } });
     }
     case 'program': { S.programs = S.programs || []; S.programs = S.programs.filter(p => !(p.to === T && p.kind === e.kind)); S.programs.push({ id: 'G' + S.seq++, from: P, to: T, kind: e.kind, amount: e.amount, until: S.turn + e.turns - 1, since: S.turn }); addRel(S, P, T, 6); pushEv(S, { type: e.kind === 'arms' ? 'armsaid' : 'aid', actor: P, target: T, sev: -10, arms: e.kind === 'arms' }); return M('st.program', { k: M('st.k.' + e.kind), t: T, m: $m(e.amount), n: e.turns }); }
@@ -10971,6 +11171,7 @@ function setMob(S, lv) {
 function setMix(S, mix, mode) { const x = S.actors[S.player]; let a = (Array.isArray(mix) ? mix : []).slice(0, 3).map(v => clamp(+v || 0, 0, 1)); const t = a.reduce((s, v) => s + v, 0); if (a.length !== 3 || !(t > 0)) return false; a = a.map(v => Math.max(0.05, v / t)); const t2 = a[0] + a[1] + a[2]; x.mix = a.map(v => +(v / t2).toFixed(3)); x.mixMode = ['bal', 'land', 'navy', 'air', 'custom'].includes(mode) ? mode : 'custom'; return true; }
 const CMD = {
   answerOffer: (S, a) => answerOffer(S, sid(a[0]), !!a[1]),
+  unacceptOffer: (S, a) => unacceptOffer(S, sid(a[0])), // 规则 v3：撤回对来函的接受（回合结束前）
   answerUltimatum: (S, a) => answerUltimatum(S, sid(a[0]), a[1] === 'accept' ? 'accept' : 'reject'),
   answerCrisis: (S, a) => answerCrisis(S, sid(a[0]), typeof a[1] === 'number' ? clamp(a[1] | 0, 0, 5) : (a[1] && Array.isArray(a[1].effects) ? { effects: a[1].effects.slice(0, 10), summary: String(a[1].summary || '').slice(0, 60) } : 0)),
   cancelOp: (S, a) => cancelOp(S, sid(a[0])),
@@ -14440,6 +14641,7 @@ return {
   RULES2, fallen, FALLEN, dealAP, setMob, mobIdx, queuePackage, pkgRange, pkgItems, PKG_OK, consN, procAmt, invK, amtOf, AMT_MAX, progOf, coreAP2,
   RULES3, CAP3, AP3, apCost, apAI, apAIRange, mobAP, capEff, capLevel, moneyPct, actMoney, PKG_DISC3, CORE_OP_PCT3,
   queueDeal, resolveDeals, dealValue, dealSides, dealsClash, dealClash3, cleanDealTerms, dealMoney,
+  unacceptOffer, alignBlock3, selfConflicts3, offerTerms3, askTerms3, ASK3, rivals3, aligned, rivalBloc3, coupUndo3,
   SCENARIOS, useScenario, sc, scenarioList, playable, migrate, setNeutral, isNeutral: NEU, neutralize, get NEUTRAL() { return NEUTRAL.slice(); }, setProv, provOf: PRV, provincialize, setGuard, isGuarded: GRD, GCAP, holdTerritory, ltxt, frontObjectives, cityName,
   SET_TYPES, settingPreview, previewSettings, checkSetting, ruleSettings, settingsBrief, cancelProgram, applyDefOv, playerMilMax, cityIdx,
   objThr, holdOf, airSupportOf, setFrontFocus, setOpFocus, setHold, frontTargets, isCapital, supRange,
@@ -17319,7 +17521,7 @@ function mpMaybeResolve() {
 }
 
 /* ---------- 结算（房主 / 热座 / 单机） ---------- */
-function mpReplayQueue(list) {
+function mpReplayQueue(list, ext) {
   S.queue = [];
   const arr = (Array.isArray(list) ? list : []).slice(0, 40);
   for (let i = 0; i < arr.length; i++) {
@@ -17332,7 +17534,7 @@ function mpReplayQueue(list) {
       else if (q.type === 'custom') W.queueCustom(S, Object.assign({}, q.order || {}, { ap: q.ap, cost: q.cost }));
       else if (q.type === 'core') W.queueCore(S, q.k, q.lvl);
       else if (q.type === 'done') W.queueDone(S, q.label, q.ap | 0);
-      else if (q.type === 'deal') { if (W.RULES3) W.queueDeal(S, q.target, (q.params || {}).terms, (q.params || {}).did); } // 规则 v3：和 AI 国家签的协议，房主按同一规则复核后排入，结算时统一处理
+      else if (q.type === 'deal') { const p = q.params || {}; if (W.RULES3) { if (p.act) W.queueAction(S, p.act, q.target, mpClone(p.aparams || {})); else if (!ext) W.queueDeal(S, q.target, p.terms, p.did); } } // 规则 v3：和 AI 国家签的协议（旧版外交行动照行动复核），房主按同一规则复核后排入，结算时统一处理；外部智能体不能直接签
       else if (W.ACT[q.type]) W.queueAction(S, q.type, q.target, mpClone(q.params || {}));
     } catch (e) { console.warn('replay', q, e); }
   }
@@ -17344,7 +17546,7 @@ function mpCollectOrders() {
     let list = [];
     if (ag === 'ext') { const e = MPS.ext[H]; list = e && e.turn === S.turn ? e.queue || [] : []; }
     else { const uid = MPS.meta && MPS.meta.seats ? MPS.meta.seats[H] : null, p = uid && MPS.players[uid]; list = p && p.turn === S.turn && mpOpenOk(uid, p) ? MPS.open[uid].queue || [] : []; }
-    W.withSeat(S, H, () => mpReplayQueue(list));
+    W.withSeat(S, H, () => mpReplayQueue(list, ag === 'ext'));
   }
 }
 async function mpResolve() {
@@ -20634,8 +20836,10 @@ function renderQueue() {
     const lab = v2QLabel(it);
     chips.push(`<span class="qchip"><span class="t" title="${esc(lab)}">${esc(lab)}</span><small>${it.ap ? T('u.apn', { n: it.ap }) : T('u.ap0')}${it.cost > 0 ? ' · ' + fmtB(it.cost) : ''}</small>${it.type === 'done' ? '' : `<button data-unq="${i}" aria-label="${esc(T('u.remove'))}">×</button>`}</span>`);
   });
+  if (typeof v3QueueExtra === 'function') chips.push(...v3QueueExtra()); // 网页版 v3：接受的来函、命令里的协议（回合结束时结算）
   el.innerHTML = `<span class="ql">${T('u.queue', { n: chips.length })}</span>` + mpPlanChip() + (chips.length ? chips.join('') : `<span class="muted" style="font-size:12.5px">${T('u.queue_empty')}</span>`);
   v2UbRender();
+  if (typeof v3AfterQueue === 'function') v3AfterQueue(); // 网页版 v3：本回合的协议和行动自相矛盾时提示
 }
 /* 方针：统一输入框的一种发送方式；队列旁的小条目只显示有没有写，点它切到“方针” */
 function mpPlanChip() {
@@ -21893,18 +22097,54 @@ function v3CapTable() {
  * 签署 = 排进本回合队列（占行动力，结算前可以撤回）。回合结束时，同一个 AI 国家收到的协议一起结算：
  * 互相排斥的（例如同时和互为对手的两国结盟、要它对其中一方参战、同时臣服两国）由它按自己的评估选一份，
  * 其余作废、所占行动力下回合退还；和当时局面冲突的条款也作废。规则在 src/engine/06_turn.js（queueDeal / resolveDeals）。
- * 对话里的协议卡片显示：待结算（可撤回）→ 结算结果（从本人的战报里按协议编号找）。 */
+ * 对话里的协议卡片显示：待结算（可撤回）→ 结算结果（从本人的战报里按协议编号找）。
+ * 接受的来函、命令里对方同意的结盟和入集团也在队列里（S.pend3），同样回合结束时结算；本回合的协议和自己排的行动冲突时提示。 */
 const v3DealAt = did => (did ? S.queue.findIndex(q => q.type === 'deal' && q.params && q.params.did === did) : -1);
 const v3DealTerms = terms => (Array.isArray(terms) ? terms : []).map(termText).join(sep());
 
-/* 队列里的协议写明和谁、哪几项（其余同 v2） */
-function v2QLabel(q) {
-  if (q.type === 'deal') return T('v3.q.deal', { a: q.target, x: { raw: v3DealTerms(q.params && q.params.terms) } });
+/* 队列里的协议写明和谁、哪几项；旧版外交行动照行动写（其余同 v2）；和本回合自己的协议冲突的，前面加 ⚠ */
+function v3ItemLabel(q) {
+  if (q.type === 'deal') { const p = q.params || {}; return p.act && W.ACT[p.act] ? qLabel({ type: p.act, target: q.target, params: p.aparams || {} }) : T('v3.q.deal', { a: q.target, x: { raw: v3DealTerms(p.terms) } }); }
   if (q.type === 'break' && q.params && q.params.kind) return T('v2.q.break1', { k: T('tr.' + q.params.kind), t: q.target });
   if (q.type === 'leavebloc') return T('a.leavebloc') + (q.params && q.params.bloc ? paren(T('bloc.' + q.params.bloc)) : '');
   if (q.type === 'conscript' && q.params && +q.params.n > 0) return T('a.conscript') + paren(persT(+q.params.n));
   if (q.type === 'procure' && q.params && +q.params.amt > 0) return T('a.procure') + paren(T('br.' + (q.params.branch || 'land')) + ' ' + fmtB(+q.params.amt));
   return qLabel(q);
+}
+const v3Conf = () => (v3On() && S ? W.selfConflicts3(S) : []);
+const v3ConfOf = x => v3Conf().find(c => c.item === x || c.deal === x);
+function v2QLabel(q) { return (v3ConfOf(q) ? '⚠ ' : '') + v3ItemLabel(q); }
+
+/* 队列里另外显示：已接受的来函（可以撤回）、命令里对方已同意的协议——都在回合结束时和签署的协议一起结算 */
+function v3QueueExtra() {
+  if (!v3On() || !S) return [];
+  return (S.pend3 || []).filter(z => z && z.P === S.player).map(z => {
+    const lab = (v3ConfOf(z) ? '⚠ ' : '') + T(z.kind === 'offer' ? 'v3.q.offer' : 'v3.q.cmd', { a: z.X, x: { raw: v3DealTerms(z.terms) } });
+    return `<span class="qchip v3pend"><span class="t" title="${esc(lab + ' · ' + T('v3.q.pend_t'))}">${esc(lab)}</span><small>${T('u.ap0')}</small>${z.kind === 'offer' ? `<button data-v3unacc="${esc(z.did)}" aria-label="${esc(T('u.remove'))}">×</button>` : ''}</span>`;
+  });
+}
+
+/* 自己和自己矛盾：本回合的协议在结算一开始生效，行动随后执行。新出现冲突时提示一次（有别的窗口开着就只提示一句） */
+const v3ConfKey = c => [c.X, c.why, c.item.type, c.item.target || '', c.item.to || '', (c.deal.params && c.deal.params.did) || c.deal.did || ''].join('|');
+function v3AfterQueue() {
+  if (!v3On() || !S || UI.demo || !S.queue) return;
+  const cs = v3Conf(), keys = cs.map(v3ConfKey), items = new Set(S.queue);
+  const fresh0 = !UI.v3conf || UI.v3confTurn !== S.turn || UI.v3confP !== S.player;
+  const prevQ = UI.v3prevQ || new Set(), fresh = fresh0 ? [] : cs.filter((c, i) => !UI.v3conf.has(keys[i]));
+  UI.v3conf = new Set(keys); UI.v3confTurn = S.turn; UI.v3confP = S.player; UI.v3prevQ = items;
+  if (!fresh.length) return;
+  const c = fresh[0], actNew = !prevQ.has(c.item), x = v3ItemLabel(c.item), y = termText({ type: c.term });
+  const msg = T('v3.self.' + c.why, { x: { raw: x }, a: c.X, y: { raw: y } });
+  if (!$('#modal').hidden) { toast(T('v3.self_toast', { x: { raw: x }, a: c.X }), 6000); return; }
+  const canDrop = actNew || c.deal.type === 'deal' || c.deal.kind === 'offer';
+  showModal(`<h2>⚠ ${T('v3.self_h')}</h2><p style="font-size:14px">${esc(msg)}</p><div class="foot"><button data-close="1">${T(canDrop ? 'v3.self.keep' : 'v3.self.ok')}</button>${canDrop ? `<button class="btn-primary" id="v3cDrop">${T(actNew ? 'v3.self.drop_act' : 'v3.self.drop_deal')}</button>` : ''}</div>`, 'narrow', true);
+  const b = $('#v3cDrop'); if (b) b.onclick = () => {
+    UI.afterClose = null; closeModal();
+    if (actNew) { const k = S.queue.indexOf(c.item); if (k >= 0) W.unqueue(S, k); }
+    else if (c.deal.type === 'deal') { const k = S.queue.indexOf(c.deal); if (k >= 0) W.unqueue(S, k); }
+    else if (c.deal.kind === 'offer') doCmd('unacceptOffer', [c.deal.did]);
+    renderAll();
+  };
 }
 
 /* 签署：v3 排进队列；回合结束时统一结算 */
@@ -21957,9 +22197,11 @@ function mpAgentMsgHTML(X, m, i, last) {
   return `<div class="msg them"><span class="who">${esc(NAME(X))}${m.src === 'rule' ? ' · ' + T('mp.ag.rule') : ''}</span>${esc(m.text)}${deal}</div>`;
 }
 
-/* 卡片上的“撤回”：和队列里点 × 一样 */
+/* 卡片上的“撤回”：和队列里点 × 一样；队列里已接受的来函点 ×：撤回接受，提议回到待处理 */
 document.addEventListener('click', e => {
   if (!v3On() || !S || UI.demo || !MPS.on) return;
+  const u = e.target.closest && e.target.closest('[data-v3unacc]');
+  if (u) { const r = doCmd('unacceptOffer', [u.dataset.v3unacc]); toast(r ? TX(r) : T('mp.p.fail')); renderAll(); return; }
   const t = e.target.closest && e.target.closest('[data-v3unsign]'); if (!t) return;
   const [X, i] = String(t.dataset.v3unsign).split('|'), m = mpAgentHist(X)[+i]; if (!m) return;
   const k = v3DealAt(m.did); if (k < 0) return;
