@@ -19,6 +19,7 @@ This is the next edition after [Tianxia Online v2](https://zechenbian.github.io/
 - **本国系数**：国力越强、政局越稳，做同样的事越省力（×0.7–×1.35）。
 - **多选组合打折**：两项九折、三项八折、四项以上七折；接了 AI 时由 AI 在范围内判断。
 - **协议、动员、阶梯、AI 命令都按百分比**：签一份协议 6% 起（看条款），提高动员每级 6%，交给 AI 换算的命令由 AI 定（5%–40%）。真人之间的协议、调兵、军费、战时政策不占。
+- **和 AI 国家签的协议回合结束时统一结算**：签署后排进本回合队列（结算前可以撤回）。联机时几位玩家同一回合和同一个国家签了互相排斥的协议——比如同时和互为对手的两国结盟、要它对其中一方参战、同时臣服两国——由它按自己的评估选一份，其余作废，所占行动力下回合退还；双方战报和对话里的协议卡片都写明结果。结算时已和局面冲突的条款（比如它已和你的交战国结盟）也作废，真人之间的协议同样复查。
 - **界面**：顶栏是一条行动力条；表单、队列、按钮上写占用的百分比；帮助里有一张按当前局势现算的小表。
 
 其余（六个页签、合并后的表单、外交页的对话与协议、统一输入框、臣服的前提、中美保底）都和 v2 一样，详见 [v2 说明](https://github.com/ZechenBian/zechenbian.github.io/blob/main/tianxia-v2/README.md)。
@@ -39,7 +40,7 @@ This is the next edition after [Tianxia Online v2](https://zechenbian.github.io/
 | 国内措施 | 维稳 3＋钱（强硬 6）、经济刺激 / 科技 / 情报各 3＋钱、溯源 4、互信 5、核计划 14＋钱 |
 | 其他 | 首脑会晤 6、退出一项条约 8、退出集团 8、新攻势 15、空中支援 6、提高动员每级 6；征兵与订单只按金额（按一半） |
 
-完整规则与例子见 [行动力规则](行动力规则.md)。
+完整规则与例子（含协议怎么结算）见 [行动力规则](行动力规则.md)。
 
 ---
 
@@ -52,6 +53,7 @@ This is the next edition after [Tianxia Online v2](https://zechenbian.github.io/
 - **Country factor**: bigger, steadier countries spend less on the same move (×0.7 to ×1.35).
 - **Packages are discounted**: 10% off for two items, 20% for three, 30% for four or more; with an AI connected, the AI decides within a range.
 - **Deals, mobilization, ladders and AI orders in percent too**: signing a deal takes 6% and up depending on its terms, each mobilization level 6%, and orders the AI converts take what the AI decides (5–40%). Deals between humans, troop moves, the budget and war-economy policies take nothing.
+- **Agreements with AI countries are settled at the end of the turn**: signing puts the agreement in this turn's queue (you can withdraw it until then). If several players sign incompatible agreements with the same country in one turn — allying with two rivals, asking it to fight one of them, vassalage to two lords — it picks one by its own judgement; the rest are void and their capacity comes back next turn. Both sides' reports and the agreement card in the conversation say what happened. Terms that no longer fit the situation at settlement (say it has since allied with a country at war with you) are void too, and deals between humans get the same checks.
 - **Interface**: a capacity bar in the top bar; shares shown on forms, the queue and buttons; the help has a small table worked out from the current situation.
 
 Everything else — six tabs, merged forms, conversations and agreements, the single input box, the vassalage condition, the China/USA safeguard — works as in [v2](https://github.com/ZechenBian/zechenbian.github.io/blob/main/tianxia-v2/README.md#english).

@@ -1150,6 +1150,14 @@ button.danger { border-color: var(--bad); color: var(--bad); }
 /* 一回合能排很多事：队列最多占两行，多了在里面滚动，不挤地图 */
 .queue { max-height: 64px; overflow-y: auto; align-content: flex-start; overscroll-behavior: contain; scrollbar-width: thin; }
 @media (max-width: 900px) { .queue { max-height: 96px; } }
+/* 和 AI 国家签的协议：回合结束时统一结算——卡片上显示待结算（可撤回）或结算结果 */
+.deal .v3deal { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 6px; padding: 4px 8px; border-radius: var(--r); font-size: 12px; line-height: 1.45; }
+.deal .v3deal.pend { background: var(--accent-soft); color: var(--accent); }
+.deal .v3deal.good { background: var(--neutral-soft); color: var(--good); }
+.deal .v3deal.bad { background: var(--hostile-soft); color: var(--bad); }
+.deal .v3deal .mini { flex: none; color: var(--ink); }
+.ap .v3cap.plus { border-color: var(--good); }
+.ap .v3cap.plus > i { background: var(--good); }
 
 </style>
 </head>
@@ -4904,7 +4912,8 @@ I18N.add({
   'mp.h.map_x': ['地图右上角的「图层」可以按需打开或关闭：战线箭头与兵力集群（箭头越粗投入的兵力越多，图标表示坦克、步兵、飞机、舰艇；刚发动的攻势会播放开战动画）、补给线、航运线与封锁（线越粗运量越大，红色虚线是战区）、铁路干线、油田与煤田、海峡要冲、驻军。也可以一键切换「简洁 / 作战 / 经济 / 全部」；动画可以关掉。', 'Use Layers at the top right of the map to show what you need: front arrows and force clusters (thicker arrows mean more troops committed; icons show tanks, infantry, aircraft and ships; new offensives play a launch animation), supply lines, sea lanes and blockades (thicker lanes carry more trade; red dashes mark war zones), main railways, oil and coal fields, strategic straits and garrisons. Switch presets in one click — Simple, Operations, Economy, All — and turn animation off if you prefer.'],
 });
 
-/* 网页版规则 v2（window.TX_RULES2）用到的引擎文字：臣服的前提、动员即时生效、行动组合、只退出一项条约 */
+/* 网页版规则 v2（window.TX_RULES2）用到的引擎文字：臣服的前提、动员即时生效、行动组合、只退出一项条约；
+ * 规则 v3（window.TX_RULES3）：和 AI 国家的协议回合结束统一结算（冲突、对方的选择、行动力退还） */
 I18N.add({
   'why.fallen': ['{t}还没有沦陷（本土全被占，或攻势推进到 {n}% 以上，才能要求臣服）', '{t:C} has not fallen yet (vassalage can only be demanded once its homeland is fully occupied or an offensive against it passes {n}%)'],
   'c.fallen': ['{t}还没有沦陷：本土全被你或盟友占领，或者你（或盟友）对它的攻势推进到 {n}% 以上，才能要求臣服', '{t:C} has not fallen: you can demand vassalage only once you or an ally hold its whole homeland, or an offensive by you or an ally against it passes {n}%'],
@@ -4915,6 +4924,13 @@ I18N.add({
   'c.pkg_item': ['{x}：{r}', '{x}: {r}'],
   'pv.release_occ': ['恢复它的独立：关系大幅改善，同情它的国家也更友好', 'Restore its independence: relations improve sharply, as do those of countries sympathetic to it'],
   'pv.break1': ['只终止{k}；关系下降，你的可信度略降', 'Ends only the {k}; relations fall and your trust dips'],
+  'dl.ally_enemy': ['{t}已和{p}的交战国{b}结盟', '{t:C} is allied with {b}, which is at war with {p}'],
+  'dl.war_ally': ['{t}和{b}是盟友，不会对它开战', '{t:C} is allied with {b} and will not go to war against it'],
+  'dl.has_lord': ['{t}已是{b}的附庸', '{t:C} is already a vassal of {b}'],
+  'dl.res_ok': ['与{a}的协议生效：{x}', 'Agreement with {a} in force: {x}'],
+  'dl.res_lost': ['{a}这一回合同时收到了{b}的协议，两者互相排斥，它选择了{b}；你的协议作废，所占的 {n}% 行动力下回合退还', '{a:C} also received an agreement from {b} this turn; the two could not both stand and it chose {b}. Yours is void, and its {n}% of capacity comes back next turn'],
+  'dl.res_won': ['{b}这一回合也和{a}签了互相排斥的协议，{a}选择了你', '{b:C} also signed an incompatible agreement with {a} this turn; {a} chose you'],
+  'dl.res_void': ['与{a}的协议没能生效：{x}；所占的 {n}% 行动力下回合退还', 'The agreement with {a} did not take effect: {x}. Its {n}% of capacity comes back next turn'],
 });
 
 /* 网页版（GitHub Pages 等普通网站）：联网经公共中继服务器；AI 推演由玩家自带密钥接入（src/web/02_ai.js）。覆盖联机版里与 claude.ai 有关的文字。
@@ -5246,7 +5262,7 @@ I18N.add({
   'u.noap': ['行动力不够', 'Not enough capacity'],
   'c.ap': ['行动力不够（要占 {n}%）', 'Not enough capacity (needs {n}%)'],
   'u.appen': ['政权更迭后的过渡期：做什么都更费力（剩余{n}回合）', 'Transition after a change of government: every move costs more ({n} turns left)'],
-  'u.talks_help': ['你在与{v}磋商。可以提条件、威胁、利诱或试探；达成的协议签署后生效（占一部分行动力）。对方记得你过去的所作所为。', 'You are talking to {v}. Offer terms, threaten, entice or probe; a deal takes effect once signed (it takes some capacity). They remember what you have done.'],
+  'u.talks_help': ['你在与{v}磋商。可以提条件、威胁、利诱或试探；达成的协议签署后排进本回合队列（占一部分行动力），回合结束时生效。对方记得你过去的所作所为。', 'You are talking to {v}. Offer terms, threaten, entice or probe; a signed deal goes into this turn’s queue (it takes some capacity) and takes effect at the end of the turn. They remember what you have done.'],
   'u.h.turn_x': ['每回合代表一个季度。每回合有 100% 的行动力，外交、经济、军事、隐蔽与内政行动各占一部分，花钱的按金额多占；调兵与调整军费不占行动力。结束回合后，你的行动与各国的行动同时结算——你看不到对手这一回合的决定。', 'Each turn is a quarter. You have 100% action capacity per turn; diplomatic, economic, military, covert and domestic moves each take a share, and those that spend money take more the bigger the sum; moving troops and setting the budget take none. When you end the turn, your moves and everyone else’s resolve at the same time — you cannot see what rivals decided this turn.'],
   'u.deploy': ['调动部队（不占行动力）', 'Move forces (no capacity)'],
   'u.budget': ['国防预算（即时生效，不占行动力）', 'Defense budget (immediate, no capacity)'],
@@ -5259,6 +5275,7 @@ I18N.add({
   'v3.cap': ['行动力 剩 {n}%', 'Capacity {n}% left'],
   'v3.cap_t': ['本回合行动力 100%：已排 {q}%，已即时使用 {u}%，剩 {n}%。本国系数 ×{e}（国力越强、政局越稳，做同样的事越省力）', 'This turn: 100% capacity — {q}% queued, {u}% used on immediate moves, {n}% left. Your country’s factor ×{e} (bigger, steadier countries spend less on the same move)'],
   'v3.gdp_share': ['GDP 的 {s}%', '{s}% of GDP'],
+  'v3.cap_tr': ['本回合行动力 100% + 上回合作废协议退还的 {r}%：已排 {q}%，已即时使用 {u}%，剩 {n}%。本国系数 ×{e}（国力越强、政局越稳，做同样的事越省力）', 'This turn: 100% capacity plus {r}% returned from last turn’s void agreements — {q}% queued, {u}% used on immediate moves, {n}% left. Your country’s factor ×{e} (bigger, steadier countries spend less on the same move)'],
   // 新手教学
   'tut.s.top.x': ['日期与回合（每回合一个季度）、GDP、增长、国力、稳定、民意、国库和争霸进度都在这里。右边的条是本回合的行动力：每回合 100%，每件事占一部分，花钱的按金额多占；用完了就要等下一回合。', 'Date and turn (each turn is one quarter), GDP, growth, power, stability, public support, treasury and your progress toward hegemony. The bar on the right is this turn’s action capacity: 100% each turn, every move takes a share and moves that spend money take more the bigger the sum; once it runs out you wait for the next turn.'],
   'tut.s.queue.x': ['本回合排好的行动都在这里，写着各占多少行动力和钱；点 × 撤回（一组行动整组撤回）。多人局里在输入框选「方针」，可以用一两句话写下本回合的总体打算，只加密交给推演。', 'Everything queued this turn sits here with its share of capacity and its money; press × to take it back (a package goes as a whole). In multiplayer, choose Strategy in the input box to write your intent for the turn — sent encrypted to the simulation only.'],
@@ -5282,9 +5299,18 @@ I18N.add({
   'v2.mob.cost': ['提高一级占 {n}%、立即生效；降低免费。3–5 级是总体战：兵员与军费上限、军工吸收能力大幅提高，经济、稳定与厌战代价沉重。', 'Each level up takes {n}% and is immediate; lowering is free. Levels 3–5 are total war: far higher manpower, budget and industrial caps, with heavy costs in growth, stability and war-weariness.'],
   'v2.std.mob1': ['提高动员等级占 {n}%，其余免费；立即生效', 'Raising mobilization takes {n}%, the rest is free; takes effect at once'],
   // 外交
-  'v2.prop.cost': ['签署占一部分行动力（看条款）', 'signing takes some capacity (depends on the terms)'],
+  'v2.prop.cost': ['签署占一部分行动力（看条款），回合结束时生效', 'signing takes some capacity (depends on the terms) and takes effect at the end of the turn'],
+  'v2.prop.help_ai': ['选条款、点“加入”，再“发出提议”：对方当场答复（接受、开条件或拒绝），接受后签署，回合结束时生效。', 'Pick terms, press Add, then Send: they answer at once (accept, counter or refuse); sign, and it takes effect at the end of the turn.'],
   'v2.prop.free': ['真人之间的协议不占行动力', 'free between human players'],
-  'v2.prop.sign_cost': ['签署时占 {n}%', 'signing will take {n}%'],
+  'v2.prop.sign_cost': ['签署时占 {n}%，回合结束时生效', 'signing takes {n}%; it takes effect at the end of the turn'],
+  // 协议回合结束时统一结算
+  'v3.q.deal': ['协议 → {a:N}（{x}）', 'Agreement → {a} ({x})'],
+  'v3.deal_queued': ['已签署与{a}的协议，排进本回合队列（占 {n}%）：回合结束时统一结算，结算前可以撤回', 'Agreement with {a} signed and queued for this turn ({n}%): it is settled at the end of the turn, and you can withdraw it until then'],
+  'v3.deal_pend': ['✓ 已签署 · 回合结束时生效（占 {n}%）', '✓ Signed · takes effect at the end of the turn ({n}%)'],
+  'v3.deal_unsign': ['撤回', 'Withdraw'],
+  'v3.deal_back': ['已撤回与{a}的协议，行动力已退还', 'Agreement with {a} withdrawn; its capacity is back'],
+  'v3.deal_wd': ['已撤回', 'Withdrawn'],
+  'v3.deal_sign_t': ['签署后排进本回合队列，回合结束时生效；同一回合别的玩家也和它签了互相排斥的协议时，由它选一份，其余作废、下回合退还行动力', 'Signing puts it in this turn’s queue and it takes effect at the end of the turn; if another player signs an incompatible agreement with the same country this turn, it picks one, and the other is void with its capacity returned next turn'],
   'v2.treaties_x': ['退出某一项条约是一项行动（占一部分行动力，回合结束生效），只终止这一项；长期援助随时停止，不占行动力。', 'Leaving a treaty is an action (it takes some capacity and happens at the end of the turn) and ends only that one; standing aid can be stopped any time at no cost.'],
   // 输入框
   'v2.ub.formal': ['正式表态（谴责、警告或核威慑，排成一项行动）', 'Formal statement (condemn, warn or nuclear threat, queued as an action)'],
@@ -5301,7 +5327,8 @@ I18N.add({
   'v3.h.eff': ['本国系数 ×{e}', 'Your country’s factor ×{e}'],
   'v2.h.pkg': ['多选与组合：', 'Packages: '],
   'v2.h.pkg_x': ['制裁、援助、军事施压、隐蔽行动、国内措施可以多选，金额自己填。一项就占那一项的比例；几项一起时，规则估计是各项之和打折（两项九折、三项八折、四项以上七折）；接了 AI 时由 AI 在“估计的 85% 到各项之和”之间判断。排进队列的组合整组撤回。', 'Sanctions, aid, military pressure, covert action and domestic measures take several ticks and typed amounts. One item takes its own share; for several, the rule estimate is their sum with a bundling discount (10% off for two, 20% for three, 30% for four or more); with AI connected the AI decides between 85% of the estimate and the full sum. A queued package is withdrawn as a whole.'],
-  'v2.h.deals_x': ['结盟、自贸、互不侵犯、驻军、军控、停火、议和、臣服、援助、出兵、扩军动员……都是协议条款，在外交页的对话里附上发出。和 AI 国家签一份占 6% 起：每多一项条款加 2%，含同盟或臣服再加 8%，我方出钱的援助按金额另算，都乘本国系数；真人之间不占行动力。只有对方本土全被占或攻势推进到 80% 以上才能要求臣服；中国和美国在四个年代都不会臣服、不会灭亡。首脑会晤也在对话里；条约可以逐项退出。', 'Alliances, free trade, non-aggression, basing, arms control, ceasefires, peace, vassalage, aid, troops, mobilization… are all agreement terms, attached in a conversation on the Diplomacy tab. Signing with an AI country takes 6% and up: 2% more per extra term, 8% more with an alliance or vassalage, plus a money share for any aid we pay, all times your country’s factor; deals between humans take no capacity. Vassalage can be demanded only once the other side’s homeland is fully occupied or an offensive against it passes 80%; China and the USA never submit or fall in any timeline. Summits are in the conversation too; treaties can be left one at a time.'],
+  'mp.h.flow_x': ['每回合一个季度。所有玩家同时规划（排队行动、调兵、谈判），点“就绪”；全员就绪或倒计时结束后，房主的浏览器统一结算，几秒内同步给所有人。回应提议、真人之间的协议、战时政策、实时命令等立即生效；和 AI 国家签的协议在结算时一起生效。', 'Each turn is a quarter. Everyone plans at once (queue actions, move forces, negotiate) and presses Ready; when all are ready or the timer runs out, the host\'s browser resolves the turn and syncs it to everyone within seconds. Answers to proposals, deals between humans, war policies and live orders apply immediately; agreements signed with AI countries take effect together at resolution.'],
+  'v2.h.deals_x': ['结盟、自贸、互不侵犯、驻军、军控、停火、议和、臣服、援助、出兵、扩军动员……都是协议条款，在外交页的对话里附上发出。和 AI 国家签一份占 6% 起：每多一项条款加 2%，含同盟或臣服再加 8%，我方出钱的援助按金额另算，都乘本国系数；真人之间不占行动力。和 AI 国家签的协议排进本回合队列，回合结束时统一结算，结算前可以撤回：同一回合几位玩家和同一个国家签了互相排斥的协议（同时和互为对手的两国结盟、建立伙伴关系或驻军，要它对其中一方参战，同时臣服两国，一方要它和另一方断盟），由它按自己的评估选一份，其余作废，所占行动力下回合退还；结算时已和局面冲突的条款（例如它已和你的交战国结盟）也作废。真人之间的协议双方同意后立即生效，同样复查这些冲突。只有对方本土全被占或攻势推进到 80% 以上才能要求臣服；中国和美国在四个年代都不会臣服、不会灭亡。首脑会晤也在对话里；条约可以逐项退出。', 'Alliances, free trade, non-aggression, basing, arms control, ceasefires, peace, vassalage, aid, troops, mobilization… are all agreement terms, attached in a conversation on the Diplomacy tab. Signing with an AI country takes 6% and up: 2% more per extra term, 8% more with an alliance or vassalage, plus a money share for any aid we pay, all times your country’s factor; deals between humans take no capacity. Agreements with AI countries go into this turn’s queue and are settled together at the end of the turn; you can withdraw them until then. If several players signed incompatible agreements with the same country in one turn (alliances, partnerships or basing with two rivals, asking it to fight one of them, vassalage to two lords, or one asking it to drop its alliance with the other), it picks one by its own judgement; the rest are void and their capacity comes back next turn. Terms that no longer fit the situation at settlement (say it has since allied with a country at war with you) are void too. Deals between humans take effect as soon as both sides agree, with the same checks. Vassalage can be demanded only once the other side’s homeland is fully occupied or an offensive against it passes 80%; China and the USA never submit or fall in any timeline. Summits are in the conversation too; treaties can be left one at a time.'],
   'v2.h.cmd_x': ['发送前选一种：执行（一句话命令）、方针（本回合打算，只交给推演）、公开（勾“正式表态”就成了谴责、警告或核威慑）、对某国（AI 国家是谈判，真人是私信）。执行的命令能对应标准操作就照按钮的规则办，对应不上才交给 AI 换算，由 AI 定占多少行动力（5%–40%，乘本国系数）。', 'Choose before sending: Do (a one-line order), Strategy (your intent, for the simulation only), Public (tick “formal statement” to condemn, warn or threaten) or To a country (talks with an AI country, a private message to a human). Orders that match a standard action follow the button rules; only the rest go to the AI, which decides their share of capacity (5–40%, times your country’s factor).'],
   'v2.h.mob_x': ['动员等级 0–5（3–5 是总体战），每提高一级占 6%（乘本国系数）、立即生效。征兵人数、订单金额自己填，按金额占少量行动力；战时政策每行旁边是一次性加码（紧急征召、突击生产、紧急征发、洗劫、强征）。', 'Mobilization levels 0–5 (3–5 are total war); each level up takes 6% (times your country’s factor) and is immediate. Type the number of conscripts and the size of orders, which take a little capacity by their size; each war-economy row has a one-off surge beside it (emergency draft, crash production, emergency requisition, looting, press-gangs).'],
 });
@@ -8299,6 +8326,8 @@ function prepareTurn(S) {
     for (const c of S.crises) if (!c.resolved && c.deadline <= S.turn) { const r = resolveCrisis(S, c.id, c.def || 0, RR); if (r) RR.pol.push({ msg: M('cr.default', { x: c.title, k: r.label }), tone: 'warn' }); }
     S.crises = S.crises.filter(c => !c.resolved || c.turn >= S.turn - 8);
   });
+  // 0) 规则 v3：和 AI 国家签的协议统一生效（有冲突时由对方选择）
+  if (RULES3) { const ds = []; forHumans(S, P => { for (const q of S.queue) if (q.type === 'deal' && q.target) ds.push({ P, X: q.target, q }); S.queue = S.queue.filter(q => q.type !== 'deal'); }); if (ds.length) resolveDeals(S, ds, R); }
   // 1) 各国秘密决策（同一回合针对每个真人的动作数量有上限，避免信息轰炸）
   let plans = aiPlan(S);
   forHumans(S, () => { plans = limitPlans(S, plans); });
@@ -8453,7 +8482,7 @@ function finishTurn(S, opts = {}) {
     for (const a of RR.toYou) logEvent(S, 'ai', a.msg, a.tone === 'good' ? 'good' : a.tone === 'bad' ? 'bad' : 'warn', a.actor ? [a.actor, P] : [P]);
     for (const i of RR.intel) S.intelLog.push({ turn: S.turn, msg: i.msg, tone: i.tone, about: i.about || [] });
     if (S.intelLog.length > 60) S.intelLog.splice(0, S.intelLog.length - 60);
-    if (S.humans) S.apUsed = 0;
+    if (S.humans) { S.apUsed = 0; if (RULES3 && S.apRefund && S.apRefund[P]) { S.apUsed = -S.apRefund[P]; delete S.apRefund[P]; } } // 规则 v3：上回合作废的协议退还行动力
     checkEnd(S);
     if (S.humans && S.over && S.over.result === 'lose') { out.push([P, S.over]); S.over = null; } // 多人局：某位真人出局，不影响其他人
   });
@@ -8566,6 +8595,7 @@ const DEAL_TYPES = ['trade', 'alliance', 'nap', 'access', 'partner', 'armsctl', 
 function dealCheck(S, X, term) {
   const P = S.player, x = S.actors[X];
   if (!DEAL_TYPES.includes(term.type)) return M('dl.unknown');
+  if (RULES3) { const w = dealClash3(S, P, X, term); if (w) return w; } // 规则 v3：和已有局面冲突的条款（它已和你的交战国结盟、要它打自己的盟友、已有宗主国）
   switch (term.type) {
     case 'vassal': { if (GRD(S, X)) return M('why.guard', { t: X }); if (RULES2 && !fallen(S, P, X)) return M('dl.fallen', { t: X, n: FALLEN }); const e = (blocPower(S, P) + 1) / (blocPower(S, X) + allyHelp(S, X, P) + 1); const losing = S.fronts.some(f => f.att === P && boss(S, f.target) === X && f.progress > 60); if (e < 2.5 && !losing && x.stab > 25) return M('dl.vassal_gap'); if (x.nukes > 50 && !losing) return M('dl.vassal_nuke'); return null; }
     case 'tribute': return (blocPower(S, P) + 1) / (blocPower(S, X) + 1) < 2 ? M('dl.tribute') : null;
@@ -8581,9 +8611,11 @@ function dealCheck(S, X, term) {
   }
   return null;
 }
-function applyDeal(S, X, terms) {
-  const P = S.player, done = [], R = scratchReport(S);
-  for (const t of (Array.isArray(terms) ? terms : []).filter(z => z && typeof z === 'object').slice(0, 6)) {
+function applyDeal(S, X, terms, R0) { // R0：回合结算中统一生效时（规则 v3）直接写进这一回合的战报
+  const P = S.player, done = [], R = R0 || scratchReport(S);
+  let list = (Array.isArray(terms) ? terms : []).filter(z => z && typeof z === 'object').slice(0, 6);
+  if (RULES3) list = list.filter(z => z.type === 'break_alliance').concat(list.filter(z => z.type !== 'break_alliance')); // 先断盟，再谈别的
+  for (const t of list) {
     const bad = dealCheck(S, X, t); if (bad) { done.push(M('dl.void', { x: M('dk.' + t.type), r: bad })); continue; }
     switch (t.type) {
       case 'trade': case 'alliance': case 'nap': case 'access': case 'partner': case 'armsctl':
@@ -8612,10 +8644,119 @@ function applyDeal(S, X, terms) {
       case 'withdraw': { const L = String(t.loc).toUpperCase(); S.fronts = S.fronts.filter(f => !(f.att === P && f.from === L)); S.ops = S.ops.filter(o => !(o.owner === P && o.from === L)); orderMove(S, P, L, P, shareV(S, P, L).slice()); addCommit(S, 'no_forces', X, 8, 'deal', { loc: L }); done.push(M('dl.withdraw', { l: L })); break; }
     }
   }
-  carryOver(S, R);
+  if (!R0) carryOver(S, R);
   addRel(S, P, X, 6); remember(S, X, M('mem.deal'), 10);
   logEvent(S, 'deal', M('dl.log', { a: X, x: { list: done } }), 'good', [P, X]);
   return done;
+}
+/* ---------- 规则 v3：和 AI 国家签的协议回合结束时统一结算 ----------
+ * 签署 = 排进队列（type 'deal'），行动力照扣，回合结束前可以撤回。结算一开始（各国决策之前）集中处理：
+ *   1) 同一个 AI 国家这一回合收到的协议里互相排斥的：同时和互为对手（交战，或关系低于 −20）的两方结盟、做安全伙伴、给驻军权、臣服、参战或出兵；
+ *      答应对某国参战或出兵打它，同时又和它签别的；同时臣服两国；一方要它和某国断盟，那个国家同时要和它结盟。
+ *   2) 有冲突时由这个国家按自己的利益选（它对各方的关系、影响力、各项条款对它的好处——和谈判时同一套评估），选中的生效，其余作废；
+ *      作废的协议下回合退还所占的行动力，双方都在战报里看到结果。
+ *   3) 每一份协议生效时再按当时的局势逐项复查（例如它已经和你的交战国结盟、要它打自己的盟友、它已有宗主国），不成立的条款作废。
+ * 处理顺序固定（按评估从高到低，同分按国家代码），联机时每台机器结果一致。真人之间的协议仍在对方接受时生效，但同样逐项复查。 */
+const aligned = (S, a, b) => isAlly(S, a, b) || isPartner(S, a, b);
+function dealClash3(S, P, X, t) {
+  if (['alliance', 'partner', 'access', 'vassal'].includes(t.type)) { const Q = IDS.find(c => c !== P && c !== X && S.actors[c] && atWar(S, c, P) && aligned(S, X, c)); if (Q) return M('dl.ally_enemy', { t: X, b: Q, p: P }); }
+  if (t.type === 'join_war') { const E = boss(S, String(t.enemy || '').toUpperCase()); if (S.actors[E] && E !== X && aligned(S, X, E)) return M('dl.war_ally', { t: X, b: E }); }
+  if (t.type === 'send_troops') { const d = dealDest(S, t), f = d && S.fronts.find(z => z.id === d), E = f ? boss(S, f.target) : null; if (E && E !== X && aligned(S, X, E)) return M('dl.war_ally', { t: X, b: E }); }
+  if (t.type === 'vassal') { const o = S.actors[X] && S.actors[X].overlord; if (o && o !== P) return M('dl.has_lord', { t: X, b: o }); }
+  return null;
+}
+const DEAL_KEY = /^[a-z]{1,8}$/;
+function cleanDealTerms(terms) {
+  const out = [];
+  for (const t of (Array.isArray(terms) ? terms : []).slice(0, 6)) {
+    if (!t || typeof t !== 'object' || !DEAL_TYPES.includes(t.type)) continue;
+    const o = {}; for (const [k, v] of Object.entries(t)) if (DEAL_KEY.test(k) && (typeof v === 'number' ? isFinite(v) : typeof v === 'string' && v.length <= 40)) o[k] = v;
+    out.push(o);
+  }
+  return out;
+}
+const dealMoney = (S, terms) => { const g = S.actors[S.player].gdp; return terms.reduce((s, t) => s + (t.type === 'aid' || t.type === 'arms' ? clamp(+t.amount || g * 0.002, 0, g * 0.02) : 0), 0); };
+/* 签署：排进队列，回合结束统一结算 */
+function queueDeal(S, X, terms, did) {
+  if (!RULES3) return { ok: false, reason: M('c.unknown') };
+  const P = S.player; X = String(X || '').toUpperCase();
+  if (!S.actors[X] || X === P || isHuman(S, X) || !indep(S, X) || NEU(S, X)) return { ok: false, reason: M('c.unknown') };
+  const L = cleanDealTerms(terms); if (!L.length) return { ok: false, reason: M('c.pkg_empty') };
+  const bad = L.map(t => dealCheck(S, X, t)).filter(Boolean); if (bad.length === L.length) return { ok: false, reason: bad[0] };
+  const need = dealAP(L, S); if (need > apLeft(S)) return { ok: false, reason: M('c.ap', { n: need }) };
+  const cost = dealMoney(S, L), x = S.actors[P];
+  if (cost > 0 && x.treasury - moneyQueued(S) < cost - x.gdp * (0.08 + weCredit(S, P))) return { ok: false, reason: M('c.money') };
+  S.queue.push({ type: 'deal', target: X, params: { terms: L, did: String(did || '').slice(0, 60) }, ap: need, cost });
+  return { ok: true, ap: need };
+}
+/* 协议在 AI 国家眼里值多少（同一套评估：关系、影响力、各项条款的好处） */
+function dealValue(S, P, X, terms) {
+  const x = S.actors[X]; let v = rel(S, X, P) / 200 + infl(S, P, X) / 300;
+  for (const t of terms) {
+    if (['trade', 'alliance', 'nap', 'access', 'partner', 'armsctl', 'vassal', 'peace', 'ceasefire', 'join_war'].includes(t.type)) { v += evalDeal(S, P, X, t).score; continue; }
+    const amt = +t.amount || S.actors[P].gdp * 0.002, base = Math.max(0.1, x.gdp * 0.01);
+    switch (t.type) {
+      case 'aid': v += Math.min(1.2, amt / base * 0.25); break;
+      case 'arms': v += Math.min(1, amt / base * 0.2) * (enemies(S, X).length ? 1.3 : 0.6); break;
+      case 'lift_my_sanctions': v += 0.4; break;
+      case 'tech_share': v += x.tech < S.actors[P].tech ? 0.15 : -0.1; break;
+      case 'withdraw': case 'pledge_no_attack': v += 0.2; break;
+      case 'tribute': v -= 0.5; break;
+      case 'lift_sanctions': v -= 0.1; break;
+      case 'drop_ultimatum': case 'break_alliance': v -= 0.3; break;
+      case 'send_troops': v -= 0.2; break;
+      case 'mobilize': case 'raise_defense': v -= 0.1; break;
+    }
+  }
+  return v;
+}
+/* 一份协议对第三方的牵连：站到哪一边、要打谁、要和谁断盟（在签约国的席位里算，出兵的目的地按签约国的战线） */
+function dealSides(S, terms) {
+  const s = { align: false, vassal: false, ally: false, hostile: new Set(), breakw: new Set() };
+  for (const t of terms) {
+    if (['alliance', 'partner', 'access', 'vassal', 'join_war', 'send_troops'].includes(t.type)) s.align = true;
+    if (t.type === 'vassal') s.vassal = true;
+    if (t.type === 'alliance' || t.type === 'partner') s.ally = true;
+    if (t.type === 'join_war') { const E = boss(S, String(t.enemy || '').toUpperCase()); if (S.actors[E]) s.hostile.add(E); }
+    if (t.type === 'send_troops') { const d = dealDest(S, t), f = d && S.fronts.find(z => z.id === d); if (f) s.hostile.add(boss(S, f.target)); }
+    if (t.type === 'break_alliance') { const w = String(t.with || '').toUpperCase(); if (S.actors[w]) s.breakw.add(w); }
+  }
+  return s;
+}
+const rivals3 = (S, a, b) => atWar(S, a, b) || rel(S, a, b) < -20;
+function dealsClash(S, a, b) {
+  if (a.P === b.P) return false;
+  const A = a.s, B = b.s, pa = a.P, pb = b.P;
+  if (A.hostile.has(pb) || A.hostile.has(boss(S, pb)) || B.hostile.has(pa) || B.hostile.has(boss(S, pa))) return true; // 要它打其中一方
+  if (A.align && B.align && rivals3(S, pa, pb)) return true; // 同时站到互为对手的两边
+  if (A.vassal && B.vassal) return true; // 不能同时臣服两国
+  if ((A.breakw.has(pb) && B.ally) || (B.breakw.has(pa) && A.ally)) return true; // 一方要它和另一方断盟
+  return false;
+}
+function dealRefund(S, P, n) { if (!(n > 0)) return; S.apRefund = S.apRefund || {}; S.apRefund[P] = (S.apRefund[P] || 0) + n; }
+function resolveDeals(S, ds, R) {
+  const byX = {}; for (const d of ds) (byX[d.X] = byX[d.X] || []).push(d);
+  for (const X of Object.keys(byX).sort()) {
+    const list = byX[X];
+    for (const d of list) { d.terms = cleanDealTerms(d.q.params && d.q.params.terms); d.did = (d.q.params && d.q.params.did) || ''; }
+    if (!S.actors[X] || !indep(S, X) || isHuman(S, X)) { for (const d of list) { RP(S, d.P, R).actions.push({ msg: M('dl.res_void', { a: X, x: M('of.gone', { a: X }), n: d.q.ap || 0 }), tone: 'bad', did: d.did }); dealRefund(S, d.P, d.q.ap); } continue; }
+    for (const d of list) withSeat(S, d.P, () => { d.v = dealValue(S, d.P, X, d.terms); d.s = dealSides(S, d.terms); });
+    list.sort((a, b) => b.v - a.v || (a.P < b.P ? -1 : a.P > b.P ? 1 : 0));
+    const won = [];
+    for (const d of list) {
+      const RR = RP(S, d.P, R), w = won.find(z => dealsClash(S, z, d));
+      if (w) {
+        RR.actions.push({ msg: M('dl.res_lost', { a: X, b: w.P, n: d.q.ap || 0 }), tone: 'bad', did: d.did, about: [X, w.P] });
+        RP(S, w.P, R).intel.push({ msg: M('dl.res_won', { a: X, b: d.P }), tone: 'good', about: [X, d.P] });
+        dealRefund(S, d.P, d.q.ap); continue;
+      }
+      const ok = withSeat(S, d.P, () => d.terms.filter(t => !dealCheck(S, X, t)));
+      if (!ok.length) { const why = withSeat(S, d.P, () => dealCheck(S, X, d.terms[0])); RR.actions.push({ msg: M('dl.res_void', { a: X, x: why || M('dl.unknown'), n: d.q.ap || 0 }), tone: 'bad', did: d.did }); dealRefund(S, d.P, d.q.ap); continue; }
+      const done = withSeat(S, d.P, () => applyDeal(S, X, d.terms, RR));
+      RR.actions.push({ msg: M('dl.res_ok', { a: X, x: { list: done } }), tone: 'good', did: d.did, about: [X] });
+      won.push(d);
+    }
+  }
 }
 
 function dealDest(S, t) { const f = t.front && S.fronts.find(z => z.id === String(t.front)); if (f && f.att === S.player) return f.id; const L = String(t.loc || '').toUpperCase(); if (S.actors[L]) return 'D:' + L; const g = S.fronts.find(z => z.att === S.player); return g ? g.id : null; }
@@ -10769,17 +10910,19 @@ function applyHDeal(S, A, B, terms) {
     const by = t.by, ob = by ? other(by) : null;
     try {
       switch (t.type) {
-        case 'alliance': case 'trade': case 'nap': case 'access': case 'partner': case 'armsctl':
+        case 'alliance': case 'trade': case 'nap': case 'access': case 'partner': case 'armsctl': {
           if (atWar(S, A, B)) { done.push(M('dl.void', { x: M('dk.' + t.type), r: M('dl.atwar') })); break; }
+          const w3 = RULES3 && ['alliance', 'partner', 'access'].includes(t.type) ? dealClash3(S, A, B, t) || dealClash3(S, B, A, t) : null; // 规则 v3：一方已和另一方的交战国结盟
+          if (w3) { done.push(M('dl.void', { x: M('dk.' + t.type), r: w3 })); break; }
           addTreaty(S, t.type, A, B);
           if (t.type === 'alliance') { commit(A, 'defend', B, null, 'alliance'); commit(B, 'defend', A, null, 'alliance'); }
           if (t.type === 'nap') { commit(A, 'no_attack', B, null, 'nap'); commit(B, 'no_attack', A, null, 'nap'); }
           if (t.type === 'armsctl') { commit(A, 'armsctl', B, null, 'armsctl', { cap: S.actors[A].milPct + 1 }); commit(B, 'armsctl', A, null, 'armsctl', { cap: S.actors[B].milPct + 1 }); }
-          addRel(S, A, B, 8); done.push(M('dl.treaty', { k: M('tr.' + t.type) })); break;
+          addRel(S, A, B, 8); done.push(M('dl.treaty', { k: M('tr.' + t.type) })); break; }
         case 'ceasefire': case 'peace': if (!atWar(S, A, B)) { done.push(M('dl.void', { x: M('dk.' + t.type), r: M('dl.notwar') })); break; } makePeace(S, A, B, t.type === 'ceasefire' ? 'ceasefire' : 'white', R); done.push(M(t.type === 'ceasefire' ? 'dl.ceasefire' : 'dl.peace')); break;
         case 'aid': S.actors[by].treasury -= t.amount; S.actors[ob].treasury += t.amount; addInfl(S, by, ob, clamp(t.amount / S.actors[ob].gdp * 300, 1, 15)); done.push(M('hd.aid', { b: by, m: $m(t.amount) })); break;
         case 'arms': S.actors[by].treasury -= t.amount; armsTransfer(S, by, ob, t.amount); done.push(M('hd.arms', { b: by, m: $m(t.amount) })); break;
-        case 'join_war': { const E = boss(S, t.enemy); if (E === by || E === ob || atWar(S, by, E) || !indep(S, E)) break; declareWar(S, by, E); logEvent(S, 'war', M('m.war', { a: by, b: E }), 'warn', [by, E]); pushEv(S, { type: 'declare', actor: by, target: E, sev: 50, third: 15, big: true }); done.push(M('dl.join', { t: by, b: E })); break; }
+        case 'join_war': { const E = boss(S, t.enemy); if (E === by || E === ob || atWar(S, by, E) || !indep(S, E)) break; if (RULES3 && aligned(S, by, E)) { done.push(M('dl.void', { x: M('dk.join_war'), r: M('dl.war_ally', { t: by, b: E }) })); break; } /* 规则 v3：不会对自己的盟友开战 */ declareWar(S, by, E); logEvent(S, 'war', M('m.war', { a: by, b: E }), 'warn', [by, E]); pushEv(S, { type: 'declare', actor: by, target: E, sev: 50, third: 15, big: true }); done.push(M('dl.join', { t: by, b: E })); break; }
         case 'tech_share': S.actors[A].tech = clamp(S.actors[A].tech + 0.8, 0, 100); S.actors[B].tech = clamp(S.actors[B].tech + 0.8, 0, 100); done.push(M('dl.tech')); break;
         case 'lift_sanctions': removeSanctions(S, by, ob); done.push(M('hd.lift_sanctions', { b: by })); break;
         case 'withdraw': { const L = t.loc; if (share(S, by, L) <= 0) break; S.fronts = S.fronts.filter(f => !(f.att === by && f.from === L)); S.ops = S.ops.filter(o => !(o.owner === by && o.from === L)); orderMove(S, by, L, by, shareV(S, by, L).slice()); done.push(M('dl.withdraw', { l: L })); break; }
@@ -10838,7 +10981,7 @@ const CMD = {
   setHold: (S, a) => setHold(S, sid(a[0]).toUpperCase(), a[1] == null || a[1] === '' ? null : +a[1]),
   cancelProgram: (S, a) => cancelProgram(S, sid(a[0])),
   coreBackDown: (S, a) => coreBackDown(S, sid(a[0])),
-  applyDeal: (S, a) => { const X = sid(a[0]).toUpperCase(); if (!S.actors[X] || isHuman(S, X) || !indep(S, X)) return null; const terms = Array.isArray(a[1]) ? a[1].slice(0, 6) : [], need = dealAP(terms, S); if (apLeft(S) < need) return null; S.apUsed = (S.apUsed || 0) + need; return applyDeal(S, X, terms); },
+  applyDeal: (S, a) => { const X = sid(a[0]).toUpperCase(); if (RULES3 || !S.actors[X] || isHuman(S, X) || !indep(S, X)) return null; /* 规则 v3：和 AI 国家的协议排进队列，回合结束统一生效（见 queueDeal） */ const terms = Array.isArray(a[1]) ? a[1].slice(0, 6) : [], need = dealAP(terms, S); if (apLeft(S) < need) return null; S.apUsed = (S.apUsed || 0) + need; return applyDeal(S, X, terms); },
   setMob: (S, a) => setMob(S, a[0]),
   proposeH: (S, a) => proposeH(S, S.player, sid(a[0]).toUpperCase(), a[1], null, a[2]),
   setMil: (S, a) => setMil(S, a[0]),
@@ -14296,6 +14439,7 @@ return {
   shareV, freeV, committedV, inTransitV, dotw, groundV, seaV, vecOf, unitsOf, unitsV, V0, vadd, vmul, vmin, vsub0, vmax, vsum, isV, freeQV, queuedOutV, forcesNear,
   RULES2, fallen, FALLEN, dealAP, setMob, mobIdx, queuePackage, pkgRange, pkgItems, PKG_OK, consN, procAmt, invK, amtOf, AMT_MAX, progOf, coreAP2,
   RULES3, CAP3, AP3, apCost, apAI, apAIRange, mobAP, capEff, capLevel, moneyPct, actMoney, PKG_DISC3, CORE_OP_PCT3,
+  queueDeal, resolveDeals, dealValue, dealSides, dealsClash, dealClash3, cleanDealTerms, dealMoney,
   SCENARIOS, useScenario, sc, scenarioList, playable, migrate, setNeutral, isNeutral: NEU, neutralize, get NEUTRAL() { return NEUTRAL.slice(); }, setProv, provOf: PRV, provincialize, setGuard, isGuarded: GRD, GCAP, holdTerritory, ltxt, frontObjectives, cityName,
   SET_TYPES, settingPreview, previewSettings, checkSetting, ruleSettings, settingsBrief, cancelProgram, applyDefOv, playerMilMax, cityIdx,
   objThr, holdOf, airSupportOf, setFrontFocus, setOpFocus, setHold, frontTargets, isCapital, supRange,
@@ -17188,6 +17332,7 @@ function mpReplayQueue(list) {
       else if (q.type === 'custom') W.queueCustom(S, Object.assign({}, q.order || {}, { ap: q.ap, cost: q.cost }));
       else if (q.type === 'core') W.queueCore(S, q.k, q.lvl);
       else if (q.type === 'done') W.queueDone(S, q.label, q.ap | 0);
+      else if (q.type === 'deal') { if (W.RULES3) W.queueDeal(S, q.target, (q.params || {}).terms, (q.params || {}).did); } // 规则 v3：和 AI 国家签的协议，房主按同一规则复核后排入，结算时统一处理
       else if (W.ACT[q.type]) W.queueAction(S, q.type, q.target, mpClone(q.params || {}));
     } catch (e) { console.warn('replay', q, e); }
   }
@@ -21716,9 +21861,15 @@ const v3On = () => !!(window.TX_V3 && W.RULES3);
 /* 顶栏：剩余行动力 + 一条进度条；悬停看本回合已排、已用和本国系数 */
 function apBoxHTML(left, mx) {
   if (!v3On()) return `<span class="aplbl">${T('u.ap', { n: left, d: mx })}</span><span class="pips">` + Array.from({ length: mx }, (_, i) => `<i class="pip${i < left ? ' on' : ''}"></i>`).join('') + '</span>';
-  const L = Math.max(0, Math.round(left)), q = S.queue.reduce((s, z) => s + (z.ap || 0), 0), u = S.apUsed || 0;
-  const tip = T('v3.cap_t', { q, u, n: L, e: W.capEff(S, S.player).toFixed(2) });
-  return `<span class="aplbl">${T('v3.cap', { n: L })}</span><span class="v3cap ${L < 15 ? 'low' : ''}" title="${esc(tip)}" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${L}" aria-label="${esc(T('v3.cap', { n: L }))}"><i style="width:${clamp(L, 0, 100)}%"></i></span>`;
+  const L = Math.max(0, Math.round(left)), q = S.queue.reduce((s, z) => s + (z.ap || 0), 0), r = v3Refund(), u = (S.apUsed || 0) + r, e = W.capEff(S, S.player).toFixed(2);
+  const tip = r > 0 ? T('v3.cap_tr', { q, u, n: L, e, r }) : T('v3.cap_t', { q, u, n: L, e });
+  return `<span class="aplbl">${T('v3.cap', { n: L })}</span><span class="v3cap ${L < 15 ? 'low' : ''}${r > 0 ? ' plus' : ''}" title="${esc(tip)}" role="meter" aria-valuemin="0" aria-valuemax="${100 + r}" aria-valuenow="${L}" aria-label="${esc(T('v3.cap', { n: L }))}"><i style="width:${clamp(L / (100 + r) * 100, 0, 100)}%"></i></span>`;
+}
+/* 上回合作废的协议退还的行动力（引擎在回合开始时把已用记成负数；这里从本人的战报里找出数目，好在悬停里分开写） */
+function v3Refund() {
+  const R = S.report; let r = 0;
+  if (R && R.turn === S.turn - 1) for (const e of R.actions || []) if (e && e.did != null && e.msg && (e.msg.k === 'dl.res_lost' || e.msg.k === 'dl.res_void')) r += +(e.msg.p && e.msg.p.n) || 0;
+  return Math.max(r, -(S.apUsed || 0), 0);
 }
 /* 表单里每一项旁边：占用的百分比（v2 是几个圆点） */
 function v2ApDots(n) { return v3On() ? `<span class="apc v3pct">${n > 0 ? n + '%' : T('u.ap0')}</span>` : `<span class="apc">${'<i></i>'.repeat(Math.max(0, n))}</span>`; }
@@ -21737,6 +21888,83 @@ function v3CapTable() {
   const lab = (id, p) => T('a.' + id) + (p.amt ? ' · ' + T('v3.gdp_share', { s: +(p.amt / g * 100).toFixed(2) }) : '');
   return `<div class="v3tbl"><b>${T('v3.h.table', { a: P })}</b><table>${rows.map(([id, t, p]) => `<tr><td>${esc(lab(id, p))}</td><td class="num">${W.apCost(S, id, t, p)}%</td></tr>`).join('')}<tr><td>${esc(T('v3.h.deal'))}</td><td class="num">${W.dealAP([{ type: 'trade' }], S)}% / ${W.dealAP([{ type: 'alliance' }], S)}%</td></tr><tr><td>${esc(T('v3.h.mob'))}</td><td class="num">${W.mobAP(S, 0, 1)}%</td></tr></table><small class="muted">${T('v3.h.eff', { e: W.capEff(S, P).toFixed(2) })}</small></div>`;
 }
+
+/* ===================== 网页版 v3 · 和 AI 国家签的协议回合结束时统一结算 =====================
+ * 签署 = 排进本回合队列（占行动力，结算前可以撤回）。回合结束时，同一个 AI 国家收到的协议一起结算：
+ * 互相排斥的（例如同时和互为对手的两国结盟、要它对其中一方参战、同时臣服两国）由它按自己的评估选一份，
+ * 其余作废、所占行动力下回合退还；和当时局面冲突的条款也作废。规则在 src/engine/06_turn.js（queueDeal / resolveDeals）。
+ * 对话里的协议卡片显示：待结算（可撤回）→ 结算结果（从本人的战报里按协议编号找）。 */
+const v3DealAt = did => (did ? S.queue.findIndex(q => q.type === 'deal' && q.params && q.params.did === did) : -1);
+const v3DealTerms = terms => (Array.isArray(terms) ? terms : []).map(termText).join(sep());
+
+/* 队列里的协议写明和谁、哪几项（其余同 v2） */
+function v2QLabel(q) {
+  if (q.type === 'deal') return T('v3.q.deal', { a: q.target, x: { raw: v3DealTerms(q.params && q.params.terms) } });
+  if (q.type === 'break' && q.params && q.params.kind) return T('v2.q.break1', { k: T('tr.' + q.params.kind), t: q.target });
+  if (q.type === 'leavebloc') return T('a.leavebloc') + (q.params && q.params.bloc ? paren(T('bloc.' + q.params.bloc)) : '');
+  if (q.type === 'conscript' && q.params && +q.params.n > 0) return T('a.conscript') + paren(persT(+q.params.n));
+  if (q.type === 'procure' && q.params && +q.params.amt > 0) return T('a.procure') + paren(T('br.' + (q.params.branch || 'land')) + ' ' + fmtB(+q.params.amt));
+  return qLabel(q);
+}
+
+/* 签署：v3 排进队列；回合结束时统一结算 */
+function mpSign(X, i) {
+  const hist = mpAgentHist(X), m = hist[i]; if (!m || !m.deal) return;
+  if (!v3On()) { // 同 v2：立即生效
+    if (m.signed) return;
+    const need = W.dealAP(m.deal.terms, S); if (W.apLeft(S) < need) { toast(T('c.ap', { n: need })); return; }
+    const done = doCmd('applyDeal', [X, m.deal.terms]); if (!done) { toast(T('mp.p.fail')); return; }
+    m.signed = true; mpSavePriv(); toast(T('u.deal_done', { x: { list: done } }), 5000); renderAll(); return;
+  }
+  if (m.signed && (v3DealAt(m.did) >= 0 || m.st !== S.turn)) return; // 已在队列里，或已经结算
+  const did = [X, S.turn, i, Date.now().toString(36).slice(-4) + Math.random().toString(36).slice(2, 5)].join('.');
+  const r = W.queueDeal(S, X, m.deal.terms, did);
+  if (!r.ok) { toast(TX(r.reason)); return; }
+  Object.assign(m, { signed: true, did, st: S.turn }); delete m.res; mpSavePriv();
+  toast(T('v3.deal_queued', { a: X, n: r.ap }), 6000); renderAll();
+}
+
+/* 结算结果：本人的战报里按协议编号找，找到后记在这条消息上（以后的回合战报换了也还在） */
+let v3ResSave = 0;
+function v3DealRes(m) {
+  if (m.res || !m.did || !S.report || S.report.turn !== m.st) return m.res || null;
+  const e = [].concat(S.report.actions || []).find(z => z && z.did === m.did); if (!e) return null;
+  m.res = { msg: e.msg, tone: e.tone };
+  clearTimeout(v3ResSave); v3ResSave = setTimeout(() => { try { mpSavePriv(); } catch (err) { /* 存不了就下次再存 */ } }, 50);
+  return m.res;
+}
+function v3DealState(m, X, i, last, need) {
+  const pend = v3DealAt(m.did);
+  if (pend >= 0) return `<div class="v3deal pend"><span>${T('v3.deal_pend', { n: S.queue[pend].ap || 0 })}</span><button class="mini" data-v3unsign="${X}|${i}">${T('v3.deal_unsign')}</button></div>`;
+  if (m.st === S.turn) return last && m.deal.status !== 'reject' ? v3SignBtn(X, i, need) : `<div class="muted" style="font-size:12px">${T('v3.deal_wd')}</div>`; // 本回合撤回了：可以再签
+  const r = v3DealRes(m);
+  if (r) return `<div class="v3deal ${r.tone === 'good' ? 'good' : 'bad'}">${r.tone === 'good' ? '✓' : '✕'} ${esc(TX(r.msg))}</div>`;
+  return `<div class="good" style="font-size:12px">${T('u.signed')}</div>`;
+}
+const v3SignBtn = (X, i, need) => `<div class="btns"><button class="btn-primary" data-mpsign="${X}" data-i="${i}" ${W.apLeft(S) < need ? 'disabled' : ''} title="${esc(T('v3.deal_sign_t'))}">${T('u.sign')} · ${T('u.apn', { n: need })}</button></div>`;
+
+/* AI 国家回复里的协议卡片（同 v2；签署后显示待结算或结果） */
+function mpAgentMsgHTML(X, m, i, last) {
+  if (m.role === 'me') return `<div class="msg me">${esc(m.text)}</div>`;
+  let deal = '';
+  if (m.deal && m.deal.status !== 'none' && m.deal.terms && m.deal.terms.length) {
+    const lbl = { accept: T('u.deal_acc'), counter: T('u.deal_counter'), reject: T('u.deal_rej') }[m.deal.status] || '';
+    const warn = m.deal.terms.map(t => W.dealCheck(S, X, t)).filter(Boolean).map(TX), need = W.dealAP(m.deal.terms, S);
+    const tail = !v3On() ? (last && m.deal.status !== 'reject' && !m.signed ? v3SignBtn(X, i, need) : m.signed ? `<div class="good" style="font-size:12px">${T('u.signed')}</div>` : '')
+      : m.signed ? v3DealState(m, X, i, last, need) : last && m.deal.status !== 'reject' ? v3SignBtn(X, i, need) : '';
+    deal = `<div class="deal"><b>${lbl}</b>${m.deal.summary ? `<div class="muted" style="font-size:12px">${esc(m.deal.summary)}</div>` : ''}<ul>${m.deal.terms.map(t => `<li>${esc(termText(t))}</li>`).join('')}</ul>${warn.length ? `<div class="warn" style="font-size:12px">${T('u.deal_warn', { x: { raw: warn.join(sep()) } })}</div>` : ''}${tail}</div>`;
+  }
+  return `<div class="msg them"><span class="who">${esc(NAME(X))}${m.src === 'rule' ? ' · ' + T('mp.ag.rule') : ''}</span>${esc(m.text)}${deal}</div>`;
+}
+
+/* 卡片上的“撤回”：和队列里点 × 一样 */
+document.addEventListener('click', e => {
+  if (!v3On() || !S || UI.demo || !MPS.on) return;
+  const t = e.target.closest && e.target.closest('[data-v3unsign]'); if (!t) return;
+  const [X, i] = String(t.dataset.v3unsign).split('|'), m = mpAgentHist(X)[+i]; if (!m) return;
+  const k = v3DealAt(m.did); if (k < 0) return;
+  W.unqueue(S, k); toast(T('v3.deal_back', { a: X })); renderAll();
+});
 
 /* ===================== 界面层 v2 · 开局、设置、存档、启动 ===================== */
 function startHTML(sel) {
