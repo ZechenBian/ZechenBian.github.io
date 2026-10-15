@@ -1359,6 +1359,7 @@ window.TX_V3 = true;
 window.TX_NS = 'tianxia-web/v3';
 window.TX_LSP = 'tianxia3';
 window.TX_RULES3 = true;
+window.TX_NOBASE = ['CHN']; // 中国领土上不允许外国驻军（盟友也不行，和中国只能结成军事同盟），见 src/engine/01_core.js 的 NOBASE
 
 /* ===================== 网页版 · 联机后端（在 claude.ai 之外运行时代替 window.claude 的 db / room / user） =====================
  * 联机版原本用 claude.ai 页面运行时的共享数据库（db）、房间（room）与身份（user）。放到 GitHub Pages 等普通网站上时没有这些能力，
@@ -4937,6 +4938,7 @@ I18N.add({
   'dl.res_void0': ['与{a}的协议没能生效：{x}', 'The agreement with {a} did not take effect: {x}'],
   'dl.res_coup': ['{a}发生政变，新政府倒向{b}，推翻了你本回合和它签的协议；所占的 {n}% 行动力下回合退还', 'A coup in {a} put in a government that leans to {b} and overturned the agreement you made with it this turn. Its {n}% of capacity comes back next turn'],
   'dl.res_coup0': ['{a}发生政变，新政府倒向{b}，推翻了你本回合和它达成的协议', 'A coup in {a} put in a government that leans to {b} and overturned the agreement you made with it this turn'],
+  'dl.nobase': ['{t}的领土上不允许外国驻军（和它只能结成军事同盟）', 'No foreign troops may be based on {t:P} territory (an alliance is as far as it goes)'],
   'dl.war_friend': ['{t}正和{p}的盟友{b}交战', '{t:C} is at war with {b}, which is allied with {p}'],
   'dl.rival_bloc': ['{t}已是对立集团“{b}”的成员', '{t:C} already belongs to the rival bloc “{b}”'],
   'dl.just_sided': ['{t}这一回合刚和{b}站到一边', '{t:C} sided with {b} this very turn'],
@@ -5326,6 +5328,7 @@ I18N.add({
   'v2.prop.help_ai': ['选条款、点“加入”，再“发出提议”：对方当场答复（接受、开条件或拒绝），接受后签署，回合结束时生效。', 'Pick terms, press Add, then Send: they answer at once (accept, counter or refuse); sign, and it takes effect at the end of the turn.'],
   'v2.prop.free': ['真人之间的协议不占行动力', 'free between human players'],
   'v2.prop.sign_cost': ['签署时占 {n}%，回合结束时生效', 'signing takes {n}%; it takes effect at the end of the turn'],
+  'ev39.manchuria': ['苏联对日宣战，向日本关东军发起进攻。', 'The Soviet Union declares war on Japan and attacks the Kwantung Army.'], // 中国领土上不允许外国驻军
   // 协议回合结束时统一结算
   'v3.q.deal': ['协议 → {a:N}（{x}）', 'Agreement → {a} ({x})'],
   'v3.deal_queued': ['已签署与{a}的协议，排进本回合队列（占 {n}%）：回合结束时统一结算，结算前可以撤回', 'Agreement with {a} signed and queued for this turn ({n}%): it is settled at the end of the turn, and you can withdraw it until then'],
@@ -5364,7 +5367,7 @@ I18N.add({
   'v2.h.pkg': ['多选与组合：', 'Packages: '],
   'v2.h.pkg_x': ['制裁、援助、军事施压、隐蔽行动、国内措施可以多选，金额自己填。一项就占那一项的比例；几项一起时，规则估计是各项之和打折（两项九折、三项八折、四项以上七折）；接了 AI 时由 AI 在“估计的 85% 到各项之和”之间判断。排进队列的组合整组撤回。', 'Sanctions, aid, military pressure, covert action and domestic measures take several ticks and typed amounts. One item takes its own share; for several, the rule estimate is their sum with a bundling discount (10% off for two, 20% for three, 30% for four or more); with AI connected the AI decides between 85% of the estimate and the full sum. A queued package is withdrawn as a whole.'],
   'mp.h.flow_x': ['每回合一个季度。所有玩家同时规划（排队行动、调兵、谈判），点“就绪”；全员就绪或倒计时结束后，房主的浏览器统一结算，几秒内同步给所有人。和 AI 国家的协议——签署的、接受的来函、命令里对方同意的结盟和入集团——都在结算一开始一起生效；真人之间的协议、回应通牒和危机、战时政策、实时命令等立即生效。', 'Each turn is a quarter. Everyone plans at once (queue actions, move forces, negotiate) and presses Ready; when all are ready or the timer runs out, the host\'s browser resolves the turn and syncs it to everyone within seconds. Agreements with AI countries — signed ones, proposals you accepted, and alliances or bloc memberships an order obtained — all take effect together at the start of resolution; deals between humans, answers to ultimatums and crises, war policies and live orders apply immediately.'],
-  'v2.h.deals_x': ['结盟、自贸、互不侵犯、驻军、军控、停火、议和、臣服、援助、出兵、扩军动员……都是协议条款，在外交页的对话里附上发出。和 AI 国家签一份占 6% 起：每多一项条款加 2%，含同盟或臣服再加 8%，我方出钱的援助按金额另算，都乘本国系数；真人之间不占行动力。和 AI 国家的协议都在回合结束时统一结算，结算前可以撤回：签署的协议、接受的来函（不占行动力）、命令里对方同意的结盟和臣服、建集团时同意加入的国家，都排在队列里。同一回合几位玩家和同一个国家达成了互相排斥的协议（同时和互为对手的两国结盟、建立伙伴关系、驻军或拉进集团，要它对其中一方参战，同时臣服两国，一方要它和另一方断盟、另一方要它站到自己这边），由它按自己的评估选一份（它自己发来的提议优先），其余作废，所占行动力下回合退还。结算时已和局面冲突的条款也作废：它已和你的交战国站在一起、它正和你的盟友交战、它已在对立的集团里。同一回合对手在它那里政变成功，会推翻刚签的协议（同样退还）。真人之间的协议双方同意后立即生效，同样复查。本回合自己签的协议和自己排的行动冲突时（比如议和之后又打击对方），界面会提示。只有对方本土全被占或攻势推进到 80% 以上才能要求臣服；中国和美国在四个年代都不会臣服、不会灭亡。首脑会晤也在对话里；条约可以逐项退出。', 'Alliances, free trade, non-aggression, basing, arms control, ceasefires, peace, vassalage, aid, troops, mobilization… are all agreement terms, attached in a conversation on the Diplomacy tab. Signing with an AI country takes 6% and up: 2% more per extra term, 8% more with an alliance or vassalage, plus a money share for any aid we pay, all times your country’s factor; deals between humans take no capacity. Every agreement with an AI country is settled at the end of the turn and can be withdrawn until then: signed agreements, proposals you accepted (they take no capacity), alliances and vassalage an order obtained, and countries that agreed to join a bloc you formed all wait in the queue. If several players reached incompatible agreements with the same country in one turn (allying, partnering, basing or bloc membership with two rivals, asking it to fight one of them, vassalage to two lords, or one asking it to drop its alliance with the other while the other asks it to side with them), it picks one by its own judgement (its own proposals first); the rest are void and their capacity comes back next turn. Terms that no longer fit the situation at settlement are void too: it already sides with a country at war with you, it is at war with one of your allies, or it is in a rival bloc. A rival’s successful coup there in the same turn overturns the fresh agreement (capacity returned). Deals between humans take effect as soon as both agree, with the same checks. When an agreement you sign clashes with an action you queued this turn (say a strike after making peace), the game warns you. Vassalage can be demanded only once the other side’s homeland is fully occupied or an offensive against it passes 80%; China and the USA never submit or fall in any timeline. Summits are in the conversation too; treaties can be left one at a time.'],
+  'v2.h.deals_x': ['结盟、自贸、互不侵犯、驻军、军控、停火、议和、臣服、援助、出兵、扩军动员……都是协议条款，在外交页的对话里附上发出。和 AI 国家签一份占 6% 起：每多一项条款加 2%，含同盟或臣服再加 8%，我方出钱的援助按金额另算，都乘本国系数；真人之间不占行动力。和 AI 国家的协议都在回合结束时统一结算，结算前可以撤回：签署的协议、接受的来函（不占行动力）、命令里对方同意的结盟和臣服、建集团时同意加入的国家，都排在队列里。同一回合几位玩家和同一个国家达成了互相排斥的协议（同时和互为对手的两国结盟、建立伙伴关系、驻军或拉进集团，要它对其中一方参战，同时臣服两国，一方要它和另一方断盟、另一方要它站到自己这边），由它按自己的评估选一份（它自己发来的提议优先），其余作废，所占行动力下回合退还。结算时已和局面冲突的条款也作废：它已和你的交战国站在一起、它正和你的盟友交战、它已在对立的集团里。同一回合对手在它那里政变成功，会推翻刚签的协议（同样退还）。真人之间的协议双方同意后立即生效，同样复查。本回合自己签的协议和自己排的行动冲突时（比如议和之后又打击对方），界面会提示。中国领土上（含台湾）不允许外国驻军：和中国只能结成军事同盟，任何国家（包括盟友）都不能在中国驻军、调兵进入、派志愿军，也不能和中国签驻军协定；开局时的外国驻军撤回本国，中国在海外的驻军不受影响。只有对方本土全被占或攻势推进到 80% 以上才能要求臣服；中国和美国在四个年代都不会臣服、不会灭亡。首脑会晤也在对话里；条约可以逐项退出。', 'Alliances, free trade, non-aggression, basing, arms control, ceasefires, peace, vassalage, aid, troops, mobilization… are all agreement terms, attached in a conversation on the Diplomacy tab. Signing with an AI country takes 6% and up: 2% more per extra term, 8% more with an alliance or vassalage, plus a money share for any aid we pay, all times your country’s factor; deals between humans take no capacity. Every agreement with an AI country is settled at the end of the turn and can be withdrawn until then: signed agreements, proposals you accepted (they take no capacity), alliances and vassalage an order obtained, and countries that agreed to join a bloc you formed all wait in the queue. If several players reached incompatible agreements with the same country in one turn (allying, partnering, basing or bloc membership with two rivals, asking it to fight one of them, vassalage to two lords, or one asking it to drop its alliance with the other while the other asks it to side with them), it picks one by its own judgement (its own proposals first); the rest are void and their capacity comes back next turn. Terms that no longer fit the situation at settlement are void too: it already sides with a country at war with you, it is at war with one of your allies, or it is in a rival bloc. A rival’s successful coup there in the same turn overturns the fresh agreement (capacity returned). Deals between humans take effect as soon as both agree, with the same checks. When an agreement you sign clashes with an action you queued this turn (say a strike after making peace), the game warns you. No foreign troops may be based on Chinese territory (Taiwan included): with China an alliance is as far as it goes — no country, ally or not, may station troops there, move them in, send volunteers or sign basing rights with China; foreign garrisons at the start go home, and China’s own bases abroad are unaffected. Vassalage can be demanded only once the other side’s homeland is fully occupied or an offensive against it passes 80%; China and the USA never submit or fall in any timeline. Summits are in the conversation too; treaties can be left one at a time.'],
   'v2.h.cmd_x': ['发送前选一种：执行（一句话命令）、方针（本回合打算，只交给推演）、公开（勾“正式表态”就成了谴责、警告或核威慑）、对某国（AI 国家是谈判，真人是私信）。执行的命令能对应标准操作就照按钮的规则办，对应不上才交给 AI 换算，由 AI 定占多少行动力（5%–40%，乘本国系数）。', 'Choose before sending: Do (a one-line order), Strategy (your intent, for the simulation only), Public (tick “formal statement” to condemn, warn or threaten) or To a country (talks with an AI country, a private message to a human). Orders that match a standard action follow the button rules; only the rest go to the AI, which decides their share of capacity (5–40%, times your country’s factor).'],
   'v2.h.mob_x': ['动员等级 0–5（3–5 是总体战），每提高一级占 6%（乘本国系数）、立即生效。征兵人数、订单金额自己填，按金额占少量行动力；战时政策每行旁边是一次性加码（紧急征召、突击生产、紧急征发、洗劫、强征）。', 'Mobilization levels 0–5 (3–5 are total war); each level up takes 6% (times your country’s factor) and is immediate. Type the number of conscripts and the size of orders, which take a little capacity by their size; each war-economy row has a one-off surge beside it (emergency draft, crash production, emergency requisition, looting, press-gangs).'],
 });
@@ -5395,6 +5398,13 @@ let GUARD = {}; const guardCfg = o => { GUARD = {}; for (const [k, v] of Object.
 guardCfg(typeof window !== 'undefined' ? window.TX_GUARD : null); // 构建开关：网页版在引擎之前设 window.TX_GUARD
 function setGuard(o) { guardCfg(o); }
 const GRD = (S, X) => !!(S && S.guard && X && S.guard.includes(X));
+/* 不得有外国驻军的国家（联机网页版 v3：中国）：外国军队不能驻扎在它的领土上（含它的永久领土），盟友也不行——和它只能结成军事同盟；
+ * 交战中的占领不在此列。对局里记在 S.nobase（见 09_scen.js 的 nobaseize）。 */
+let NOBASE = []; const nobaseCfg = a => { NOBASE = (Array.isArray(a) ? a : []).filter(id => IDS.includes(id)); };
+nobaseCfg(typeof window !== 'undefined' ? window.TX_NOBASE : null); // 构建开关：网页版在引擎之前设 window.TX_NOBASE
+function setNobase(a) { nobaseCfg(a); }
+const NBH = (S, L) => { const nb = S && S.nobase; if (!nb || !nb.length || !L) return null; if (nb.includes(L)) return L; const o = PRV(S, L); return o && nb.includes(o) ? o : null; }; // L 是哪个“不得有外国驻军”国家的领土（不是则为 null）
+const noBase = (S, X, L) => { const nb = NBH(S, L); return !!nb && nb !== X; }; // X 不能把军队放进 L
 const neuWhy = (S, X) => (PRV(S, X) ? M('c.prov', { t: X, b: { id: PRV(S, X) } }) : M('c.neutral', { t: X })); // 不能对中立地区 / 永久领土采取行动的原因
 /* 网页版规则 v2（window.TX_RULES2）：协议按条款计行动点、提高动员即时生效、只有对方几乎沦陷时才能要求臣服。单人版不设，结果与以前逐位相同。 */
 const RULES2 = typeof window !== 'undefined' && !!window.TX_RULES2;
@@ -5587,6 +5597,7 @@ function canStation(S, X, L) {
   if (!x || !y) return false;
   if (L === X) return x.ctrl === X;
   if (y.ctrl === X) return true;
+  if (noBase(S, X, L)) return false; // 网页版 v3：中国领土上不允许外国驻军，盟友也不行（交战中的占领见上一行）
   if (y.ctrl !== L) return false;
   if (atWar(S, X, boss(S, L))) return false;
   if (y.overlord === X) return true;
@@ -6600,7 +6611,7 @@ const ACTIONS = [
    preview: (S, me, t) => chanceMsg(evalDeal(S, me, t, { type: 'nap' }).score),
    exec(S, me, t, p, C) { const d = decide(S, me, t, { type: 'nap' }); if (d.ok) { addTreaty(S, 'nap', me, t); addRel(S, me, t, 6); if (me === S.player) addCommit(S, 'no_attack', t, null, 'nap'); C.out(M('r.nap.ok', { a: me, t }), 'good', [t]); } else C.out(M('r.nap.no', { a: me, t }), 'bad', [t]); } },
  { id: 'access', cat: 'dip', ap: 1, cost: () => 0,
-   check: (S, me, t) => guard(S, me, t) || (hasTreaty(S, me, t, 'access') || canStation(S, me, t) ? M('c.hasaccess', { t }) : atWar(S, me, t) ? M('c.atwar', { t }) : null),
+   check: (S, me, t) => guard(S, me, t) || (noBase(S, me, t) ? M('dl.nobase', { t: NBH(S, t) }) : hasTreaty(S, me, t, 'access') || canStation(S, me, t) ? M('c.hasaccess', { t }) : atWar(S, me, t) ? M('c.atwar', { t }) : null),
    preview: (S, me, t) => chanceMsg(evalDeal(S, me, t, { type: 'access' }).score),
    exec(S, me, t, p, C) { const w3 = alignBlock3(S, me, t); if (w3) { C.out(M('r.align3.no', { a: me, t, x: w3 }), 'bad', [t]); return; } const d = decide(S, me, t, { type: 'access' }); if (d.ok) { addTreaty(S, 'access', me, t); C.out(M('r.access.ok', { a: me, t }), 'good', [t]); pushEv(S, { type: 'access', actor: me, target: t, sev: -5, third: 12 }); } else { addRel(S, me, t, -3); C.out(M('r.access.no', { a: me, t }), 'bad', [t]); } } },
  { id: 'armsctl', cat: 'dip', ap: 1, cost: () => 0,
@@ -6681,7 +6692,7 @@ const ACTIONS = [
    preview: (S, me, t, p) => M('pv.armsaid', { n: Math.round(armsPts(S, me, t, tierCost(S, me, p))) }),
    exec(S, me, t, p, C) { const c = tierCost(S, me, p), x = S.actors[t]; armsTransfer(S, me, t, c); addInfl(S, me, t, clamp(c / x.gdp * 300, 1, 15)); addRel(S, me, t, 6); C.out(M('r.armsaid', { a: me, t, m: $m(c) }), 'good', [t], { notable: enemies(S, t).length > 0 && (atWar(S, S.player, boss(S, t)) || isAlly(S, S.player, t) || ['USA', 'CHN', 'RUS'].includes(me) || c > 20) }); pushEv(S, { type: 'armsaid', actor: me, target: t, sev: -10, arms: true }); } },
  { id: 'volunteers', cat: 'mil', ap: 1, covert: true, cost: (S, me) => pctG(S, me, 0.02),
-   check: (S, me, t) => (t === me ? M('c.self') : !indep(S, t) ? M('c.notindep', { t }) : !enemies(S, t).filter(e => e !== me).length ? M('c.notfighting', { t }) : atWar(S, me, t) ? M('c.atwar', { t }) : null),
+   check: (S, me, t) => (t === me ? M('c.self') : !indep(S, t) ? M('c.notindep', { t }) : noBase(S, me, t) ? M('dl.nobase', { t: NBH(S, t) }) : !enemies(S, t).filter(e => e !== me).length ? M('c.notfighting', { t }) : atWar(S, me, t) ? M('c.atwar', { t }) : null),
    preview: (S, me, t) => M('pv.volunteers', { n: Math.round(S.actors[me].land * 0.04 * DEF[me].ppp / DEF[t].ppp * 0.9) }),
    exec(S, me, t, p, C) { const moved = sendVolunteers(S, me, t, 0.04); addRel(S, me, t, 10); addInfl(S, me, t, 6); C.out(M('r.volunteers', { a: me, t, n: Math.round(moved) }), 'info', [t]);
      for (const e of enemies(S, t)) { if (e === me) continue; const pdet = e === S.player && me !== S.player ? detectP(S, e, me, 0.5) : 0.5; if (chance(S, pdet)) { addRel(S, me, e, -15); if (me === S.player) remember(S, e, M('mem.volunteers_to', { t }), -15); if (e === S.player) { grantCB(S, me, 'covert', 8); C.R.toYou.push({ actor: me, msg: M('ai.volunteers', { a: me, t }), tone: 'bad' }); } } } } },
@@ -7563,7 +7574,7 @@ function applyEffect(S, e, R, depth = 0) {
     case 'tech': if (ok(T)) { S.actors[T].tech = clamp(S.actors[T].tech + e.delta, 0, 100); return M('fx.tech', { t: T, d: e.delta }); } break;
     case 'treasury': S.actors[P].treasury += e.delta; return M('fx.treasury', { m: $m(e.delta) });
     case 'sanction': if (ok(T) && T !== P) { const kind = ['econ', 'tech', 'tariff', 'fin', 'energy'].includes(e.kind) ? e.kind : 'econ'; addSanction(S, P, T, kind, e.level || 1); addRel(S, P, T, -8 * (e.level || 1)); afterPlayerAction(S, 'sanction', T, { level: e.level }, R); return M('fx.sanction', { t: T, n: e.level || 1 }); } break;
-    case 'treaty': if (ok(T) && T !== P && TREATY_TYPES.includes(e.treaty)) { if (RULES3 && isHuman(S, T)) return M('fx.treaty.human', { t: T }); const d = decide(S, P, T, { type: e.treaty }); if (d.ok) { if (RULES3) { if (!S._res3) { pendCmd3(S, T, [{ type: e.treaty }]); return M('fx.treaty.q', { t: T, k: M('tr.' + e.treaty) }); } const w = ['alliance', 'partner', 'access'].includes(e.treaty) ? alignBlock3(S, P, T) : null; if (w) return M('fx.treaty.no3', { t: T, k: M('tr.' + e.treaty), x: w }); } addTreaty(S, e.treaty, P, T); if (e.treaty === 'alliance') addCommit(S, 'defend', T, null, 'alliance'); if (e.treaty === 'nap') addCommit(S, 'no_attack', T, null, 'nap'); return M('fx.treaty.ok', { t: T, k: M('tr.' + e.treaty) }); } return M('fx.treaty.no', { t: T, k: M('tr.' + e.treaty) }); } break;
+    case 'treaty': if (ok(T) && T !== P && TREATY_TYPES.includes(e.treaty)) { if (RULES3 && isHuman(S, T)) return M('fx.treaty.human', { t: T }); if (e.treaty === 'access' && noBase(S, P, T)) return M('fx.treaty.no3', { t: T, k: M('tr.access'), x: M('dl.nobase', { t: NBH(S, T) }) }); const d = decide(S, P, T, { type: e.treaty }); if (d.ok) { if (RULES3) { if (!S._res3) { pendCmd3(S, T, [{ type: e.treaty }]); return M('fx.treaty.q', { t: T, k: M('tr.' + e.treaty) }); } const w = ['alliance', 'partner', 'access'].includes(e.treaty) ? alignBlock3(S, P, T) : null; if (w) return M('fx.treaty.no3', { t: T, k: M('tr.' + e.treaty), x: w }); } addTreaty(S, e.treaty, P, T); if (e.treaty === 'alliance') addCommit(S, 'defend', T, null, 'alliance'); if (e.treaty === 'nap') addCommit(S, 'no_attack', T, null, 'nap'); return M('fx.treaty.ok', { t: T, k: M('tr.' + e.treaty) }); } return M('fx.treaty.no', { t: T, k: M('tr.' + e.treaty) }); } break;
     case 'untreaty': if (ok(T)) { removeTreaty(S, e.treaty || 'alliance', P, T); S.commits = S.commits.filter(c => !(c.with === T && c.type === 'defend')); return M('fx.untreaty', { t: T, k: M('tr.' + (e.treaty || 'alliance')) }); } break;
     case 'war': if (ok(T) && T !== P) { if (S.actors[T].ctrl === P) break; const r = createOp(S, P, T, e.commit || 0.45, false); if (r.op) { r.op.legit = !!legitCB(S, boss(S, T)); return M('fx.war', { t: T, n: Math.max(0, r.op.ready - S.turn) }); } return M('fx.noroute', { t: T }); } break;
     case 'declare': if (ok(T) && T !== P) { const D = boss(S, T); if (!atWar(S, P, D)) { declareWar(S, P, D); logEvent(S, 'war', M('m.war', { a: P, b: D }), 'warn', [P, D]); pushEv(S, { type: 'declare', actor: P, target: D, sev: 40, legit: true }); } return M('fx.declare', { t: D }); } break;
@@ -8269,7 +8280,7 @@ const freeQV = (S, L) => vsub0(freeV(S, S.player, L), queuedOutV(S, L));
 function deployStatus(S, from, to, amt) {
   const P = S.player;
   if (!S.actors[from] || !S.actors[to] || from === to) return { ok: false, reason: M('c.badmove') };
-  if (!canStation(S, P, to)) return { ok: false, reason: M('c.nostation', { l: to }) };
+  if (!canStation(S, P, to)) return { ok: false, reason: noBase(S, P, to) ? M('dl.nobase', { t: NBH(S, to) }) : M('c.nostation', { l: to }) };
   const v = isV(amt) ? amt : [amt, amt, amt]; const free = freeQV(S, from);
   if (!(vmax(v) >= 0.004) || v.some((z, b) => z > free[b] + 1e-6)) return { ok: false, reason: M('c.nofree', { l: from, s: { pct: Math.max(0, dotw(S, P, free)) } }) };
   return { ok: true, eta: transitTurns(from, to) };
@@ -8641,6 +8652,8 @@ function dealCheck(S, X, term) {
   const P = S.player, x = S.actors[X];
   if (!DEAL_TYPES.includes(term.type)) return M('dl.unknown');
   if (RULES3) { const w = dealClash3(S, P, X, term); if (w) return w; } // 规则 v3：和已有局面冲突的条款（它已和你的交战国结盟、要它打自己的盟友、已有宗主国）
+  if (term.type === 'access' && noBase(S, P, X)) return M('dl.nobase', { t: NBH(S, X) }); // 网页版 v3：中国领土上不允许外国驻军（驻军权是你在对方境内驻军）
+  if (term.type === 'send_troops' && S.nobase) { const d = dealDest(S, term), r = d && reqDest(S, d), L = r ? (r.front ? r.front.from : r.loc) : null; if (L && noBase(S, X, L) && !(r.front && stagingOptions(S, X, r.front.target).length)) return M('dl.nobase', { t: NBH(S, L) }); }
   switch (term.type) {
     case 'vassal': { if (GRD(S, X)) return M('why.guard', { t: X }); if (RULES2 && !fallen(S, P, X)) return M('dl.fallen', { t: X, n: FALLEN }); const e = (blocPower(S, P) + 1) / (blocPower(S, X) + allyHelp(S, X, P) + 1); const losing = S.fronts.some(f => f.att === P && boss(S, f.target) === X && f.progress > 60); if (e < 2.5 && !losing && x.stab > 25) return M('dl.vassal_gap'); if (x.nukes > 50 && !losing) return M('dl.vassal_nuke'); return null; }
     case 'tribute': return (blocPower(S, P) + 1) / (blocPower(S, X) + 1) < 2 ? M('dl.tribute') : null;
@@ -8783,6 +8796,7 @@ function offerApply3(S, X, d, R) {
   for (const t of offerTerms3(d)) { const w = dealClash3(S, P, X, t); if (w) return { why: w }; }
   if (['peace', 'ceasefire'].includes(d.type) && !atWar(S, P, X)) return { why: M('dl.notwar') };
   if (['alliance', 'trade', 'nap', 'armsctl', 'partner', 'access'].includes(d.type) && atWar(S, P, X)) return { why: M('dl.atwar') };
+  if (d.type === 'access' && noBase(S, P, X)) return { why: M('dl.nobase', { t: NBH(S, X) }) };
   switch (d.type) {
     case 'alliance': addTreaty(S, 'alliance', P, X); addRel(S, P, X, 10); addCommit(S, 'defend', X, null, 'alliance'); break;
     case 'trade': addTreaty(S, 'trade', P, X); addRel(S, P, X, 5); S.pol.tradeUp++; break;
@@ -10674,6 +10688,23 @@ function provincialize(S) {
   resetExposure(S);
   return S;
 }
+/* 不得有外国驻军（网页版 v3：中国）：开局时（或载入旧存档时）外国在它领土上的驻军和正在开进的部队撤回本国，
+ * 以它为驻在国的驻军协定（[驻军方, 驻在国]）作废，从它领土出发的外国战线、行动取消。之后由 canStation 挡住 */
+function nobaseize(S) {
+  S.nobase = NOBASE.filter(id => S.actors[id]);
+  const home = (x, X, v) => { const h = x.forces[X] || (x.forces[X] = V0()); for (let b = 0; b < 3; b++) h[b] += (v && v[b]) || 0; };
+  for (const X of IDS) {
+    const x = S.actors[X]; if (!x || !x.forces) continue;
+    for (const L of Object.keys(x.forces)) if (noBase(S, X, L) && S.actors[L].ctrl !== X) { const v = x.forces[L]; delete x.forces[L]; home(x, X, v); }
+    if (Array.isArray(x.moves)) x.moves = x.moves.filter(m => { if (!noBase(S, X, m.to)) return true; home(x, X, m.v); return false; });
+  }
+  S.treaties = S.treaties.filter(t => !(t.type === 'access' && noBase(S, t.a, t.b)));
+  S.fronts = S.fronts.filter(f => !noBase(S, f.att, f.from));
+  for (const f of S.fronts) if (f.co) f.co = f.co.filter(k => !noBase(S, k.id, f.from));
+  S.ops = S.ops.filter(o => !noBase(S, o.owner, o.from));
+  resetExposure(S);
+  return S;
+}
 /* 每回合结束时守住两条底线：永久领土始终归所属国；保底国家始终独立（以防其他途径改动了控制权） */
 function holdTerritory(S) {
   for (const [N, owner] of Object.entries(S.prov || {})) {
@@ -10815,6 +10846,7 @@ function newGame(opt) {
   for (const [a, b, v] of (SC.tension2 || [])) S.tension2[rk(a, b)] = v;
   if (NEUTRAL.length) neutralize(S, NEUTRAL);
   if (Object.keys(PROV).length) provincialize(S); // 联机网页版：台湾是中国领土
+  if (NOBASE.length) nobaseize(S); // 网页版 v3：中国领土上不允许外国驻军
   if (GUARD[SC.id] && GUARD[SC.id].length) S.guard = GUARD[SC.id].filter(id => S.actors[id]); // 联机网页版：1939 年开局的中国不会战败
   for (const e of enemies(S, P)) grantCB(S, e, 'attacked', 400, false);
   resetExposure(S);
@@ -10859,7 +10891,7 @@ function scenEvents(S, R) {
           y.ctrl = e.id; y.resist = 0; y.occSince = null; y.integrated = false; y.part = null; y.stab = e.stab ?? 45; rebuildArmy(S, e.id, e.army ?? 0.25);
           if (e.loyal != null) y.loyal = e.loyal; if (e.hawk != null) y.hawk = e.hawk; if (e.milPct != null) y.milPct = e.milPct;
           if (e.as === 'vassal') { y.overlord = e.from; y.vassalSince = S.turn; } else if (e.as) addTreaty(S, e.as, e.id, e.from);
-          for (const a of (e.access || [e.from])) if (S.actors[a] && a !== e.id) addTreaty(S, 'access', a, e.id);
+          for (const a of (e.access || [e.from])) if (S.actors[a] && a !== e.id && !noBase(S, a, e.id)) addTreaty(S, 'access', a, e.id);
           setRel(S, e.id, e.from, e.rel ?? Math.max(rel(S, e.id, e.from), 30)); resetExposure(S); push([e.id, e.from]); break;
         }
         case 'bloc': {
@@ -10990,7 +11022,7 @@ function dropGone(o) {
 /* ---------- 存档迁移（v4 → v5） ---------- */
 function migrate(o) {
   if (!o || !o.actors) throw new Error('bad');
-  if (o.v === 5) { useScenario(o.scen || '2026', true); dropGone(o); applyDefOv(o); o.coreLLM = {}; if (NEUTRAL.length && !(o.neutral && o.neutral.length)) neutralize(o, NEUTRAL); if (Object.keys(PROV).length && !o.prov) { o.neutral = (o.neutral || []).concat(Object.keys(PROV).filter(k => !(o.neutral || []).includes(k))); provincialize(o); } if (GUARD[o.scen] && GUARD[o.scen].length) { const g = new Set(o.guard || []); for (const id of GUARD[o.scen]) if (o.actors[id]) g.add(id); o.guard = [...g]; } return o; } // 网页版载入以前的存档：补上中立地区、永久领土与保底
+  if (o.v === 5) { useScenario(o.scen || '2026', true); dropGone(o); applyDefOv(o); o.coreLLM = {}; if (NEUTRAL.length && !(o.neutral && o.neutral.length)) neutralize(o, NEUTRAL); if (Object.keys(PROV).length && !o.prov) { o.neutral = (o.neutral || []).concat(Object.keys(PROV).filter(k => !(o.neutral || []).includes(k))); provincialize(o); } if (GUARD[o.scen] && GUARD[o.scen].length) { const g = new Set(o.guard || []); for (const id of GUARD[o.scen]) if (o.actors[id]) g.add(id); o.guard = [...g]; } if (NOBASE.length && !o.nobase) nobaseize(o); return o; } // 网页版载入以前的存档：补上中立地区、永久领土、保底与“不得有外国驻军”
   if (o.v !== 4) throw new Error('old');
   useScenario('2026'); o.scen = '2026';
   for (const id of Object.keys(o.actors)) {
@@ -14641,7 +14673,7 @@ return {
   RULES2, fallen, FALLEN, dealAP, setMob, mobIdx, queuePackage, pkgRange, pkgItems, PKG_OK, consN, procAmt, invK, amtOf, AMT_MAX, progOf, coreAP2,
   RULES3, CAP3, AP3, apCost, apAI, apAIRange, mobAP, capEff, capLevel, moneyPct, actMoney, PKG_DISC3, CORE_OP_PCT3,
   queueDeal, resolveDeals, dealValue, dealSides, dealsClash, dealClash3, cleanDealTerms, dealMoney,
-  unacceptOffer, alignBlock3, selfConflicts3, offerTerms3, askTerms3, ASK3, rivals3, aligned, rivalBloc3, coupUndo3,
+  unacceptOffer, alignBlock3, selfConflicts3, nobaseHost: NBH, noBase, nobaseize, setNobase, offerTerms3, askTerms3, ASK3, rivals3, aligned, rivalBloc3, coupUndo3,
   SCENARIOS, useScenario, sc, scenarioList, playable, migrate, setNeutral, isNeutral: NEU, neutralize, get NEUTRAL() { return NEUTRAL.slice(); }, setProv, provOf: PRV, provincialize, setGuard, isGuarded: GRD, GCAP, holdTerritory, ltxt, frontObjectives, cityName,
   SET_TYPES, settingPreview, previewSettings, checkSetting, ruleSettings, settingsBrief, cancelProgram, applyDefOv, playerMilMax, cityIdx,
   objThr, holdOf, airSupportOf, setFrontFocus, setOpFocus, setHold, frontTargets, isCapital, supRange,
@@ -21089,7 +21121,7 @@ function v2ActsHTML(X) {
 /* 协议的快捷按钮：点了打开外交页的对话，条款已经放好 */
 function v2DealChips(X) {
   const P = S.player, war = W.atWar(S, P, X), friend = W.isAlly(S, P, X) || W.isPartner(S, P, X) || S.actors[X].overlord === P || W.rel(S, P, X) >= 45;
-  const list = war ? ['ceasefire', 'peace'] : ['alliance', 'trade', 'nap', 'access', 'armsctl'].filter(t => !W.hasTreaty(S, P, X, t) && !(t === 'access' && W.canStation(S, P, X)));
+  const list = war ? ['ceasefire', 'peace'] : ['alliance', 'trade', 'nap', 'access', 'armsctl'].filter(t => !W.hasTreaty(S, P, X, t) && !(t === 'access' && (W.canStation(S, P, X) || W.noBase(S, P, X))));
   if (W.fallen(S, P, X) && !W.isGuarded(S, X) && !S.actors[X].overlord) list.push('vassal');
   if (!war && friend) list.push('send_troops', 'mobilize');
   return list.map(c => `<button class="mini" data-v2deal="${c}" data-t="${X}">${T('v2.deal.' + c)}</button>`).join('');
@@ -21321,7 +21353,7 @@ const V2T_BY = Object.fromEntries(V2T.map(z => [z.c, z]));
 /* 某一项条款现在能不能谈（不能的不出现在下拉里） */
 function v2TermOk(C, c) {
   const P = S.player, z = V2T_BY[c], war = W.atWar(S, P, C), human = W.isHuman(S, C); if (!z || (z.ai && human)) return false;
-  if (z.g === 'both') return z.war ? war : !war && !W.hasTreaty(S, P, C, c) && !(c === 'access' && W.canStation(S, P, C));
+  if (z.g === 'both') return z.war ? war : !war && !W.hasTreaty(S, P, C, c) && !(c === 'access' && (W.canStation(S, P, C) || W.noBase(S, P, C))); // 网页版 v3：中国领土上不允许外国驻军
   switch (c) {
     case 'vassal': return W.fallen(S, P, C) && !W.isGuarded(S, C) && !S.actors[C].overlord;
     case 'lift_my_sanctions': return S.sanctions.some(s => s.from === P && s.to === C);
