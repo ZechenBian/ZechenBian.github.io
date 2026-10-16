@@ -1227,6 +1227,30 @@ button.danger { border-color: var(--bad); color: var(--bad); }
 .v4m-res h1 { font-size: 22px; margin: 6px 0 8px; }
 .v4m-stars { font-size: 34px; line-height: 1.1; margin: 4px 0 8px; }
 @media (max-width: 760px) { .v4m-hud { top: auto; bottom: 86px; right: 8px; width: min(280px, calc(100% - 16px)); } }
+/* 单机任务：难度档、开局（挑战码）、成绩卡、回到上一回合 */
+.v4m-recs { display: flex; flex-wrap: wrap; gap: 4px; }
+.v4m-rec { font-size: 11px; padding: 0 5px; border-radius: 4px; color: var(--muted); background: color-mix(in srgb, var(--line) 35%, transparent); white-space: nowrap; }
+.v4m-rec.on { color: var(--ink); background: var(--accent-soft); }
+.v4m-wk { font-size: 12.5px; margin: -4px 0 6px; }
+.v4m-dpick { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin: 4px 0 6px; }
+.v4m-dpick button { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; text-align: left; padding: 7px 9px; border-radius: 8px; background: var(--paper2); border: 1px solid var(--line); }
+.v4m-dpick button.on { border-color: var(--accent); background: var(--accent-soft); }
+.v4m-dpick button b { font-size: 13.5px; }
+.v4m-dpick button small { font-size: 11px; color: var(--muted); line-height: 1.35; }
+.v4m-seed { display: flex; flex-direction: column; gap: 4px; margin: 4px 0 6px; font-size: 13px; }
+.v4m-sopt { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.v4m-sopt code { font-family: var(--f-mono); font-size: 12px; padding: 0 5px; border-radius: 4px; background: var(--paper2); }
+.v4m-seed input#v4mCode { width: 9.5em; font-family: var(--f-mono); letter-spacing: .08em; text-transform: uppercase; margin-left: 1.7em; }
+.v4m-seed p { font-size: 12px; margin: 2px 0 0; line-height: 1.5; }
+.v4m-save { font-size: 12px; }
+.v4m-share { margin: 8px 0; }
+.v4m-share textarea { width: 100%; box-sizing: border-box; font-family: var(--f-mono); font-size: 12px; line-height: 1.5; resize: vertical; background: var(--paper2); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; }
+.v4m-share .btns { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0; }
+.v4m-share p { font-size: 12px; margin: 2px 0 0; }
+.v4m-hb { display: flex; gap: 6px; flex-wrap: wrap; }
+.v4m-undo-l { font-size: 12.5px; margin: 6px 0 0; }
+.v4m-resume { margin-top: 10px; }
+@media (max-width: 520px) { .v4m-dpick { grid-template-columns: 1fr; } .v4m-seed input#v4mCode { margin-left: 0; } }
 /* 简化模式 */
 body.v4simple #tabs [data-tab="weco"], body.v4simple #tabs [data-tab="intel"] { display: none; }
 .v4s-tog { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; margin: 12px 0 0; padding: 8px 12px; border: 1px dashed var(--line2); border-radius: 8px; font-size: 13px; }
@@ -2541,13 +2565,14 @@ window.TXAI = (() => {
 })();
 
 /* ===================== 网页版 v4 · 单机任务的定义 =====================
- * 每个任务：年代、国家、目标、期限、一回合多长（qpt：一回合连算几个季度；2 = 半年，4 = 一年）、难度。
- * goals(S, M) 返回目标列表 { k: 文字键, ok: 是否达成, cur/tgt: 进度（可选）, fmt: 显示方式, keep: 要一直保持（完成时也必须满足） }；
- * gk：目标的文字键（说明里列出来用；前面带 ! 的是要保持的），必须与 goals 返回的一致。
- *   fmt：'x' 倍数（相对开局）、'n' 次数/个数、'num' 数值（不低于）、'max' 数值（不高于）、'gdp' 金额、'q' 已坚持的季度。
+ * 每个任务：年代、国家、期限（until：期限那个季度）、一回合多长（qpt：一回合连算几个季度；2 = 半年，4 = 一年）、难度（diff：1–3 个点）。
+ * 三档难度（d：0 简单、1 普通、2 困难）：tg[d] 是这一档的目标数值；简单档的期限多一年（坚守型除外），AI 也按这一档的聪明程度行事。
+ * G(t) 列出目标：{ k: 文字键, p: 文字里的数字, keep: 要一直保持（完成时也必须满足）, ev(S, M): { ok, cur, tgt, fmt } }；
+ *   fmt：'x' 倍数（相对开局）、'n' 次数/个数、'num' 数值（不低于）、'max' 数值（不高于）、'pct' 占 GDP 的百分比（不低于）、'maxpct' 百分比（不高于）、'q' 已坚持的季度。
  * 全部达成就算完成（每个季度都判定，不用等到期限）；hold: true 的坚守型任务要坚持到期限那个季度。
- * fail(S, M) 返回失败原因的文字键（可选，一出现就失败）；stars(S, M) 返回 1–3 星（可选，默认按用掉的时间评星）。
- * M（任务记录）：{ id, t0 开局回合, qpt, dl 期限回合, base: { gdp, pow } 开局时各国的 GDP 与军力, cnt: 对各国援助的次数 }。
+ * fail(S, M) 返回失败原因的文字键（可选，一出现就失败）。
+ * 评星：par[d] = [三星, 两星] 是用掉的季度数上限（按模拟校准：三档里用简单打法拿三星的都不到一半，见 test/v4missions.js）；坚守型用 stars(S, M, t) 按届时的局面评（star 写明门槛）。
+ * M（任务记录）：{ id, d 难度, t 目标数值, seed, t0 开局回合, qpt, dl 期限回合, base: { gdp, pow } 开局时各国的 GDP 与军力, cnt: 对各国援助的次数, undo: 回退次数 }。
  * 判定只读局面，在引擎载入之后才调用（这个文件在引擎之前载入，所以函数里才引用 WG）。 */
 const TXMIS = (() => {
   const W = () => WG;
@@ -2556,91 +2581,112 @@ const TXMIS = (() => {
   const rel = (S, a, b) => W().rel(S, a, b);
   const trade = (S, a, b) => W().hasTreaty(S, a, b, 'trade');
   const enemyOn = (S, T, E) => Math.round(S.fronts.filter(f => f.target === T && f.att === E).reduce((m, f) => Math.max(m, f.progress || 0), 0)); // E 对 T 本土攻势的进度（没有就是 0）
+  /* 目标的几种写法 */
+  const R = v => ({ raw: String(+v) });
+  const flag = (k, f, keep) => ({ k, keep: !!keep, ev: (S, M) => ({ ok: !!f(S, M) }) });
+  const mult = (k, t, f) => ({ k, p: { n: R(t) }, ev: (S, M) => { const r = f(S, M); return { ok: r >= t, cur: r, tgt: t, fmt: 'x' }; } });
+  const atLeast = (k, t, f, fmt, keep) => ({ k, p: { n: R(t) }, keep: !!keep, ev: (S, M) => { const v = f(S, M); return { ok: v >= t, cur: v, tgt: t, fmt: fmt || 'num' }; } });
+  const atMost = (k, t, f, fmt) => ({ k, p: { n: R(t) }, keep: true, ev: (S, M) => { const v = f(S, M); return { ok: v <= t, cur: v, tgt: t, fmt: fmt || 'max' }; } });
   const L = [
-    { id: 'gb39', scen: '1939', P: 'GBR', qpt: 2, until: [1942, 4], diff: 2, gk: ['gb39.ally', 'gb39.war', 'gb39.pow', '!home'],
-      goals: (S, M) => [{ k: 'gb39.ally', ok: W().isAlly(S, 'GBR', 'USA') }, { k: 'gb39.war', ok: W().atWar(S, 'USA', 'DEU') },
-        { k: 'gb39.pow', ok: W().power(S, 'GBR') >= 1.25 * M.base.pow.GBR, cur: W().power(S, 'GBR') / M.base.pow.GBR, tgt: 1.25, fmt: 'x' }, { k: 'home', ok: own(S, 'GBR'), keep: true }] },
-    { id: 'su39', scen: '1939', P: 'RUS', qpt: 2, until: [1943, 4], diff: 3, hold: true, gk: ['su39.ally', '!su39.front', '!su39.stab', 'su39.hold'], // 坚守型：到期限那个季度结算完时各项都满足才算完成
-      goals: (S, M) => { const p = enemyOn(S, 'RUS', 'DEU'), st = S.actors.RUS.stab;
-        return [{ k: 'su39.ally', ok: W().isAlly(S, 'RUS', 'GBR') || W().isAlly(S, 'RUS', 'USA') },
-          { k: 'su39.front', ok: p <= 40, cur: p, tgt: 40, fmt: 'max', keep: true }, { k: 'su39.stab', ok: st >= 30, cur: st, tgt: 30, fmt: 'num', keep: true },
-          { k: 'su39.hold', ok: S.turn > M.dl && own(S, 'RUS'), cur: Math.max(0, Math.min(S.turn, M.dl + 1) - M.t0), tgt: M.dl + 1 - M.t0, fmt: 'q' }]; },
+    { id: 'gb39', scen: '1939', P: 'GBR', qpt: 2, until: [1942, 4], diff: 2,
+      tg: [{ pow: 1.15 }, { pow: 1.25 }, { pow: 1.35 }], par: [[7, 12], [9, 12], [9, 13]],
+      G: t => [flag('gb39.ally', S => W().isAlly(S, 'GBR', 'USA')), flag('gb39.war', S => W().atWar(S, 'USA', 'DEU')),
+        mult('gb39.pow', t.pow, (S, M) => W().power(S, 'GBR') / M.base.pow.GBR), flag('home', S => own(S, 'GBR'), true)] },
+    { id: 'su39', scen: '1939', P: 'RUS', qpt: 2, until: [1943, 4], diff: 3, hold: true, // 坚守型：到期限那个季度结算完时各项都满足才算完成
+      tg: [{ front: 40, stab: 30 }, { held: 1, stab: 30 }, { held: 1, stab: 35 }], // 简单档看德军攻势进度；普通、困难档要守住乌克兰或白俄罗斯（至少一处）
+      G: t => [flag('su39.ally', S => W().isAlly(S, 'RUS', 'GBR') || W().isAlly(S, 'RUS', 'USA')),
+        t.held ? flag('su39.held', S => ['UKR', 'BLR'].some(X => S.actors[X] && S.actors[X].ctrl === 'RUS'), true) : atMost('su39.front', t.front, S => enemyOn(S, 'RUS', 'DEU')),
+        atLeast('su39.stab', t.stab, S => S.actors.RUS.stab, 'num', true),
+        { k: 'su39.hold', ev: (S, M) => ({ ok: S.turn > M.dl && own(S, 'RUS'), cur: Math.max(0, Math.min(S.turn, M.dl + 1) - M.t0), tgt: M.dl + 1 - M.t0, fmt: 'q' }) }],
       fail: S => (own(S, 'RUS') ? null : 'su39.lost'),
-      stars: (S, M) => { const p = enemyOn(S, 'RUS', 'DEU'); return p <= 15 && S.actors.RUS.stab >= 45 ? 3 : p <= 30 ? 2 : 1; } },
-    { id: 'us39', scen: '1939', P: 'USA', qpt: 2, until: [1942, 4], diff: 1, gk: ['us39.gbr', 'us39.chn', 'us39.pow'],
-      goals: (S, M) => [
-        { k: 'us39.gbr', ok: (M.cnt.GBR || 0) >= 3, cur: M.cnt.GBR || 0, tgt: 3, fmt: 'n' },
-        { k: 'us39.chn', ok: (M.cnt.CHN || 0) >= 3, cur: M.cnt.CHN || 0, tgt: 3, fmt: 'n' },
-        { k: 'us39.pow', ok: W().power(S, 'USA') >= 1.5 * M.base.pow.USA, cur: W().power(S, 'USA') / M.base.pow.USA, tgt: 1.5, fmt: 'x' }] },
-    { id: 'us45', scen: '1945', P: 'USA', qpt: 2, until: [1950, 4], diff: 2, gk: ['us45.gdp', 'us45.ally'],
-      goals: (S, M) => { const e = ['GBR', 'FRA', 'DEU'], b = e.reduce((s, X) => s + M.base.gdp[X], 0), c = e.reduce((s, X) => s + gdp(S, X), 0), n = e.filter(X => W().isAlly(S, 'USA', X)).length;
-        return [{ k: 'us45.gdp', ok: c >= b * 1.25, cur: c / b, tgt: 1.25, fmt: 'x' }, { k: 'us45.ally', ok: n >= 2, cur: n, tgt: 2, fmt: 'n' }]; } },
-    { id: 'gb45', scen: '1945', P: 'GBR', qpt: 2, until: [1950, 4], diff: 2, gk: ['gb45.gdp', 'gb45.stab', 'gb45.tre'],
-      goals: (S, M) => [
-        { k: 'gb45.gdp', ok: gdp(S, 'GBR') >= M.base.gdp.GBR * 1.2, cur: gdp(S, 'GBR') / M.base.gdp.GBR, tgt: 1.2, fmt: 'x' },
-        { k: 'gb45.stab', ok: S.actors.GBR.stab >= 65, cur: S.actors.GBR.stab, tgt: 65, fmt: 'num' },
-        { k: 'gb45.tre', ok: S.actors.GBR.treasury >= 0, cur: S.actors.GBR.treasury, tgt: 0, fmt: 'gdp' }] },
-    { id: 'cn79', scen: '1979', P: 'CHN', qpt: 4, until: [1989, 4], diff: 2, gk: ['cn79.gdp', 'cn79.usa', 'cn79.jpn'],
-      goals: (S, M) => [
-        { k: 'cn79.gdp', ok: gdp(S, 'CHN') >= M.base.gdp.CHN * 2, cur: gdp(S, 'CHN') / M.base.gdp.CHN, tgt: 2, fmt: 'x' },
-        { k: 'cn79.usa', ok: trade(S, 'CHN', 'USA') }, { k: 'cn79.jpn', ok: trade(S, 'CHN', 'JPN') }] },
-    { id: 'in79', scen: '1979', P: 'IND', qpt: 2, until: [1984, 4], diff: 2, gk: ['in79.usa', 'in79.rus', 'in79.gdp'],
-      goals: (S, M) => [
-        { k: 'in79.usa', ok: rel(S, 'IND', 'USA') >= 40, cur: rel(S, 'IND', 'USA'), tgt: 40, fmt: 'num' },
-        { k: 'in79.rus', ok: rel(S, 'IND', 'RUS') >= 40, cur: rel(S, 'IND', 'RUS'), tgt: 40, fmt: 'num' },
-        { k: 'in79.gdp', ok: gdp(S, 'IND') >= M.base.gdp.IND * 1.25, cur: gdp(S, 'IND') / M.base.gdp.IND, tgt: 1.25, fmt: 'x' }] },
-    { id: 'cn26', scen: '2026', P: 'CHN', qpt: 2, until: [2031, 4], diff: 2, gk: ['cn26.trade', 'cn26.tech', 'cn26.gdp'],
-      goals: (S, M) => { const n = S.treaties.filter(t => t.type === 'trade' && (t.a === 'CHN' || t.b === 'CHN')).length;
-        return [{ k: 'cn26.trade', ok: n >= 5, cur: n, tgt: 5, fmt: 'n' }, { k: 'cn26.tech', ok: S.actors.CHN.tech >= 95, cur: S.actors.CHN.tech, tgt: 95, fmt: 'num' },
-          { k: 'cn26.gdp', ok: gdp(S, 'CHN') >= M.base.gdp.CHN * 1.15, cur: gdp(S, 'CHN') / M.base.gdp.CHN, tgt: 1.15, fmt: 'x' }]; } },
-    { id: 'in26', scen: '2026', P: 'IND', qpt: 4, until: [2036, 4], diff: 2, gk: ['in26.jpn', 'in26.deu', 'in26.usa', 'in26.rus'],
-      goals: S => [
-        { k: 'in26.jpn', ok: gdp(S, 'IND') > gdp(S, 'JPN'), cur: gdp(S, 'IND') / gdp(S, 'JPN'), tgt: 1, fmt: 'x' },
-        { k: 'in26.deu', ok: gdp(S, 'IND') > gdp(S, 'DEU'), cur: gdp(S, 'IND') / gdp(S, 'DEU'), tgt: 1, fmt: 'x' },
-        { k: 'in26.usa', ok: rel(S, 'IND', 'USA') >= 30, cur: rel(S, 'IND', 'USA'), tgt: 30, fmt: 'num' },
-        { k: 'in26.rus', ok: rel(S, 'IND', 'RUS') >= 30, cur: rel(S, 'IND', 'RUS'), tgt: 30, fmt: 'num' }] },
-    { id: 'kr26', scen: '2026', P: 'KOR', qpt: 2, until: [2031, 4], diff: 3, gk: ['kr26.rel', 'kr26.nap', '!kr26.peace'],
-      goals: S => [
-        { k: 'kr26.rel', ok: rel(S, 'KOR', 'PRK') >= 0, cur: rel(S, 'KOR', 'PRK'), tgt: 0, fmt: 'num' },
-        { k: 'kr26.nap', ok: W().hasTreaty(S, 'KOR', 'PRK', 'nap') },
-        { k: 'kr26.peace', ok: !W().atWar(S, 'KOR', 'PRK'), keep: true }],
+      /* 评星看到期时的局面：德军对苏联本土的攻势进度不超过 20% 且稳定比要求高 10 以上三星，攻势进度不超过 35% 两星（star 也用来写评星说明） */
+      star: { front: [20, 35], stab: 10 },
+      stars(S, M, t) { const z = this.star, p = enemyOn(S, 'RUS', 'DEU'), st = S.actors.RUS.stab; return p <= z.front[0] && st >= t.stab + z.stab ? 3 : p <= z.front[1] ? 2 : 1; } },
+    { id: 'us39', scen: '1939', P: 'USA', qpt: 2, until: [1942, 4], diff: 1,
+      tg: [{ n: 2, pow: 1.35 }, { n: 3, pow: 1.5 }, { n: 4, pow: 1.7 }], par: [[3, 6], [4, 8], [6, 10]],
+      G: t => [atLeast('us39.gbr', t.n, (S, M) => M.cnt.GBR || 0, 'n'), atLeast('us39.chn', t.n, (S, M) => M.cnt.CHN || 0, 'n'),
+        mult('us39.pow', t.pow, (S, M) => W().power(S, 'USA') / M.base.pow.USA)] },
+    { id: 'us45', scen: '1945', P: 'USA', qpt: 2, until: [1950, 4], diff: 2,
+      tg: [{ gdp: 1.25, al: 1 }, { gdp: 1.4, al: 2 }, { gdp: 1.6, al: 3 }], par: [[7, 11], [10, 14], [13, 17]],
+      G: t => { const e = ['GBR', 'FRA', 'DEU'];
+        return [mult('us45.gdp', t.gdp, (S, M) => e.reduce((s, X) => s + gdp(S, X), 0) / e.reduce((s, X) => s + M.base.gdp[X], 0)),
+          atLeast('us45.ally', t.al, S => e.filter(X => W().isAlly(S, 'USA', X)).length, 'n')]; } },
+    { id: 'gb45', scen: '1945', P: 'GBR', qpt: 2, until: [1950, 4], diff: 2,
+      tg: [{ mil: 5, gdp: 1.15, stab: 60, tre: 2 }, { mil: 4, gdp: 1.2, stab: 65, tre: 3 }, { mil: 3, gdp: 1.25, stab: 70, tre: 4 }], par: [[14, 17], [16, 19], [20, 21]],
+      G: t => [flag('gb45.mob', S => W().mobIdx(S.actors.GBR) === 0, true), atMost('gb45.mil', t.mil, S => S.actors.GBR.milPct, 'maxpct'),
+        mult('gb45.gdp', t.gdp, (S, M) => gdp(S, 'GBR') / M.base.gdp.GBR), atLeast('gb45.stab', t.stab, S => S.actors.GBR.stab, 'num', true),
+        atLeast('gb45.tre', t.tre, S => S.actors.GBR.treasury / Math.max(1, gdp(S, 'GBR')) * 100, 'pct')] },
+    { id: 'cn79', scen: '1979', P: 'CHN', qpt: 4, until: [1989, 4], diff: 2,
+      tg: [{ gdp: 1.8 }, { gdp: 2 }, { gdp: 2.2 }], par: [[27, 32], [32, 38], [38, 42]],
+      G: t => [mult('cn79.gdp', t.gdp, (S, M) => gdp(S, 'CHN') / M.base.gdp.CHN), flag('cn79.usa', S => trade(S, 'CHN', 'USA')), flag('cn79.jpn', S => trade(S, 'CHN', 'JPN'))] },
+    { id: 'in79', scen: '1979', P: 'IND', qpt: 2, until: [1984, 4], diff: 2,
+      tg: [{ rel: 30, gdp: 1.2 }, { rel: 40, gdp: 1.25 }, { rel: 50, gdp: 1.3 }], par: [[15, 19], [18, 22], [20, 23]],
+      G: t => [atLeast('in79.usa', t.rel, S => rel(S, 'IND', 'USA')), atLeast('in79.rus', t.rel, S => rel(S, 'IND', 'RUS')),
+        mult('in79.gdp', t.gdp, (S, M) => gdp(S, 'IND') / M.base.gdp.IND)] },
+    { id: 'cn26', scen: '2026', P: 'CHN', qpt: 2, until: [2031, 4], diff: 2,
+      tg: [{ n: 4, tech: 93, gdp: 1.12 }, { n: 5, tech: 95, gdp: 1.15 }, { n: 7, tech: 97, gdp: 1.18 }], par: [[8, 12], [10, 14], [12, 16]],
+      G: t => [atLeast('cn26.trade', t.n, S => S.treaties.filter(x => x.type === 'trade' && (x.a === 'CHN' || x.b === 'CHN')).length, 'n'),
+        atLeast('cn26.tech', t.tech, S => S.actors.CHN.tech), mult('cn26.gdp', t.gdp, (S, M) => gdp(S, 'CHN') / M.base.gdp.CHN)] },
+    { id: 'in26', scen: '2026', P: 'IND', qpt: 4, until: [2032, 4], diff: 2,
+      tg: [{ lead: 1, rel: 40 }, { lead: 1, rel: 50 }, { lead: 1.1, rel: 60 }], par: [[16, 20], [15, 19], [21, 24]], // lead：GDP 要达到日本、德国的几倍（1 就是超过）
+      G: t => { const ld = (k, X) => mult(t.lead > 1 ? k + '2' : k, t.lead, S => gdp(S, 'IND') / Math.max(1, gdp(S, X)));
+        return [ld('in26.jpn', 'JPN'), ld('in26.deu', 'DEU'), atLeast('in26.usa', t.rel, S => rel(S, 'IND', 'USA')), atLeast('in26.rus', t.rel, S => rel(S, 'IND', 'RUS'))]; } },
+    { id: 'kr26', scen: '2026', P: 'KOR', qpt: 2, until: [2031, 4], diff: 2,
+      tg: [{ rel: 0 }, { rel: 20 }, { rel: 40 }], par: [[6, 10], [6, 10], [8, 12]],
+      G: t => [atLeast('kr26.rel', t.rel, S => rel(S, 'KOR', 'PRK')), flag('kr26.nap', S => W().hasTreaty(S, 'KOR', 'PRK', 'nap')), flag('kr26.peace', S => !W().atWar(S, 'KOR', 'PRK'), true)],
       fail: S => (W().atWar(S, 'KOR', 'PRK') ? 'kr26.war' : null) },
   ];
-  /* 简化模式的参谋：没达成的目标该做什么（deal 条款 + 对象；act 行动 + 对象（没有就是本国）；build 征兵并采购；demob 降低动员；joinwar 盟友 + 敌国；对象 best 表示找关系最好的国家） */
+  /* 简化模式的参谋：没达成的目标该做什么（deal 条款 + 对象；act 行动 + 对象（没有就是本国）；build 征兵并采购；deploy 从哪里调兵到哪里；demob 降低动员；milcut 把军费降到目标；
+   * save 少花钱（只有文字）；joinwar 盟友 + 敌国；对象 best 表示找关系最好的国家；第四项 'pre' 表示目标眼下满足也要提前准备） */
   const ADV = {
     'gb39.ally': ['deal', 'alliance', 'USA'], 'gb39.war': ['joinwar', 'USA', 'DEU'], 'gb39.pow': ['build'],
-    'su39.ally': ['deal', 'alliance', ['GBR', 'USA']], 'su39.front': ['build'], 'su39.stab': ['act', 'stabilize'],
+    'su39.ally': ['deal', 'alliance', ['GBR', 'USA']], 'su39.held': ['deploy', 'RUS', 'UKR', 'pre'], 'su39.front': ['build'], 'su39.stab': ['act', 'stabilize'],
     'us39.gbr': ['act', 'aid', 'GBR'], 'us39.chn': ['act', 'aid', 'CHN'], 'us39.pow': ['build'],
     'us45.gdp': ['act', 'aid', ['FRA', 'DEU', 'GBR']], 'us45.ally': ['deal', 'alliance', ['GBR', 'FRA', 'DEU']],
-    'gb45.gdp': ['act', 'stimulus'], 'gb45.stab': ['act', 'stabilize'], 'gb45.tre': ['demob'],
+    'gb45.mob': ['demob'], 'gb45.mil': ['milcut'], 'gb45.gdp': ['act', 'stimulus'], 'gb45.stab': ['act', 'stabilize'], 'gb45.tre': ['save'],
     'cn79.gdp': ['act', 'stimulus'], 'cn79.usa': ['deal', 'trade', 'USA'], 'cn79.jpn': ['deal', 'trade', 'JPN'],
     'in79.usa': ['act', 'summit', 'USA'], 'in79.rus': ['act', 'summit', 'RUS'], 'in79.gdp': ['act', 'stimulus'],
     'cn26.trade': ['deal', 'trade', 'best'], 'cn26.tech': ['act', 'research'], 'cn26.gdp': ['act', 'stimulus'],
-    'in26.jpn': ['act', 'stimulus'], 'in26.deu': ['act', 'research'], 'in26.usa': ['act', 'summit', 'USA'], 'in26.rus': ['act', 'summit', 'RUS'],
+    'in26.jpn': ['act', 'stimulus'], 'in26.deu': ['act', 'research'], 'in26.jpn2': ['act', 'stimulus'], 'in26.deu2': ['act', 'stimulus'], 'in26.usa': ['act', 'summit', 'USA'], 'in26.rus': ['act', 'summit', 'RUS'],
     'kr26.rel': ['act', 'summit', 'PRK'], 'kr26.nap': ['deal', 'nap', 'PRK'],
   };
+  const DIFFS = ['easy', 'normal', 'hard'];
+  const dOf = M => (M && M.d >= 0 && M.d <= 2 ? M.d | 0 : 1);
+  const tOf = (m, M) => (M && M.t) || m.tg[dOf(M)];
+  /* 这一档的期限：简单档多一年（坚守型不变） */
+  const untilOf = (m, d) => (d === 0 && !m.hold ? [m.until[0] + 1, m.until[1]] : m.until.slice());
   /* 期限换算成回合：剧本开局是第 0 回合（开局的那个季度）；dl 是任务里最后结算的那个季度的回合号，结算完（S.turn > dl）就到期 */
-  const dlTurn = (m, S) => (m.until[0] - S.year) * 4 + (m.until[1] - S.q) + S.turn;
+  const dlTurn = (m, S, d) => { const u = untilOf(m, d == null ? 1 : d); return (u[0] - S.year) * 4 + (u[1] - S.q) + S.turn; };
+  /* 目标：按局面判定；spec 只列出目标（说明里用，不需要局面） */
+  function goals(m, S, M) { return m.G(tOf(m, M)).map(g => Object.assign({ k: g.k, p: g.p || null, keep: !!g.keep }, g.ev(S, M))); }
+  function spec(m, d) { return m.G(m.tg[d == null ? 1 : d]).map(g => ({ k: g.k, p: g.p || null, keep: !!g.keep, ok: false })); }
+  for (const m of L) { m.goals = (S, M) => goals(m, S, M); m.gk = spec(m, 1).map(g => (g.keep ? '!' : '') + g.k); }
   /* 开始任务时的记录（开局时各国的 GDP 与军力是“开局的 N 倍”类目标的基准） */
-  function init(m, S) {
-    const M = { id: m.id, t0: S.turn, qpt: m.qpt, dl: dlTurn(m, S), base: { gdp: {}, pow: {} }, cnt: {}, turns: 0, done: null };
+  function init(m, S, d, seed) {
+    d = d >= 0 && d <= 2 ? d | 0 : 1;
+    const M = { id: m.id, d, t: Object.assign({}, m.tg[d]), seed: seed == null ? (S.seed ?? null) : seed, t0: S.turn, qpt: m.qpt, dl: dlTurn(m, S, d), base: { gdp: {}, pow: {} }, cnt: {}, turns: 0, undo: 0, done: null };
     for (const X of W().IDS) if (S.actors[X]) { M.base.gdp[X] = S.actors[X].gdp; M.base.pow[X] = W().power(S, X); }
     return M;
   }
   /* 援助类行动（每排一次算一次） */
   const AID = ['aid', 'armsaid', 'aidprog', 'loan', 'volunteers'];
   function countAid(M, queue) { for (const q of queue || []) if (q && AID.includes(q.type) && q.target) M.cnt[q.target] = (M.cnt[q.target] || 0) + 1; }
-  /* 默认评星：用掉的时间不到一半三星，不到八成两星 */
-  const timeStars = (S, M) => { const f = (S.turn - M.t0) / Math.max(1, M.dl + 1 - M.t0); return f <= 0.5 ? 3 : f <= 0.8 ? 2 : 1; };
+  /* 评星：用掉的季度不超过 par 的三星 / 两星；没有 par 时按用掉的时间（不到一半三星，不到八成两星） */
+  function starsOf(m, S, M) {
+    if (m.stars) return m.stars(S, M, tOf(m, M));
+    const used = S.turn - M.t0, par = m.par && m.par[dOf(M)];
+    if (par) return used <= par[0] ? 3 : used <= par[1] ? 2 : 1;
+    const f = used / Math.max(1, M.dl + 1 - M.t0); return f <= 0.5 ? 3 : f <= 0.8 ? 2 : 1;
+  }
   /* 每个季度结算完判定：出局或失败条件优先，然后看是否全部达成，最后看期限；还在进行返回 null */
   function check(m, S, M) {
     if (S.over && S.over.result === 'lose') return { res: 'fail', why: 'v4m.lost' };
     const f = m.fail && m.fail(S, M); if (f) return { res: 'fail', why: 'v4m.g.' + f };
-    if (m.goals(S, M).every(g => g.ok)) return { res: 'win', stars: m.stars ? m.stars(S, M) : timeStars(S, M) };
+    if (goals(m, S, M).every(g => g.ok)) return { res: 'win', stars: starsOf(m, S, M) };
     if (S.turn > M.dl) return { res: 'fail', why: 'v4m.timeout' };
     return null;
   }
-  return { list: L, get: id => L.find(m => m.id === id) || null, dlTurn, init, countAid, check, AID, adv: k => ADV[k] || null };
+  return { list: L, get: id => L.find(m => m.id === id) || null, DIFFS, untilOf, dlTurn, init, spec, countAid, check, starsOf, AID, adv: k => ADV[k] || null, tOf, dOf };
 })();
 try { window.TXMIS = TXMIS; } catch (e) { }
 
@@ -5987,7 +6033,7 @@ I18N.add({
   'mp.title': ['天下棋局 · 联机版 v4', 'Tianxia Online v4'],
   'u.title': ['天下棋局 v4', 'Tianxia v4: Grand Strategy'],
   'mp.intro': ['新版 v4：在 v3 的基础上（行动力按百分比、真人联网同场、协议在外交页的对话里谈），加入十个单机任务、每回合的局势说明、简化模式、详细教程和更多地图动画；联网房间可以设密码。四条时间线（1939、1945、1979、2026）任选一个开局。', 'Tianxia v4 builds on v3 (capacity in percent, live online play, deals negotiated on the Diplomacy tab) and adds ten solo missions, a situation briefing every turn, a simple mode, a detailed tutorial and more map animations; online rooms can now have a password. Start from any of four timelines: 1939, 1945, 1979 or 2026.'],
-  'mp.f1': ['<b>单机任务</b>：选一个年代和国家完成限时任务，每回合推演半年或一年，目标每个季度判定，完成就结束', '<b>Missions</b>: pick an era and a country and complete a timed goal; each turn covers half a year or a year, goals are checked every quarter, and you win the moment you succeed'],
+  'mp.f1': ['<b>单机任务</b>：选一个年代和国家完成限时任务，分简单、普通、困难三档；每回合推演半年或一年，目标每个季度判定，完成就结束；可以回到上一回合，也可以用挑战码和朋友比同一个开局', '<b>Missions</b>: pick an era and a country and complete a timed goal at easy, normal or hard; each turn covers half a year or a year, goals are checked every quarter, and you win the moment you succeed. You can go back a turn, and challenge codes let friends play the same start'],
   'mp.f2': ['<b>局势说明</b>：每回合的战报都解释国力与国际局势为什么这样变——国内政策与对外行动各带来多大影响', '<b>Situation briefing</b>: every report explains why your national strength and the world changed — how much came from domestic policy and how much from foreign moves'],
   'mp.f3': ['<b>简化模式与详细教程</b>：常用行动一键排入、参谋每回合给建议；详细教程逐项讲清每个操作的作用机制，经典的快速教程也保留', '<b>Simple mode and a detailed tutorial</b>: common actions in one click with an advisor every turn; the detailed tutorial explains how each action works, and the classic quick tutorial is still there'],
   'mp.f4': ['<b>房间与地图</b>：房间名按现行规定检查，可以设密码（对局数据加密）；地图上用动画表现援助、贸易、制裁、进攻等各种行动', '<b>Rooms and map</b>: room names are checked against current rules and rooms can have a password (game data encrypted); map animations show aid, trade, sanctions, offensives and more'],
@@ -6076,27 +6122,54 @@ I18N.add({
 I18N.add({
   // —— 开局画面与任务列表 ——
   'v4m.card': ['单机任务', 'Missions'],
-  'v4m.card_x': ['选一个年代和国家，完成一个限时任务。每回合推演半年或一年，目标每个季度判定，完成就结束。', 'Pick an era and a country and complete a timed mission. Each turn covers half a year or a year; goals are checked every quarter and you win the moment they are met.'],
+  'v4m.card_x': ['选一个年代和国家，完成一个限时任务。分简单、普通、困难三档；每回合推演半年或一年，目标每个季度判定，完成就结束。', 'Pick an era and a country and complete a timed mission, at easy, normal or hard. Each turn covers half a year or a year; goals are checked every quarter and you win the moment they are met.'],
   'v4m.list_h': ['单机任务', 'Missions'],
-  'v4m.list_x': ['十个快速任务。推演规则与完整对局相同，只是每回合连算 2–4 个季度；目标每个季度都判定，达成就立即完成，不用等到最后统一结算。出现需要你决定的事（危机、通牒、有国家对你开战）时，推演会提前停下来交给你。', 'Ten quick missions. The rules are the same as in a full game, but each turn runs 2–4 quarters back to back. Goals are checked every quarter and the mission ends as soon as you meet them — no waiting for a final tally. If something needs your decision (a crisis, an ultimatum, a declaration of war on you), the run stops early and hands control back.'],
+  'v4m.list_x': ['十个快速任务，每个分简单、普通、困难三档。推演规则与完整对局相同，只是每回合连算 2–4 个季度；目标每个季度都判定，达成就立即完成，不用等到最后统一结算。出现需要你决定的事（危机、通牒、有国家对你开战）时，推演会提前停下来交给你。', 'Ten quick missions, each at easy, normal or hard. The rules are the same as in a full game, but each turn runs 2–4 quarters back to back. Goals are checked every quarter and the mission ends as soon as you meet them — no waiting for a final tally. If something needs your decision (a crisis, an ultimatum, a declaration of war on you), the run stops early and hands control back.'],
   'v4m.era': ['{n} 年开局', '{n} start'],
   'v4m.len2': ['每回合半年', 'half a year per turn'],
   'v4m.len4': ['每回合一年', 'a year per turn'],
   'v4m.until': ['期限 {n} 年底', 'by the end of {n}'],
-  'v4m.diff': ['难度', 'Difficulty'],
+  'v4m.diff': ['任务难度', 'Difficulty'],
   'v4m.best': ['最佳 {x}', 'Best {x}'],
   'v4m.best_n': ['最佳 {x} · {n} 回合', 'Best {x} · {n} turns'],
+  'v4m.best_d': ['本档最佳 {x} · {n} 回合', 'Best at this level {x} · {n} turns'],
   'v4m.none': ['未完成', 'Not completed'],
   'v4m.open': ['查看', 'Open'],
   'v4m.goals': ['任务目标', 'Goals'],
   'v4m.tips': ['提示', 'Tips'],
   'v4m.rules': ['规则：', 'Rules: '],
-  'v4m.rules_x': ['{a}，{b}。目标每个季度判定，全部达成就完成；标“保持”的目标在完成时也必须满足。', '{a}, {b}. Goals are checked every quarter and the mission is complete once all are met; goals marked “keep” must still hold at that moment.'],
-  'v4m.rules_hold': ['这是坚守型任务：要坚持到期限那个季度结束。', 'This is a hold-out mission: you must last until the final quarter is over.'],
+  'v4m.rules_x': ['{a}，{b}（共 {n} 个季度）。目标每个季度判定，全部达成就完成；标“保持”的目标在完成时也必须满足。', '{a}, {b} ({n} quarters in all). Goals are checked every quarter and the mission is complete once all are met; goals marked “keep” must still hold at that moment.'],
+  'v4m.rules_hold': ['这是坚守型任务：要坚持到期限那个季度结束，到时各项目标都满足才算完成。', 'This is a hold-out mission: you must last until the final quarter is over, and every goal must hold at that point.'],
   'v4m.go': ['开始任务', 'Start mission'],
   'v4m.ai_opt': ['每回合的第一个季度用 AI 推演各国的反应（需要已接入 AI，会慢一些；不勾选就全部按规则推演，最快）', 'Use AI for other countries’ reactions in the first quarter of each turn (needs a connected AI and is slower; unchecked, everything runs on the rule engine — fastest)'],
   'v4m.started': ['任务开始：{x}', 'Mission started: {x}'],
-  'v4m.resume': ['继续单机任务：{x}（{d}）', 'Continue mission: {x} ({d})'],
+  'v4m.resume': ['继续单机任务：{x}（{k} · {d}）', 'Continue mission: {x} ({k} · {d})'],
+  'v4m.resume_done': ['已完成，自由游玩', 'completed, free play'],
+  'v4m.resume_fail': ['未完成，自由游玩', 'failed, free play'],
+  'v4m.save_x': ['💾 单机任务单独存档，不会覆盖你平常对局的本机存档。', '💾 Missions have their own save slot and never overwrite your regular local game.'],
+  'v4m.overwrite_q': ['开始新任务会覆盖还没完成的任务存档「{x}」。继续吗？', 'Starting a new mission will overwrite your unfinished mission save “{x}”. Continue?'],
+  // —— 难度档 ——
+  'v4m.diff_h': ['难度档', 'Difficulty level'],
+  'v4m.d0': ['简单', 'Easy'],
+  'v4m.d1': ['普通', 'Normal'],
+  'v4m.d2': ['困难', 'Hard'],
+  'v4m.ds0': ['简', 'E'],
+  'v4m.ds1': ['普', 'N'],
+  'v4m.ds2': ['难', 'H'],
+  'v4m.dx0': ['目标放宽，期限多一年（坚守型不变）；其他国家更温和', 'Easier targets and an extra year (except hold-outs); other countries are milder'],
+  'v4m.dx1': ['标准的目标与期限', 'Standard targets and deadline'],
+  'v4m.dx2': ['目标更高；其他国家更强硬、更难说服', 'Higher targets; other countries are tougher and harder to persuade'],
+  // —— 开局：随机、本周挑战、挑战码 ——
+  'v4m.seed_h': ['开局', 'Start'],
+  'v4m.seed_rand': ['随机开局', 'Random start'],
+  'v4m.seed_week': ['本周挑战 · {x}', 'Weekly challenge · {x}'],
+  'v4m.seed_code': ['输入挑战码', 'Enter a challenge code'],
+  'v4m.seed_ph': ['例如 K7Q2M9', 'e.g. K7Q2M9'],
+  'v4m.seed_x': ['同一个挑战码、同一难度就是同一个开局，推演的随机过程也相同。用本周挑战或挑战码开局时只用规则推演，大家的条件完全一样。每局结束后都会给出这一局的挑战码。', 'The same code at the same difficulty gives the same start and the same random draws. Weekly challenges and codes always use the rule engine, so everyone plays under identical conditions. Every finished game shows its own code.'],
+  'v4m.seed_bad': ['挑战码是 1–6 位字母或数字（不能是 0）', 'A challenge code is 1–6 letters or digits (not 0)'],
+  'v4m.week': ['{y} 年第 {n} 周', 'week {n} of {y}'],
+  'v4m.week_x': ['本周挑战（{x}）：每个任务每周有一个固定开局，所有人都一样，可以和朋友比谁打得更好。', 'This week’s challenge ({x}): every mission has one fixed start per week, the same for everyone — see who does best.'],
+  'v4m.code': ['挑战码 {x}', 'code {x}'],
   // —— 进行中 ——
   'v4m.hud': ['任务', 'Mission'],
   'v4m.left': ['还剩 {n} 回合', '{n} turns left'],
@@ -6110,6 +6183,14 @@ I18N.add({
   'v4m.sec': ['单机任务', 'Mission'],
   'v4m.done_tag': ['已完成', 'Complete'],
   'v4m.fail_tag': ['未完成', 'Failed'],
+  // —— 回到上一回合 ——
+  'v4m.undo': ['↶ 回到上一回合', '↶ Back one turn'],
+  'v4m.undo_s': ['↶ 上一回合', '↶ Undo turn'],
+  'v4m.undo_l': ['对结果不满意，可以回到这回合推演之前，改一改安排再推。', 'Not happy with this? Go back to before this turn and change your plan.'],
+  'v4m.undo_q': ['回到 {d} 推演之前？本回合排好的行动会恢复，可以修改后重新推演（照原样再推，结果基本相同）。回退次数会记在成绩里。', 'Go back to before {d} was played? Your queued moves come back so you can change them (replaying the same plan gives essentially the same result). Undos are recorded with your result.'],
+  'v4m.undo_done': ['已回到 {d}：修改安排后再推演', 'Back at {d}: change your plan and play again'],
+  'v4m.undo_none': ['没有可以回到的上一回合', 'There is no earlier turn to go back to'],
+  'v4m.undo_n': ['回退 {n} 次', '{n} undo(s)'],
   // —— 战报 ——
   'v4m.rep_h': ['任务进度', 'Mission progress'],
   'v4m.rep_n': ['本回合连续推演了 {n} 个季度（{x}）。', 'This turn ran {n} quarters ({x}).'],
@@ -6120,16 +6201,29 @@ I18N.add({
   'v4m.stop.over': ['对局结束', 'the game is over'],
   'v4m.rep_win': ['🎉 任务完成！', '🎉 Mission complete!'],
   'v4m.rep_fail': ['任务失败', 'Mission failed'],
-  // —— 结果 ——
+  // —— 结果与成绩卡 ——
   'v4m.win_h': ['任务完成：{x}', 'Mission complete: {x}'],
   'v4m.win_x': ['用了 {n} 个回合（{q} 个季度，到 {d}）。', 'You took {n} turns ({q} quarters, up to {d}).'],
   'v4m.win_new': ['新纪录！', 'New record!'],
   'v4m.fail_h': ['任务失败：{x}', 'Mission failed: {x}'],
-  'v4m.star_x': ['评星：用掉的时间不到一半得三星，不到八成得两星。', 'Stars: three if you used less than half the time, two if less than 80%.'],
+  'v4m.star_q': ['评星：{a} 结束前完成（{n} 个季度内）得三星，{b} 结束前完成（{m} 个季度内）得两星，其余一星。', 'Stars: three if done by the end of {a} (within {n} quarters), two by the end of {b} (within {m}), otherwise one.'],
+  'v4m.star_hold': ['评星：到期时德军对苏联本土的攻势进度不超过 {a}%、稳定不低于 {n} 得三星；攻势进度不超过 {b}% 得两星；其余一星。', 'Stars: three if, at the deadline, German progress on Soviet soil is {a}% or less and stability is {n} or more; two if progress is {b}% or less; otherwise one.'],
+  'v4m.share_h': ['成绩卡', 'Result card'],
+  'v4m.share_copy': ['复制成绩卡', 'Copy card'],
+  'v4m.link_copy': ['复制挑战链接', 'Copy challenge link'],
+  'v4m.share_x': ['把成绩卡或链接发给朋友：对方打开链接就是同一个挑战（同一任务、同一难度、同一开局）。', 'Send the card or link to a friend: opening the link starts the same challenge (same mission, difficulty and start).'],
+  'v4m.copied': ['已复制', 'Copied'],
+  'v4m.copy_fail': ['没能复制，请手动选中文字复制', 'Could not copy — please select the text and copy it'],
+  'v4m.card_t': ['{t}（{w} · {e}）· {d}', '{t} ({w} · {e}) · {d}'],
+  'v4m.card_win': ['{x} 用了 {n} 个回合（{q} 个季度）· 回退 {u} 次', '{x} in {n} turn(s) ({q} quarters) · {u} undo(s)'],
+  'v4m.card_fail': ['未完成：{x}（{n} 个回合）', 'Not completed: {x} ({n} turn(s))'],
+  'v4m.card_code': ['挑战码 {x}', 'Challenge code {x}'],
+  'v4m.card_week': ['本周挑战 {x}', 'weekly challenge {x}'],
+  'v4m.card_ai': ['用了 AI 推演（结果可能不同）', 'AI reactions on (results may vary)'],
   'v4m.again': ['再试一次', 'Try again'],
   'v4m.list': ['任务列表', 'Mission list'],
   'v4m.free': ['继续自由游玩', 'Keep playing freely'],
-  'v4m.free_x': ['任务已经结束；接下来按普通单人对局进行，每回合一个季度。', 'The mission is over; from now on this is a normal solo game, one quarter per turn.'],
+  'v4m.free_x': ['任务已经结束；接下来按普通单人对局进行，每回合一个季度（仍然存在任务存档里）。', 'The mission is over; from now on this is a normal solo game, one quarter per turn (still kept in the mission save).'],
   'v4m.timeout': ['期限已到，目标没有全部完成', 'the deadline passed before all goals were met'],
   'v4m.lost': ['你的国家在对局中出局', 'your country is out of the game'],
   'v4m.home_lost': ['本土失守', 'your homeland was lost'],
@@ -6138,89 +6232,96 @@ I18N.add({
   'v4m.f.n': ['{a} / {b}', '{a} / {b}'],
   'v4m.f.num': ['{a} / {b}', '{a} / {b}'],
   'v4m.f.max': ['{a}（不超过 {b}）', '{a} (max {b})'],
+  'v4m.f.pct': ['{a}% / {b}%', '{a}% / {b}%'],
+  'v4m.f.maxpct': ['{a}%（不超过 {b}%）', '{a}% (max {b}%)'],
   'v4m.f.q': ['{a} / {b} 个季度', '{a} / {b} quarters'],
   'v4m.g.home': ['守住本土', 'Keep your homeland'],
 
-  // —— 十个任务 ——
+  // —— 十个任务（说明里不写具体数字：数字按难度档在目标里列出） ——
   'v4m.gb39.who': ['英国', 'United Kingdom'],
   'v4m.gb39.t': ['孤岛求援', 'Britain Calls for Help'],
-  'v4m.gb39.b': ['1939 年秋，德国入侵波兰，英国对德宣战。欧洲大陆局势危急，英国需要大洋彼岸的支持。在 1942 年底前：与美国结成同盟，让美国对德国作战，同时把军力扩充到开局的 1.25 倍，并守住本土。', 'Autumn 1939: Germany has invaded Poland and Britain has declared war. With the Continent in danger, Britain needs support from across the Atlantic. By the end of 1942: ally with the United States, bring it into the war against Germany, build your military to 1.25× its starting strength, and keep the home islands safe.'],
-  'v4m.gb39.tip': ['先开峰会改善与美国的关系，再提议结盟；结盟后可以请美国对德参战。保持二级动员，征兵并持续采购空军与海军（装备要有人用，只采购不征兵，军力涨得很慢），但国库不要透支太多。', 'Hold summits to warm relations with the United States, then propose an alliance; once allied, ask it to join the war on Germany. Stay at mobilization level 2, conscript and keep buying air and naval forces (equipment needs crews — buying without conscripting barely raises your strength), but don’t let the treasury sink too far.'],
+  'v4m.gb39.b': ['1939 年秋，德国入侵波兰，英国对德宣战。欧洲大陆局势危急，英国需要大洋彼岸的支持：与美国结成同盟，让美国对德国作战，同时扩充军力，守住本土。', 'Autumn 1939: Germany has invaded Poland and Britain has declared war. With the Continent in danger, Britain needs support from across the Atlantic: ally with the United States, bring it into the war against Germany, build up your military and keep the home islands safe.'],
+  'v4m.gb39.tip': ['先开峰会改善与美国的关系，再提议结盟；结盟后可以请美国对德参战。征兵并持续采购空军与海军（装备要有人用，只采购不征兵，军力涨得很慢），国库不要透支太多。想更快：把动员提到“总体战一级”，军工产能会明显提高，但经济和稳定的代价也更大。', 'Hold summits to warm relations with the United States, then propose an alliance; once allied, ask it to join the war on Germany. Conscript and keep buying air and naval forces (equipment needs crews — buying without conscripting barely raises your strength), and don’t let the treasury sink too far. To go faster, raise mobilization to “total war 1”: arms output rises sharply, at a higher cost to the economy and stability.'],
   'v4m.g.gb39.ally': ['与美国结成同盟', 'Ally with the United States'],
   'v4m.g.gb39.war': ['美国对德国作战', 'The United States is at war with Germany'],
-  'v4m.g.gb39.pow': ['军力达到开局的 1.25 倍', 'Military power at 1.25× the start'],
+  'v4m.g.gb39.pow': ['军力达到开局的 {n} 倍', 'Military power at {n}× the start'],
 
   'v4m.su39.who': ['苏联', 'Soviet Union'],
   'v4m.su39.t': ['卫国战争：坚守', 'The Patriotic War: Hold the Line'],
-  'v4m.su39.b': ['1939 年，苏联与德国签有互不侵犯条约，但战争的阴云正在逼近。做好准备，坚持到 1943 年底。到期时：本土仍在你手中，德军对苏联本土的攻势进度不超过 40%，国内稳定不低于 30；期间要与英国或美国结成同盟。', '1939: the Soviet Union has a non-aggression pact with Germany, but war is coming. Prepare, then hold out to the end of 1943. At that point your homeland must still be yours, any German offensive on Soviet soil must be at 40% progress or less, and stability must be 30 or higher. Along the way, ally with Britain or the United States.'],
-  'v4m.su39.tip': ['尽早动员、征兵，持续采购陆军与空军，但国库透支会拖累一切。德国进攻后，向英国、美国提议结盟。稳定偏低时用“维稳”。', 'Mobilize and conscript early and keep buying land and air forces, but a deep deficit drags everything down. Once Germany attacks, propose alliances to Britain and the United States. Use “stabilize” when stability runs low.'],
+  'v4m.su39.b': ['1939 年，苏联与德国签有互不侵犯条约，但战争的阴云正在逼近。做好准备，坚持到 1943 年底：到期时本土仍在你手中、前线守得住、国内保持稳定；期间要与英国或美国结成同盟。', '1939: the Soviet Union has a non-aggression pact with Germany, but war is coming. Prepare, then hold out to the end of 1943: at that point your homeland must still be yours, the front must hold and the country must stay stable. Along the way, ally with Britain or the United States.'],
+  'v4m.su39.tip': ['开局就把约三分之一的陆军和五分之一的空军调往乌克兰（“军事”页的“调动部队”；简化模式的参谋也会建议），只靠本土的部队守不住前沿。动员到二级，每回合征兵并采购陆军；稳定低于 55 就“维稳”；德国进攻后向英国、美国提议结盟。国库透支太深会拖累一切。', 'Right at the start, move about a third of your army and a fifth of your air force to Ukraine (“Move forces” on the Military tab; in simplified mode the adviser suggests it) — troops kept at home cannot hold the frontier. Mobilize to level 2, conscript and buy land forces every turn, and use “stabilize” whenever stability drops below 55. Once Germany attacks, propose alliances to Britain and the United States. A deep deficit drags everything down.'],
   'v4m.g.su39.ally': ['与英国或美国结成同盟', 'Ally with Britain or the United States'],
-  'v4m.g.su39.front': ['德军对苏联本土的攻势进度不超过 40%', 'German progress on Soviet soil at 40% or less'],
-  'v4m.g.su39.stab': ['稳定不低于 30', 'Stability 30 or higher'],
+  'v4m.g.su39.front': ['德军对苏联本土的攻势进度不超过 {n}%', 'German progress on Soviet soil at {n}% or less'],
+  'v4m.g.su39.held': ['守住乌克兰或白俄罗斯（至少一处）', 'Hold Ukraine or Belarus (at least one)'],
+  'v4m.g.su39.stab': ['稳定不低于 {n}', 'Stability {n} or higher'],
   'v4m.g.su39.hold': ['坚持到 1943 年底', 'Hold out to the end of 1943'],
   'v4m.g.su39.lost': ['苏联本土失守', 'The Soviet homeland has fallen'],
 
   'v4m.us39.who': ['美国', 'United States'],
   'v4m.us39.t': ['民主国家的兵工厂', 'Arsenal of Democracy'],
-  'v4m.us39.b': ['1939 年，美国仍然保持中立，但欧洲与亚洲已经燃起战火。在 1942 年底前：援助英国至少 3 次，援助中国至少 3 次、支持中国人民的抗日战争，同时把军力扩充到开局的 1.5 倍。', '1939: America is still neutral, but war has broken out in Europe and Asia. By the end of 1942: send aid to Britain at least 3 times, send aid to China at least 3 times to support its war of resistance against Japan, and build your military to 1.5× its starting strength.'],
-  'v4m.us39.tip': ['经济援助、军事援助、贷款和志愿人员都算一次援助，每回合都可以排。动员到二级，征兵并持续采购陆军与空军——装备要有人用，只采购不征兵，军力涨得很慢。', 'Economic aid, military aid, loans and volunteers each count as one aid and can be queued every turn. Mobilize to level 2, conscript, and keep buying land and air forces — equipment needs crews, and buying without conscripting barely raises your strength.'],
-  'v4m.g.us39.gbr': ['援助英国 3 次', 'Aid Britain 3 times'],
-  'v4m.g.us39.chn': ['援助中国 3 次', 'Aid China 3 times'],
-  'v4m.g.us39.pow': ['军力达到开局的 1.5 倍', 'Military power at 1.5× the start'],
+  'v4m.us39.b': ['1939 年，美国仍然保持中立，但欧洲与亚洲已经燃起战火。多次援助英国，援助中国、支持中国人民的抗日战争，同时扩充自己的军力。', '1939: America is still neutral, but war has broken out in Europe and Asia. Send repeated aid to Britain, aid China to support its war of resistance against Japan, and build up your own military.'],
+  'v4m.us39.tip': ['经济援助、军事援助、贷款和志愿人员都算一次援助，每回合都可以排，对同一个国家排两种就算两次。动员到二级，征兵并持续采购陆军与空军——装备要有人用，只采购不征兵，军力涨得很慢。', 'Economic aid, military aid, loans and volunteers each count as one aid and can be queued every turn — two kinds to the same country count twice. Mobilize to level 2, conscript, and keep buying land and air forces — equipment needs crews, and buying without conscripting barely raises your strength.'],
+  'v4m.g.us39.gbr': ['援助英国 {n} 次', 'Aid Britain {n} times'],
+  'v4m.g.us39.chn': ['援助中国 {n} 次', 'Aid China {n} times'],
+  'v4m.g.us39.pow': ['军力达到开局的 {n} 倍', 'Military power at {n}× the start'],
 
   'v4m.us45.who': ['美国', 'United States'],
   'v4m.us45.t': ['复兴欧洲', 'Rebuild Europe'],
-  'v4m.us45.b': ['1945 年，战争结束，欧洲百废待兴。通过援助与合作帮助西欧复兴：在 1950 年底前，让英国、法国、德国的 GDP 合计达到开局的 1.25 倍，并与其中至少两国结成同盟。', '1945: the war is over and Europe must rebuild. Help Western Europe recover through aid and cooperation: by the end of 1950, raise the combined GDP of Britain, France and Germany to 1.25× the start, and ally with at least two of them.'],
-  'v4m.us45.tip': ['持续向三国提供经济援助；德国由你占领时，可以先让它恢复独立。结盟前先开峰会改善关系。', 'Keep sending economic aid to all three. If you occupy Germany, you can restore its independence first. Hold summits to improve relations before proposing alliances.'],
-  'v4m.g.us45.gdp': ['英、法、德 GDP 合计达到开局的 1.25 倍', 'Combined GDP of Britain, France and Germany at 1.25× the start'],
-  'v4m.g.us45.ally': ['与其中至少两国结盟', 'Ally with at least two of them'],
+  'v4m.us45.b': ['1945 年，战争结束，欧洲百废待兴。通过援助与合作帮助西欧复兴：让英国、法国、德国的经济恢复增长，并与其中几国结成同盟。', '1945: the war is over and Europe must rebuild. Help Western Europe recover through aid and cooperation: get the British, French and German economies growing again, and ally with some of them.'],
+  'v4m.us45.tip': ['持续向三国提供经济援助，援助越多恢复越快；德国由你占领时，可以先让它恢复独立。结盟前先开峰会改善关系。', 'Keep sending economic aid to all three — more aid means a faster recovery. If you occupy Germany, you can restore its independence first. Hold summits to improve relations before proposing alliances.'],
+  'v4m.g.us45.gdp': ['英、法、德 GDP 合计达到开局的 {n} 倍', 'Combined GDP of Britain, France and Germany at {n}× the start'],
+  'v4m.g.us45.ally': ['与其中至少 {n} 国结盟', 'Ally with at least {n} of them'],
 
   'v4m.gb45.who': ['英国', 'United Kingdom'],
-  'v4m.gb45.t': ['战后重建', 'Postwar Recovery'],
-  'v4m.gb45.b': ['1945 年，英国赢得了战争，却背上了沉重的债务。在 1950 年底前：GDP 达到开局的 1.2 倍，稳定不低于 65，国库转为正数。', '1945: Britain has won the war but is deep in debt. By the end of 1950: grow GDP to 1.2× the start, keep stability at 65 or higher, and bring the treasury back into the black.'],
-  'v4m.gb45.tip': ['先复员（动员降到零）、减少军费；稳定不够时“维稳”，有余钱再做“经济刺激”。', 'Demobilize first (mobilization to zero) and cut military spending; use “stabilize” when stability is short, and “stimulus” when you have money to spare.'],
-  'v4m.g.gb45.gdp': ['GDP 达到开局的 1.2 倍', 'GDP at 1.2× the start'],
-  'v4m.g.gb45.stab': ['稳定不低于 65', 'Stability 65 or higher'],
-  'v4m.g.gb45.tre': ['国库转为正数', 'Treasury back above zero'],
+  'v4m.gb45.t': ['复员', 'Demobilization'],
+  'v4m.gb45.b': ['1945 年，英国赢得了战争，但军队还处在战时动员，财政吃紧。让国家回到和平轨道：动员降到平时、压低军费，同时让经济增长、社会稳定，把国库重新攒起来。', '1945: Britain has won the war, but its forces are still on a war footing and its finances are stretched. Bring the country back to peacetime: stand mobilization down, cut military spending, and at the same time grow the economy, keep society stable and rebuild the treasury.'],
+  'v4m.gb45.tip': ['第一回合就把动员降到“平时”（降低动员不占行动力），在“动员”页把军费降到目标以下（简化模式下参谋会给出这两条建议，点“照办”即可）——军费越低，经济的拖累越小，但军方会不满。稳定不够时“维稳”；经济刺激能加快增长，但花的是国库的钱，要留够余额。', 'On the first turn, stand mobilization down to “peacetime” (lowering it costs no action points) and cut the defence budget below the target on the Mobilization tab (in simplified mode the adviser offers both — just press “Do it”) — the lower it is, the less it drags on the economy, though the military will grumble. Use “stabilize” when stability is short; stimulus speeds up growth but spends treasury money, so keep enough in reserve.'],
+  'v4m.g.gb45.mob': ['动员降到平时', 'Mobilization at peacetime'],
+  'v4m.g.gb45.mil': ['军费不超过 GDP 的 {n}%', 'Defence spending at most {n}% of GDP'],
+  'v4m.g.gb45.gdp': ['GDP 达到开局的 {n} 倍', 'GDP at {n}× the start'],
+  'v4m.g.gb45.stab': ['稳定不低于 {n}', 'Stability {n} or higher'],
+  'v4m.g.gb45.tre': ['国库余额达到 GDP 的 {n}%', 'Treasury at {n}% of GDP or more'],
 
   'v4m.cn79.who': ['中国', 'China'],
   'v4m.cn79.t': ['改革开放', 'Reform and Opening Up'],
-  'v4m.cn79.b': ['1979 年，中国开启改革开放的新征程。在 1989 年底前：GDP 达到开局的 2 倍，并与美国、日本分别签订自贸协定。每回合推演一年。', '1979: China embarks on reform and opening up. By the end of 1989: double GDP, and sign trade agreements with both the United States and Japan. Each turn covers a year.'],
+  'v4m.cn79.b': ['1979 年，中国开启改革开放的新征程：让经济成倍增长，并与美国、日本分别签订自贸协定。每回合推演一年。', '1979: China embarks on reform and opening up: multiply the size of the economy and sign trade agreements with both the United States and Japan. Each turn covers a year.'],
   'v4m.cn79.tip': ['先开峰会改善关系，再提议自贸协定；经济刺激与科研投入都能加快增长。', 'Hold summits to improve relations, then propose trade agreements; stimulus and research both speed up growth.'],
-  'v4m.g.cn79.gdp': ['GDP 达到开局的 2 倍', 'GDP at 2× the start'],
+  'v4m.g.cn79.gdp': ['GDP 达到开局的 {n} 倍', 'GDP at {n}× the start'],
   'v4m.g.cn79.usa': ['与美国签订自贸协定', 'Trade agreement with the United States'],
   'v4m.g.cn79.jpn': ['与日本签订自贸协定', 'Trade agreement with Japan'],
 
   'v4m.in79.who': ['印度', 'India'],
   'v4m.in79.t': ['不结盟的平衡', 'The Non-Aligned Balance'],
-  'v4m.in79.b': ['1979 年，冷战正酣。作为不结盟运动的重要成员，印度要同时与两个超级大国保持良好关系：在 1984 年底前，与美国、苏联的关系都达到 40 以上，并让 GDP 达到开局的 1.25 倍。', '1979: the Cold War is at its height. As a leading member of the Non-Aligned Movement, India wants good relations with both superpowers: by the end of 1984, reach relations of 40 or more with both the United States and the Soviet Union, and grow GDP to 1.25× the start.'],
+  'v4m.in79.b': ['1979 年，冷战正酣。作为不结盟运动的重要成员，印度要同时与两个超级大国保持良好关系，并让经济稳步增长。', '1979: the Cold War is at its height. As a leading member of the Non-Aligned Movement, India wants good relations with both superpowers at once, and steady economic growth.'],
   'v4m.in79.tip': ['轮流与两国开峰会；避免会得罪任何一方的行动。经济刺激能帮助增长。', 'Alternate summits with both; avoid actions that offend either side. Stimulus helps growth.'],
-  'v4m.g.in79.usa': ['与美国关系达到 40', 'Relations with the United States at 40'],
-  'v4m.g.in79.rus': ['与苏联关系达到 40', 'Relations with the Soviet Union at 40'],
-  'v4m.g.in79.gdp': ['GDP 达到开局的 1.25 倍', 'GDP at 1.25× the start'],
+  'v4m.g.in79.usa': ['与美国关系达到 {n}', 'Relations with the United States at {n}'],
+  'v4m.g.in79.rus': ['与苏联关系达到 {n}', 'Relations with the Soviet Union at {n}'],
+  'v4m.g.in79.gdp': ['GDP 达到开局的 {n} 倍', 'GDP at {n}× the start'],
 
   'v4m.cn26.who': ['中国', 'China'],
   'v4m.cn26.t': ['高水平开放', 'High-Level Opening Up'],
-  'v4m.cn26.b': ['2026 年，中国推进高水平对外开放与科技自立自强。在 2031 年底前：与至少 5 个国家签订自贸协定，科技水平达到 95，GDP 达到开局的 1.15 倍。', '2026: China pursues high-level opening up and self-reliance in science and technology. By the end of 2031: have trade agreements with at least 5 countries, reach a technology level of 95, and grow GDP to 1.15× the start.'],
-  'v4m.cn26.tip': ['挑关系好的国家提议自贸协定，每回合可以谈两个；持续投入科研，科技越高越难提升。', 'Propose trade agreements to countries you get on well with — two per turn is fine. Keep funding research; the higher your technology, the slower it rises.'],
-  'v4m.g.cn26.trade': ['签订 5 个自贸协定', 'Sign 5 trade agreements'],
-  'v4m.g.cn26.tech': ['科技达到 95', 'Technology level 95'],
-  'v4m.g.cn26.gdp': ['GDP 达到开局的 1.15 倍', 'GDP at 1.15× the start'],
+  'v4m.cn26.b': ['2026 年，中国推进高水平对外开放与科技自立自强：与更多国家签订自贸协定，提高科技水平，保持经济增长。', '2026: China pursues high-level opening up and self-reliance in science and technology: sign trade agreements with more countries, raise the technology level and keep the economy growing.'],
+  'v4m.cn26.tip': ['挑关系好的国家提议自贸协定，每回合可以谈两三个；持续投入科研，科技越高越难提升。', 'Propose trade agreements to countries you get on well with — two or three per turn is fine. Keep funding research; the higher your technology, the slower it rises.'],
+  'v4m.g.cn26.trade': ['签订 {n} 个自贸协定', 'Sign {n} trade agreements'],
+  'v4m.g.cn26.tech': ['科技达到 {n}', 'Technology level {n}'],
+  'v4m.g.cn26.gdp': ['GDP 达到开局的 {n} 倍', 'GDP at {n}× the start'],
 
   'v4m.in26.who': ['印度', 'India'],
   'v4m.in26.t': ['跻身前三', 'Into the Top Three'],
-  'v4m.in26.b': ['2026 年，印度经济快速增长。在 2036 年底前：GDP 超过日本和德国，同时与美国、俄罗斯的关系都保持在 30 以上。每回合推演一年。', '2026: India’s economy is growing fast. By the end of 2036: overtake Japan and Germany in GDP while keeping relations with both the United States and Russia at 30 or above. Each turn covers a year.'],
-  'v4m.in26.tip': ['经济刺激和科研是增长的主力；关系掉下来时及时开峰会。', 'Stimulus and research drive growth; hold a summit whenever a relationship slips.'],
+  'v4m.in26.b': ['2026 年，印度经济快速增长。在期限内让 GDP 超过日本和德国，同时与美国、俄罗斯都保持良好关系——关系不会自己变好，要主动经营。每回合推演一年。', '2026: India’s economy is growing fast. Before the deadline, overtake Japan and Germany in GDP while keeping good relations with both the United States and Russia — relations will not improve by themselves, you have to work at them. Each turn covers a year.'],
+  'v4m.in26.tip': ['经济刺激和科研是增长的主力，投入越大越快；每回合都看一眼与美、俄的关系，掉下来就开峰会。', 'Stimulus and research drive growth — the more you put in, the faster it goes. Check relations with the United States and Russia every turn and hold a summit whenever one slips.'],
   'v4m.g.in26.jpn': ['GDP 超过日本', 'GDP above Japan'],
   'v4m.g.in26.deu': ['GDP 超过德国', 'GDP above Germany'],
-  'v4m.g.in26.usa': ['与美国关系达到 30', 'Relations with the United States at 30'],
-  'v4m.g.in26.rus': ['与俄罗斯关系达到 30', 'Relations with Russia at 30'],
+  'v4m.g.in26.jpn2': ['GDP 达到日本的 {n} 倍', 'GDP at {n}× Japan’s'],
+  'v4m.g.in26.deu2': ['GDP 达到德国的 {n} 倍', 'GDP at {n}× Germany’s'],
+  'v4m.g.in26.usa': ['与美国关系达到 {n}', 'Relations with the United States at {n}'],
+  'v4m.g.in26.rus': ['与俄罗斯关系达到 {n}', 'Relations with Russia at {n}'],
 
   'v4m.kr26.who': ['韩国', 'South Korea'],
   'v4m.kr26.t': ['半岛和解', 'Peninsula Reconciliation'],
-  'v4m.kr26.b': ['2026 年，朝鲜半岛局势仍然紧张。通过对话与合作缓和局势：在 2031 年底前，与朝鲜的关系回升到 0 以上，并签订互不侵犯条约；期间不能与朝鲜发生战争。', '2026: tensions remain high on the Korean Peninsula. Ease them through dialogue and cooperation: by the end of 2031, bring relations with North Korea back to 0 or above and sign a non-aggression pact — without ever going to war with it.'],
-  'v4m.kr26.tip': ['峰会与人道援助能改善关系；关系回到 0 以上后提议互不侵犯条约。避免军演、制裁等敌对行动。', 'Summits and humanitarian aid improve relations; once they are back to 0 or above, propose a non-aggression pact. Avoid hostile moves such as exercises or sanctions.'],
-  'v4m.g.kr26.rel': ['与朝鲜关系回升到 0 以上', 'Relations with North Korea at 0 or above'],
+  'v4m.kr26.b': ['2026 年，朝鲜半岛局势仍然紧张。通过对话与合作缓和局势：改善与朝鲜的关系，并签订互不侵犯条约；期间不能与朝鲜发生战争。', '2026: tensions remain high on the Korean Peninsula. Ease them through dialogue and cooperation: improve relations with North Korea and sign a non-aggression pact — without ever going to war with it.'],
+  'v4m.kr26.tip': ['峰会与人道援助能改善关系；关系回升以后提议互不侵犯条约（对方觉得划算时，关系还没转正也可能同意）。避免军演、制裁等敌对行动。', 'Summits and humanitarian aid improve relations; once they recover, propose a non-aggression pact (if it looks worthwhile to the other side, it may agree even before relations turn positive). Avoid hostile moves such as exercises or sanctions.'],
+  'v4m.g.kr26.rel': ['与朝鲜关系回升到 {n} 以上', 'Relations with North Korea at {n} or above'],
   'v4m.g.kr26.nap': ['与朝鲜签订互不侵犯条约', 'Non-aggression pact with North Korea'],
   'v4m.g.kr26.peace': ['不与朝鲜发生战争', 'No war with North Korea'],
   'v4m.g.kr26.war': ['与朝鲜发生了战争', 'War broke out with North Korea'],
@@ -6291,7 +6392,11 @@ I18N.add({
   'v4s.m.aid': ['援助{a}。', 'send aid to {a}.'],
   'v4s.m.self': ['{k}。', '{k}.'],
   'v4s.m.build': ['征兵并采购陆军。', 'conscript and buy land forces.'],
-  'v4s.m.demob': ['降低动员，减少开支。', 'demobilize and cut spending.'],
+  'v4s.m.demob': ['复员：动员降到平时（不占行动力）。', 'demobilize: stand mobilization down to peacetime (no action points).'],
+  'v4s.m.milcut': ['把军费降到 GDP 的 {n}%。', 'cut the defence budget to {n}% of GDP.'],
+  'v4s.m.save': ['少花钱：暂停经济刺激，让国库攒起来。', 'spend less: pause stimulus and let the treasury build up.'],
+  'v4s.m.deploy': ['从{a:N}调 {s} 的陆军和一部分空军到{b:N}。', 'move {s} of your army and some air force from {a:N} to {b:N}.'],
+  'v4s.mil_set': ['军费已调整为 GDP 的 {n}%', 'Defence budget set to {n}% of GDP'],
   'v4s.m.best': ['找关系好的国家提议自贸（比如{a}）。', 'propose trade to a friendly country (for example {a}).'],
 });
 
@@ -6348,7 +6453,7 @@ I18N.add({
   'tut.s.d_book.h': ['行动手册', 'The action handbook'],
   'tut.s.d_book.x': ['菜单（右上角 ⋯）里的“行动手册”列出每个行动的作用、代价、风险和机制，还按你当前的国家实时算出占多少行动力、花多少钱、对方多半同不同意。拿不准时就查它。', 'The Action handbook in the menu (⋯ at the top right) lists every action’s effect, cost, risk and mechanism, with live figures for your current country: capacity, cost and the odds of agreement. Check it whenever you’re unsure.'],
   'tut.s.d_modes.h': ['接下来玩什么', 'What to play next'],
-  'tut.s.d_modes.x': ['单机任务：十个限时任务，每回合推演半年或一年，适合快速上手；简化模式：只显示常用行动，并有参谋给建议；联网对战：和朋友在各自的设备上同场对弈，房间可以设密码。', 'Missions: ten timed scenarios where each turn covers half a year or a year — a quick way in. Simple mode: only common actions, plus an advisor. Online: play friends on your own devices, with optional room passwords.'],
+  'tut.s.d_modes.x': ['单机任务：十个限时任务，每回合推演半年或一年，适合快速上手；分简单、普通、困难三档，按用时评星，可以回到上一回合，也可以用本周挑战或挑战码和朋友比同一个开局，任务单独存档；简化模式：只显示常用行动，并有参谋给建议；联网对战：和朋友在各自的设备上同场对弈，房间可以设密码。', 'Missions: ten timed scenarios where each turn covers half a year or a year — a quick way in. Each has easy, normal and hard levels and is starred by how fast you finish; you can go back a turn, compare the same start with friends through the weekly challenge or a challenge code, and missions keep their own save. Simple mode: only common actions, plus an advisor. Online: play friends on your own devices, with optional room passwords.'],
 
   // —— 行动手册 ——
   'v4h.title': ['行动手册', 'Action handbook'],
@@ -23612,30 +23717,58 @@ if (v4On() && window.__txWeb && typeof TXNM !== 'undefined') { try { const nm = 
  * 开局画面多一张“单机任务”卡片 → 任务列表 → 任务说明 → 开始（单人 + 规则智能体；默认不用 AI 推演，最快）。
  * 每回合：先按普通流程结算一个季度（玩家排的行动在这里执行），再只按规则连算剩下的季度（一回合半年 = 2 个季度，一年 = 4 个）；
  * 每个季度结算完都判定目标（TXMIS.check），达成或失败立即结束；出现需要玩家决定的事（危机、通牒、有国家对你开战）就提前停下。
- * 几个季度的战报合并成一份；局势说明（04z9c）按整段时间写。最佳成绩存在本机（localStorage 'tianxia4.missions'）。
- * 任务结束后可以继续自由游玩：之后按普通单人对局进行，每回合一个季度。 */
-const V4M = { ev: null }; // 本回合各季度的事件（地图动画用：{ turn, list: [[…], […]] }）
+ * 几个季度的战报合并成一份；局势说明（04z9c）按整段时间写。
+ * 难度：简单 / 普通 / 困难（目标数值、期限、其他国家 AI 的强硬程度），在任务说明里选；最佳成绩按任务和难度分别存在本机（localStorage 'tianxia4.missions'）。
+ * 开局：随机、本周挑战（按任务和日期定下的种子，同一周所有人相同）或输入挑战码（种子的 36 进制写法）；挑战码开局只用规则推演。
+ *   结束后的成绩卡写明任务、难度、星级、用时、挑战码和链接（?m=任务&d=难度&s=挑战码，打开就是同一个挑战）。
+ * 存档：任务有自己的存档槽（'tianxia4.mission.save'），不覆盖平常对局的本机存档；刷新页面时回到最后玩的那一个。
+ * 回到上一回合：每回合推演前记下当时的局面（含本回合排好的行动，'tianxia4.mission.prev'），推演完可以回去改了再推；回退次数记在成绩里。
+ * 任务结束后可以继续自由游玩：之后按普通单人对局进行，每回合一个季度（仍然存在任务存档槽里）。 */
+const V4M = { ev: null, prev: null, link: null };
 const V4M_KEY = 'tianxia4.missions';
+const V4M_LSP = window.TX_LSP || 'tianxia4';
+const V4M_SAVE = V4M_LSP + '.mission.save', V4M_PREV = V4M_LSP + '.mission.prev', V4M_ACT = V4M_LSP + '.mission.active', V4M_PREF = V4M_LSP + '.mission.diff';
 const v4mOf = () => (S && S.mp && S.mp.mission && !UI.demo && typeof TXMIS !== 'undefined' ? S.mp.mission : null);
 const v4mDef = M => (M ? TXMIS.get(M.id) : null);
 const v4mLive = () => { const M = v4mOf(); return M && !M.done && MPS.mode === 'solo' && MPS.on ? M : null; };
+const v4mLS = (k, v) => { try { if (v === undefined) return localStorage.getItem(k); if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) { } return null; };
+/* ---------- 成绩（按任务和难度；旧版没有难度的记录算普通） ---------- */
 function v4mBest() { try { const o = JSON.parse(localStorage.getItem(V4M_KEY) || '{}'); return o && typeof o === 'object' ? o : {}; } catch (e) { return {}; } }
-function v4mSaveBest(id, stars, turns) {
-  const b = v4mBest(), o = b[id], better = !o || stars > o.s || (stars === o.s && turns < o.n);
-  if (better) { b[id] = { s: stars, n: turns, at: Date.now() }; try { localStorage.setItem(V4M_KEY, JSON.stringify(b)); } catch (e) { } }
+const v4mRec = (b, id, d) => b[id + '@' + d] || (d === 1 && b[id] && b[id].s ? b[id] : null);
+function v4mSaveBest(M, stars, turns, q) {
+  const d = TXMIS.dOf(M), b = v4mBest(), o = v4mRec(b, M.id, d), u = M.undo || 0;
+  const better = !o || stars > o.s || (stars === o.s && (o.q == null ? turns < o.n : q < o.q || (q === o.q && u < (o.u || 0))));
+  if (better) { b[M.id + '@' + d] = { s: stars, n: turns, q, u, c: v4mCode(M.seed), at: Date.now() }; try { localStorage.setItem(V4M_KEY, JSON.stringify(b)); } catch (e) { } }
   return better;
 }
 const v4mStars = n => '★'.repeat(Math.max(0, Math.min(3, n | 0))) + '☆'.repeat(3 - Math.max(0, Math.min(3, n | 0)));
 const v4mDots = n => '●'.repeat(n) + '○'.repeat(3 - n);
 const v4mLen = m => T(m.qpt >= 4 ? 'v4m.len4' : 'v4m.len2');
-const v4mUntil = m => T('v4m.until', { n: { raw: String(m.until[0]) } });
+const v4mUntil = (m, d) => T('v4m.until', { n: { raw: String(TXMIS.untilOf(m, d == null ? 1 : d)[0]) } });
 const v4mT = (m, k) => T('v4m.' + m.id + '.' + k);
 const v4mC = v => Math.max(0, Math.min(1, v));
+const v4mDN = d => T('v4m.d' + d);
+const v4mPrefD = () => { const t = v4mLS(V4M_PREF), v = t == null || t === '' ? NaN : +t; return v >= 0 && v <= 2 ? v | 0 : 1; }; // 上次选的难度（没选过就是普通）
+/* 日期：剧本的开局季度往后数 */
+const v4mStart0 = m => { const s = (W.SCENARIOS && W.SCENARIOS[m.scen]) || {}; return { y: s.year || 2026, q: s.q || 1 }; };
+const v4mQAdd = (y, q, n) => { const t = y * 4 + (q - 1) + n; return { y: Math.floor(t / 4), q: (t % 4) + 1 }; };
+const v4mQTot = (m, d) => { const s = v4mStart0(m), u = TXMIS.untilOf(m, d); return (u[0] - s.y) * 4 + (u[1] - s.q) + 1; };
 function v4mSpan(v) {
   if (v.y0 === v.y1) return v.q0 === v.q1 ? I18N.date(v.y0, v.q0) : EN() ? `Q${v.q0}–Q${v.q1} ${v.y0}` : `${v.y0}年Q${v.q0}–Q${v.q1}`;
   return `${I18N.date(v.y0, v.q0)} – ${I18N.date(v.y1, v.q1)}`;
 }
-/* 目标的进度文字与进度条 */
+/* ---------- 种子与挑战码 ---------- */
+const v4mCode = seed => (seed == null ? '' : (seed >>> 0).toString(36).toUpperCase());
+function v4mParse(c) { c = String(c || '').trim().toUpperCase(); if (!/^[0-9A-Z]{1,6}$/.test(c)) return null; const v = parseInt(c, 36) % 2147483648; return v > 0 ? v : null; }
+function v4mWeek(now) { // ISO 周（按 UTC，各地同一周）
+  const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())), day = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - day); const y = d.getUTCFullYear();
+  return { y, w: Math.ceil(((d - Date.UTC(y, 0, 1)) / 864e5 + 1) / 7) };
+}
+const v4mHash = s => { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return ((h >>> 0) % 2147483647) + 1; };
+const v4mWeekSeed = (id, wk) => v4mHash(`tianxia4|${id}|${wk.y}-W${wk.w}`);
+const v4mWeekTxt = wk => T('v4m.week', { y: { raw: String(wk.y) }, n: wk.w });
+/* ---------- 目标的进度文字与进度条 ---------- */
 function v4mFmt(g) {
   if (g.cur == null || !g.fmt) return '';
   const r = v => ({ raw: String(v) });
@@ -23644,6 +23777,8 @@ function v4mFmt(g) {
     case 'n': return T('v4m.f.n', { a: r(g.cur), b: r(g.tgt) });
     case 'num': return T('v4m.f.num', { a: r(Math.round(g.cur)), b: r(g.tgt) });
     case 'max': return T('v4m.f.max', { a: r(Math.round(g.cur)), b: r(g.tgt) });
+    case 'pct': return T('v4m.f.pct', { a: r((+g.cur).toFixed(1)), b: r(g.tgt) });
+    case 'maxpct': return T('v4m.f.maxpct', { a: r((+g.cur).toFixed(1)), b: r(g.tgt) });
     case 'q': return T('v4m.f.q', { a: r(g.cur), b: r(g.tgt) });
     case 'gdp': return fmtB(g.cur);
   }
@@ -23653,54 +23788,163 @@ function v4mPct(g) {
   if (g.ok) return 1;
   if (g.cur == null || !g.tgt) return null;
   if (g.fmt === 'x') return v4mC(g.tgt > 1 ? (g.cur - 1) / (g.tgt - 1) : g.cur / g.tgt);
-  if (g.fmt === 'n' || g.fmt === 'q' || g.fmt === 'num') return v4mC(g.cur / g.tgt);
+  if (g.fmt === 'n' || g.fmt === 'q' || g.fmt === 'num' || g.fmt === 'pct') return v4mC(g.cur / g.tgt);
   return null;
 }
-/* 目标列表：live 时按当前局面显示达成情况与进度，否则只列出目标 */
-function v4mGoalsHTML(m, M, live) {
-  const gs = live ? m.goals(S, M) : m.gk.map(k => ({ k: k.replace(/^!/, ''), keep: k[0] === '!', ok: false }));
+const v4mGT = g => T('v4m.g.' + g.k, g.p || undefined);
+/* 目标列表：live 时按当前局面显示达成情况与进度，否则只列出这一档的目标 */
+function v4mGoalsHTML(m, M, live, d) {
+  const gs = live ? m.goals(S, M) : TXMIS.spec(m, d == null ? TXMIS.dOf(M) : d);
   return `<ul class="v4m-goals">${gs.map(g => {
     const p = live ? v4mPct(g) : null, f = live ? v4mFmt(g) : '';
-    return `<li class="${live ? (g.ok ? 'ok' : 'no') : ''}"><span class="ic">${live ? (g.ok ? '✅' : '⬜') : '•'}</span><span class="t">${esc(T('v4m.g.' + g.k))}${g.keep ? ` <span class="tag">${T('v4m.keep')}</span>` : ''}${f ? ` <small>${esc(f)}</small>` : ''}${p != null && !g.ok ? `<i class="v4m-bar"><b style="width:${Math.round(p * 100)}%"></b></i>` : ''}</span></li>`;
+    return `<li class="${live ? (g.ok ? 'ok' : 'no') : ''}"><span class="ic">${live ? (g.ok ? '✅' : '⬜') : '•'}</span><span class="t">${esc(v4mGT(g))}${g.keep ? ` <span class="tag">${T('v4m.keep')}</span>` : ''}${f ? ` <small>${esc(f)}</small>` : ''}${p != null && !g.ok ? `<i class="v4m-bar"><b style="width:${Math.round(p * 100)}%"></b></i>` : ''}</span></li>`;
   }).join('')}</ul>`;
 }
+/* 评星的写法：按用时（几个季度内、到哪个季度为止）；坚守型按到期时的局面 */
+function v4mStarTxt(m, d) {
+  if (m.star) { const t = m.tg[d]; return T('v4m.star_hold', { a: { raw: String(m.star.front[0]) }, n: t.stab + m.star.stab, b: { raw: String(m.star.front[1]) } }); }
+  const p = m.par[d], s = v4mStart0(m), a = v4mQAdd(s.y, s.q, p[0] - 1), b = v4mQAdd(s.y, s.q, p[1] - 1);
+  return T('v4m.star_q', { a: { raw: I18N.date(a.y, a.q) }, n: p[0], b: { raw: I18N.date(b.y, b.q) }, m: p[1] });
+}
+const v4mRulesTxt = (m, d) => T('v4m.rules') + T('v4m.rules_x', { a: { raw: v4mLen(m) }, b: { raw: v4mUntil(m, d) }, n: v4mQTot(m, d) }) + (m.hold ? ' ' + T('v4m.rules_hold') : '');
 
 /* ---------- 任务列表与说明 ---------- */
 function v4mShowList() {
   MPS.view = 'v4m';
-  const best = v4mBest();
-  const row = m => { const b = best[m.id]; return `<button class="v4m-row" data-v4m="${m.id}"><span class="v4m-who"><i style="background:${polColor(m.P)}"></i>${esc(v4mT(m, 'who'))}</span><b>${esc(v4mT(m, 't'))}</b><small>${v4mUntil(m)} · ${v4mLen(m)} · ${T('v4m.diff')} ${v4mDots(m.diff)}</small><em class="${b ? 'good' : 'muted'}">${b ? T('v4m.best_n', { x: { raw: v4mStars(b.s) }, n: b.n }) : T('v4m.none')}</em></button>`; };
+  const best = v4mBest(), wk = v4mWeek(new Date());
+  const recs = m => [0, 1, 2].map(d => { const r = v4mRec(best, m.id, d); return `<span class="v4m-rec${r ? ' on' : ''}" title="${esc(v4mDN(d) + (r ? ' · ' + T('v4m.best_n', { x: { raw: v4mStars(r.s) }, n: r.n }) : ''))}">${T('v4m.ds' + d)} ${r ? v4mStars(r.s) : '—'}</span>`; }).join('');
+  const row = m => `<button class="v4m-row" data-v4m="${m.id}"><span class="v4m-who"><i style="background:${polColor(m.P)}"></i>${esc(v4mT(m, 'who'))}</span><b>${esc(v4mT(m, 't'))}</b><small>${v4mUntil(m, 1)} · ${v4mLen(m)} · ${T('v4m.diff')} ${v4mDots(m.diff)}</small><em class="v4m-recs">${recs(m)}</em></button>`;
   const eras = [...new Set(TXMIS.list.map(m => m.scen))];
-  showModal(`<h2>🎯 ${T('v4m.list_h')}</h2><p class="sub">${T('v4m.list_x')}</p>${eras.map(e => `<h4>${T('v4m.era', { n: { raw: e } })}</h4><div class="v4m-list">${TXMIS.list.filter(m => m.scen === e).map(row).join('')}</div>`).join('')}
+  showModal(`<h2>🎯 ${T('v4m.list_h')}</h2><p class="sub">${T('v4m.list_x')}</p><p class="muted v4m-wk">📅 ${T('v4m.week_x', { x: { raw: v4mWeekTxt(wk) } })}</p>${eras.map(e => `<h4>${T('v4m.era', { n: { raw: e } })}</h4><div class="v4m-list">${TXMIS.list.filter(m => m.scen === e).map(row).join('')}</div>`).join('')}
     <div class="foot"><button data-mpgo="start">${T('u.back')}</button></div>`, 'start', false);
   $$('#sheet [data-v4m]').forEach(b => (b.onclick = () => v4mShowBrief(b.dataset.v4m)));
 }
-function v4mShowBrief(id, inGame) {
+/* 任务说明：选难度、选开局；进行中打开时显示当前进度 */
+function v4mShowBrief(id, inGame, pick) {
   const m = TXMIS.get(id); if (!m) return;
-  const M = inGame ? v4mOf() : null, live = !!(M && M.id === id), ai = !live && !mpNoAI();
-  showModal(`<div class="v4m-brief"><div class="kicker">🎯 ${T('v4m.card')} · ${T('v4m.era', { n: { raw: m.scen } })} · ${esc(v4mT(m, 'who'))} · ${T('v4m.diff')} ${v4mDots(m.diff)}</div><h2>${esc(v4mT(m, 't'))}</h2><p>${esc(v4mT(m, 'b'))}</p>
-    <h4>${T('v4m.goals')}</h4>${v4mGoalsHTML(m, M, live)}
-    <p class="muted v4m-rules">${T('v4m.rules')}${T('v4m.rules_x', { a: { raw: v4mLen(m) }, b: { raw: v4mUntil(m) } })}${m.hold ? ' ' + T('v4m.rules_hold') : ''} ${T('v4m.star_x')}</p>
+  const M = inGame ? v4mOf() : null;
+  if (M && M.id === id) return v4mShowLive(m, M);
+  const P = UI.v4mPick = Object.assign({ id, d: v4mPrefD(), mode: 'rand', code: '' }, UI.v4mPick && UI.v4mPick.id === id ? UI.v4mPick : {}, pick || {});
+  P.d = P.d >= 0 && P.d <= 2 ? P.d | 0 : 1;
+  const d = P.d, wk = v4mWeek(new Date()), wseed = v4mWeekSeed(id, wk), r = v4mRec(v4mBest(), id, d), ai = P.mode === 'rand' && !mpNoAI();
+  const seedRow = (k, label) => `<label class="v4m-sopt${P.mode === k ? ' on' : ''}"><input type="radio" name="v4mSeed" value="${k}" ${P.mode === k ? 'checked' : ''}> ${label}</label>`;
+  showModal(`<div class="v4m-brief"><div class="kicker">🎯 ${T('v4m.card')} · ${T('v4m.era', { n: { raw: m.scen } })} · <i style="background:${polColor(m.P)}"></i> ${esc(v4mT(m, 'who'))} · ${T('v4m.diff')} ${v4mDots(m.diff)}</div><h2>${esc(v4mT(m, 't'))}</h2><p>${esc(v4mT(m, 'b'))}</p>
+    <h4>${T('v4m.diff_h')}</h4><div class="v4m-dpick">${[0, 1, 2].map(k => `<button data-v4md="${k}" class="${k === d ? 'on' : ''}"><b>${v4mDN(k)}</b><small>${T('v4m.dx' + k)}</small></button>`).join('')}</div>
+    <h4>${T('v4m.goals')} <span class="tag">${v4mDN(d)}</span></h4>${v4mGoalsHTML(m, null, false, d)}
+    <p class="muted v4m-rules">${v4mRulesTxt(m, d)}</p><p class="muted v4m-rules">⭐ ${v4mStarTxt(m, d)}${r ? ` <b>${T('v4m.best_d', { x: { raw: v4mStars(r.s) }, n: r.n })}</b>` : ''}</p>
     <h4>${T('v4m.tips')}</h4><p class="v4m-tip">${esc(v4mT(m, 'tip'))}</p>
+    <h4>${T('v4m.seed_h')}</h4><div class="v4m-seed">${seedRow('rand', T('v4m.seed_rand'))}${seedRow('week', `${T('v4m.seed_week', { x: { raw: v4mWeekTxt(wk) } })} <code>${v4mCode(wseed)}</code>`)}${seedRow('code', T('v4m.seed_code'))}<input id="v4mCode" maxlength="6" autocomplete="off" spellcheck="false" placeholder="${esc(T('v4m.seed_ph'))}" value="${esc(P.code)}"${P.mode === 'code' ? '' : ' hidden'}>
+      <p class="muted">${T('v4m.seed_x')}</p></div>
     ${ai ? `<label class="chk"><input type="checkbox" id="v4mAI"> ${T('v4m.ai_opt')}</label>` : ''}
-    <div class="foot">${live ? `<button class="btn-primary" data-close="1">${T('u.close')}</button>` : `<button id="v4mBack">${T('u.back')}</button><button class="btn-primary" id="v4mGo">${T('v4m.go')}</button>`}</div></div>`, live ? 'narrow' : 'start', live);
-  if (!live) { $('#v4mBack').onclick = v4mShowList; $('#v4mGo').onclick = () => v4mStart(id, !!($('#v4mAI') && $('#v4mAI').checked)); }
+    <p class="muted v4m-save">${T('v4m.save_x')}</p>
+    <div class="foot"><button id="v4mBack">${T('u.back')}</button><button class="btn-primary" id="v4mGo">${T('v4m.go')}</button></div></div>`, 'start', false);
+  $('#v4mBack').onclick = v4mShowList;
+  $$('#sheet [data-v4md]').forEach(b => (b.onclick = () => { P.d = +b.dataset.v4md; v4mLS(V4M_PREF, String(P.d)); const sh = $('#sheet'), st = sh.scrollTop; v4mShowBrief(id, false); $('#sheet').scrollTop = st; }));
+  $$('#sheet input[name="v4mSeed"]').forEach(x => (x.onchange = () => { P.mode = x.value; const sh = $('#sheet'), st = sh.scrollTop; v4mShowBrief(id, false); $('#sheet').scrollTop = st; if (P.mode === 'code') { const c = $('#v4mCode'); if (c) c.focus(); } }));
+  const ci = $('#v4mCode'); if (ci) ci.oninput = () => { P.code = ci.value.toUpperCase().replace(/[^0-9A-Z]/g, '').slice(0, 6); if (ci.value !== P.code) ci.value = P.code; };
+  $('#v4mGo').onclick = () => {
+    let seed = null;
+    if (P.mode === 'week') seed = wseed;
+    else if (P.mode === 'code') { seed = v4mParse(P.code); if (!seed) { toast(T('v4m.seed_bad'), 4500); if (ci) ci.focus(); return; } }
+    const go = () => v4mStart(id, d, seed, P.mode, !!($('#v4mAI') && $('#v4mAI').checked), P.mode === 'week' ? `${wk.y}-W${wk.w}` : null);
+    const o = v4mSaved(), om = o && v4mDef(o.mp.mission);
+    if (om && !o.mp.mission.done) mpConfirm(T('v4m.overwrite_q', { x: { raw: v4mT(om, 't') } }), go); else go();
+  };
+}
+/* 进行中的任务说明（目标进度、难度与挑战码、回到上一回合） */
+function v4mShowLive(m, M) {
+  const d = TXMIS.dOf(M), undo = !!v4mPrevGet();
+  showModal(`<div class="v4m-brief"><div class="kicker">🎯 ${T('v4m.card')} · ${T('v4m.era', { n: { raw: m.scen } })} · <i style="background:${polColor(m.P)}"></i> ${esc(v4mT(m, 'who'))} · ${v4mDN(d)}${M.seed ? ' · ' + T('v4m.code', { x: { raw: v4mCode(M.seed) } }) : ''}</div><h2>${esc(v4mT(m, 't'))}</h2><p>${esc(v4mT(m, 'b'))}</p>
+    <h4>${T('v4m.goals')}</h4>${v4mGoalsHTML(m, M, true)}
+    <p class="muted v4m-rules">${v4mRulesTxt(m, d)}</p><p class="muted v4m-rules">⭐ ${v4mStarTxt(m, d)}${M.undo ? ' · ' + T('v4m.undo_n', { n: M.undo }) : ''}</p>
+    <h4>${T('v4m.tips')}</h4><p class="v4m-tip">${esc(v4mT(m, 'tip'))}</p>
+    <div class="foot">${undo ? `<button data-v4mundo="1">${T('v4m.undo')}</button>` : ''}<button class="btn-primary" data-close="1">${T('u.close')}</button></div></div>`, 'narrow', true);
 }
 /* 开始任务：单人 + 规则智能体（勾选 AI 时大国由 AI 扮演、每回合第一个季度用 AI 推演反应） */
-function v4mStart(id, useAI) {
+function v4mStart(id, d, seed, kind, useAI, week) {
   const m = TXMIS.get(id); if (!m) return;
+  d = d >= 0 && d <= 2 ? d | 0 : 1; useAI = !!useAI && kind === 'rand' && !mpNoAI(); // 挑战局只用规则推演：同一个挑战码对所有人都是同一个开局
+  seed = seed || ((Math.random() * 2147483646) >>> 0) + 1;
   W.useScenario(m.scen);
   const list = mpPlayable(false, m.scen);
-  const c = Object.assign(mpCfg0(), { aiUse: useAI ? 'std' : 'save', llmWorld: !!useAI, th: false, agentDef: useAI ? 'claude' : 'rule' });
-  S = W.newGame({ player: m.P, scen: m.scen, seed: (Math.random() * 2 ** 31) >>> 0, diff: 'normal', humans: [m.P], th: false });
+  const c = Object.assign(mpCfg0(), { aiUse: useAI ? 'std' : 'save', llmWorld: useAI, th: false, agentDef: useAI ? 'claude' : 'rule', diff: TXMIS.DIFFS[d] });
+  S = W.newGame({ player: m.P, scen: m.scen, seed, diff: TXMIS.DIFFS[d], humans: [m.P], th: false });
   S.weCfg = mpCostCfg(c.we); S.weAI = false;
   const agents = {}; for (const r of list) if (r.id !== m.P) agents[r.id] = useAI && r.maj ? 'claude' : 'rule';
   S.mp = { mode: 'solo', agents, cfg: c, phase: 'plan', phaseAt: Date.now(), ver: 0 };
   W.goalsInit(S);
-  S.mp.mission = TXMIS.init(m, S);
+  const M = S.mp.mission = TXMIS.init(m, S, d, seed);
+  Object.assign(M, { kind: kind || 'rand', week: week || null, ai: useAI, run: Date.now().toString(36) });
+  v4mPrevClear(); v4mLS(V4M_PREF, String(d));
   mpAdoptLocal(S, true); closeModal(); mpLocalSave();
-  toast(T('v4m.started', { x: { raw: v4mT(m, 't') } }), 5000);
+  toast(T('v4m.started', { x: { raw: v4mT(m, 't') + ' · ' + v4mDN(d) } }), 5000);
 }
+
+/* ---------- 任务存档：单独的存档槽 ---------- */
+function v4mSaved() { try { const t = localStorage.getItem(V4M_SAVE), o = t && JSON.parse(t); return o && o.mp && o.mp.mission && TXMIS.get(o.mp.mission.id) ? o : null; } catch (e) { return null; } }
+const v4mLocalSave0 = mpLocalSave;
+mpLocalSave = function () {
+  if (S && !UI.demo && MPS.on && MPS.mode === 'solo' && S.mp && S.mp.mission && !S.mp.tut) { try { localStorage.setItem(V4M_SAVE, serialize(S)); } catch (e) { } return; }
+  return v4mLocalSave0();
+};
+const v4mAdopt0 = mpAdoptLocal;
+mpAdoptLocal = function (s, fresh) {
+  const r = v4mAdopt0(s, fresh);
+  try { if (S && S.mp && S.mp.mode !== 'net' && !S.mp.tut) v4mLS(V4M_ACT, S.mp.mission ? '1' : '0'); if (S && S.mp && S.mp.mission && !V4M.prev) v4mPrevLoad(); } catch (e) { }
+  return r;
+};
+/* 旧版把任务存在本机唯一的存档槽里：挪到任务存档槽（任务槽已经有存档时保留新的） */
+function v4mMigrate() {
+  try {
+    const t = localStorage.getItem(MP_LOCAL), o = t && JSON.parse(t);
+    if (!o || !o.mp || !o.mp.mission) return;
+    if (!localStorage.getItem(V4M_SAVE)) { localStorage.setItem(V4M_SAVE, t); localStorage.setItem(V4M_ACT, '1'); }
+    localStorage.removeItem(MP_LOCAL);
+  } catch (e) { }
+}
+/* 刷新页面：最后玩的是任务就回到任务（平常的对局照旧从本机存档继续）；链接里带着挑战就打开那个任务的说明 */
+function v4mLinkRead() {
+  try {
+    const q = new URLSearchParams(location.search), id = q.get('m');
+    if (!id || !TXMIS.get(id)) return null;
+    const d = Math.max(0, Math.min(2, (+q.get('d')) | 0)), code = (q.get('s') || '').toUpperCase().replace(/[^0-9A-Z]/g, '').slice(0, 6);
+    for (const k of ['m', 'd', 's']) q.delete(k);
+    const rest = q.toString(); try { history.replaceState(null, '', location.pathname + (rest ? '?' + rest : '') + location.hash); } catch (e) { }
+    return { id, d, mode: code && v4mParse(code) ? 'code' : 'rand', code };
+  } catch (e) { return null; }
+}
+const v4mBoot0 = mpBoot;
+mpBoot = function (data) {
+  v4mMigrate(); V4M.link = v4mLinkRead();
+  const ms = v4mLS(V4M_ACT) === '1' ? v4mLS(V4M_SAVE) : null;
+  if (ms && !(data && data.save)) data = Object.assign({}, data || {}, { save: ms });
+  const r = v4mBoot0(data);
+  if (V4M.link) { const L = V4M.link; V4M.link = null; setTimeout(() => { UI.afterClose = null; v4mShowBrief(L.id, false, { d: L.d, mode: L.mode, code: L.code }); }, 400); }
+  return r;
+};
+
+/* ---------- 回到上一回合：推演前记下局面 ---------- */
+function v4mPrevSet(M) { try { V4M.prev = { id: M.id, run: M.run || null, from: S.turn, to: null, s: serialize(S) }; } catch (e) { V4M.prev = null; return; } try { localStorage.setItem(V4M_PREV, JSON.stringify(V4M.prev)); } catch (e) { v4mLS(V4M_PREV, null); } }
+function v4mPrevDone() { if (!V4M.prev || V4M.prev.to != null) return; V4M.prev.to = S.turn; try { localStorage.setItem(V4M_PREV, JSON.stringify(V4M.prev)); } catch (e) { v4mLS(V4M_PREV, null); } }
+function v4mPrevLoad() { try { const p = JSON.parse(localStorage.getItem(V4M_PREV) || 'null'); V4M.prev = p && p.s ? p : null; } catch (e) { V4M.prev = null; } }
+function v4mPrevClear() { V4M.prev = null; v4mLS(V4M_PREV, null); }
+function v4mPrevGet() { const p = V4M.prev, M = v4mOf(); return p && M && MPS.on && MPS.mode === 'solo' && p.id === M.id && (p.run || null) === (M.run || null) && p.to != null && p.to === S.turn && !UI.busy ? p : null; }
+function v4mUndo() {
+  const p = v4mPrevGet(); if (!p) { toast(T('v4m.undo_none')); return; }
+  const M = v4mOf(), u = ((M && M.undo) || 0) + 1;
+  let o; try { o = deserialize(p.s); } catch (e) { toast(T('u.load_fail', { x: { raw: (e && e.message) || String(e) } })); return; }
+  if (o.mp && o.mp.mission) o.mp.mission.undo = u;
+  v4mPrevClear(); V4M.ev = null; UI.afterClose = null;
+  closeModal(); mpAdoptLocal(o, true); mpLocalSave();
+  toast(T('v4m.undo_done', { d: { raw: dateStr(S) } }), 6000);
+}
+document.addEventListener('click', e => { const b = e.target.closest('[data-v4mundo]'); if (!b || b.disabled) return; e.preventDefault(); if (!v4mPrevGet()) { toast(T('v4m.undo_none')); return; } mpConfirm(T('v4m.undo_q', { d: { raw: dateStr(S, V4M.prev.from) } }), v4mUndo); });
+const v4mResolve0 = mpResolve;
+mpResolve = async function () {
+  const M = v4mLive();
+  if (M && S && !S.over && !MPS.busy && !UI.busy) v4mPrevSet(M); // 本回合排好的行动也在里面：回来以后可以改了再推
+  return v4mResolve0();
+};
 
 /* ---------- 连续推演（04z9c 的 mpResolve 在第一个季度结算完后调用） ---------- */
 function v4mStop(st) {
@@ -23750,7 +23994,8 @@ async function v4MissionAfter() {
   if (reps.length > 1) S.report = v4mMerge(reps);
   const R = S.report, z = reps[reps.length - 1]; V4M.ev = { turn: S.turn, list: evs };
   if (R && !R.intro) R.v4m = { n: reps.length, qpt: M.qpt, stop: !res && reps.length < M.qpt ? stop : null, res: res ? res.res : null, y0: reps[0].y, q0: reps[0].q, y1: z.y, q1: z.q };
-  if (res) { M.done = Object.assign({ turn: S.turn, turns: M.turns, at: Date.now(), ly: z.y, lq: z.q }, res); if (res.res === 'win') M.done.rec = v4mSaveBest(M.id, res.stars, M.turns); }
+  if (res) { M.done = Object.assign({ turn: S.turn, turns: M.turns, q: S.turn - M.t0, at: Date.now(), ly: z.y, lq: z.q }, res); if (res.res === 'win') M.done.rec = v4mSaveBest(M, res.stars, M.turns, S.turn - M.t0); }
+  v4mPrevDone();
 }
 
 /* ---------- 战报：任务进度一节；任务刚结束时，关掉战报后弹出结果 ---------- */
@@ -23761,20 +24006,40 @@ showReport = function (R) {
   const sh = $('#sheet'); if (!sh) return;
   const h1 = sh.querySelector('h1'); if (h1 && v.n > 1) h1.textContent = T('u.brief', { x: { raw: v4mSpan(v) } });
   const d = M.done, ban = v.res === 'win' && d ? `<p class="good v4m-banner">${T('v4m.rep_win')} <span class="v4m-st">${v4mStars(d.stars)}</span></p>` : v.res === 'fail' && d ? `<p class="bad v4m-banner">${T('v4m.rep_fail')}${EN() ? ': ' : '：'}${esc(T(d.why))}</p>` : '';
-  const html = `<div class="rep-sec v4m-rep"><h3>🎯 ${T('v4m.rep_h')} · ${esc(v4mT(m, 't'))}</h3>${ban}<p class="muted">${T('v4m.rep_n', { n: v.n, x: { raw: v4mSpan(v) } })}${v.stop ? ' ' + T('v4m.rep_stop', { n: v.n, x: { raw: T('v4m.stop.' + v.stop) } }) : ''}</p>${v4mGoalsHTML(m, M, true)}</div>`;
+  const undo = v4mPrevGet() ? `<p class="v4m-undo-l"><button class="mini" data-v4mundo="1">${T('v4m.undo')}</button> <span class="muted">${T('v4m.undo_l')}</span></p>` : '';
+  const html = `<div class="rep-sec v4m-rep"><h3>🎯 ${T('v4m.rep_h')} · ${esc(v4mT(m, 't'))} <span class="tag">${v4mDN(TXMIS.dOf(M))}</span></h3>${ban}<p class="muted">${T('v4m.rep_n', { n: v.n, x: { raw: v4mSpan(v) } })}${v.stop ? ' ' + T('v4m.rep_stop', { n: v.n, x: { raw: T('v4m.stop.' + v.stop) } }) : ''}</p>${v4mGoalsHTML(m, M, true)}${undo}</div>`;
   const at = sh.querySelector('p.sub'); if (at) at.insertAdjacentHTML('afterend', html);
   if (d && !d.seen) { const a0 = UI.afterClose; UI.afterClose = () => { d.seen = true; mpLocalSave(); v4mShowResult(a0); }; }
 };
+/* 成绩卡：任务、难度、星级、用时、回退次数、挑战码与链接 */
+function v4mLink(M) { try { return `${location.origin}${location.pathname}?m=${encodeURIComponent(M.id)}&d=${TXMIS.dOf(M)}&s=${v4mCode(M.seed)}`; } catch (e) { return ''; } }
+function v4mCard(m, M) {
+  const d = M.done, D = TXMIS.dOf(M), win = d && d.res === 'win';
+  const L = [`🎯 ${T('mp.title')} · ${T('v4m.card')}`, T('v4m.card_t', { t: { raw: v4mT(m, 't') }, w: { raw: v4mT(m, 'who') }, e: { raw: T('v4m.era', { n: { raw: m.scen } }) }, d: { raw: v4mDN(D) } }),
+    win ? T('v4m.card_win', { x: { raw: v4mStars(d.stars) }, n: d.turns, q: d.q != null ? d.q : d.turn - M.t0, u: M.undo || 0 }) : T('v4m.card_fail', { x: { raw: T(d.why) }, n: d.turns }),
+    T('v4m.card_code', { x: { raw: v4mCode(M.seed) } }) + (M.kind === 'week' && M.week ? ' · ' + T('v4m.card_week', { x: { raw: M.week } }) : '') + (M.ai ? ' · ' + T('v4m.card_ai') : '')];
+  const u = v4mLink(M); if (u) L.push(u);
+  return L.join('\n');
+}
+async function v4mCopy(txt) {
+  try { await navigator.clipboard.writeText(txt); toast(T('v4m.copied')); return true; } catch (e) { }
+  const ta = $('#v4mCardTxt'); if (ta) { ta.focus(); ta.select(); try { if (document.execCommand('copy')) { toast(T('v4m.copied')); return true; } } catch (e) { } }
+  toast(T('v4m.copy_fail'), 4500); return false;
+}
 function v4mShowResult(after) {
   const M = v4mOf(), m = v4mDef(M), d = M && M.done; if (!d || !m) { if (after) after(); return; }
-  const win = d.res === 'win';
-  showModal(`<div class="v4m-res"><div class="kicker">🎯 ${T('v4m.card')} · ${esc(v4mT(m, 'who'))}</div><h1 class="${win ? 'good' : 'bad'}">${T(win ? 'v4m.win_h' : 'v4m.fail_h', { x: { raw: v4mT(m, 't') } })}</h1>
-    ${win ? `<div class="v4m-stars">${v4mStars(d.stars)}</div><p>${T('v4m.win_x', { n: d.turns, q: d.turn - M.t0, d: { raw: I18N.date(d.ly, d.lq) } })}${d.rec ? ` <b class="good">${T('v4m.win_new')}</b>` : ''}</p><p class="muted">${T('v4m.star_x')}</p>` : `<p>${esc(T(d.why))}</p>`}
-    ${v4mGoalsHTML(m, M, true)}<p class="muted" style="font-size:12.5px">${T('v4m.free_x')}</p>
-    <div class="foot"><button id="v4mFree">${T('v4m.free')}</button><button id="v4mList">${T('v4m.list')}</button><button class="btn-primary" id="v4mAgain">${T('v4m.again')}</button></div></div>`, 'narrow', false);
+  const win = d.res === 'win', D = TXMIS.dOf(M), card = v4mCard(m, M), undo = !!v4mPrevGet();
+  showModal(`<div class="v4m-res"><div class="kicker">🎯 ${T('v4m.card')} · ${esc(v4mT(m, 'who'))} · ${v4mDN(D)}</div><h1 class="${win ? 'good' : 'bad'}">${T(win ? 'v4m.win_h' : 'v4m.fail_h', { x: { raw: v4mT(m, 't') } })}</h1>
+    ${win ? `<div class="v4m-stars">${v4mStars(d.stars)}</div><p>${T('v4m.win_x', { n: d.turns, q: d.q != null ? d.q : d.turn - M.t0, d: { raw: I18N.date(d.ly, d.lq) } })}${M.undo ? ' ' + T('v4m.undo_n', { n: M.undo }) : ''}${d.rec ? ` <b class="good">${T('v4m.win_new')}</b>` : ''}</p><p class="muted">⭐ ${v4mStarTxt(m, D)}</p>` : `<p>${esc(T(d.why))}</p>`}
+    ${v4mGoalsHTML(m, M, true)}
+    <div class="v4m-share"><h4>${T('v4m.share_h')}</h4><textarea id="v4mCardTxt" readonly rows="5">${esc(card)}</textarea><div class="btns"><button class="mini" id="v4mCopy">${T('v4m.share_copy')}</button><button class="mini" id="v4mCopyL">${T('v4m.link_copy')}</button></div><p class="muted">${T('v4m.share_x')}</p></div>
+    <p class="muted" style="font-size:12.5px">${T('v4m.free_x')}</p>
+    <div class="foot">${undo ? `<button data-v4mundo="1">${T('v4m.undo')}</button>` : ''}<button id="v4mFree">${T('v4m.free')}</button><button id="v4mList">${T('v4m.list')}</button><button class="btn-primary" id="v4mAgain">${T('v4m.again')}</button></div></div>`, 'narrow', false);
+  $('#v4mCopy').onclick = () => v4mCopy(card);
+  $('#v4mCopyL').onclick = () => v4mCopy(v4mLink(M));
   $('#v4mFree').onclick = () => { closeModal(); renderAll(); if (after) after(); };
   $('#v4mList').onclick = () => v4mShowList();
-  $('#v4mAgain').onclick = () => v4mShowBrief(m.id);
+  $('#v4mAgain').onclick = () => v4mShowBrief(m.id, false, { d: D, mode: M.kind === 'week' ? 'week' : M.kind === 'code' ? 'code' : 'rand', code: M.kind === 'code' ? v4mCode(M.seed) : '' });
 }
 
 /* ---------- 进行中的显示：地图上的任务卡、本国页的任务一节、顶栏与结束按钮 ---------- */
@@ -23787,15 +24052,15 @@ function v4mHud() {
     el.addEventListener('click', e => { const b = e.target.closest('[data-v4mh]'); if (!b) return; const M1 = v4mOf(); if (b.dataset.v4mh === 'min') { UI.v4mMin = !UI.v4mMin; v4mHud(); } else if (M1) v4mShowBrief(M1.id, true); });
   }
   el.hidden = false;
-  const gs = m.goals(S, M), n = gs.filter(g => g.ok).length, left = Math.max(0, Math.ceil((M.dl + 1 - S.turn) / M.qpt));
+  const gs = m.goals(S, M), n = gs.filter(g => g.ok).length, left = Math.max(0, Math.ceil((M.dl + 1 - S.turn) / M.qpt)), D = TXMIS.dOf(M), undo = !!v4mPrevGet();
   const st = M.done ? (M.done.res === 'win' ? `<span class="good">${T('v4m.done_tag')} ${v4mStars(M.done.stars)}</span>` : `<span class="bad">${T('v4m.fail_tag')}</span>`) : `<span>${left <= 1 ? T('v4m.left1') : T('v4m.left', { n: left })}</span>`;
-  el.innerHTML = `<div class="hd"><button class="mini" data-v4mh="min" aria-label="${esc(T('v4m.hud'))}">${UI.v4mMin ? '▸' : '▾'}</button><b>🎯 ${esc(v4mT(m, 't'))}</b><span class="tag">${n}/${gs.length}</span></div>${UI.v4mMin ? '' : `<div class="bd"><div class="muted v4m-hl">${st} · ${v4mUntil(m)} · ${v4mLen(m)}</div><ul>${gs.map(g => `<li class="${g.ok ? 'ok' : ''}">${g.ok ? '✅' : '⬜'} ${esc(T('v4m.g.' + g.k))}${g.cur != null && !g.ok ? ` <small>${esc(v4mFmt(g))}</small>` : ''}</li>`).join('')}</ul><button class="mini" data-v4mh="brief">${T('v4m.brief')}</button></div>`}`;
+  el.innerHTML = `<div class="hd"><button class="mini" data-v4mh="min" aria-label="${esc(T('v4m.hud'))}">${UI.v4mMin ? '▸' : '▾'}</button><b>🎯 ${esc(v4mT(m, 't'))}</b><span class="tag">${n}/${gs.length}</span></div>${UI.v4mMin ? '' : `<div class="bd"><div class="muted v4m-hl">${st} · ${v4mDN(D)} · ${v4mUntil(m, D)} · ${v4mLen(m)}</div><ul>${gs.map(g => `<li class="${g.ok ? 'ok' : ''}">${g.ok ? '✅' : '⬜'} ${esc(v4mGT(g))}${g.cur != null && !g.ok ? ` <small>${esc(v4mFmt(g))}</small>` : ''}</li>`).join('')}</ul><div class="v4m-hb"><button class="mini" data-v4mh="brief">${T('v4m.brief')}</button>${undo ? `<button class="mini" data-v4mundo="1" title="${esc(T('v4m.undo_l'))}">${T('v4m.undo_s')}</button>` : ''}</div></div>`}`;
 }
 const v4mGoals0 = goalsSecHTML;
 goalsSecHTML = function () {
   const base = v4mGoals0(), M = v4mOf(), m = v4mDef(M); if (!M || !m) return base;
-  const d = M.done, st = d ? (d.res === 'win' ? `<span class="tag blue">${T('v4m.done_tag')} ${v4mStars(d.stars)}</span>` : `<span class="tag red">${T('v4m.fail_tag')}</span>`) : `<span class="tag acc">${T('v4m.left', { n: Math.max(0, Math.ceil((M.dl + 1 - S.turn) / M.qpt)) })}</span>`;
-  return `<div class="sec v4m-sec"><h3>🎯 ${esc(v4mT(m, 't'))} ${st}</h3><p class="muted" style="font-size:12px;margin:0 0 4px">${v4mUntil(m)} · ${v4mLen(m)}</p>${v4mGoalsHTML(m, M, true)}<button class="mini" data-v4mbrief="1">${T('v4m.brief')}</button></div>` + (d ? base : ''); // 任务进行中只看任务目标；结束后（自由游玩）再显示平常的目标与计分
+  const d = M.done, D = TXMIS.dOf(M), st = d ? (d.res === 'win' ? `<span class="tag blue">${T('v4m.done_tag')} ${v4mStars(d.stars)}</span>` : `<span class="tag red">${T('v4m.fail_tag')}</span>`) : `<span class="tag acc">${T('v4m.left', { n: Math.max(0, Math.ceil((M.dl + 1 - S.turn) / M.qpt)) })}</span>`;
+  return `<div class="sec v4m-sec"><h3>🎯 ${esc(v4mT(m, 't'))} ${st}</h3><p class="muted" style="font-size:12px;margin:0 0 4px">${v4mDN(D)} · ${v4mUntil(m, D)} · ${v4mLen(m)}</p>${v4mGoalsHTML(m, M, true)}<button class="mini" data-v4mbrief="1">${T('v4m.brief')}</button>${v4mPrevGet() ? ` <button class="mini" data-v4mundo="1">${T('v4m.undo_s')}</button>` : ''}</div>` + (d ? base : ''); // 任务进行中只看任务目标；结束后（自由游玩）再显示平常的目标与计分
 };
 document.addEventListener('click', e => { const b = e.target.closest('[data-v4mbrief]'); if (!b) return; const M = v4mOf(); if (M) v4mShowBrief(M.id, true); });
 const v4mBar0 = mpRenderBar;
@@ -23812,19 +24077,29 @@ renderTop = function () {
   try { const M = v4mLive(); if (M && S) { const dl = $('#dateLine'); if (dl) dl.textContent = `${dateStr(S)} · ${T('v4m.date', { n: (M.turns || 0) + 1 })}`; } v4mHud(); } catch (e) { console.warn('v4m', e); }
 };
 
-/* ---------- 开局画面：任务卡片；继续存档时写明是哪个任务 ---------- */
+/* ---------- 开局画面：任务卡片；有任务存档时可以继续 ---------- */
 const v4mStartScr0 = mpShowStart;
 mpShowStart = function () {
+  v4mMigrate();
   v4mStartScr0();
   const hud = $('#v4mHud'); if (hud) hud.hidden = true;
   const box = $('#sheet .mpmodes'); if (box && !box.querySelector('[data-mpgo="v4mis"]')) box.insertAdjacentHTML('beforeend', `<button class="mpmode v4m-card" data-mpgo="v4mis"><b>🎯 ${T('v4m.card')}</b><small>${T('v4m.card_x')}</small></button>`);
   try {
-    const t = localStorage.getItem(MP_LOCAL), o = t && JSON.parse(t), M = o && o.mp && o.mp.mission, m = v4mDef(M), b = $('#sheet [data-mpgo="resume_local"]');
-    if (m && b && b.parentElement) b.parentElement.innerHTML = `${esc(T('v4m.resume', { x: { raw: v4mT(m, 't') }, d: { raw: dateStr(o) } }))} ${b.outerHTML}`;
+    const o = v4mSaved(), M = o && o.mp.mission, m = v4mDef(M);
+    if (m && box && !$('#sheet [data-mpgo="v4mresume"]')) {
+      const tag = M.done ? T(M.done.res === 'win' ? 'v4m.resume_done' : 'v4m.resume_fail') : v4mDN(TXMIS.dOf(M));
+      const html = `<div class="alert v4m-resume">${esc(T('v4m.resume', { x: { raw: v4mT(m, 't') }, k: { raw: tag }, d: { raw: dateStr(o) } }))} <button data-mpgo="v4mresume">${T('u.continue_save')}</button></div>`;
+      const al = $('#sheet [data-mpgo="resume_local"]'); if (al && al.parentElement) al.parentElement.insertAdjacentHTML('afterend', html); else box.insertAdjacentHTML('afterend', html);
+    }
   } catch (e) { }
 };
 const v4mBarClick0 = mpBarClick;
-mpBarClick = function (b) { const g = b && (b.dataset.mpgo || b.dataset.mp); if (g === 'v4mis') { v4mShowList(); return; } return v4mBarClick0(b); };
+mpBarClick = function (b) {
+  const g = b && (b.dataset.mpgo || b.dataset.mp);
+  if (g === 'v4mis') { v4mShowList(); return; }
+  if (g === 'v4mresume') { try { const o = deserialize(localStorage.getItem(V4M_SAVE)); V4M.prev = null; mpAdoptLocal(o); closeModal(); } catch (e) { toast(T('u.load_fail', { x: { raw: (e && e.message) || String(e) } })); } return; }
+  return v4mBarClick0(b);
+};
 
 /* ===================== 网页版 v4 · 局势说明（每回合战报里的一节） =====================
  * 不管本回合有没有行动，都说明国力与国际局势为什么这样变：
@@ -24099,8 +24374,8 @@ function v4sTargetQuick(X) {
 }
 
 /* ---------- 参谋建议 ---------- */
-function v4sMisAdv(a) {
-  const P = S.player, [kind, x, y] = a;
+function v4sMisAdv(a, M) {
+  const P = S.player, [kind, x, y] = a, me = S.actors[P], t = (M && M.t) || {};
   const ok = c => S.actors[c] && W.indep(S, c) && !W.isNeutral(S, c);
   const pick = (v, f) => (Array.isArray(v) ? v : [v]).find(c => ok(c) && f(c));
   switch (kind) {
@@ -24115,7 +24390,17 @@ function v4sMisAdv(a) {
       return { txt: T(I18N.has('v4s.m.' + x) ? 'v4s.m.' + x : 'v4s.m.self', { a: c, k: T('v4s.a.' + x) }), go: { a: x, t: c, p: x === 'aid' ? { amt: S.actors[P].gdp * 0.002 } : {} } };
     }
     case 'build': return { txt: T('v4s.m.build'), go: { build: 1 } };
-    case 'demob': { const mi = W.mobIdx(S.actors[P]); return mi > 0 ? { txt: T('v4s.m.demob'), go: { mob: mi - 1 } } : null; }
+    case 'demob': return W.mobIdx(me) > 0 ? { txt: T('v4s.m.demob'), go: { mob: 0 } } : null; // 复员：降低动员免费，直接降到平时
+    case 'milcut': return t.mil != null && me.milPct > t.mil ? { txt: T('v4s.m.milcut', { n: { raw: String(t.mil) } }), go: { mil: t.mil } } : null;
+    case 'save': return { txt: T('v4s.m.save'), go: null };
+    case 'deploy': { // 从 x 调兵到 y：x 空闲的陆军一半（最多三分之一的全国兵力）、空军四成（最多五分之一）
+      if (!S.actors[y] || S.actors[y].ctrl !== P || !S.actors[x]) return null;
+      const here = (me.forces && me.forces[y]) || [0, 0, 0], free = W.freeQV(S, x) || [0, 0, 0];
+      if (here[0] >= 0.4) return null;
+      const v = [Math.min(0.33, free[0] * 0.5), 0, Math.min(0.2, free[2] * 0.4)].map(z => +z.toFixed(3));
+      if (v[0] < 0.03 && v[2] < 0.03) return null;
+      return { txt: T('v4s.m.deploy', { a: x, b: y, s: { raw: pct(v[0]) } }), go: { dep: [x, y, v] } };
+    }
   }
   return null;
 }
@@ -24126,7 +24411,7 @@ function v4sAdvice() {
   const ul = (S.ultis || []).find(u => u.status === 'open'); if (ul) add(T('v4s.adv.ulti', { a: ul.from }), { tab: 'diplo' });
   if ((S.inbox || []).length) add(T('v4s.adv.inbox', { n: S.inbox.length }), { tab: 'diplo' });
   const M = typeof v4mLive === 'function' ? v4mLive() : null, m = M ? v4mDef(M) : null;
-  if (m) for (const g of m.goals(S, M)) { if (g.ok) continue; const a = TXMIS.adv(g.k), z = a ? v4sMisAdv(a) : null; if (z) add(T('v4s.adv.mis', { x: { raw: T('v4m.g.' + g.k) } }) + z.txt, z.go); }
+  if (m) for (const g of m.goals(S, M)) { const a = TXMIS.adv(g.k); if (g.ok && !(a && a[3] === 'pre')) continue; const z = a ? v4sMisAdv(a, M) : null; if (z) add(T('v4s.adv.mis', { x: { raw: T('v4m.g.' + g.k, g.p || undefined) } }) + z.txt, z.go); }
   if (x.stab < 45) add(T('v4s.adv.stab', { n: Math.round(x.stab) }), { a: 'stabilize', t: P });
   const mi = W.mobIdx(x);
   if (x.treasury < -x.gdp * 0.06) { if (mi > 0) add(T('v4s.adv.debt_mob'), { mob: mi - 1 }); else add(T('v4s.adv.debt'), null); }
@@ -24162,6 +24447,8 @@ function v4sGo(go) {
   if (!go || !S) return;
   if (go.crisis) { openCrisis(go.crisis); return; }
   if (go.tab) { UI.tab = go.tab; renderSide(); return; }
+  if (go.dep) { const [f, l, v] = go.dep, r = W.queueDeploy(S, f, l, v); toast(r.ok ? T('u.deploy_q', { f, l }) : v4sWhy(r.reason), 4500); v4sRefresh(); return; }
+  if (go.mil != null) { const r = doCmd('setMil', [go.mil]); if (r === null || r === undefined) { toast(T('mp.p.fail')); return; } toast(T('v4s.mil_set', { n: { raw: String(go.mil) } })); renderAll(); return; }
   if (go.mob != null) { const r = doCmd('setMob', [go.mob]); if (r === null || r === undefined) { toast(T('mp.p.fail')); return; } toast(T('v2.mob.set', { k: T('mob6.' + go.mob) })); renderAll(); return; }
   if (go.build) { const a = v4sAct('conscript', S.player, { size: 1 }, true), b = v4sAct('procure', S.player, { branch: 'land', tier: 1 }, true); toast(a || b ? T('v4s.done') + ' · ' + [a ? T('v4s.a.conscript') : '', b ? T('v4s.a.procure_land') : ''].filter(Boolean).join(sep()) : T('c.money')); v4sRefresh(); return; }
   if (go.d) { const r = W.queueDeal(S, go.t, [go.d === 'join_war' ? { type: 'join_war', enemy: go.e } : { type: go.d }]); if (!r.ok) { toast(v4sWhy(r.reason), 4500); return; } toast(T('v4s.queued_deal', { a: go.t }), 5000); v4sRefresh(); return; }
@@ -24479,7 +24766,7 @@ const v4fTop0 = renderTop;
 renderTop = function () { v4fTop0(); try { if (UI.demo || !MPS.on) { V4F.last = null; v4fClear(); } v4fBtn(); } catch (e) { } };
 
 /* 网页版 v4 · 测试钩子（只读或触发界面函数；界面代码在一个闭包里，测试从这里调用） */
-try { window.__TX4 = { showReport: R => showReport(R), setLang: l => setLang(l), renderAll: () => renderAll(), endTurn: () => mpEndTurn(), closeModal: () => closeModal(), select: id => select(id), showStart: () => mpShowStart(), showMissions: () => v4mShowList(), fx: () => ({ pending: V4F.pending, last: V4F.last, turn: V4F.turn }), fxPlay: () => v4fPlay(V4F.last), animLevel: () => animLevel() }; } catch (e) { }
+try { window.__TX4 = { showReport: R => showReport(R), setLang: l => setLang(l), renderAll: () => renderAll(), endTurn: () => mpEndTurn(), closeModal: () => closeModal(), select: id => select(id), showStart: () => mpShowStart(), showMissions: () => v4mShowList(), missionResult: () => v4mShowResult(), missionBrief: (id, live) => v4mShowBrief(id, !!live), fx: () => ({ pending: V4F.pending, last: V4F.last, turn: V4F.turn }), fxPlay: () => v4fPlay(V4F.last), animLevel: () => animLevel() }; } catch (e) { }
 
 /* ===================== 界面层 v2 · 开局、设置、存档、启动 ===================== */
 function startHTML(sel) {

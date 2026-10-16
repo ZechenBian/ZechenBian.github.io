@@ -21,22 +21,27 @@ This is the next edition after [Tianxia Online v3](https://zechenbian.github.io/
 
 **2. 十个单机任务**
 
-选一个年代和国家，完成一个限时任务。推演规则和完整对局一样，只是每回合连算 2 个季度（半年）或 4 个季度（一年）；目标每个季度都判定，达成就立即完成，不用等到最后统一结算。出现需要你决定的事（危机、通牒、有国家对你开战）时，推演提前停下交给你。按用掉的时间评星，最佳成绩存在本机。
+选一个年代和国家，完成一个限时任务。推演规则和完整对局一样，只是每回合连算 2 个季度（半年）或 4 个季度（一年）；目标每个季度都判定，达成就立即完成，不用等到最后统一结算。出现需要你决定的事（危机、通牒、有国家对你开战）时，推演提前停下交给你。
+
+- **三档难度**：简单（目标放宽、期限多一年、其他国家更温和）、普通、困难（目标更高、其他国家更强硬）。
+- **评星按标准用时**：每个任务、每档各有“几个季度内三星、几个季度内两星”的标准，任务说明里写成日期；标准由模拟定出——照提示的简单打法拿三星的不到一半，要做对关键的一两步才行。坚守型按到期时的局面评星。最佳成绩按任务和难度存在本机。
+- **本周挑战与挑战码**：同一周、同一任务所有人拿到同一个开局；也可以输入朋友给的挑战码。同一挑战码、同一难度就是同一个开局（挑战局只用规则推演）。结束后的成绩卡写明星级、用时、挑战码和链接，可以一键复制，朋友打开链接就是同一个挑战。
+- **单独存档、回到上一回合**：任务有自己的存档槽，不会覆盖平常对局的本机存档；推演完对结果不满意，可以回到这回合推演之前（排好的行动都在），改了再推，回退次数记在成绩里。
 
 | 年代 | 国家 | 任务 | 每回合 | 期限 | 目标 |
 |---|---|---|---|---|---|
 | 1939 | 英国 | 孤岛求援 | 半年 | 1942 年底 | 与美国结盟、让美国对德作战、军力达到开局的 1.25 倍、守住本土 |
-| 1939 | 苏联 | 卫国战争：坚守 | 半年 | 1943 年底 | 与英国或美国结盟；坚持到期限，届时本土仍在、德军攻势进度不超过 40%、稳定不低于 30 |
+| 1939 | 苏联 | 卫国战争：坚守 | 半年 | 1943 年底 | 与英国或美国结盟；坚持到期限，届时本土仍在、守住乌克兰或白俄罗斯（至少一处）、稳定不低于 30 |
 | 1939 | 美国 | 民主国家的兵工厂 | 半年 | 1942 年底 | 援助英国 3 次、援助中国 3 次、军力达到开局的 1.5 倍 |
-| 1945 | 美国 | 复兴欧洲 | 半年 | 1950 年底 | 英、法、德 GDP 合计达到开局的 1.25 倍，与其中至少两国结盟 |
-| 1945 | 英国 | 战后重建 | 半年 | 1950 年底 | GDP 达到开局的 1.2 倍、稳定不低于 65、国库转为正数 |
+| 1945 | 美国 | 复兴欧洲 | 半年 | 1950 年底 | 英、法、德 GDP 合计达到开局的 1.4 倍，与其中至少两国结盟 |
+| 1945 | 英国 | 复员 | 半年 | 1950 年底 | 动员降到平时、军费不超过 GDP 的 4%、GDP 达到开局的 1.2 倍、稳定不低于 65、国库余额达到 GDP 的 3% |
 | 1979 | 中国 | 改革开放 | 一年 | 1989 年底 | GDP 达到开局的 2 倍，与美国、日本签订自贸协定 |
 | 1979 | 印度 | 不结盟的平衡 | 半年 | 1984 年底 | 与美国、苏联的关系都达到 40，GDP 达到开局的 1.25 倍 |
 | 2026 | 中国 | 高水平开放 | 半年 | 2031 年底 | 5 个自贸协定、科技达到 95、GDP 达到开局的 1.15 倍 |
-| 2026 | 印度 | 跻身前三 | 一年 | 2036 年底 | GDP 超过日本和德国，与美国、俄罗斯的关系都保持在 30 以上 |
-| 2026 | 韩国 | 半岛和解 | 半年 | 2031 年底 | 与朝鲜关系回升到 0 以上并签订互不侵犯条约，期间不与朝鲜发生战争 |
+| 2026 | 印度 | 跻身前三 | 一年 | 2032 年底 | GDP 超过日本和德国，与美国、俄罗斯的关系都达到 50 |
+| 2026 | 韩国 | 半岛和解 | 半年 | 2031 年底 | 与朝鲜关系回升到 20 以上并签订互不侵犯条约，期间不与朝鲜发生战争 |
 
-每个任务都用规则推演反复试过：按说明里的提示打，在期限内能够完成。默认只用规则推演（最快）；接入了 AI 时，可以选择每回合第一个季度用 AI 推演各国的反应。
+表中是普通档的目标。每个任务的三档都用规则推演反复试过：什么都不做一定失败；按说明里的提示打，普通档在期限内能够完成；困难档要打得更好才行。默认只用规则推演（最快）；随机开局且接入了 AI 时，可以选择每回合第一个季度用 AI 推演各国的反应。
 
 **3. 每回合的局势说明**
 
@@ -77,22 +82,27 @@ This is the next edition after [Tianxia Online v3](https://zechenbian.github.io/
 
 **2. Ten solo missions**
 
-Pick an era and a country and complete a timed goal. The rules are the same as a full game, but each turn runs 2 quarters (half a year) or 4 quarters (a year) back to back; goals are checked every quarter and you win the moment they are met, with no final tally. If something needs your decision (a crisis, an ultimatum, a declaration of war on you), the run stops early and hands control back. Stars depend on how much time you used; your best results are kept in this browser.
+Pick an era and a country and complete a timed goal. The rules are the same as a full game, but each turn runs 2 quarters (half a year) or 4 quarters (a year) back to back; goals are checked every quarter and you win the moment they are met, with no final tally. If something needs your decision (a crisis, an ultimatum, a declaration of war on you), the run stops early and hands control back.
+
+- **Three difficulty levels**: easy (easier targets, an extra year, milder rivals), normal, and hard (higher targets, tougher rivals).
+- **Stars against a par time**: each mission and level has a par for three and for two stars, shown as dates in the briefing. The pars come from simulation: the simple plan from the tips earns three stars less than half the time — you need to get one or two key moves right. The hold-out mission is starred on the final situation. Best results are kept per mission and level in this browser.
+- **Weekly challenge and challenge codes**: everyone gets the same start for a given mission in a given week, or you can enter a friend's code. The same code at the same level gives the same start (challenges always use the rule engine). The result card shows your stars, time, code and a link — copy it, and a friend who opens the link plays the same challenge.
+- **Separate save, back one turn**: missions have their own save slot and never overwrite your regular local game. If you don't like how a turn went, go back to before it (your queued moves are still there), change your plan and play again; undos are recorded with your result.
 
 | Era | Country | Mission | Per turn | Deadline | Goals |
 |---|---|---|---|---|---|
 | 1939 | United Kingdom | Britain Calls for Help | ½ year | end of 1942 | Ally with the US, bring it into the war on Germany, reach 1.25× starting military power, keep the homeland |
-| 1939 | Soviet Union | The Patriotic War: Hold the Line | ½ year | end of 1943 | Ally with Britain or the US; hold out to the deadline with the homeland intact, German progress at 40% or less and stability 30+ |
+| 1939 | Soviet Union | The Patriotic War: Hold the Line | ½ year | end of 1943 | Ally with Britain or the US; hold out to the deadline with the homeland intact, Ukraine or Belarus (at least one) still held and stability 30+ |
 | 1939 | United States | Arsenal of Democracy | ½ year | end of 1942 | Aid Britain 3 times, aid China 3 times, reach 1.5× starting military power |
-| 1945 | United States | Rebuild Europe | ½ year | end of 1950 | Combined GDP of Britain, France and Germany at 1.25× the start; ally with at least two of them |
-| 1945 | United Kingdom | Postwar Recovery | ½ year | end of 1950 | GDP at 1.2× the start, stability 65+, treasury back above zero |
+| 1945 | United States | Rebuild Europe | ½ year | end of 1950 | Combined GDP of Britain, France and Germany at 1.4× the start; ally with at least two of them |
+| 1945 | United Kingdom | Demobilization | ½ year | end of 1950 | Mobilization at peacetime, defence spending at most 4% of GDP, GDP at 1.2× the start, stability 65+, treasury at 3% of GDP |
 | 1979 | China | Reform and Opening Up | 1 year | end of 1989 | Double GDP; trade agreements with the US and Japan |
 | 1979 | India | The Non-Aligned Balance | ½ year | end of 1984 | Relations of 40+ with both the US and the Soviet Union; GDP at 1.25× the start |
 | 2026 | China | High-Level Opening Up | ½ year | end of 2031 | 5 trade agreements, technology 95, GDP at 1.15× the start |
-| 2026 | India | Into the Top Three | 1 year | end of 2036 | Overtake Japan and Germany in GDP while keeping relations of 30+ with the US and Russia |
-| 2026 | South Korea | Peninsula Reconciliation | ½ year | end of 2031 | Relations with North Korea back to 0+ and a non-aggression pact, without any war with it |
+| 2026 | India | Into the Top Three | 1 year | end of 2032 | Overtake Japan and Germany in GDP and reach relations of 50 with both the US and Russia |
+| 2026 | South Korea | Peninsula Reconciliation | ½ year | end of 2031 | Relations with North Korea at 20+ and a non-aggression pact, without any war with it |
 
-Every mission was played through repeatedly on the rule engine: following the tips in its briefing, it can be completed before the deadline. Missions use the rule engine by default (fastest); with an AI connected you can choose to have the AI play other countries' reactions in the first quarter of each turn.
+The table shows the normal level. All three levels of every mission were played through repeatedly on the rule engine: doing nothing always fails; following the tips in the briefing completes the normal level before the deadline; hard needs better play. Missions use the rule engine by default (fastest); for a random start with an AI connected you can choose to have the AI play other countries' reactions in the first quarter of each turn.
 
 **3. A situation briefing every turn**
 
