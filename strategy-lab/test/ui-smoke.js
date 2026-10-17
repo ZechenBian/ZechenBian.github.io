@@ -7,7 +7,7 @@ function need(name, fallback) { try { return require(name); } catch (e) { return
 const { chromium } = need("playwright", "/opt/npm-tools/node_modules/playwright");
 const ROOT = path.join(__dirname, ".."), DIST = path.join(ROOT, "dist"), LIVE_CACHE = path.join(__dirname, ".cache/ui-live.json");
 const KATEX = [path.join(ROOT, "node_modules/katex/dist/katex.min.js"), "/opt/npm-tools/node_modules/katex/dist/katex.min.js"].find(f => fs.existsSync(f));
-const server = http.createServer((req, res) => { const u = decodeURIComponent(req.url.split("?")[0]), f = u === "/index.html" || u === "/" ? path.join(ROOT, "index.html") : u === "/en/index.html" || u === "/en/" ? path.join(ROOT, "en/index.html") : path.join(DIST, u); /* / 和 /en/ 是独立的网页版（中文、英文），其余在 dist/ 里 */ fs.readFile(f, (e, d) => { if (e) { res.writeHead(404); res.end("nf"); } else { res.writeHead(200, { "content-type": f.endsWith(".html") ? "text/html; charset=utf-8" : "application/octet-stream" }); res.end(d); } }); });
+const server = http.createServer((req, res) => { const u = decodeURIComponent(req.url.split("?")[0]), f = u === "/index.html" || u === "/" ? path.join(ROOT, "index.html") : u === "/en/index.html" || u === "/en/" ? path.join(ROOT, "en/index.html") : u === "/teen/index.html" || u === "/teen/" ? path.join(ROOT, "teen/index.html") : path.join(DIST, u); /* /、/en/ 和 /teen/ 是独立的网页版（中文、英文、青少年版），其余在 dist/ 里 */ fs.readFile(f, (e, d) => { if (e) { res.writeHead(404); res.end("nf"); } else { res.writeHead(200, { "content-type": f.endsWith(".html") ? "text/html; charset=utf-8" : "application/octet-stream" }); res.end(d); } }); });
 async function open(opts = {}) {
   await new Promise(r => server.listen(0, "127.0.0.1", r));
   const port = server.address().port;

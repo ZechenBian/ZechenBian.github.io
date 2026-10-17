@@ -635,6 +635,7 @@ table.hp-tab th:first-child { padding-left: 6px; }
 a.btn { text-decoration: none; }
 .modal-box.lbm-box { width: min(900px, 100%); }
 .lb-lead { margin: 0; font-size: 13px; line-height: 1.6; color: var(--ink2); max-width: 78ch; }
+.lb-teen { margin: 12px 0 0; max-width: 78ch; }
 .lb-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 10px; }
 .lb-card { border: 1px solid var(--line); border-radius: 6px; background: var(--surface); padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .lb-card.wide { grid-column: 1 / -1; }
@@ -14713,7 +14714,9 @@ var App = (function () {
     });
     var m = A.modal("大厅", [
       h("p", { class: "lb-lead", text: "和别人一起玩的几种办法。这张页面没有自己的服务器：要给别人看的东西，由你自己贴到 GitHub 上；实时房间走公共的中继。不联网的时候，自己玩的部分照样能用。" }),
-      grid
+      grid,
+      // 青少年版是另一张页面（teen/），只有中文：先亲手打一局，再学编程和算法的基本想法，最后自己写一条规则
+      h("p", { class: "note lb-teen" }, h("a", { href: (/^en/i.test(document.documentElement.getAttribute("lang") || "") ? "../" : "") + "teen/", id: "lbTeen", text: "青少年版" }), h("span", { text: "：给中学生的入口。先亲手打一局，再学编程和算法的基本想法，最后自己写一条规则（中文）。" }))
     ], { cls: "lbm", focus: ".lb-card .btn" });
     return m;
   };
