@@ -635,6 +635,7 @@ table.hp-tab th:first-child { padding-left: 6px; }
 a.btn { text-decoration: none; }
 .modal-box.lbm-box { width: min(900px, 100%); }
 .lb-lead { margin: 0; font-size: 13px; line-height: 1.6; color: var(--ink2); max-width: 78ch; }
+.lb-teen { margin: 12px 0 0; max-width: 78ch; }
 .lb-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 10px; }
 .lb-card { border: 1px solid var(--line); border-radius: 6px; background: var(--surface); padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .lb-card.wide { grid-column: 1 / -1; }
@@ -13478,7 +13479,9 @@ var App = (function () {
     });
     var m = A.modal("Lobby", [
       h("p", { class: "lb-lead", text: "Ways to play with other people. This page has no server of its own: anything you want others to see, you post to GitHub yourself, and live rooms go through public relays. Without a network connection, everything you play on your own still works." }),
-      grid
+      grid,
+      // 青少年版是另一张页面（teen/），只有中文：先亲手打一局，再学编程和算法的基本想法，最后自己写一条规则
+      h("p", { class: "note lb-teen" }, h("a", { href: (/^en/i.test(document.documentElement.getAttribute("lang") || "") ? "../" : "") + "teen/", id: "lbTeen", text: "Teen edition" }), h("span", { text: ": an entry point for secondary-school students. Play an episode by hand first, then learn the basic ideas of programming and algorithms, then write a rule of your own (in Chinese)." }))
     ], { cls: "lbm", focus: ".lb-card .btn" });
     return m;
   };

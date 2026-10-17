@@ -10,6 +10,8 @@ A place to run quantitative-strategy experiments in the browser: pick a game, a 
 
 **▶ Open online (English):** https://zechenbian.github.io/strategy-lab/en/
 
+**▶ 青少年版（给中学生，中文）:** https://zechenbian.github.io/strategy-lab/teen/
+
 页面右上角的按钮在中文和英文之间切换，切换后当前的玩法、世界、规则和参数都还在。The button at the top right switches between Chinese and English and keeps the current game, world, rule and parameters.
 
 ---
@@ -68,6 +70,12 @@ A place to run quantitative-strategy experiments in the browser: pick a game, a 
 - **每日一题**的题目每周出一批，是 [daily/](daily/) 里的数据文件，页面运行时才去取，所以加题不用重新构建；题目的格式、校验脚本、出题和审题的流程见 [daily/README.md](daily/README.md)。交上去的规则先在你的设备上加密，贴到 GitHub 上的只有密文：别人看得到你交了、什么时候交的，看不到规则的名字、参数和代码。截止之后，[结算的工作流](../.github/workflows/strategy-lab-quest.yml)拿仓库 Secrets 里的私钥把每条规则解开，各自放进没有网络的容器里算分，公布成绩和规则的名字，不公布代码；截止之后改过帖子的作废。私钥在仓库的主人手里，他技术上解得开所有人的规则。这张页面从不运行别人为每日一题写的代码。保密和结算的细节、仓库的主人要做的事，也在 [daily/README.md](daily/README.md) 里。离线的副本里没有每日一题。
 - 不会写代码也能写规则：每日一题、规则同场和世界工坊里都有“复制给 AI 的说明”，把接口和要求复制下来，贴给任何一个 AI，再把它回的代码贴回来。
 
+### 青少年版
+
+[teen/](teen/) 是另一张单独的页面，给中学生用，只有中文：七个“在不确定的情况下做决定”的小游戏（猜硬币、掷骰子见好就收、卖西瓜、三台抽卡机、找最大的数、奶茶店进货、停车），每个十几回合，手机上就能打。顺序是三步：先亲手打一局，打完立刻看到三条简单的规则在同一局上得了多少分、每一回合是怎么选的；然后学编程的基本思想（七课，每课一段能跑的代码和一个“改一改”）和算法的基本思想（七个想法：数一数、跟着反馈调、探索与利用、从后往前想、算期望值、看情况定门槛、怎么比较两条规则，每个都能跑一个几百局的实验）；最后从填空开始写自己的规则，在固定的 200 局上和基准规则比。另有一页给老师和家长：两种 45 分钟的上法、班级比赛怎么办、对应的知识点。
+
+它用的是实验室的引擎（裁判、规则、隔离环境都是同一份代码），但去掉了所有和投资有关的内容，游戏里的分数就是分数。页面打开之后不再联网、不要账号、没有排行榜服务器：进度、成绩和写的代码只存在这台设备的浏览器里。学生的代码在隔离环境里跑，死循环会被掐掉。游戏是数据文件（[src/teen/games.js](src/teen/games.js)），每个由题面、裁判、几条带讲解的基准规则、填空的起始代码和“这题背后的想法”组成，加游戏不用动界面。
+
 ### 数字是在你的电脑上现算的
 
 - **对照表**（每条内置规则 × 每个世界或场景，共 701 格）不写在页面里：第一次打开时用后台线程在本机算，算出一格显示一格，结果存在浏览器里，下次直接读。
@@ -109,8 +117,10 @@ A place to run quantitative-strategy experiments in the browser: pick a game, a 
 strategy-lab/
 ├── index.html    构建出来的独立网页，中文（上面的网址打开的就是它）
 ├── en/index.html 构建出来的独立网页，英文
+├── teen/index.html 构建出来的青少年版（中文）
 ├── build.py      把 src/ 拼成一个文件
 ├── src/          引擎、内置规则、界面、手册的文字（只有一份，中文）；大厅的几样东西也在这里（hub.js 读写 GitHub，mq.js 是实时房间的中继，sandbox.js 是隔离环境）
+├── src/teen/     青少年版：七个小游戏、两组课、它自己的界面和样式
 ├── i18n/         英文版：译文表和生成工具
 ├── data/         示例行情
 ├── daily/        每日一题的题目（数据，页面运行时才取）、校验脚本、结算的程序、出题和审题的流程
@@ -119,14 +129,14 @@ strategy-lab/
 
 ```sh
 npm install                      # 取 KaTeX 的发行文件；英文版的生成工具要用 acorn，测试要用 Playwright
-python3 build.py                 # 生成 index.html 和 en/index.html（以及 dist/ 下在 Claude 里发布用的那一份）
+python3 build.py                 # 生成 index.html、en/index.html 和 teen/index.html（以及 dist/ 下在 Claude 里发布用的那一份）
 npx playwright install chromium  # 只有跑界面测试才需要
 sh test/run-all.sh               # 全部测试，要半个多小时
 ```
 
 **英文版是怎么来的。** 源码只有一份，是中文的。构建时 [i18n/i18n.js](i18n/i18n.js) 把源码里每一段给人看的中文（界面上的字、手册、规则的说明、规则代码里的注释、发给 AI 的提示词，一共六千多段）换成 [i18n/en/](i18n/en/) 里的译文，代码本身一个字不动，所以两种语言跑的是同一套计算：同样的设定下结果逐位相同，现算的缓存也是共用的。译文入库时逐段自动核对：公式、现算的数字标记、代码必须和原文一致，占位符不能多也不能少。改了源码里的中文而没有补译文，构建会失败并指出是哪一段。细节见 [i18n/README.md](i18n/README.md)。
 
-测试分两部分：Node 里对引擎和手册里每个数字的核对（约 2500 项），无头浏览器里的界面检查（约 1400 项）。AI 接口的测试用的是本机的一个假服务商，大厅的测试把 GitHub 和 drand 换成本机的假数据、把中继换成本机的假中继，都不会向外发请求。每日一题的结算程序在测试里是直接调用的：私钥是测试自己造的，容器换成子进程，所以容器那一层只在 GitHub Actions 上实际运行时才用得上。别人写的代码那一部分是真测：测试里放了会联网、会改内置对象、会去动别人成绩的规则和裁判，核对它们一样也办不到。英文版的测试（`node test/ui-en.js`，大厅的那几样在 `node test/ui-en-lobby.js`）把页面的每一处走一遍：每个世界、每套玩法、每条规则、每张图、手册的每一页，页面上不能出现汉字；并核对两种语言算出来的数相同。单独跑一个：`node test/obs.test.js`、`node test/ui-standalone.js`。
+测试分两部分：Node 里对引擎和手册里每个数字的核对（约 2600 项），无头浏览器里的界面检查（约 1450 项）。AI 接口的测试用的是本机的一个假服务商，大厅的测试把 GitHub 和 drand 换成本机的假数据、把中继换成本机的假中继，都不会向外发请求。每日一题的结算程序在测试里是直接调用的：私钥是测试自己造的，容器换成子进程，所以容器那一层只在 GitHub Actions 上实际运行时才用得上。青少年版的测试（`node test/teen.test.js`、`node test/ui-teen.js`）把讲解里写的每个数拿精确计算去对，把七个游戏按最简单的办法亲手打一遍、核对得分和对应的基准规则一模一样，并核对页面打开之后没有任何对外的请求。别人写的代码那一部分是真测：测试里放了会联网、会改内置对象、会去动别人成绩的规则和裁判，核对它们一样也办不到。英文版的测试（`node test/ui-en.js`，大厅的那几样在 `node test/ui-en-lobby.js`）把页面的每一处走一遍：每个世界、每套玩法、每条规则、每张图、手册的每一页，页面上不能出现汉字；并核对两种语言算出来的数相同。单独跑一个：`node test/obs.test.js`、`node test/ui-standalone.js`。
 
 引擎和规则是纯 JavaScript，没有运行时依赖。页面内联了 [KaTeX](https://katex.org) 来排公式（MIT 许可，见 [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)）；界面字体从 Google Fonts 加载，连不上时用系统字体。
 
@@ -186,6 +196,12 @@ Four games (accept-and-cooldown, the secretary problem, betting on a biased coin
 - **Daily challenges** are written in weekly batches and live as data files in [daily/](daily/). The page fetches them at run time, so adding challenges needs no rebuild; the file format, the validator and the procedure for writing and reviewing a batch are in [daily/README.md](daily/README.md) (in Chinese, with an English summary). A rule is encrypted on your device before it is submitted, and only the ciphertext is posted on GitHub: others can see that you submitted and when, but not the name, the parameters or the code of your rule. After the deadline the [settlement workflow](../.github/workflows/strategy-lab-quest.yml) opens every entry with a private key kept in the repository's secrets, scores each one in a container of its own without network access, and publishes the scores and the names of the rules, never the code; an entry edited after the deadline is void. The private key is held by the repository's owner, who is technically able to open everyone's rules. This page never runs code that other people wrote for a daily challenge. How sealing and settlement work, and what the repository owner has to set up, is in the same document. An offline copy of the page has no daily challenge.
 - You can write rules without knowing how to code: the daily challenge, the arena and the workshop have a "Copy a brief for an AI" button that copies the interface and the requirements; paste it to any AI and paste the code it replies with back in.
 
+### Teen edition
+
+[teen/](teen/) is a separate page for secondary-school students, in Chinese only: seven small games of deciding under uncertainty (guess a biased coin, roll dice and quit while ahead, sell watermelons, three slot machines, find the largest number, stock a bubble-tea shop, park a car), each ten to thirty rounds, playable on a phone. Three steps: play an episode by hand first and see at once how three simple rules scored on the very same episode and what each chose in every round; then the basic ideas of programming (seven lessons, each with runnable code and a "change it" task) and of algorithms (seven ideas: count, adjust to feedback, explore and exploit, think backwards, compute expected values, set thresholds by context, compare rules properly, each with an experiment over a few hundred episodes); then write a rule, starting from fill-in-the-blank code, and compare it with the reference rules on a fixed 200 episodes. A page for teachers and parents gives two 45-minute lesson plans, how to run a class competition, and the curriculum topics covered.
+
+It runs on the lab's engine (referee, rules and sandbox are the same code) but leaves out everything related to investing; scores are just scores. Once loaded the page makes no network requests, needs no account and has no leaderboard server: progress, scores and code stay in this device's browser. Students' code runs in the sandbox, and an endless loop is stopped. Games are data ([src/teen/games.js](src/teen/games.js)): statement, referee, a few explained reference rules, starter code with blanks, and "the idea behind it".
+
 ### The numbers are computed on your machine
 
 - The **comparison table** (every built-in rule × every world or scenario, 701 cells) is not shipped with the page. It is computed locally by background threads the first time you open it, cell by cell, and cached in the browser.
@@ -232,7 +248,7 @@ sh test/run-all.sh               # the whole suite, a little over half an hour
 
 **How the English edition is made.** There is one source tree, written in Chinese. At build time [i18n/i18n.js](i18n/i18n.js) replaces every piece of user-visible Chinese in the source (interface text, the handbook, the notes on each rule, the comments in rule code, the prompts sent to the AI: a little over six thousand units) with its translation from [i18n/en/](i18n/en/) and leaves the code itself untouched. Both languages therefore run the same computation: the same settings give identical results, and the cache of live-computed numbers is shared. Every translation is checked automatically when it is imported: formulas, live-number tokens and code must match the original, and no placeholder may be added or lost. If a Chinese string changes and no translation is supplied, the build fails and names the string. Details are in [i18n/README.md](i18n/README.md).
 
-The tests come in two parts: checks in Node of the engine and of every number quoted in the handbook (about 2,500), and browser checks in headless Chromium (about 1,400). The AI-interface tests talk to a mock provider on localhost; the lobby tests replace GitHub and drand with local fixtures and the relays with a local broker; nothing is sent outside. The daily challenge's settlement program is called directly by the tests, with a key pair the tests generate and a child process in place of the container, so the container layer itself is only exercised when the workflow really runs on GitHub Actions. The handling of other people's code is tested for real: the tests include rules and referees that try to reach the network, patch built-ins and tamper with other players' results, and check that none of it works. The English-edition test (`node test/ui-en.js`, with the lobby features in `node test/ui-en-lobby.js`) walks through every world, game, rule, chart and handbook page, requires that no Chinese appears anywhere on the page, and checks that the two languages compute the same numbers. To run one file: `node test/obs.test.js`, `node test/ui-standalone.js`.
+The tests come in two parts: checks in Node of the engine and of every number quoted in the handbook (about 2,600), and browser checks in headless Chromium (about 1,450). The AI-interface tests talk to a mock provider on localhost; the lobby tests replace GitHub and drand with local fixtures and the relays with a local broker; nothing is sent outside. The daily challenge's settlement program is called directly by the tests, with a key pair the tests generate and a child process in place of the container, so the container layer itself is only exercised when the workflow really runs on GitHub Actions. The teen edition's tests (`node test/teen.test.js`, `node test/ui-teen.js`) recompute every number quoted in its explanations, play each of the seven games by hand with the simplest policy and check that the score equals the corresponding reference rule's exactly, and check that the page makes no external request once loaded. The handling of other people's code is tested for real: the tests include rules and referees that try to reach the network, patch built-ins and tamper with other players' results, and check that none of it works. The English-edition test (`node test/ui-en.js`, with the lobby features in `node test/ui-en-lobby.js`) walks through every world, game, rule, chart and handbook page, requires that no Chinese appears anywhere on the page, and checks that the two languages compute the same numbers. To run one file: `node test/obs.test.js`, `node test/ui-standalone.js`.
 
 The engine and the rules are plain JavaScript with no runtime dependencies. The page inlines [KaTeX](https://katex.org) for typesetting (MIT licence, see [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)); interface fonts load from Google Fonts and fall back to system fonts when unreachable.
 

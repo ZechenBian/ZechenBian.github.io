@@ -29,7 +29,9 @@
     });
     var m = A.modal("大厅", [
       h("p", { class: "lb-lead", text: "和别人一起玩的几种办法。这张页面没有自己的服务器：要给别人看的东西，由你自己贴到 GitHub 上；实时房间走公共的中继。不联网的时候，自己玩的部分照样能用。" }),
-      grid
+      grid,
+      // 青少年版是另一张页面（teen/），只有中文：先亲手打一局，再学编程和算法的基本想法，最后自己写一条规则
+      h("p", { class: "note lb-teen" }, h("a", { href: (/^en/i.test(document.documentElement.getAttribute("lang") || "") ? "../" : "") + "teen/", id: "lbTeen", text: "青少年版" }), h("span", { text: "：给中学生的入口。先亲手打一局，再学编程和算法的基本想法，最后自己写一条规则（中文）。" }))
     ], { cls: "lbm", focus: ".lb-card .btn" });
     return m;
   };
