@@ -1,7 +1,7 @@
 // Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
 // Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 // 青少年版的界面（teen/index.html）：开始页、亲手打一局（人按最简单的办法打，得分必须和对应的那条基准规则一模一样：同一局、同样的牌）、
-// 打完的对照、再来一局、存档；七课的例子和"改一改"、全角标点和语法错误的提示、死循环被掐掉；七个想法的演示和实验；
+// 打完的对照、再来一局、存档；编程教程（目录、每一步的例子和"试一试"、提示和答案、草稿、规则放到今天的一局和 200 局上）、全角标点和语法错误的提示、死循环被掐掉；七个想法的演示和实验；
 // 写规则（填空、跑 200 局、在刚打过的那一局上试、换模板、参数写错、死循环）；老师页；手机宽度；大厅里指向青少年版的链接。
 // 这张页面不联网：打开之后不许有任何对外的请求。
 const path = require("path"), { open } = require("./ui-smoke.js"), { clipped } = require("./en-probe.js");
@@ -24,7 +24,7 @@ const real = l => l.filter(x => !/Failed to load resource|Refused to|Content Sec
   console.log("== 一、打开");
   await goto("#home"); page.on("request", r => { const u = new URL(r.url()); if (u.hostname !== "127.0.0.1") reqs.push(u.hostname); }); await stub();
   const head = await page.evaluate(() => ({ title: document.title, lang: document.documentElement.lang, nav: Array.from(document.querySelectorAll("#nav a")).map(a => a.innerText).join(), on: document.querySelector("#nav a.on").innerText, today: document.querySelector("#today h3").innerText, btn: document.querySelector("#goToday").getAttribute("href"), featured: window.QL_TEEN.games[window.QL_TEEN.QL.questHash("teen|day|" + window.QL_TEEN.today()) % 7].name }));
-  ok(head.title === "策略实验室 · 青少年版" && head.lang === "zh-CN" && head.nav === "开始,亲手试一局,编程的想法,算法的想法,写规则,老师和家长" && head.on === "开始" && head.today === head.featured && /^#play\/[a-z]+$/.test(head.btn), "开始页：标题、六个入口、今天的一局是按日期挑的那个游戏", JSON.stringify(head));
+  ok(head.title === "策略实验室 · 青少年版" && head.lang === "zh-CN" && head.nav === "开始,亲手试一局,编程教程,算法的想法,写规则,老师和家长" && head.on === "开始" && head.today === head.featured && /^#play\/[a-z]+$/.test(head.btn), "开始页：标题、六个入口、今天的一局是按日期挑的那个游戏", JSON.stringify(head));
   ok((await page.evaluate(() => document.querySelector("#view").innerText)).includes("不收集任何东西") && (await page.locator('a[href="#teach"]').count()) >= 1, "开始页写明不收集任何东西，有给老师和家长的入口");
 
   console.log("== 二、亲手打一局：猜硬币，总猜正面");
@@ -83,34 +83,71 @@ const real = l => l.filter(x => !/Failed to load resource|Refused to|Content Sec
   const pigLast = (await page.locator("#result").count()) ? await txt("#resultLine") : await txt("#last");
   ok(/掷出 [2-6]，累计 [2-6] 分|掷出 1，累计清零|这一局你得了 0 分/.test(pigLast), "掷一次：说清楚掷出几点、累计多少（或者掷出 1 清零）", pigLast);
 
-  console.log("== 四、七课");
-  await goto("#code/seq"); await stub();
-  ok((await page.locator("#lesson h3").innerText()) === "第 1 课 · 程序就是一步一步的指令" && (await page.locator(".chips .chip").count()) === 7, "第一课打开了，七课的目录都在");
-  await page.click("#run"); await page.waitForSelector("#out:not([hidden])", { timeout: 15000 });
-  const o1 = await txt("#out");
-  ok(o1.split("\n").join(" / ") === "你好 / 7 / 20 位顾客，每人 2.5 元，一共 50" && (await page.locator("#taskOk").isHidden()), "例子跑出三行；没改过的例子不说“还没做到”", o1);
-  await page.fill("#snip", (await page.inputValue("#snip")) + "\nprint(7 * 8);"); await page.click("#run"); await page.waitForFunction(() => /做到了/.test((document.querySelector("#taskOk") || {}).textContent || ""), null, { timeout: 15000 });
-  ok(await page.evaluate(() => window.QL_TEEN.store().done.seq === 1), "改一改做到了：这一课记成过了");
-  await page.fill("#snip", "print（1）;"); await page.click("#run"); await page.waitForTimeout(200);
-  ok((await txt("#msg")).includes("第 1 行有一个中文的标点“（”"), "中文标点：指出第几行、哪个标点", await txt("#msg"));
-  await page.fill("#snip", "print(\"你好，世界\"); // 注释，中文\nvar x = ;"); await page.click("#run"); await page.waitForTimeout(200);
-  ok((await txt("#msg")).includes("代码有语法错误"), "引号和注释里的中文标点不算；真正的语法错误报出来", await txt("#msg"));
-  await page.fill("#snip", "print(1);\nvar y = 2\nprint(y;"); await page.click("#run"); await page.waitForTimeout(200);
-  ok(/语法错误/.test(await txt("#msg")), "少了括号也报语法错误", await txt("#msg"));
-  await goto("#code/loop"); await stub(); await page.click("#loopDemo"); await page.waitForFunction(() => /掐掉/.test((document.querySelector("#msg") || {}).textContent || ""), null, { timeout: 15000 });
-  ok((await txt("#msg")).includes("跑了 1 秒还没停，已经被掐掉") && !(await page.locator("#run").isDisabled()), "死循环的演示：到时间掐掉，说清楚；按钮恢复可用");
-  await page.click("#run"); await page.waitForSelector("#out:not([hidden])", { timeout: 15000 });
-  ok((await txt("#out")).includes("正面出现了 5 次，占 0.625") && (await txt("#out")).includes("掷了 5 次，累计 20"), "第四课的例子：for 数正面、while 掷到 20");
-  await page.fill("#snip", (await page.inputValue("#snip")).replace("results[i] === 1", "results[i] === 0")); await page.click("#run"); await page.waitForFunction(() => /做到了/.test((document.querySelector("#taskOk") || {}).textContent || ""), null, { timeout: 15000 });
-  ok(true, "第四课：数反面，做到了");
-  for (const id of ["var", "if", "fn", "obj"]) { await goto("#code/" + id); await stub(); await page.click("#run"); await page.waitForSelector("#out:not([hidden])", { timeout: 15000 }); ok((await page.locator("#msg").isHidden()) && (await txt("#out")).length > 0, "《" + (await page.locator("#lesson h3").innerText()) + "》的例子跑得通"); }
-  await goto("#code/rule"); await stub(); await page.click("#run"); await page.waitForSelector("#ruleTrace", { timeout: 30000 });
-  const l7 = await page.evaluate(() => ({ line: document.querySelector("#out p").innerText, rows: document.querySelectorAll("#ruleTrace tbody tr").length, th: Array.from(document.querySelectorAll("#ruleTrace thead th")).map(x => x.innerText).join() }));
-  ok(/^在今天的“猜硬币”这一局上，这条规则得了 \d+ 分（共 20 回合）。$/.test(l7.line) && l7.rows === 20 && l7.th === "回合,它看到的,它报的,得分", "第七课：规则放到今天的一局上，逐回合看得到", JSON.stringify(l7));
-  const l7score = +/得了 (\d+) 分/.exec(l7.line)[1], majorScore = await page.evaluate(() => { const g = window.QL_TEEN.games[0]; return window.QL_TEEN.refsOn(g, window.QL_TEEN.daySeed("coin", window.QL_TEEN.today())).filter(r => r.ref.id === "major")[0].score; });
-  ok(l7score === majorScore, "第七课的例子就是“跟着多数猜”，得分和它在今天的一局上的得分一样");
-  await page.fill("#snip", "function decide(s, p, st) {\n  return s.see === 0 ? 0 : 1;\n}"); await page.click("#run"); await page.waitForFunction(() => /做到了/.test((document.querySelector("#taskOk") || {}).textContent || ""), null, { timeout: 30000 });
-  ok(true, "第七课：改成跟着上一次，做到了");
+  console.log("== 四、编程教程");
+  const S = id => "#st-" + id + " ", doneIn = (id, ms) => page.waitForFunction(sel => /做到了/.test((document.querySelector(sel) || {}).textContent || ""), S(id) + ".okbox", { timeout: ms || 15000 });
+  await goto("#code"); await stub();
+  const ov = await page.evaluate(() => ({ units: document.querySelectorAll("#units .unit").length, first: document.querySelector("#units .unit h3").innerText, prog: document.querySelector("#progress").innerText, go: document.querySelector("#progress a").getAttribute("href"), on: document.querySelector("#nav a.on").innerText, games: Array.from(document.querySelectorAll("#units .unit")).filter(u => /游戏：/.test(u.innerText)).length }));
+  ok(ov.units === 10 && ov.first === "第一句话" && /已经做到 0 \/ \d+ 步/.test(ov.prog) && /从第 1 单元开始/.test(ov.prog) && ov.go === "#code/u1" && ov.on === "编程教程" && ov.games === 3, "教程的目录：十个单元，三个对着游戏，从第 1 单元开始", JSON.stringify(ov));
+  await page.click("#progress a"); await page.waitForSelector("#unit");
+  const u1 = await page.evaluate(() => ({ id: document.querySelector("#unit").getAttribute("data-unit"), steps: document.querySelectorAll(".stepbox").length, title: document.querySelector("#unit h2").innerText, first: document.querySelector(".stepbox h3").innerText, chips: document.querySelectorAll(".unitchips .chip").length, on: document.querySelector(".unitchips .chip.on").innerText }));
+  ok(u1.id === "u1" && u1.steps === 4 && u1.title === "第一句话" && u1.first === "第 1.1 步 跑第一段程序" && u1.chips === 10 && u1.on === "1", "第 1 单元：四步都在一页上，十个单元的小标签", JSON.stringify(u1));
+  await page.click(S("s11") + ".run"); await page.waitForSelector(S("s11") + ".outbox:not([hidden])", { timeout: 15000 });
+  ok((await txt(S("s11") + ".outbox")) === "你好" && (await page.locator(S("s11") + ".okbox").isHidden()), "第 1.1 步：例子显示“你好”；没改过的例子只跑不评判", await txt(S("s11") + ".outbox"));
+  await page.fill(S("s11") + ".snip", "print(\"我是小明\");"); await page.click(S("s11") + ".run"); await doneIn("s11");
+  ok((await txt(S("s11") + ".okbox")).includes("往下看第 1.2 步") && (await page.evaluate(() => window.QL_TEEN.store().done.s11 === 1 && document.querySelector("#st-s11").classList.contains("done") && document.querySelector("#st-s11 .mark").innerText === "✓")), "改了再跑：做到了，指着下一步，记成过了，打上 ✓");
+  await page.click(S("s12") + ".hintBtn"); await page.click(S("s12") + ".hintBtn");
+  const hs = await page.evaluate(() => ({ n: document.querySelectorAll("#st-s12 .hints .hint").length, first: document.querySelector("#st-s12 .hints .hint").innerText, btn: document.querySelector("#st-s12 .hintBtn").innerText, ans: document.querySelector("#st-s12 .answer").hidden }));
+  ok(hs.n === 2 && hs.first.startsWith("提示 1：") && hs.btn === "看答案" && hs.ans === true, "提示一次给一条，用完变成“看答案”，答案还藏着", JSON.stringify(hs));
+  await page.click(S("s12") + ".hintBtn");
+  ok(await page.evaluate(() => !document.querySelector("#st-s12 .answer").hidden && document.querySelector("#st-s12 .answer pre").textContent.includes("12 * 8") && document.querySelector("#st-s12 .hintBtn").disabled), "看答案：答案出现");
+  await page.click(S("s12") + ".useAns"); await page.click(S("s12") + ".run"); await doneIn("s12");
+  ok((await txt(S("s12") + ".outbox")).split("\n").pop() === "96", "把答案放进编辑框再跑：显示 96，做到了");
+  await page.click(S("s14") + ".run"); await page.waitForTimeout(200);
+  ok((await txt(S("s14") + ".msg")).includes("第 1 行有一个中文的标点“（”"), "第 1.4 步：例子故意用了中文括号，页面指出第几行、哪个标点", await txt(S("s14") + ".msg"));
+  await page.fill(S("s14") + ".snip", "print(\"西瓜\");\nprint(\"一共\", 3 + 4);"); await page.click(S("s14") + ".run"); await doneIn("s14");
+  ok((await txt(S("s14") + ".outbox")) === "西瓜\n一共 7", "改成英文括号：两行都显示，做到了");
+  await page.fill(S("s13") + ".snip", "print(1);\nvar y = 2\nprint(y;"); await page.click(S("s13") + ".run"); await page.waitForTimeout(200);
+  ok(/代码有语法错误（第 3 行附近）/.test(await txt(S("s13") + ".msg")), "少了括号：语法错误，说是第 3 行附近", await txt(S("s13") + ".msg"));
+  await page.fill(S("s13") + ".snip", "print(\"你好，世界\"); // 注释，中文\nvar x = ;"); await page.click(S("s13") + ".run"); await page.waitForTimeout(200);
+  ok(/代码有语法错误（第 2 行附近）/.test(await txt(S("s13") + ".msg")), "引号和注释里的中文标点不算；真正的语法错误报出来，带行号", await txt(S("s13") + ".msg"));
+  await goto("#code/u1"); await stub();
+  ok((await page.inputValue(S("s13") + ".snip")).includes("var x = ;") && (await page.inputValue(S("s11") + ".snip")) === "print(\"我是小明\");", "刷新以后每一步的草稿都还在");
+  await page.click(S("s13") + ".reset");
+  ok((await page.inputValue(S("s13") + ".snip")) === (await page.evaluate(() => window.QL_TEEN.steps.filter(x => x.id === "s13")[0].code)), "还原：回到例子");
+  await goto("#code/u4"); await stub(); await page.click(S("s44") + ".loopDemo"); await page.waitForFunction(sel => /掐掉/.test((document.querySelector(sel) || {}).textContent || ""), S("s44") + ".msg", { timeout: 15000 });
+  ok((await txt(S("s44") + ".msg")).includes("跑了 1 秒还没停，已经被掐掉") && !(await page.locator(S("s44") + ".run").isDisabled()), "死循环的演示：到时间掐掉，说清楚；按钮恢复可用");
+  await page.click(S("s44") + ".run"); await page.waitForSelector(S("s44") + ".outbox:not([hidden])", { timeout: 15000 });
+  ok((await txt(S("s44") + ".outbox")).includes("掷了 5 次，累计 20"), "第 4.4 步的例子：while 掷到 20");
+  // 其余 print 类的步骤：没改的例子都跑得通（1.4 和 10.1 故意有错）
+  const printSteps = await page.evaluate(() => window.QL_TEEN.lessons.course.units.map(u => ({ id: u.id, steps: u.steps.filter(x => x.kind === "print" && x.id !== "s14" && x.id !== "s101").map(x => x.id) })).filter(u => u.steps.length));
+  let ranOk = 0, ranBad = [];
+  for (const u of printSteps) { await goto("#code/" + u.id); await stub(); for (const id of u.steps) { await page.click(S(id) + ".run"); await page.waitForSelector(S(id) + ".outbox:not([hidden])", { timeout: 15000 }); if ((await page.locator(S(id) + ".msg").isHidden()) && (await txt(S(id) + ".outbox")).length > 0) ranOk++; else ranBad.push(id); } }
+  ok(ranOk >= 20 && ranBad.length === 0, "其余 " + ranOk + " 步的例子都跑得通，有显示", ranBad.join());
+  await goto("#code/u10"); await stub(); await page.click(S("s101") + ".run"); await page.waitForTimeout(200);
+  ok(/语法错误（第 2 行附近）/.test(await txt(S("s101") + ".msg")), "第 10.1 步：故意的语法错误，带行号");
+  await page.click(S("s103") + ".run"); await page.waitForSelector(S("s103") + ".trace", { timeout: 30000 });
+  const l103 = await txt(S("s103") + ".outbox");
+  ok(l103.includes("不是数") && l103.includes("忘了 return") && (await page.locator(S("s103") + ".okbox").isHidden()), "第 10.3 步：忘了 return 的规则，表里有“不是数”的回合，表下面有提醒；没改不评判");
+  await page.fill(S("s103") + ".snip", "function decide(s, p, st) {\n  if (s.see === 0) return 0;\n  return 1;\n}"); await page.click(S("s103") + ".run"); await doneIn("s103", 30000);
+  ok(true, "补上 return：做到了");
+  await goto("#code/u5"); await stub(); await page.click(S("s53") + ".run"); await page.waitForSelector(S("s53") + ".trace", { timeout: 30000 });
+  const l53 = await page.evaluate(() => ({ line: document.querySelector("#st-s53 .resline").innerText, rows: document.querySelectorAll("#st-s53 .trace tbody tr").length, th: Array.from(document.querySelectorAll("#st-s53 .trace thead th")).map(x => x.innerText).join(), refs: Array.from(document.querySelectorAll("#st-s53 .refscore tbody tr")).map(tr => tr.innerText.trim().replace(/\s+/g, " ")), ok: document.querySelector("#st-s53 .okbox").innerText, btn: document.querySelector("#st-s53 .run").innerText }));
+  ok(/^在今天的“猜硬币”这一局上，这条规则得了 \d+ 分（共 20 回合）。$/.test(l53.line) && l53.rows === 20 && l53.th === "回合,它看到的,它报的,得分" && l53.refs.length === 4 && /^总猜正面 \d+$/.test(l53.refs[0]) && /^你的规则 \d+$/.test(l53.refs[3]) && /做到了/.test(l53.ok) && l53.btn === "在猜硬币上跑一跑", "第 5.3 步：规则放到今天的一局上，逐回合看得到，旁边是三条基准规则在同一局的得分；照原样跑就算做到", JSON.stringify(l53));
+  const headsScore = await page.evaluate(() => { const g = window.QL_TEEN.games[0]; return window.QL_TEEN.refsOn(g, window.QL_TEEN.daySeed("coin", window.QL_TEEN.today())).filter(r => r.ref.id === "heads")[0].score; });
+  ok(+/得了 (\d+) 分/.exec(l53.line)[1] === headsScore && l53.refs[0] === "总猜正面 " + headsScore, "它的得分和“总猜正面”在今天的一局上的得分一样");
+  await goto("#code/u7"); await stub();
+  ok((await page.locator("#unitGame").count()) === 1 && (await page.locator('#unitGame a[href="#play/coin"]').count()) === 1, "第 7 单元开头指着猜硬币：去打一局");
+  await page.fill(S("s73") + ".snip", await page.evaluate(() => window.QL_TEEN.steps.filter(x => x.id === "s73")[0].answer)); await page.click(S("s73") + ".run"); await doneIn("s73", 30000);
+  const majorScore = await page.evaluate(() => { const g = window.QL_TEEN.games[0]; return window.QL_TEEN.refsOn(g, window.QL_TEEN.daySeed("coin", window.QL_TEEN.today())).filter(r => r.ref.id === "major")[0].score; });
+  ok(+/得了 (\d+) 分/.exec(await txt(S("s73") + ".resline"))[1] === majorScore, "第 7.3 步：填好的规则就是“跟着多数猜”，得分和它一样");
+  await page.click(S("s74") + ".run"); await page.waitForSelector(S("s74") + ".cmp", { timeout: 120000 });
+  const c74 = await page.evaluate(() => ({ rows: document.querySelectorAll("#st-s74 .cmp tbody tr").length, line: document.querySelector("#st-s74 .verdictline").innerText, ok: document.querySelector("#st-s74 .okbox").hidden, btn: document.querySelector("#st-s74 .run").innerText }));
+  ok(c74.rows === 4 && /一模一样/.test(c74.line) && c74.ok === true && c74.btn === "跑 200 局，和基准规则比", "第 7.4 步没改就跑：200 局的表，和“跟着多数猜”一模一样；不评判", JSON.stringify(c74));
+  await page.fill(S("s74") + ".snip", (await page.inputValue(S("s74") + ".snip")).replace("st.heads * 2 >= st.n", "st.heads * 2 > st.n")); await page.click(S("s74") + ".run"); await doneIn("s74", 120000);
+  ok((await txt(S("s74") + ".okbox")).includes("这个单元完成了"), "改了再跑 200 局：做到了，这一单元的最后一步指着下一单元");
+  await goto("#code"); 
+  const ov2 = await page.evaluate(() => ({ prog: document.querySelector("#progress").innerText, u1: document.querySelector('[data-unit="u1"] .unitfoot').innerText, u1cls: document.querySelector('[data-unit="u1"]').className, u5: document.querySelector('[data-unit="u5"]').className }));
+  ok(/已经做到 \d+ \/ \d+ 步/.test(ov2.prog) && /继续学：第 1 单元/.test(ov2.prog) && /3 \/ 4/.test(ov2.u1) && /next/.test(ov2.u1cls) && !/done/.test(ov2.u5), "回到目录：进度、第 1 单元 3 / 4、继续学指着第一个没做完的单元", JSON.stringify(ov2));
 
   console.log("== 五、七个想法");
   await goto("#algo/estimate");
@@ -163,7 +200,7 @@ const real = l => l.filter(x => !/Failed to load resource|Refused to|Content Sec
   ok((await page.locator(".teach").count()) >= 5 && (await page.evaluate(() => document.querySelector("#view").innerText)).includes("45 分钟"), "老师页：几段说明，有 45 分钟的上法");
   await page.setViewportSize({ width: 390, height: 844 });
   const spills = [];
-  for (const hsh of ["#home", "#play/melon", "#play/bandit", "#code/if", "#algo/expect", "#rule/stop", "#teach"]) { await goto(hsh); const o = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth), c = await page.evaluate(clipped); if (o > 1) spills.push(hsh + ": overflow " + o); if (c.length) spills.push(hsh + ": " + JSON.stringify(c.slice(0, 3))); }
+  for (const hsh of ["#home", "#play/melon", "#play/bandit", "#code", "#code/u3", "#code/u7", "#algo/expect", "#rule/stop", "#teach"]) { await goto(hsh); const o = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth), c = await page.evaluate(clipped); if (o > 1) spills.push(hsh + ": overflow " + o); if (c.length) spills.push(hsh + ": " + JSON.stringify(c.slice(0, 3))); }
   await goto("#play/melon"); await page.waitForSelector("#board");
   for (let i = 0; i < 20; i++) await page.click('.presets [data-a="6"]');
   await page.waitForSelector("#result"); const o2 = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth); if (o2 > 1) spills.push("melon result: overflow " + o2);

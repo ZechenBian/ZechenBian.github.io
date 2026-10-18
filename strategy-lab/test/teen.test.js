@@ -1,7 +1,7 @@
 // Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
 // Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 // 青少年版（src/teen/）：七个小游戏都跑得通、可复现、基准规则分得出高下、填空填上就能跑；讲解里写的数一个个拿精确计算或大样本去对；
-// 七课的例子跑得通、"改一改"的参考答案能过；七个想法的实验里说的"哪条更好"在数据上成立。
+// 编程教程每一步的例子跑得通、参考答案过核对、没改的例子不算；七个想法的实验里说的"哪条更好"在数据上成立。
 const vm = require("vm"), fs = require("fs"), path = require("path"), { ok, near, section, done } = require("./harness.js");
 const { QL, job } = require("../daily/engine.js");
 const GAMES = require("../src/teen/games.js"), LESSONS = require("../src/teen/lessons.js"), by = {}; GAMES.forEach(g => { by[g.id] = g; });
@@ -76,21 +76,43 @@ section("三、讲解里写的数");
   ok(low[4].mean > low[1].mean + 3 * Math.sqrt(low[4].se ** 2 + low[1].se ** 2) && high[4].mean > high[3].mean + 3 * Math.sqrt(high[4].se ** 2 + high[3].se ** 2) && all[4].mean >= Math.max(all[1].mean, all[2].mean, all[3].mean), "看情况的那条：空位少的街上明显比“3 格以内”好，空位多的街上明显比“6 格以内”好，两种都有时不比任何固定门槛差", [low, high, all].map(x => x.map(r => r.mean.toFixed(1)).join()).join(" | "));
 }
 
-section("四、七课");
+section("四、编程教程");
 {
-  const sb = { print: null };
-  const runSnippet = code => { const out = []; const ctx = vm.createContext({ print: function () { out.push(Array.prototype.map.call(arguments, v => typeof v === "number" ? String(+v.toPrecision(12)) : v !== null && typeof v === "object" ? JSON.stringify(v) : String(v)).join(" ")); } }); let err = ""; try { vm.runInContext("(function () { \"use strict\";\n" + code + "\n})();", ctx, { timeout: 2000 }); } catch (e) { err = String(e && e.message || e); } return { out, err }; };
-  ok(LESSONS.code.length === 7 && LESSONS.code.every(l => l.id && l.title && l.intro.length && l.code && l.notes.length && l.task && typeof l.task.check === "function"), "七课，每课有讲解、例子、要点、改一改");
-  const SOL = { seq: l => l.code + "\nprint(7 * 8);", var: l => l.code.replace("price = price * 2;      // 取出来乘以 2，再放回去", "price = price * 2; price = price * 2;"), if: l => l.code.replace("var see = 1;", "var see = 0;"), loop: l => l.code.replace("results[i] === 1", "results[i] === 0"), fn: l => l.code + "\nfunction avg(a, b, c) { return (a + b + c) / 3; }\nprint(avg(1, 2, 3));", obj: l => l.code.replace("st.wins = [0, 0, 0];", "st.wins = [2, 5, 3];"), rule: l => "function decide(s, p, st) {\n  return s.see === 0 ? 0 : 1;\n}" };
-  for (const l of LESSONS.code) {
-    if (l.rule) { ok(QLJobs_syntax(l.code) === "" && /function\s+decide/.test(l.code), "第七课：例子是一条完整的规则"); const sol = SOL.rule(l); ok(l.task.check([], l.code) !== "" && l.task.check([], sol) === "", "第七课：原样不算做到，改成“跟着上一次”算做到"); continue; }
-    const r = runSnippet(l.code);
-    ok(!r.err && r.out.length > 0, "《" + l.title + "》的例子跑得通，有输出", r.err || r.out.join(" / "));
-    const bad = l.task.check(r.out, l.code), sol = SOL[l.id](l), r2 = runSnippet(sol), good = l.task.check(r2.out, sol);
-    ok(bad !== "" && good === "" && !r2.err, "《" + l.title + "》：原样跑不算做到，参考答案算做到", bad + " | " + good + " | " + r2.err);
+  const runSnippet = code => { const out = []; const ctx = vm.createContext({ print: function () { out.push(Array.prototype.map.call(arguments, v => typeof v === "number" ? String(+v.toPrecision(12)) : v !== null && typeof v === "object" ? JSON.stringify(v) : String(v)).join(" ")); } }); let err = ""; try { vm.runInContext("(function () { \"use strict\";\n" + code + "\n})();", ctx, { timeout: 2000 }); } catch (e) { err = String(e && e.message || e); } return { out, error: err }; };
+  const bare = code => code.replace(/\/\*[\s\S]*?\*\/|\/\/[^\n]*|"(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'|`(?:[^`\\]|\\.)*`/g, m => m.replace(/[^\n]/g, " "));
+  const norm = c => String(c).replace(/\s+/g, "");
+  const C = LESSONS.course, UNITS = C.units, STEPS = [].concat(...UNITS.map(u => u.steps)), S = {}; STEPS.forEach(st => { S[st.id] = st; });
+  ok(UNITS.length === 10 && STEPS.length >= 30 && UNITS.every(u => u.id && u.title && u.goal && u.minutes > 0 && u.steps.length >= 3) && STEPS.every(st => st.id && st.title && st.text.length >= 1 && st.code && st.task && typeof st.check === "function" && st.hints.length >= 1 && st.answer && /^(print|rule|rule200)$/.test(st.kind)), "十个单元、三十几步；每一步有讲解、例子、试一试、核对、提示、答案");
+  ok(new Set(STEPS.map(st => st.id)).size === STEPS.length && new Set(UNITS.map(u => u.id)).size === UNITS.length && /^[a-z0-9]+$/.test(UNITS.map(u => u.id).join("")), "编号不重复，能放进网址");
+  ok(STEPS.every(st => st.kind === "print" ? !st.game : !!by[st.game]) && UNITS.every(u => !u.game || by[u.game]) && C.after.length >= 1, "规则类的步骤都指着一个存在的游戏；结尾有“学完以后”");
+  ok(!STEPS.some(st => /____/.test(st.code) || /____/.test(st.answer)), "教程里不留 ____ 的空（填空在“写规则”那页）");
+  ok(STEPS.filter(st => /[（）；，：“”]/.test(bare(st.code))).map(st => st.id).join() === "s14" && !STEPS.some(st => /[（）；，：“”]/.test(bare(st.answer))), "例子里的中文标点只出现在故意讲它的那一步；答案里没有");
+  ok(STEPS.every(st => st.text.concat(st.hints, [st.task]).every(t => typeof t === "string" && t.length < 500)), "每一段都不太长");
+  ok(STEPS.every(st => (st.same ? norm(st.answer) === norm(st.code) : norm(st.answer) !== norm(st.code))), "标了 same 的那几步答案就是例子，其余的答案和例子不同");
+  ok(/while \(true\)/.test(S.s44.loopDemo) && !STEPS.some(st => st.loopDemo && st.id !== "s44"), "第 4.4 步带一个死循环的演示");
+  for (const st of STEPS.filter(x => x.kind === "print")) {
+    const r = runSnippet(st.code), ra = runSnippet(st.answer);
+    if (st.id === "s14" || st.id === "s101") ok(r.error !== "", "第 " + st.title + "：例子故意有错，跑不通", r.out.join(" / ")); else ok(!r.error && r.out.length > 0, "《" + st.title + "》的例子跑得通，有显示", r.error || r.out.join(" / "));
+    ok(!ra.error && st.check(ra, st.answer) === "", "《" + st.title + "》的参考答案过核对", ra.error || st.check(ra, st.answer));
+    if (!st.same && !r.error) ok(st.check(r, st.code) !== "", "《" + st.title + "》：没改的例子不算做到");
   }
-  ok(/while \(true\)/.test(LESSONS.code[3].loopDemo), "第四课带一个死循环的演示");
-  function QLJobs_syntax(code) { try { new Function("\"use strict\";\n" + code + "\n"); return ""; } catch (e) { return String(e.message); } }
+  // 规则类的步骤：和基准规则放到同一局上，答案要和核对说的那条基准规则得分一样；没改的例子不算（标了 same 的除外）
+  const once = (g, code, seed) => { const players = g.refs.map((r, i) => ({ id: "ref:" + r.id, code: r.code, p: r.p, slot: i })).concat([{ id: "you", code, p: {}, slot: 32 }]); const res = job([{ id: "game", code: g.code }].concat(players.map(p => ({ id: p.id, code: p.code }))), { kind: "quest", game: "game", gp: g.p, T: g.T, K: 1, seeds: [seed], trace: true, entries: players.map(p => ({ id: p.id, p: p.p, slot: p.slot })) }); const you = res.rows.filter(x => x.id === "you")[0], sk = res.skipped.filter(x => x.id === "you")[0]; const refs = {}; res.rows.forEach(x => { if (x.id !== "you" && !x.err) refs[x.id.slice(4)] = x.mean; }); return sk ? { error: sk.err } : you.err ? { error: you.err } : { out: [], error: "", score: you.mean, refs, bad: you.bad, T: g.T }; };
+  const daySeed = (gid, day) => QL.questHash("teen|" + gid + "|" + day) | 0, DAYS = ["2026-10-18", "2026-10-19", "2026-11-01", "2027-03-07", "2026-12-31"];
+  for (const st of STEPS.filter(x => x.kind === "rule")) {
+    const g = by[st.game], seeds = DAYS.map(d => daySeed(g.id, d));
+    const good = seeds.map(sd => { const r = once(g, st.answer, sd); return r.error ? r.error : st.check(Object.assign({ changed: true }, r), st.answer); });
+    ok(good.every(x => x === ""), "《" + st.title + "》（" + g.name + "）：参考答案在五个不同的日子上都过核对", good.join(" | "));
+    const r0 = once(g, st.code, seeds[0]);
+    if (st.same) ok(!r0.error && st.check(Object.assign({ changed: false }, r0), st.code) === "", "《" + st.title + "》：照原样跑一遍就算做到");
+    else ok(r0.error !== "" || st.check(Object.assign({ changed: true }, r0), st.code) !== "", "《" + st.title + "》：没改的例子不算做到", JSON.stringify(r0));
+  }
+  ok(S.s103 && once(by.coin, S.s103.code, daySeed("coin", DAYS[0])).bad > 0 && once(by.coin, S.s103.answer, daySeed("coin", DAYS[0])).bad === 0, "第 10.3 步：忘了 return 的规则有报的不是数的回合，补上就没有了");
+  for (const st of STEPS.filter(x => x.kind === "rule200")) {
+    const g = by[st.game], rows = run(g, [{ code: st.code, p: {} }, { code: st.answer, p: {} }], 20);
+    ok(rows.every(r => !r.err && Number.isFinite(r.mean)) && st.check({ changed: true }) === "" && st.check({ changed: false }) !== "", "《" + st.title + "》（" + g.name + "）：例子和答案在 200 局上都跑得通；改过才算做到", rows.map(r => r.err || r.mean.toFixed(2)).join());
+  }
+  ok(STEPS.filter(x => x.kind === "rule").length >= 9 && STEPS.filter(x => x.kind === "rule200").length === 3 && ["coin", "melon", "bandit"].every(gid => STEPS.some(x => x.kind === "rule200" && x.game === gid)), "三个真正的问题各有一步在 200 局上比");
 }
 
 section("五、七个想法和它们的实验");

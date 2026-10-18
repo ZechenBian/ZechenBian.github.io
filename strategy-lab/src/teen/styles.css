@@ -91,6 +91,34 @@ p.ok { padding: 8px 12px; }
 .howto { background: var(--accent-wash); border-color: transparent; }
 .howto h4 { margin-top: 0; }
 
+/* 编程教程：单元目录、一步一个编辑框 */
+.units { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 12px 0; }
+.unit { display: block; position: relative; margin: 0; padding: 14px 16px 12px 52px; text-decoration: none; color: var(--ink); }
+.unit:hover { border-color: var(--accent); }
+.unit.next { border-color: var(--accent); box-shadow: var(--shadow); }
+.unit.done { border-color: var(--good-ink); }
+.unit h3 { margin: 0 0 4px; font-size: 17px; }
+.unit p { margin: 0 0 8px; }
+.unitn { position: absolute; top: 14px; left: 14px; width: 26px; height: 26px; border-radius: 50%; background: var(--accent); color: var(--on-accent); font-weight: 700; display: grid; place-items: center; font-size: 14px; }
+.unit.done .unitn { background: var(--good-ink); }
+.unitfoot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 10px; font-size: 13px; }
+.okink { color: var(--good-ink); font-weight: 600; }
+.crumbs { margin-top: 0; }
+.unitchips { margin: 0; }
+.unitchips .chip { padding: 4px 10px; font-size: 14px; }
+.stepbox { padding-top: 10px; }
+.stepbox.done { border-left: 4px solid var(--good-ink); }
+.steptitle { font-size: 18px; margin: 4px 0 6px; }
+.stepno { color: var(--accent-ink); font-size: 13px; letter-spacing: 0.04em; margin-right: 2px; }
+.mark { color: var(--good-ink); }
+.codeedit.snip { min-height: 72px; }
+.stepbox .task { margin: 10px 0 0; }
+.stepbox .task h4 { margin-top: 0; }
+.hints { margin-top: 8px; }
+.hints .hint { margin: 6px 0; }
+.answer { margin-top: 8px; }
+.answer pre.code { margin-top: 4px; }
+
 /* 打一局 */
 .game { margin-top: 6px; }
 .gamehead { margin: 4px 0 8px; }
@@ -123,7 +151,7 @@ table.tab .top { font-weight: 700; color: var(--accent-ink); }
 
 @media (max-width: 600px) {
   body { font-size: 15.5px; }
-  .steps, .three { grid-template-columns: minmax(0, 1fr); }
+  .steps, .three, .units { grid-template-columns: minmax(0, 1fr); }
   .hero h2 { font-size: 22px; }
   .see { font-size: 20px; }
   .btn.choice { min-width: 0; }

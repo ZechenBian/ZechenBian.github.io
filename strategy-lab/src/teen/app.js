@@ -1,7 +1,7 @@
 // Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
 // Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* 策略实验室 · 青少年版 · 界面
- * 一张单独的页面：先亲手打一局（人和规则面对同一个裁判、同一局牌，打完逐回合比），再学编程和算法的基本想法（每课一个能跑的例子），
+ * 一张单独的页面：先亲手打一局（人和规则面对同一个裁判、同一局牌，打完逐回合比），再学编程（十个单元、三十几步，每一步一段能跑的代码）和算法的基本想法，
  * 最后自己写一条规则，在几百局上和基准规则比。用的是实验室的引擎（core / shop / quest / jobs / sandbox），没有别的依赖。
  * 这张页面不联网、不注册、不收集任何信息：进度和草稿只存在这台设备的浏览器里。自己写的代码在隔离环境（sandbox.js）的后台线程里跑，死循环会被掐掉。 */
 (function () {
@@ -122,12 +122,19 @@
   function bare(code) {
     return code.replace(/\/\*[\s\S]*?\*\/|\/\/[^\n]*|"(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'|`(?:[^`\\]|\\.)*`/g, function (m) { return m.replace(/[^\n]/g, " "); });
   }
+  /** 语法错误大概在第几行：从头起一行一行多给一点，第一次报出和整段一样的错的地方就是（“没写完”那种错说不出行，返回 0） */
+  function syntaxLine(code, syn) {
+    var lines = code.split("\n"), k;
+    if (/end of (input|script)/i.test(syn)) return 0;
+    for (k = 1; k <= lines.length; k++) if (QLJobs.syntax(lines.slice(0, k).join("\n")) === syn) return k;
+    return 0;
+  }
   /** 检查学生的代码：全角标点（引号和注释里的不算）、没填的空、语法 */
   function precheck(code, needDecide) {
     var m = /[（）；，：“”‘’【】｛｝。]/.exec(bare(code));
     if (m) { var ln = code.slice(0, m.index).split("\n").length; return "第 " + ln + " 行有一个中文的标点“" + m[0] + "”：电脑只认英文的标点（( ) ; , : \" ）。"; }
     if (/____/.test(code)) return "还有空没填：把代码里的 ____ 换掉。";
-    var syn = QLJobs.syntax(code); if (syn) return "代码有语法错误：" + syn;
+    var syn = QLJobs.syntax(code); if (syn) { var at = syntaxLine(code, syn); return "代码有语法错误" + (at ? "（第 " + at + " 行附近）" : "") + "：" + syn; }
     if (needDecide && !/\bfunction\s+decide\s*\(/.test(code)) return "代码里要有 function decide(s, p, st)：裁判每回合就是调用它。";
     return "";
   }
@@ -211,7 +218,7 @@
       note("同一天打开的人打的是同一局（按你设备上的日期），所以可以和同学比成绩。")));
     view.appendChild(h("section", { class: "steps" },
       step("1", "亲手打一局", "每个游戏十几回合，一两分钟。打完立刻看到：三条简单的规则在同一局上得了多少分，它们每一回合是怎么选的。", "#play", "去打一局"),
-      step("2", "编程的基本思想", "七课，每课一段能跑的代码和一个“改一改”。变量、if、循环、函数、记事本——学完就看得懂一条规则。", "#code", "开始学"),
+      step("2", "编程教程", "十个单元、三十几步，每一步一段能跑的代码和一个“试一试”。从让电脑显示一句话开始，一步一步到亲手写出猜硬币、卖西瓜、抽卡机的规则。", "#code", "开始学"),
       step("3", "算法的基本思想", "七个想法：数一数、跟着反馈调、探索与利用、从后往前想、算期望值、看情况定门槛、怎么比较。每个都能跑一个实验。", "#algo", "看看"),
       step("4", "写你的规则", "从填空开始，把规则放到几百局上和基准规则比。写得好的，可以去正式版的每日一题。", "#rule", "去写")));
     view.appendChild(h("section", { class: "card" }, h("h3", { text: "三个要知道的" }),
@@ -258,7 +265,7 @@
     }), false, "refs"));
     box.appendChild(details("想一想", bullets(g.think), false, "think"));
     box.appendChild(details("这题背后的想法", [paras(g.math), g.harder ? note(g.harder) : null], !!store.played[g.id], "math"));
-    box.appendChild(h("div", { class: "row" }, link("#rule/" + g.id, "去写这个游戏的规则 →", "btn primary"), link("#code", "先学编程的基本思想", "btn")));
+    box.appendChild(h("div", { class: "row" }, link("#rule/" + g.id, "去写这个游戏的规则 →", "btn primary"), link("#code", "先看编程教程", "btn")));
     return box;
   }
   function paintBoard(g, board, after) {
@@ -323,54 +330,140 @@
     return table(["回合", "看到的", "你报的", "你得", name + " 报的", "它得"], rows, { num: false, id: "sideTab" });
   }
 
-  /* ---------- 编程的基本思想 ---------- */
-  function viewCode(lid) {
-    view.appendChild(h("h2", { text: "编程的基本思想" }));
+  /* ---------- 编程教程：单元 → 步，每一步一个编辑框 ---------- */
+  var COURSE = LESSONS.course, UNITS = COURSE.units, STEPS = [], U_BY = {};
+  UNITS.forEach(function (u) { U_BY[u.id] = u; u.steps.forEach(function (st) { STEPS.push(st); }); });
+  function norm(code) { return String(code).replace(/\s+/g, ""); }
+  function unitDone(u) { return u.steps.filter(function (st) { return store.done[st.id]; }).length; }
+  function nextUnit() { for (var i = 0; i < UNITS.length; i++) if (unitDone(UNITS[i]) < UNITS[i].steps.length) return UNITS[i]; return null; }
+  function viewCode(uid) {
+    if (uid && U_BY[uid]) { viewUnit(U_BY[uid]); return; }
+    view.appendChild(h("h2", { text: "编程教程" }));
     view.appendChild(h("div", { class: "card howto" }, h("h4", { text: "怎么学" }), bullets([
-      "每课三步：**读**讲解，**跑**例子（点“跑一跑”，看打印出来的东西和你想的一样不一样），**改**例子（按“改一改”的要求改，再跑）。改坏了点“还原例子”。",
+      "每一步三件事：**读**几段话，**跑**那段代码（点“跑一跑”，看显示出来的东西和你想的一样不一样），**改**它（按“试一试”的要求改，再跑，页面会核对）。改坏了点“还原”。",
+      "卡住了点“提示”：一次给一条，提示用完了可以看答案。看答案不丢人，看完自己再敲一遍，它就是你的了。",
       "看不懂的地方先跑一遍再看：程序是做出来才懂的，不是读出来才懂的。打错了没关系，页面会说是第几行、什么错；死循环也会被掐掉。",
-      "七课大约一个小时。学完第 7 课就能看懂一条规则，去“写规则”把空填上。"])));
-    view.appendChild(h("div", { class: "chips" }, LESSONS.code.map(function (l, i) { return h("a", { href: "#code/" + l.id, class: "chip" + (store.done[l.id] ? " done" : ""), text: (i + 1) + " " + l.title }); })));
-    var l = LESSONS.code.filter(function (x) { return x.id === lid; })[0] || LESSONS.code[0], idx = LESSONS.code.indexOf(l);
-    var box = h("section", { class: "lesson", id: "lesson", "data-lesson": l.id });
-    box.appendChild(h("h3", { text: "第 " + (idx + 1) + " 课 · " + l.title }));
-    box.appendChild(h("div", null, paras(l.intro)));
-    var ta = h("textarea", { class: "codeedit", id: "snip", spellcheck: "false", "aria-label": "代码" }); ta.value = l.code;
-    var out = h("pre", { class: "out", id: "out", hidden: true }), msg = h("div", { class: "warn", id: "msg", hidden: true }), okBox = h("div", { class: "ok", id: "taskOk", hidden: true });
-    var run = h("button", { class: "btn primary", type: "button", id: "run", text: l.rule ? "在猜硬币上跑一跑" : "跑一跑" });
-    var reset = h("button", { class: "btn", type: "button", id: "reset", text: "还原例子", onclick: function () { ta.value = l.code; out.hidden = true; msg.hidden = true; okBox.hidden = true; } });
-    box.appendChild(h("div", { class: "editor" }, ta, h("div", { class: "row" }, run, reset, l.loopDemo ? h("button", { class: "btn", type: "button", id: "loopDemo", text: "看一次死循环被掐掉", onclick: function () { run.disabled = true; show("正在跑一个永远停不下来的程序…", "note"); runSnippet(l.loopDemo, OPT.snippetMs).then(function (r) { run.disabled = false; show(r.error, "warn"); }); } }) : null), msg, out, okBox));
-    function show(text, cls) { msg.hidden = false; msg.className = cls; msg.textContent = text; }
-    run.addEventListener("click", function () {
-      var code = ta.value, pre = precheck(code, !!l.rule); out.hidden = true; okBox.hidden = true; msg.hidden = true;
-      if (pre) { show(pre, "warn"); return; }
-      run.disabled = true;
-      if (l.rule) { runLessonRule(l, code, out, msg, okBox).then(function () { run.disabled = false; }); return; }
-      runSnippet(code, OPT.snippetMs).then(function (r) {
-        run.disabled = false;
-        out.hidden = false; out.textContent = r.out.length ? r.out.join("\n") : "（什么也没打印。用 print(…) 把东西显示出来。）";
-        if (r.error) show(r.error, "warn");
-        if (!r.error && l.task) { var bad = l.task.check(r.out, code); if (!bad || code !== l.code) { okBox.hidden = false; okBox.className = bad ? "warn" : "ok"; okBox.textContent = bad ? "“改一改”还没做到：" + bad : "做到了！这一课可以算过了。"; } if (!bad) { store.done[l.id] = 1; save(); } }
-      });
-    });
-    box.appendChild(h("h4", { text: "读代码的要点" })); box.appendChild(bullets(l.notes));
-    if (l.task) box.appendChild(h("div", { class: "task card", id: "task" }, h("h4", { text: "改一改" }), h("p", null, rich(l.task.text))));
-    box.appendChild(h("div", { class: "row" }, idx > 0 ? link("#code/" + LESSONS.code[idx - 1].id, "← 上一课", "btn") : null, idx < LESSONS.code.length - 1 ? link("#code/" + LESSONS.code[idx + 1].id, "下一课 →", "btn primary") : link("#rule", "去写你的规则 →", "btn primary")));
-    view.appendChild(box);
+      "十个单元大约两三个小时，不用一次学完：进度存在这台设备上，下次打开接着学。从第 7 单元起就是在解决真正的问题：写一条规则，放到游戏里和基准规则比。"])));
+    var nu = nextUnit(), total = STEPS.length, doneN = STEPS.filter(function (st) { return store.done[st.id]; }).length;
+    view.appendChild(h("div", { class: "row", id: "progress" }, h("span", { class: "note", text: "已经做到 " + doneN + " / " + total + " 步" }),
+      nu ? link("#code/" + nu.id, doneN ? "继续学：第 " + (UNITS.indexOf(nu) + 1) + " 单元" : "从第 1 单元开始", "btn primary") : link("#rule", "全部做完了！去写你的规则 →", "btn primary")));
+    view.appendChild(h("div", { class: "units", id: "units" }, UNITS.map(function (u, i) {
+      var d = unitDone(u), all = d === u.steps.length, g = u.game ? G_BY[u.game] : null;
+      return h("a", { class: "card unit" + (all ? " done" : "") + (u === nu ? " next" : ""), href: "#code/" + u.id, "data-unit": u.id },
+        h("div", { class: "unitn", text: String(i + 1) }),
+        h("h3", { text: u.title }), h("p", { class: "note", text: u.goal }),
+        h("div", { class: "unitfoot" }, h("span", { class: "note", text: (g ? "游戏：" + g.name + " · " : "") + u.steps.length + " 步 · 约 " + u.minutes + " 分钟" }), h("span", { class: all ? "okink" : "note", text: all ? "✓ 完成" : d ? d + " / " + u.steps.length : "" })));
+    })));
+    view.appendChild(h("div", { class: "card", id: "after" }, h("h4", { text: "学完以后" }), paras(COURSE.after), h("div", { class: "row" }, link("#rule", "写规则", "btn"), link("#algo", "算法的想法", "btn"), h("a", { class: "btn", href: LAB + "#quest", text: "正式版的每日一题" }))));
   }
-  /** 第七课：把编辑框里的规则放到猜硬币的一局上跑，看逐回合 */
-  function runLessonRule(l, code, out, msg, okBox) {
-    var g = G_BY[l.rule.game], seed = daySeed(g.id, today());
-    return runRules(g, [{ id: "you", code: code, p: {}, slot: SLOT }], [seed], 1, true).then(function (res) {
-      var row = res.rows[0], sk = (res.skipped || [])[0];
+  function viewUnit(u) {
+    var ui = UNITS.indexOf(u), g = u.game ? G_BY[u.game] : null;
+    view.appendChild(h("div", { class: "row crumbs" }, link("#code", "← 全部单元", "btn small"), h("div", { class: "chips unitchips" }, UNITS.map(function (x, i) {
+      return h("a", { href: "#code/" + x.id, class: "chip" + (x === u ? " on" : "") + (unitDone(x) === x.steps.length ? " done" : ""), text: String(i + 1), title: "第 " + (i + 1) + " 单元 · " + x.title, "aria-label": "第 " + (i + 1) + " 单元 " + x.title });
+    }))));
+    var sec = h("section", { class: "lesson", id: "unit", "data-unit": u.id });
+    sec.appendChild(h("div", { class: "kicker", text: "第 " + (ui + 1) + " 单元 · " + u.steps.length + " 步 · 约 " + u.minutes + " 分钟" }));
+    sec.appendChild(h("h2", { text: u.title })); sec.appendChild(h("p", { class: "lead", text: u.goal }));
+    if (g) sec.appendChild(h("div", { class: "card hint", id: "unitGame" }, h("p", null, rich("这个单元解决的是**" + g.name + "**：" + g.kicker + " 没打过的话先去亲手打一局，题目就懂了；打完回来接着学。")), h("div", { class: "row" }, link("#play/" + g.id, "去打一局" + g.name, "btn small"), link("#rule/" + g.id, "看这题的起始代码", "btn small"))));
+    u.steps.forEach(function (st, si) { sec.appendChild(stepBox(u, st, ui, si)); });
+    sec.appendChild(h("div", { class: "row" }, ui > 0 ? link("#code/" + UNITS[ui - 1].id, "← 第 " + ui + " 单元", "btn") : null,
+      ui < UNITS.length - 1 ? link("#code/" + UNITS[ui + 1].id, "第 " + (ui + 2) + " 单元：" + UNITS[ui + 1].title + " →", "btn primary") : link("#rule", "去写你的规则 →", "btn primary")));
+    view.appendChild(sec);
+  }
+  /** 一步：讲解、编辑框、跑一跑 / 还原 / 提示（一次一条，用完变成看答案）、试一试、核对 */
+  function stepBox(u, st, ui, si) {
+    var g = st.game ? G_BY[st.game] : null, no = (ui + 1) + "." + (si + 1), key = "s:" + st.id, draft = store.drafts[key];
+    var box = h("section", { class: "card stepbox" + (store.done[st.id] ? " done" : ""), id: "st-" + st.id, "data-step": st.id, "data-kind": st.kind });
+    var mark = h("span", { class: "mark", text: store.done[st.id] ? "✓" : "" });
+    box.appendChild(h("h3", { class: "steptitle" }, h("span", { class: "stepno", text: "第 " + no + " 步" }), " ", st.title, " ", mark));
+    box.appendChild(h("div", null, paras(st.text)));
+    var ta = h("textarea", { class: "codeedit snip", spellcheck: "false", "aria-label": "第 " + no + " 步的代码", rows: Math.max(3, st.code.split("\n").length + 1) }); ta.value = draft && draft.code != null ? draft.code : st.code;
+    var out = h("div", { class: "outbox", hidden: true }), msg = h("div", { class: "warn msg", hidden: true }), okBox = h("div", { class: "ok okbox", hidden: true }), prog = h("span", { class: "note prog" });
+    var hintsBox = h("div", { class: "hints", hidden: true }), shown = 0;
+    var ansBox = h("div", { class: "answer", hidden: true }, note("参考答案：", "note"), codeBlock(st.answer), h("button", { class: "btn small useAns", type: "button", text: "把答案放进编辑框", onclick: function () { ta.value = st.answer; keep(); hide(); } }));
+    var run = h("button", { class: "btn primary run", type: "button", text: st.kind === "print" ? "跑一跑" : st.kind === "rule" ? "在" + g.name + "上跑一跑" : "跑 200 局，和基准规则比" });
+    var reset = h("button", { class: "btn reset", type: "button", text: "还原", onclick: function () { ta.value = st.code; keep(); hide(); } });
+    var hintBtn = h("button", { class: "btn hintBtn", type: "button", text: "提示", onclick: function () {
+      if (shown < st.hints.length) { hintsBox.hidden = false; hintsBox.appendChild(h("p", { class: "hint" }, rich("提示 " + (shown + 1) + "：" + st.hints[shown]))); shown++; if (shown === st.hints.length) hintBtn.textContent = "看答案"; }
+      else { ansBox.hidden = false; hintBtn.disabled = true; }
+    } });
+    var loop = st.loopDemo ? h("button", { class: "btn loopDemo", type: "button", text: "看一次死循环被掐掉", onclick: function () { run.disabled = true; show("正在跑一个永远停不下来的程序…", "note msg"); runSnippet(st.loopDemo, OPT.snippetMs).then(function (r) { run.disabled = false; show(r.error, "warn msg"); }); } }) : null;
+    function keep() { store.drafts[key] = { code: ta.value.slice(0, 20000) }; save(); }
+    ta.addEventListener("input", keep);
+    function hide() { out.hidden = true; msg.hidden = true; okBox.hidden = true; }
+    function show(text, cls) { msg.hidden = false; msg.className = cls; msg.textContent = text; }
+    function verdict(r, code) {
+      var same = norm(code) === norm(st.code);
+      if (same && !st.same) return;                    // 没改过：只是跑了例子，不评判
+      r.changed = !same;
+      var bad = st.check(r, code);
+      okBox.hidden = false; okBox.className = bad ? "warn okbox" : "ok okbox";
+      okBox.textContent = bad ? "“试一试”还没做到：" + bad : "做到了！" + (si < u.steps.length - 1 ? "往下看第 " + (ui + 1) + "." + (si + 2) + " 步。" : ui < UNITS.length - 1 ? "这个单元完成了，可以去第 " + (ui + 2) + " 单元。" : "整个教程都学完了！去写你的规则吧。");
+      if (!bad && !store.done[st.id]) { store.done[st.id] = 1; save(); box.classList.add("done"); mark.textContent = "✓"; }
+    }
+    run.addEventListener("click", function () {
+      var code = ta.value, pre = precheck(code, st.kind !== "print"); hide();
+      if (pre) { show(pre, "warn msg"); return; }
+      run.disabled = true;
+      var p = st.kind === "print" ? runPrint(code, out) : st.kind === "rule" ? runRuleOnce(g, code, out) : runRule200(g, code, out, prog);
+      p.then(function (r) { run.disabled = false; prog.textContent = ""; if (r.error) { show(r.error, "warn msg"); return; } verdict(r, code); },
+        function (e) { run.disabled = false; prog.textContent = ""; show(failText(e), "warn msg"); });
+    });
+    box.appendChild(h("div", { class: "editor" }, ta, h("div", { class: "row" }, run, reset, hintBtn, loop, prog), msg, out, okBox));
+    box.appendChild(h("div", { class: "task card" }, h("h4", { text: "试一试" }), h("p", null, rich(st.task))));
+    box.appendChild(hintsBox); box.appendChild(ansBox);
+    return box;
+  }
+  /** 一段小程序：跑完把显示出来的东西放进 out。返回 { out, error } */
+  function runPrint(code, out) {
+    return runSnippet(code, OPT.snippetMs).then(function (r) {
       clear(out); out.hidden = false;
-      if (sk || !row) { msg.hidden = false; msg.className = "warn"; msg.textContent = sk ? sk.err : "没有跑出结果"; return; }
-      if (row.err) { msg.hidden = false; msg.className = "warn"; msg.textContent = "规则中途出错：" + row.err; return; }
-      var log = (res.trace[0] || {}).log || [];
-      out.appendChild(h("p", { text: "在今天的“" + g.name + "”这一局上，这条规则得了 " + fmt(row.mean, 0) + " 分（共 " + g.T + " 回合）。" }));
-      out.appendChild(table(["回合", "它看到的", "它报的", "得分"], log.map(function (r, i) { return { cells: [String(i + 1), seeText(g, r.see, i), g.fmtAct(r.a), fmt(r.gain, 0)] }; }), { num: false, id: "ruleTrace" }));
-      if (l.task) { var bad = l.task.check([], code); okBox.hidden = false; okBox.className = bad ? "note" : "ok"; okBox.textContent = bad ? "想试试“改一改”的话：" + bad : "做到了！这一课可以算过了。"; if (!bad) { store.done[l.id] = 1; save(); } }
-    }, function (e) { msg.hidden = false; msg.className = "warn"; msg.textContent = failText(e); });
+      out.appendChild(h("pre", { class: "out", text: r.out.length ? r.out.join("\n") : "（什么也没显示。用 print(…) 把东西显示出来。）" }));
+      return r;
+    });
+  }
+  function withRefs(g, code) { return g.refs.map(function (ref, i) { return { id: "ref:" + ref.id, code: ref.code, p: ref.p, slot: i }; }).concat([{ id: "you", code: code, p: {}, slot: SLOT }]); }
+  function youOf(res) { var sk = (res.skipped || []).filter(function (x) { return x.id === "you"; })[0], row = res.rows.filter(function (x) { return x.id === "you"; })[0]; return sk ? { error: "你的规则没能上场：" + sk.err } : !row ? { error: "没有跑出结果" } : row.err ? { error: "规则中途出错：" + row.err } : { row: row }; }
+  /** 一条规则和基准规则一起放到今天的一局上，逐回合。返回 { score, refs: { 基准规则的 id: 得分 }, bad, T } */
+  function runRuleOnce(g, code, out) {
+    return runRules(g, withRefs(g, code), [daySeed(g.id, today())], 1, true).then(function (res) {
+      clear(out); out.hidden = false;
+      var y = youOf(res); if (y.error) return { out: [], error: y.error };
+      var row = y.row, tr = res.trace.filter(function (x) { return x.id === "you"; })[0], log = tr ? tr.log : [], refs = {}, d = DIGITS[g.id];
+      res.rows.forEach(function (x) { if (x.id !== "you" && !x.err) refs[x.id.slice(4)] = x.mean; });
+      out.appendChild(h("p", { class: "resline", text: "在今天的“" + g.name + "”这一局上，这条规则得了 " + fmt(row.mean, d) + " " + g.unit + "（共 " + g.T + " 回合）。" }));
+      out.appendChild(table(["回合", "它看到的", "它报的", "得分"], log.map(function (r, i) { return { cells: [String(i + 1), seeText(g, r.see, i), r.a !== r.a ? "不是数" : g.fmtAct(r.a), fmt(r.gain, d)] }; }), { num: false, cls: "trace" }));
+      if (row.bad > 0) out.appendChild(note("有 " + (100 * row.bad).toFixed(0) + "% 的回合这条规则报的不是数（忘了 return？），裁判把它当成不合规矩的数处理了。", "warn"));
+      out.appendChild(table(["同一局上", "得分"], g.refs.map(function (ref) { return { cells: [ref.name, fmt(refs[ref.id], d)] }; }).concat([{ cls: "me", cells: [h("b", { text: "你的规则" }), h("b", { text: fmt(row.mean, d) })] }]), { cls: "refscore", caption: "基准规则在同一局（同样的牌）上的得分。" }));
+      return { out: [], error: "", score: row.mean, refs: refs, bad: row.bad, T: g.T };
+    });
+  }
+  /** 一条规则和基准规则在固定的 200 局上比。返回 { mean, se, refs: { id: 平均 }, T } */
+  function runRule200(g, code, out, prog) {
+    return runRules(g, withRefs(g, code), PUB, 20, false, function (pm) { prog.textContent = "第 " + (pm.i + 1) + " / " + pm.n + " 条规则，第 " + (pm.s + 1) + " / " + pm.S + " 组…"; }).then(function (res) {
+      clear(out); out.hidden = false;
+      var y = youOf(res); if (y.error) return { out: [], error: y.error };
+      var refs = {}; res.rows.forEach(function (x) { if (x.id !== "you" && !x.err) refs[x.id.slice(4)] = x.mean; });
+      add(out, cmpTable(g, res, false));
+      return { out: [], error: "", mean: y.row.mean, se: y.row.se, refs: refs, T: g.T };
+    });
+  }
+  /** 200 局的比较表和一句结论（写规则那一页和教程里的 rule200 都用它）。rows 里 "you" 是学生的规则，别的是 "ref:<id>" */
+  function cmpTable(g, res, withIds) {
+    var rows = res.rows.slice().sort(function (a, b) { var ka = a.err ? -Infinity : a.mean, kb = b.err ? -Infinity : b.mean; return kb - ka; }), rank = 0, youRow = null, els = [];
+    var trs = rows.map(function (row) {
+      var you = row.id === "you", ref = you ? null : g.refs.filter(function (x) { return "ref:" + x.id === row.id; })[0];
+      if (you) youRow = row;
+      return { id: row.id, cls: you ? "me" : "", cells: [row.err ? "—" : String(++rank), you ? h("b", { text: "你的规则" }) : ref.name + (ref === g.refs[0] ? "（基准）" : ""), row.err ? h("span", { class: "note", text: "中途出错：" + row.err }) : [h("b", { text: fmt(row.mean, 2) }), h("span", { class: "note", text: " ± " + fmt(row.se, 2) })], row.err || row === res.rows[0] ? "—" : [h("b", { class: "verdict " + (row.d > 2 * row.dse ? "up" : row.d < -2 * row.dse ? "down" : "flat"), text: sgn(row.d, 2) }), h("span", { class: "note", text: " ± " + fmt(row.dse, 2) })]] };
+    });
+    els.push(table(["名次", "规则", "平均每局得分", "比基准多"], trs, { id: withIds ? "cmpTab" : null, cls: "cmp", caption: "公开的 10 组，每组 20 局；每一局发给各条规则的是同一副牌。± 后面是标准误。" }));
+    if (youRow && !youRow.err) {
+      var others = res.rows.filter(function (x) { return x.id !== "you" && !x.err; }), bestRef = others.slice().sort(function (a, b) { return b.mean - a.mean; })[0];
+      var by = youRow.mean - bestRef.mean, noise = Math.sqrt(youRow.se * youRow.se + bestRef.se * bestRef.se), same = Math.abs(by) < 1e-9, beat = by > 0;
+      els.push(h("p", { class: (beat && by > 2 * noise ? "ok" : "note") + " verdictline", id: withIds ? "verdictLine" : null, text: same ? "你的规则和最好的基准规则得分一模一样：办法一样，分数就一样。改点什么再试试。" : beat && by > 2 * noise ? "你的规则比最好的基准规则高 " + fmt(by, 2) + "，比误差的刻度（" + fmt(noise, 2) + "）大得多：这不是运气，是真的更好。" : beat ? "你的规则比最好的基准规则高一点（" + fmt(by, 2) + "），但还在误差范围内，说不准是不是运气。多试几种参数看看。" : "最好的基准规则还领先 " + fmt(-by, 2) + "。看看它的代码是怎么想的，再改改。" }));
+      if (youRow.bad > 0) els.push(note("有 " + (100 * youRow.bad).toFixed(0) + "% 的回合你的规则报的不是数（忘了 return？），裁判把它当成不合规矩的数处理了。", "warn"));
+    }
+    return els;
   }
 
   /* ---------- 算法的基本思想 ---------- */
@@ -483,24 +576,12 @@
     runBtn.addEventListener("click", function () {
       var r = read(out); if (!r) return;
       runBtn.disabled = true; prog.textContent = "正在跑…";
-      var players = g.refs.map(function (ref, i) { return { id: "ref:" + ref.id, code: ref.code, p: ref.p, slot: i }; }).concat([{ id: "you", code: r.code, p: r.p, slot: SLOT }]);
+      var players = withRefs(g, r.code); players[players.length - 1].p = r.p;
       runRules(g, players, PUB, 20, false, function (pm) { prog.textContent = "第 " + (pm.i + 1) + " / " + pm.n + " 条规则，第 " + (pm.s + 1) + " / " + pm.S + " 组…"; }).then(function (res) {
         runBtn.disabled = false; prog.textContent = "";
         var sk = (res.skipped || []).filter(function (x) { return x.id === "you"; })[0];
         if (sk) { fail("你的规则没能上场：" + sk.err); return; }
-        var rows = res.rows.slice().sort(function (a, b) { var ka = a.err ? -Infinity : a.mean, kb = b.err ? -Infinity : b.mean; return kb - ka; }), rank = 0, youRow = null;
-        var trs = rows.map(function (row) {
-          var you = row.id === "you", ref = you ? null : g.refs.filter(function (x) { return "ref:" + x.id === row.id; })[0];
-          if (you) youRow = row;
-          return { id: row.id, cls: you ? "me" : "", cells: [row.err ? "—" : String(++rank), you ? h("b", { text: "你的规则" }) : ref.name + (ref === g.refs[0] ? "（基准）" : ""), row.err ? h("span", { class: "note", text: "中途出错：" + row.err }) : [h("b", { text: fmt(row.mean, 2) }), h("span", { class: "note", text: " ± " + fmt(row.se, 2) })], row.err || row === res.rows[0] ? "—" : [h("b", { class: "verdict " + (row.d > 2 * row.dse ? "up" : row.d < -2 * row.dse ? "down" : "flat"), text: sgn(row.d, 2) }), h("span", { class: "note", text: " ± " + fmt(row.dse, 2) })]] };
-        });
-        out.appendChild(table(["名次", "规则", "平均每局得分", "比基准多"], trs, { id: "cmpTab", caption: "公开的 10 组，每组 20 局；每一局发给各条规则的是同一副牌。± 后面是标准误。" }));
-        if (youRow && !youRow.err) {
-          var others = res.rows.filter(function (x) { return x.id !== "you" && !x.err; }), bestRef = others.slice().sort(function (a, b) { return b.mean - a.mean; })[0];
-          var by = youRow.mean - bestRef.mean, noise = Math.sqrt(youRow.se * youRow.se + bestRef.se * bestRef.se), same = Math.abs(by) < 1e-9, beat = by > 0;
-          out.appendChild(h("p", { class: beat && by > 2 * noise ? "ok" : "note", id: "verdictLine", text: same ? "你的规则和最好的基准规则得分一模一样：办法一样，分数就一样。改点什么再试试。" : beat && by > 2 * noise ? "你的规则比最好的基准规则高 " + fmt(by, 2) + "，比误差的刻度（" + fmt(noise, 2) + "）大得多：这不是运气，是真的更好。" : beat ? "你的规则比最好的基准规则高一点（" + fmt(by, 2) + "），但还在误差范围内，说不准是不是运气。多试几种参数看看。" : "最好的基准规则还领先 " + fmt(-by, 2) + "。看看它的代码是怎么想的，再改改。" }));
-          if (youRow.bad > 0) out.appendChild(note("有 " + (100 * youRow.bad).toFixed(0) + "% 的回合你的规则报的不是数（忘了 return？），裁判把它当成不合规矩的数处理了。", "warn"));
-        }
+        add(out, cmpTable(g, res, true));
       }, function (e) { runBtn.disabled = false; prog.textContent = ""; fail(failText(e)); });
     });
     onePlayed.addEventListener("click", function () {
@@ -533,8 +614,8 @@
       h("h4", { text: "数学课：概率与统计（猜硬币 + 掷骰子）" }),
       bullets(["5 分钟：讲“猜硬币”的规则，让每人在手机上打“今天的一局”（全班打的是同一局）。", "10 分钟：报成绩。为什么有人 14 分有人 8 分？让得分高的说说怎么猜的。打开“三条基准规则是怎么想的”，看“跟着多数猜”。", "10 分钟：想法 1“数一数：从频率估计概率”的演示表（抛 5 次、20 次、100 次、1000 次），讨论误差。", "15 分钟：换“掷骰子，见好就收”，每人打一局；然后算那笔账：累计 x 分时再掷一次平均赚 (20 − x)/6。全班一起推。", "5 分钟：作业——在“写你的规则”里把掷骰子的门槛改成 10、20、30，跑 200 局，记下平均分。"]),
       h("h4", { text: "信息课：算法与程序（猜硬币 + 写规则）" }),
-      bullets(["5 分钟：每人打一局“猜硬币”。", "15 分钟：编程课第 1、3、7 课（指令、if、一条规则长什么样）。第 7 课点“在猜硬币上跑一跑”，看规则每回合看到什么、报什么。", "15 分钟：“写你的规则”：把填空填上，跑 200 局；再改成“上次是什么就猜什么”，比一比。", "10 分钟：讨论为什么“跟着多数猜”更好，引出“估计”和“探索”的想法；布置下一课的游戏（抽卡机）。"])]));
-    view.appendChild(S("班级比赛怎么办", bullets(["每天“今天的一局”全班是同一局（按设备上的日期），打完点“复制成绩”，把那一行发到班级群，老师汇总。没有排行榜服务器——这是故意的，不用注册、不收数据。", "一周一个游戏：周一打一局，周三学对应的想法，周五交一条规则（截图“跑 200 局”的结果）。", "奖励用证书或者口头表扬，不要用钱。页面上的排名只是“图个乐”：想作弊的人总有办法，重要的是讨论办法本身。", "写规则的部分要电脑（手机上打字太难）；亲手打一局手机就行。"])));
+      bullets(["5 分钟：每人打一局“猜硬币”。", "15 分钟：编程教程第 1 单元（第一句话：跑、改、看错误提示）和第 5 单元的最后一步“规则就是一个函数”：点“在猜硬币上跑一跑”，看规则每回合看到什么、报什么。其余单元留作课后，进度存在学生自己的设备上。", "15 分钟：“写你的规则”：把填空填上，跑 200 局；再改成“上次是什么就猜什么”，比一比。", "10 分钟：讨论为什么“跟着多数猜”更好，引出“估计”和“探索”的想法；布置下一课的游戏（抽卡机）。"])]));
+    view.appendChild(S("班级比赛怎么办", bullets(["每天“今天的一局”全班是同一局（按设备上的日期），打完点“复制成绩”，把那一行发到班级群，老师汇总。没有排行榜服务器——这是故意的，不用注册、不收数据。", "一周一个游戏：周一打一局，周三学对应的想法，周五交一条规则（截图“跑 200 局”的结果）。编程教程的第 7、8、9 单元正好各对着一个游戏（猜硬币、卖西瓜、抽卡机），可以当那一周的作业。", "奖励用证书或者口头表扬，不要用钱。页面上的排名只是“图个乐”：想作弊的人总有办法，重要的是讨论办法本身。", "写规则的部分要电脑（手机上打字太难）；亲手打一局手机就行。"])));
     view.appendChild(S("对应哪些知识点", bullets(["高中数学 · 概率与统计：随机事件与概率、频率估计概率、条件概率、离散随机变量与期望、二项分布（猜硬币、抽卡机）、泊松分布（奶茶店，只需知道“平均数”）。", "高中信息技术 · 算法与程序：顺序、分支、循环、函数、数组；算法的描述与比较（“怎么比较两条规则”）。", "数学建模入门：把一个生活里的决定写成“看到什么、能做什么、怎么算分”，就是建模的第一步。每个游戏都可以当一道小建模题。", "初中也能用亲手打的部分（猜硬币、掷骰子、找最大的数），期望值那一课适合初三以上。"])));
     view.appendChild(S("安全和数据", bullets(["页面不联网（打开之后断网照样用）、不要账号、没有聊天、没有排行榜服务器。进度和代码只存在这台设备的浏览器里（localStorage），清除浏览数据就没了。", "学生写的代码在浏览器的隔离环境里运行：碰不到页面、碰不到网络，死循环 20 秒内被掐掉。", "游戏里没有真实的金融内容，不涉及任何投资建议。", "正式版的“每日一题”需要 GitHub 账号（13 岁以上）并且会公开用户名；班级使用时建议由老师代交。"])));
     view.appendChild(S("常见问题", bullets(["**手机上代码框太小。** 写规则请用电脑；手机上可以打局、看课、看实验。", "**学生说“跑了没反应”。** 多半是中文标点或者语法错，页面会在代码框下面用红字说明是第几行。", "**两个学生“今天的一局”不一样？** 看设备上的日期是否一致；过了零点就换了一局。", "**想换题目或者加游戏。** 游戏是数据文件（`src/teen/games.js`），每个游戏由裁判代码、几条基准规则和讲解组成；仓库在 GitHub 上。"])));
@@ -543,5 +624,5 @@
 
   /* ---------- 起 ---------- */
   route();
-  window.QL_TEEN = { QL: QL, games: GAMES, lessons: LESSONS, opt: OPT, store: function () { return store; }, pub: PUB, daySeed: daySeed, today: today, runSnippet: runSnippet, runRules: runRules, refsOn: refsOn, startEpisode: startEpisode, current: function () { return cur; } };
+  window.QL_TEEN = { QL: QL, games: GAMES, lessons: LESSONS, steps: STEPS, opt: OPT, store: function () { return store; }, pub: PUB, daySeed: daySeed, today: today, runSnippet: runSnippet, runRules: runRules, refsOn: refsOn, startEpisode: startEpisode, current: function () { return cur; } };
 })();
