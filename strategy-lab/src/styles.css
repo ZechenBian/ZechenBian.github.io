@@ -610,6 +610,7 @@ table.hp-tab th:first-child { padding-left: 6px; }
 a.btn { text-decoration: none; }
 .modal-box.lbm-box { width: min(900px, 100%); }
 .lb-lead { margin: 0; font-size: 13px; line-height: 1.6; color: var(--ink2); max-width: 78ch; }
+.lb-teen { margin: 12px 0 0; max-width: 78ch; }
 .lb-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 10px; }
 .lb-card { border: 1px solid var(--line); border-radius: 6px; background: var(--surface); padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .lb-card.wide { grid-column: 1 / -1; }

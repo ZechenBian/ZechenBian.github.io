@@ -151,5 +151,29 @@ if HAS_EN:
                          "This page needs JavaScript to run.", BTN_ZH, "", '<script>window.QL_LIVE_SIG = "%s";</script>' % sig)
     os.makedirs(os.path.join(ROOT, "en"), exist_ok=True)
     open(os.path.join(ROOT, "en/index.html"), "w", encoding="utf8").write(en_page)
-print("built: %.0f KB (js %.0f KB, katex css %.0f KB); index.html %.0f KB%s" % (len(page.encode()) / 1024, len(js.encode()) / 1024, len(katex_css().encode()) / 1024, len(zh_page.encode()) / 1024,
-      "; en/index.html %.0f KB" % (len(en_page.encode()) / 1024) if en_page else "; 没有 i18n/en，只生成了中文页"))
+# 青少年版（teen/index.html）：另一张独立的页面，只用引擎的几个文件，没有公式库、不取外部字体，中文。源码在 src/teen/，不进英文版的翻译流程
+TEEN_JS = ["core.js", "shop.js", "quest.js", "sandbox.js", "jobs.js", "teen/games.js", "teen/lessons.js", "teen/app.js"]
+teen_js = "/* %s\n   Not open source. %s */\n" % (COPY, LICENSE_URL) + "\n".join("/* ===== %s ===== */\n%s" % (f, src(f)) for f in TEEN_JS)
+assert "</script" not in teen_js.lower(), "内联脚本里不能出现 </script"
+TEEN_ICON = ICON.replace("%232a78d6", "%231f7a6b")
+teen_page = "\n".join([
+    "<!doctype html>",
+    "<!--\n  %s\n  Not open source: no copying, modification, redistribution, commercial use or AI/ML training without written permission.\n  非开源：未经书面许可，不得复制、修改、再分发、商用或用于 AI/机器学习训练。\n  License: %s\n-->" % (COPY, LICENSE_URL),
+    '<html lang="zh-CN">', "<head>", '<meta charset="utf-8">', '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">',
+    '<meta name="author" content="Zechen Bian">', '<meta name="copyright" content="© 2026 Zechen Bian. All rights reserved.">', '<meta name="robots" content="noai, noimageai">',
+    '<link rel="license" href="%s">' % LICENSE_URL,
+    "<title>策略实验室 · 青少年版</title>",
+    '<meta name="description" content="给中学生的决策小游戏：先亲手打一局，再学编程和算法的基本想法，最后自己写一条规则和程序比。不用注册，不联网也能用。">',
+    '<link rel="icon" href="%s">' % TEEN_ICON,
+    "<style>" + RESET + "</style>",
+    "<style>\n" + src("teen/styles.css") + "\n</style>",
+    "</head>", "<body>",
+    '<noscript><p style="padding:24px">这个页面要开着 JavaScript 才能用。</p></noscript>',
+    rd("src/teen/body.html"),
+    "<script>\n" + teen_js + "\n</script>",
+    "</body>", "</html>", ""])
+os.makedirs(os.path.join(ROOT, "teen"), exist_ok=True)
+open(os.path.join(ROOT, "teen/index.html"), "w", encoding="utf8").write(teen_page)
+
+print("built: %.0f KB (js %.0f KB, katex css %.0f KB); index.html %.0f KB%s; teen/index.html %.0f KB" % (len(page.encode()) / 1024, len(js.encode()) / 1024, len(katex_css().encode()) / 1024, len(zh_page.encode()) / 1024,
+      "; en/index.html %.0f KB" % (len(en_page.encode()) / 1024) if en_page else "; 没有 i18n/en，只生成了中文页", len(teen_page.encode()) / 1024))
