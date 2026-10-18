@@ -1,0 +1,55 @@
+# Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+# Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
+# Strategy Lab：每日一题的结算。说明见 strategy-lab/daily/README.md。
+#
+# 交上来的规则是加密的，这里是唯一有私钥的地方（仓库的 Secrets 里的 QUEST_PRIVATE_KEY）。
+# 结算的程序（strategy-lab/daily/settle.js）把每条规则解开，单独放进一个没有网络、文件只读、
+# 没有私钥也没有令牌的容器里算分，然后把成绩和规则的名字贴成一条 Issue。代码不公布，也不进日志。
+# 这个工作流只在定时和手动的时候运行，从不因为别人的提交、评论、合并请求而运行。
+name: Strategy Lab · settle the daily challenge
+
+on:
+  schedule:
+    - cron: "17 0 * * *"   # 每天 UTC 0:17：截止（UTC 0 点）之后一刻钟左右
+    - cron: "17 3 * * *"   # 再跑一遍，补上一次没跑成的；已经结算过的日子会跳过
+  workflow_dispatch:
+    inputs:
+      day:
+        description: "Day to settle (UTC, YYYY-MM-DD). Empty: the last three days that are not settled yet."
+        required: false
+        default: ""
+      dry_run:
+        description: "Dry run: open and score the entries, but publish nothing."
+        type: boolean
+        default: false
+      force:
+        description: "Settle again even if a result was already published."
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: strategy-lab-quest
+  cancel-in-progress: false
+
+jobs:
+  settle:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180   # 一天最多结算 100 条，每条最多一分半钟（见 settle.js 的 LIMITS）；平时一两分钟就跑完
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Pull the image the sandbox runs in
+        run: docker pull node:22-alpine
+      - name: Settle
+        env:
+          QUEST_PRIVATE_KEY: ${{ secrets.QUEST_PRIVATE_KEY }}
+          GITHUB_TOKEN: ${{ github.token }}
+          QUEST_DAY: ${{ inputs.day }}
+          QUEST_DRY_RUN: ${{ inputs.dry_run }}
+          QUEST_FORCE: ${{ inputs.force }}
+        run: node strategy-lab/daily/settle.js

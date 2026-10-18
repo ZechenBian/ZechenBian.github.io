@@ -177,6 +177,9 @@
       r ? "\n我现在的代码（请在它的基础上改）：\n" + r.code + (Object.keys(r.p).length ? "\n参数：" + pLine(r.p) : "") : "", "", "我的想法："].join("\n");
   }
 
+  /** 每日一题（app-quest.js）也要用的几样：参数的写法、规则的接口说明、把"规则看到的东西"写成一行字 */
+  A.shopKit = { pLine: pLine, parseP: parseP, ruleDoc: ruleDoc, seeText: function (v) { return seeText(v); } };
+
   /* ---------- 从 GitHub 上找一类东西 ---------- */
   /** o: { title, kind, pick(item) → 收拾好的东西或 null, have(obj) → 是不是已经有了, add(obj), empty, addText, how } */
   function finder(o) {

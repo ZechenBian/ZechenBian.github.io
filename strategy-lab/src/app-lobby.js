@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
 // Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
-/* 应用主体（七）：大厅。和别人一起玩的几种办法都从这里进：每日一局、实时房间、十项全能、规则同场、世界工坊，外加新手教程。
+/* 应用主体（七）：大厅。和别人一起玩的几种办法都从这里进：每日一局、每日一题、实时房间、十项全能、规则同场、世界工坊，外加新手教程。
  * 各个功能在自己的文件里，用 A.lobbyAdd 把自己登记成大厅里的一张卡片；这里只管把卡片摆出来、认地址里的 #daily、#room=… 这类入口。
  * 页面没有自己的服务器：要给别人看的东西放在 GitHub 上（src/hub.js），实时房间走公共的中继（src/mq.js）。 */
 (function (A) {
@@ -49,7 +49,7 @@
     window.addEventListener("hashchange", route);
   };
   A.lobbyCommands = function () {
-    var L = [{ kind: "操作", name: "打开大厅（每日一局、实时房间、十项全能、规则同场、世界工坊）", key: "大厅 lobby 一起 多人 联机 社区 排行 榜", run: function () { A.openLobby(); } }];
+    var L = [{ kind: "操作", name: "打开大厅（每日一局、每日一题、实时房间、十项全能、规则同场、世界工坊）", key: "大厅 lobby 一起 多人 联机 社区 排行 榜", run: function () { A.openLobby(); } }];
     cards.forEach(function (c) { L.push({ kind: "大厅", name: c.title, key: c.title + " " + c.id + " " + (c.keys || ""), run: function () { c.go(); } }); });
     return L;
   };

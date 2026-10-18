@@ -61,6 +61,7 @@ let pass = 0, fail = 0; const ok = (c, name, d) => { if (c) { pass++; if (proces
   for (const p of [pa, pb, pc]) await p.waitForSelector(".modal.hpm .hp-board", { timeout: 8000 });
   const same = await Promise.all([pa, pb, pc].map(p => p.evaluate(() => [document.querySelector(".hpm .modal-h h2").innerText, document.querySelector(".hp-ep").innerText, document.querySelector(".hp-big").innerText, Array.from(document.querySelectorAll(".hp-setup li")).map(l => l.innerText).join("|")].join(" ## "))));
   ok(same[0] === same[1] && same[1] === same[2] && same[0].includes("第 1 局") && same[0].includes(code), "三个人面前是同一局：同一个标题、同一组设定、同一个开局报价", same[0]);
+  const cfg1 = await pa.evaluate(() => { const c = window.App.roomNow().cfg; return { k: c.k, seed: c.seed }; });
   await pb.waitForFunction(() => document.querySelectorAll("#rmStrip .rm-chip").length === 3, null, { timeout: 6000 });
   ok((await pb.locator("#rmStrip .rm-chip.me").count()) === 1 && (await txt(pb, "#rmStrip .rm-chip.me")).includes("你"), "上面一行是每个人的进度，自己那一条标着\"你\"");
   await clicks(pa, 4); await pa.waitForTimeout(700);
@@ -103,8 +104,9 @@ let pass = 0, fail = 0; const ok = (c, name, d) => { if (c) { pass++; if (proces
   await pa.click("#rmAfter #rmStart");
   for (const p of [pa, pb, pc]) await p.waitForFunction(() => /第 2 局/.test((document.querySelector(".hp-ep") || {}).innerText || "") && !document.querySelector("#hpMe"), null, { timeout: 8000 });
   ok(true, "三个人一起换到第 2 局，上一局的弹层自动收起");
-  const big2 = await Promise.all([pa, pb, pc].map(p => txt(p, ".hp-big")));
-  ok(big2[0] === big2[1] && big2[1] === big2[2] && big2[0] !== same[0].split(" ## ")[2], "第 2 局是另外一局，三个人仍然相同", big2.join(" / "));
+  // "是另外一局"看的是局号：房间的种子是随机的，两局的开局报价显示到两位小数时偶尔会碰巧一样，不能拿它来判断
+  const big2 = await Promise.all([pa, pb, pc].map(p => txt(p, ".hp-big"))), cfg2 = await Promise.all([pa, pb, pc].map(p => p.evaluate(() => { const c = window.App.roomNow().cfg; return c.k + "|" + c.seed; })));
+  ok(big2[0] === big2[1] && big2[1] === big2[2] && cfg2.every(x => x === (cfg1.k + 1) + "|" + cfg1.seed), "第 2 局是另外一局（同一个种子的下一局），三个人仍然相同", big2.join(" / ") + " ; " + cfg2.join(" / ") + " after " + cfg1.k + "|" + cfg1.seed);
   // 小乙作弊：打完交了封条之后，把要亮出来的动作偷偷换掉
   await clicksOther(pb, 500); await pb.waitForTimeout(500);
   await pb.evaluate(() => { const R = window.App.roomNow(); R.my.acts = R.my.acts.replace(/0/g, "1"); });

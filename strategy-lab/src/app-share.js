@@ -64,9 +64,10 @@
   /** 一组参数写成一行："f = 1，n = 20"；没有参数时是空字符串 */
   A.paramLine = function (schema, p) { return (schema || []).map(function (q) { var v = p[q.key]; return q.key + " = " + (typeof v === "number" ? +v.toFixed(6) : String(v)); }).join("，"); };
 
-  /** 把一份东西交到 GitHub。o: { kind, title, meta, code }。先给人看要交的是什么，再给去 GitHub 的链接 */
+  /** 把一份东西交到 GitHub。o: { kind, title, meta, code, packNote, note }。先给人看要交的是什么，再给去 GitHub 的链接。
+   *  packNote：正文开头的那句说明；note：对话框底下的那段话。不给就用通常的（"交上去的东西是公开的……"），每日一题交的是加密过的，用它自己的 */
   A.postDialog = function (o) {
-    var body; try { body = QLHub.pack(o.meta, o.code); } catch (e) { A.toast(e.message || String(e), 4200); return null; }
+    var body; try { body = QLHub.pack(o.meta, o.code, o.packNote); } catch (e) { A.toast(e.message || String(e), 4200); return null; }
     var u = QLHub.newUrl(o.kind, o.title, body), long = !!u.clip;
     var steps = long
       ? "内容比较长，放不进地址里，所以分两步：先点\"复制内容\"，再点\"去 GitHub 提交\"；在打开的页面里把正文整段换成刚复制的内容，然后点 Create。"
@@ -76,7 +77,7 @@
     return A.modal("交到 GitHub", [
       h("p", { class: "lb-lead", id: "pdSteps", text: steps }),
       h("pre", { class: "code pd-body", id: "pdBody", text: body }),
-      h("p", { class: "note", text: "需要一个 GitHub 账号。要是 GitHub 先让你登录，登录完没有回到填好的页面，就回到这里再点一次。交上去的东西是公开的，署的是你的 GitHub 用户名；别人可以载入、运行和修改它。想撤下来，把那条 Issue 关掉就行。" })
+      h("p", { class: "note", id: "pdNote", text: o.note || "需要一个 GitHub 账号。要是 GitHub 先让你登录，登录完没有回到填好的页面，就回到这里再点一次。交上去的东西是公开的，署的是你的 GitHub 用户名；别人可以载入、运行和修改它。想撤下来，把那条 Issue 关掉就行。" })
     ], { cls: "pdm", foot: [copy, go] });
   };
 })(App);

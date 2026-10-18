@@ -1,0 +1,170 @@
+{
+  "v": 1,
+  "day": "2026-10-19",
+  "id": "sell-order",
+  "title": {
+    "zh": "把一批货卖出去",
+    "en": "Working a sell order"
+  },
+  "summary": {
+    "zh": "20 个回合里卖掉 100 份。卖得太急压低价格；慢慢卖，又怕行情往下走。",
+    "en": "Sell 100 units within 20 rounds. Sell too fast and you push the price down; sell slowly and the market may drift away from you."
+  },
+  "about": {
+    "zh": [
+      "你手里有 100 份货，要在 20 个回合里卖完。价格从 100 起步。一个回合里卖 q 份，每份只能卖到“当时的价格 − 0.01 × q”：卖得越多，自己把价格压得越低（这个压低只影响当回合）。最后一个回合剩下多少都会被强制卖掉。",
+      "",
+      "每个回合结束，价格变动一次：变动 = 趋势 μ + 噪声（标准差 0.4 的正态）。μ 是这一局的趋势，你不知道：每一局从均值 0、标准差 0.15 的正态分布里抽一个，20 个回合里不变。趋势往下的时候该早卖，往上的时候该晚卖，可是你只能从价格的走势里去猜。",
+      "",
+      "**你的规则看到的**：`s.see.price` 是眼下的价格；`s.see.left` 是还剩几份没卖；`s.see.n` 是连这一回合在内还剩几个回合。",
+      "",
+      "**你的规则报的数**：这一回合卖几份（可以不是整数）。超过剩下的份数按剩下的算，负数或者不是数算 0。",
+      "",
+      "**计分**：你卖得的钱，减去“每回合匀着卖 5 份”在同一条价格上卖得的钱，最后一个回合一起结算。所以匀着卖正好是 0 分，比它强是正分。"
+    ],
+    "en": [
+      "You hold 100 units and must sell them within 20 rounds. The price starts at 100. Selling q units in a round fetches only \"the current price − 0.01 × q\" per unit: the more you sell at once, the more you push your own price down (the effect lasts for that round only). Whatever is left in the last round is sold by force.",
+      "",
+      "At the end of each round the price moves once: the move is a trend μ plus noise (normal, standard deviation 0.4). μ is the trend of this episode. You do not know it: every episode draws one from a normal distribution with mean 0 and standard deviation 0.15, and it stays the same for the 20 rounds. With a downward trend you want to sell early, with an upward trend late, but you can only guess the trend from the way the price moves.",
+      "",
+      "**What your rule sees**: `s.see.price` is the current price; `s.see.left` is how many units are still unsold; `s.see.n` is how many rounds are left including this one.",
+      "",
+      "**What your rule returns**: how many units to sell this round (it need not be a whole number). More than what is left counts as everything left; a negative number, or something that is not a number, counts as 0.",
+      "",
+      "**Score**: the money you raise, minus what \"sell 5 units every round\" would have raised on the same prices, settled in the last round. So selling evenly scores exactly 0, and doing better than that scores above 0."
+    ]
+  },
+  "note": {
+    "zh": "没有趋势的时候，匀着卖就是最好的：卖得不匀只会多付“压价”的钱。有趋势而且知道趋势的时候，最好的卖法是每回合的份数随时间直线变化：趋势向下就先多后少，向上就先少后多；趋势够大的时候，有些回合干脆一份不卖。这道题难在趋势要一边卖一边猜，而噪声比趋势大得多。",
+    "en": "With no trend, selling evenly is best: any unevenness only costs more in price impact. With a trend that you know, the best schedule changes the amount sold per round linearly over time: more at first and less later when the trend is down, the other way round when it is up; with a strong enough trend, some rounds sell nothing at all. What makes this hard is that the trend has to be guessed while you sell, and the noise is much larger than the trend."
+  },
+  "T": 20,
+  "p": {
+    "units": 100,
+    "impact": 0.01,
+    "noise": 0.4,
+    "trend": 0.15
+  },
+  "code": {
+    "zh": [
+      "// 发牌：抽一个趋势，把 20 个回合的价格先走好，藏起来。顺手算出“匀着卖”在这条价格上能卖得多少钱。",
+      "function deal(T, rng, p) {",
+      "  var mu = p.trend * rng.normal(), P = [100], even = 0, q = p.units / T;",
+      "  for (var t = 1; t < T; t++) P.push(P[t - 1] + mu + p.noise * rng.normal());",
+      "  for (t = 0; t < T; t++) even += q * (P[t] - p.impact * q);",
+      "  return { P: P, left: p.units, impact: p.impact, even: even, got: 0 };",
+      "}",
+      "// 亮牌：眼下的价格、还剩几份、还剩几个回合。",
+      "function show(G, t) {",
+      "  return { price: G.P[t], left: G.left, n: G.P.length - t };",
+      "}",
+      "// 判分：卖 q 份，每份卖到“价格 − impact × q”，钱先记在账上。最后一个回合剩下的全卖掉，一起结算：卖得的钱减去“匀着卖”卖得的钱。",
+      "function referee(G, t, a) {",
+      "  var last = t === G.P.length - 1, q = last ? G.left : a >= 0 ? Math.min(a, G.left) : 0;",
+      "  G.left -= q;",
+      "  G.got += q * (G.P[t] - G.impact * q);",
+      "  return last ? Math.round((G.got - G.even) * 1e6) / 1e6 + 0 : 0;",
+      "}"
+    ],
+    "en": [
+      "// Deal: draw a trend and generate the prices of all rounds in advance. Hidden. Also work out what selling evenly raises on these prices.",
+      "function deal(T, rng, p) {",
+      "  var mu = p.trend * rng.normal(), P = [100], even = 0, q = p.units / T;",
+      "  for (var t = 1; t < T; t++) P.push(P[t - 1] + mu + p.noise * rng.normal());",
+      "  for (t = 0; t < T; t++) even += q * (P[t] - p.impact * q);",
+      "  return { P: P, left: p.units, impact: p.impact, even: even, got: 0 };",
+      "}",
+      "// Show: the current price, the units left and the rounds left.",
+      "function show(G, t) {",
+      "  return { price: G.P[t], left: G.left, n: G.P.length - t };",
+      "}",
+      "// Referee: selling q units fetches \"price − impact × q\" each, and the money goes on account. In the last round everything left is sold and the episode is settled: the money raised minus what selling evenly raises.",
+      "function referee(G, t, a) {",
+      "  var last = t === G.P.length - 1, q = last ? G.left : a >= 0 ? Math.min(a, G.left) : 0;",
+      "  G.left -= q;",
+      "  G.got += q * (G.P[t] - G.impact * q);",
+      "  return last ? Math.round((G.got - G.even) * 1e6) / 1e6 + 0 : 0;",
+      "}"
+    ]
+  },
+  "sets": {
+    "pub": 10,
+    "fin": 10,
+    "K": 500,
+    "seed": 20261019
+  },
+  "higher": true,
+  "digits": 2,
+  "refs": [
+    {
+      "id": "even",
+      "name": {
+        "zh": "匀着卖",
+        "en": "Sell evenly"
+      },
+      "summary": {
+        "zh": "每回合卖“剩下的份数 ÷ 剩下的回合数”。正好 0 分，拿来当基准。",
+        "en": "Sells the units left divided by the rounds left, every round. Scores exactly 0. The benchmark."
+      },
+      "p": {},
+      "code": "function decide(s, p) {\n  return s.see.left / s.see.n;\n}"
+    },
+    {
+      "id": "dump",
+      "name": {
+        "zh": "一次卖光",
+        "en": "Sell everything at once"
+      },
+      "summary": {
+        "zh": "第一个回合全部卖掉。不用猜行情，但压价压得最狠。",
+        "en": "Sells everything in the first round. No guessing about the market, but the heaviest price impact."
+      },
+      "p": {},
+      "code": "function decide(s, p) {\n  return s.see.left;\n}"
+    },
+    {
+      "id": "react",
+      "name": {
+        "zh": "跌了就快卖，涨了就慢卖",
+        "en": "Faster after a fall, slower after a rise"
+      },
+      "summary": {
+        "zh": "上一回合价格跌了，这一回合卖匀速的 k 倍；涨了，卖匀速的 1/k。",
+        "en": "If the price fell in the last round, sells k times the even amount this round; if it rose, 1/k of it."
+      },
+      "p": {
+        "k": 1.5
+      },
+      "code": "function init(p) {\n  return { prev: NaN };\n}\nfunction decide(s, p, st) {\n  var even = s.see.left / s.see.n, q = even;\n  if (s.see.price < st.prev) q = even * p.k;\n  if (s.see.price > st.prev) q = even / p.k;\n  st.prev = s.see.price;\n  return q;\n}"
+    }
+  ],
+  "starter": {
+    "p": {},
+    "code": {
+      "zh": [
+        "// 起始代码：匀着卖。把它改成你的办法。",
+        "// s.see.price：眼下的价格。s.see.left：还剩几份。s.see.n：连这一回合在内还剩几个回合。",
+        "// st 是你自己的记事本：比如把起始价格和每回合的价格记下来，用来猜趋势。",
+        "function init(p) {",
+        "  return { first: NaN };",
+        "}",
+        "function decide(s, p, st) {",
+        "  if (s.t === 0) st.first = s.see.price;",
+        "  return s.see.left / s.see.n;",
+        "}"
+      ],
+      "en": [
+        "// Starter code: sells evenly. Change it into your own method.",
+        "// s.see.price: the current price. s.see.left: units still unsold. s.see.n: rounds left, including this one.",
+        "// st is your own notebook: for example, remember the starting price and the price in each round, and use them to guess the trend.",
+        "function init(p) {",
+        "  return { first: NaN };",
+        "}",
+        "function decide(s, p, st) {",
+        "  if (s.t === 0) st.first = s.see.price;",
+        "  return s.see.left / s.see.n;",
+        "}"
+      ]
+    }
+  }
+}

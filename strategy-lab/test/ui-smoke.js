@@ -12,6 +12,13 @@ async function open(opts = {}) {
   await new Promise(r => server.listen(0, "127.0.0.1", r));
   const port = server.address().port;
   const browser = await chromium.launch();
+  // 页面里的对话框打开以后，会隔一个零延时的定时器把焦点挪到某个输入框上（助手面板是 30 毫秒）。测试"打开 → 马上填另一个框"时，
+  // page.fill 是先让那个框得到焦点、再把字打进"当时有焦点的框"，中间要是正好赶上焦点被挪走，字就打到别的框里去了（偶尔才撞上一次）。
+  // 所以每次 fill 之前，先让页面把已经排着的这些定时器跑完。测试自己另开的浏览器环境和页面也一样处理
+  const settleFill = p => { const fill0 = p.fill.bind(p); p.fill = async (sel, val, o) => { await Promise.race([p.evaluate(() => new Promise(r => setTimeout(r, 35))).catch(() => {}), new Promise(r => setTimeout(r, 400))]); return fill0(sel, val, o); }; return p; };
+  const settleCtx = c => { const np = c.newPage.bind(c); c.newPage = async () => settleFill(await np()); return c; };
+  const newContext0 = browser.newContext.bind(browser);
+  browser.newContext = async o => settleCtx(await newContext0(o));
   const ctx = await browser.newContext({ viewport: opts.viewport || { width: 1440, height: 900 }, deviceScaleFactor: opts.dpr || 1, colorScheme: opts.dark ? "dark" : "light" });
   const page = await ctx.newPage(); const logs = [];
   page.on("console", m => { if (m.type() === "error" || m.type() === "warning") logs.push(`[${m.type()}] ${m.text()}`); });

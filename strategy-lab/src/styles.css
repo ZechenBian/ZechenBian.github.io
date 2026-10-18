@@ -744,6 +744,22 @@ table.sh-trace th:nth-child(2) { text-align: left; }
 #shTrace .row { margin-bottom: 6px; }
 @media (max-width: 560px) { table.sh-tab th:nth-child(5), table.sh-tab td:nth-child(5) { display: none; } .sh-host .ar-rule { flex-wrap: wrap; } }
 
+/* ---------- 每日一题（src/app-quest.js） ---------- */
+.qs-about, .qs-note { max-width: 84ch; min-width: 0; }
+.qs-note { border-left: 3px solid var(--accent); padding: 2px 0 2px 12px; color: var(--ink2); }
+.qs-host .db-title { margin-top: 6px; }
+.qs-host .codeedit { min-height: 220px; }
+.qs-in { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; min-width: 0; }
+#qsTab td.qs-sets { font: 11.5px/1.5 var(--font-mono); color: var(--ink2); text-align: left; white-space: normal; overflow-wrap: anywhere; max-width: 36ch; }
+#qsTab th:nth-child(5) { text-align: left; }
+.qs-flag { margin-left: 6px; color: var(--ink2); border-color: var(--c-axis); }
+.qs-ok { margin-left: 6px; color: var(--good-ink); border-color: currentColor; }
+#qsbTab .qs-ok, #qsbTab .qs-flag { display: inline-block; max-width: 100%; white-space: normal; overflow-wrap: anywhere; vertical-align: baseline; }
+#qsWho td:nth-child(1), #qsbTab td:nth-child(2) { overflow-wrap: anywhere; }
+#qsbTab td:nth-child(2) .note { margin-left: 4px; }
+#qsbTab td.qs-flat { white-space: normal; min-width: 14ch; max-width: 34ch; font-family: var(--font-body); font-weight: 400; }
+@media (max-width: 560px) { #qsbTab th:nth-child(n+4), #qsbTab td:nth-child(n+4) { display: none; } #qsbTab td.qs-flat { max-width: 18ch; } .qs-host .ar-rule { flex-wrap: wrap; } }
+
 /* ---------- 新手教程（src/app-tour.js） ---------- */
 .modal-box.tourm-box { width: min(720px, 100%); }
 .tourm .modal-f .sp { flex: 1; }
