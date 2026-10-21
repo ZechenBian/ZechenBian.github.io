@@ -307,9 +307,22 @@
     var N = runs.length, em = ST.expectedMaxNormal(N), nPair = vs.filter(Boolean).map(function (x) { return x.n; })[0];
     c.body.appendChild(h("p", { class: "ml-note" }, h("b", { text: "怎么读。" }), " “比基线好多少”是在同一批验证样本上的配对比较，正数表示比基线好（" + (E.kind === "classification" ? "准确率之差，检验用 McNemar" : E.kind === "forecast" ? "基线的 MSE 减去这个算法的 MSE，检验用 Diebold–Mariano" : "基线的 MSE 减去这个算法的 MSE，区间和 p 用正态近似") + "）；p 值按 Holm 方法对这 " + N + " 行一起校正过。绿色：区间整个在 0 的上方；红色：整个在下方。" + (E.nValid > MAXN && nPair ? "验证集有 " + E.nValid + " 个样本，配对检验只用了前 " + nPair + " 个，所以“比基线”的差和两列成绩之差可能略有出入。" : "")));
     if (N >= 2) c.body.appendChild(h("p", { class: "ml-note" }, h("b", { text: "挑出来的第一名偏乐观。" }), " 你在这个实验上试了 " + N + " 次。即使这 " + N + " 个算法其实一样好，验证集上最好的那一个平均也会比真实水平高出约 " + F(em, 2) + " 个标准误（独立的 N(0,1) 取最大值的期望；相关的候选会少一些）。所以最后要在测试集上确认，而且测试集只看一次。" + (E.looks ? "这个实验已经看过 " + E.looks + " 次测试集。" : "")));
-    c.body.appendChild(h("div", { class: "ml-row" }, h("span", { class: "sp" }), h("button", { class: "btn small", type: "button", text: "清空这个实验的记录", onclick: function () { if (confirmBox("清空这个实验的 " + N + " 条记录？（看过测试集的次数会留着。）")) A.clearExp(); } })));
+    c.body.appendChild(h("div", { class: "ml-row" }, h("span", { class: "sp" }), twoStep(h("button", { class: "btn small", type: "button", id: "btnClearExp", text: "清空这个实验的记录" }), "再点一次：清空 " + N + " 条记录（看过测试集的次数会留着）", function () { A.clearExp(); })));
   }
-  function confirmBox(msg) { try { return window.confirm(msg); } catch (e) { return true; } }
+  /** 要确认的按钮：点第一次变成"再点一次……"，4 秒内再点才执行（不用浏览器的 confirm 对话框：在 Claude 里打开时它直接返回"取消"） */
+  function twoStep(btn, ask, fn) {
+    var label = btn.textContent, armed = false, t = null;
+    function reset() { armed = false; clearTimeout(t); btn.textContent = label; btn.classList.remove("danger"); }
+    btn.addEventListener("click", function () { if (!armed) { armed = true; btn.textContent = ask; btn.classList.add("danger"); t = setTimeout(reset, 4000); return; } reset(); fn(); });
+    btn.addEventListener("blur", function () { if (armed) setTimeout(reset, 150); });
+    return btn;
+  }
+  A.twoStep = twoStep;
+  /** 复制到剪贴板：成功、失败都说一声 */
+  A.copyText = function (text) {
+    try { navigator.clipboard.writeText(text).then(function () { A.toast("已复制"); }, function () { A.toast("没能复制：这里不允许写剪贴板。可以在框里全选以后自己复制。", 3600); }); }
+    catch (e) { A.toast("没能复制：这里不允许写剪贴板。可以在框里全选以后自己复制。", 3600); }
+  };
   function fmtP(p) { return p == null || !(p === p) ? "—" : p < 0.001 ? "< 0.001" : F(p, 3); }
   function paramsText(p) { if (!p) return ""; var ks = Object.keys(p); if (!ks.length) return ""; return ks.slice(0, 5).map(function (k) { var v = p[k]; return k + "=" + (typeof v === "number" ? G(v) : String(v)); }).join("，") + (ks.length > 5 ? "…" : ""); }
   /** 载入：算法还在而且代码没变，就选它；代码变了或者已经删了，用记录里存的代码和参数表另存一份 */
@@ -372,9 +385,9 @@
       err.hidden = true; return { code: code, params: params };
     }
     var foot = [];
-    if (!ro) foot.push(h("button", { class: "btn", type: "button", text: "删除", onclick: function () { if (confirmBox("删除“" + a.name + "”？")) { A.deleteMine(a.id); m.close(); } } }));
+    if (!ro) foot.push(twoStep(h("button", { class: "btn", type: "button", id: "btnDelMine", text: "删除" }), "再点一次：删除“" + a.name + "”", function () { A.deleteMine(a.id); m.close(); }));
     foot.push(h("span", { style: { flex: "1" } }));
-    foot.push(h("button", { class: "btn", type: "button", text: "复制代码", onclick: function () { try { navigator.clipboard.writeText(ta.value); A.toast("已复制"); } catch (e) {} } }));
+    foot.push(h("button", { class: "btn", type: "button", text: "复制代码", onclick: function () { A.copyText(ta.value); } }));
     foot.push(h("button", { class: "btn", type: "button", text: ro ? "另存为我的算法" : "另存一份", onclick: function () { var x = collect(); if (!x) return; var rec = A.saveMine({ name: (ro ? a.name + "（改）" : name.value + "（副本）"), summary: a.summary, code: x.code, params: x.params, docs: a.docs, src: "mine", lang: a.lang, api: a.api, kinds: a.kinds, families: a.families }); A.selectAlgo(rec.id); m.close(); A.toast("已存为“" + rec.name + "”，可以改了。"); A.openCode(); } }));
     if (!ro) foot.push(h("button", { class: "btn primary", type: "button", text: "保存并运行", onclick: function () { var x = collect(); if (!x) return; var rec = A.saveMine({ id: a.id, name: name.value, summary: a.summary, code: x.code, params: x.params, docs: a.docs, src: a.src, lang: a.lang, api: a.api, kinds: a.kinds, families: a.families }); A.selectAlgo(rec.id); m.close(); A.run().catch(function () {}); } }));
     var m = A.modal("代码与说明：" + a.name, [tabs, body, err], { foot: foot, focus: "#codeEdit" });

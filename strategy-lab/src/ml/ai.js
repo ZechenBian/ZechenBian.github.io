@@ -226,7 +226,22 @@
       h("tbody", null, params.map(function (q) { return h("tr", null, h("td", { text: q.label }), h("td", { class: "num mono", text: q.type === "bool" ? (q.def ? "是" : "否") : q.type === "select" ? String(q.def) : G(q.def) }), h("td", { class: "num mono", text: q.type === "bool" ? "" : q.type === "select" ? q.options.map(function (o) { return o[1]; }).join(" / ") : G(q.min) + " – " + G(q.max) }), h("td", { text: q.desc || "" })); })));
   }
   function codeBlock(code) { return h("details", { class: "more" }, h("summary", { text: "代码（" + code.split("\n").length + " 行）" }), h("div", { class: "more-body" }, h("pre", { class: "code", text: code }))); }
-  function errText(e) { if (WEB && e && e.code) return WEB.explain(e).text; return e && e.code === "cancelled" ? "已停止。" : "出错了：" + (e && e.message || e); }
+  /* 在 Claude 里打开时，window.claude 的 sample 报的错（代码见 Artifact 的 sample 能力的说明） */
+  var HERR = {
+    not_granted: "你没有允许这个页面使用 Claude。重新打开页面时可以再选。", sampling_disabled: "这个账号或组织没有开通页面里使用 Claude。",
+    not_declared: "这个页面没有被授予使用 Claude 的能力。", capability_disabled: "当前的打开方式下不能使用 Claude。", capability_removed: "当前的 Claude 应用版本不支持这个调用，请更新应用。",
+    tools_unavailable: "当前的打开方式不支持这个功能。", rate_limited: "调用太频繁，或者已经用到了账号的用量上限。过一会儿再试。", session_expired: "登录已过期，请重新登录 Claude 后再试。",
+    refused: "Claude 没有接受这个请求，换个说法试试。", empty_completion: "没有得到回答，请把要求说得更具体一些再试。", invalid_json: "回答的格式不对，请再试一次。",
+    prompt_too_large: "发送的内容太长了（最多 256 KB）。把自己写的代码改短一些再试。", invalid_request: "请求的格式有误（这是页面的问题）。", transform_error: "请求没能准备好（这是页面的问题）。",
+    queue_overflow: "一下子发出的请求太多了。刷新页面再试。", upstream_error: "Claude 那边暂时出了问题。过一会儿再试。", unavailable: "这个页面现在用不了 Claude。"
+  };
+  var HOST_OFF = /^(not_granted|sampling_disabled|not_declared|capability_disabled|capability_removed)$/;   // 这次打开页面期间都用不了：关掉输入
+  function errText(e) {
+    if (WEB && e && e.code) return WEB.explain(e).text;
+    if (e && e.code === "cancelled") return "已停止。";
+    if (HOST && e && e.code) return HERR[e.code] || HERR.upstream_error;
+    return "出错了：" + (e && e.message || e) + "。";
+  }
   function fail(el, e) {
     var st = el.querySelector(".a-status"); if (st) st.remove();
     if (e && e.code === "cancelled") { el.appendChild(h("div", { class: "note", text: "已停止。" })); return; }
@@ -239,6 +254,7 @@
       return;
     }
     el.appendChild(h("div", { class: "warn err", text: errText(e) }));
+    if (HOST && e && HOST_OFF.test(e.code || "")) { sample = null; var off = $("aiOff"); if (off) { off.hidden = false; off.textContent = errText(e) + "其余功能不受影响。"; } var sb = $("aiSend"), ta = $("aiInput"); if (sb) sb.disabled = true; if (ta) ta.disabled = true; }
   }
   /** tier：独立网页里"complex"允许深度思考（写代码），"default"直接回答（问结果、诊断） */
   function call(input, tier, onText, status) {
@@ -307,7 +323,7 @@
     var el = card(), status = statusRow(who() + " 正在看这次运行…"), out = h("div", { class: "md" }); el.appendChild(status); el.appendChild(out);
     return call(promptDiag(), "default", function (t) { status.hidden = true; QLMD.mountPartial(out, t); scrollSoft(); }, status).then(function (res) {
       status.remove(); QLMD.mount(out, res.text); lastDiag = res.text;
-      el.appendChild(h("div", { class: "a-actions" }, h("button", { class: "btn small primary", type: "button", text: "按“下一步”自动改进", onclick: function () { A.aiImprove(nextSteps(res.text)); } }), h("button", { class: "btn small", type: "button", text: "复制报告", onclick: function () { try { navigator.clipboard.writeText(res.text); A.toast("已复制"); } catch (e) {} } })));
+      el.appendChild(h("div", { class: "a-actions" }, h("button", { class: "btn small primary", type: "button", text: "按“下一步”自动改进", onclick: function () { A.aiImprove(nextSteps(res.text)); } }), h("button", { class: "btn small", type: "button", text: "复制报告", onclick: function () { A.copyText(res.text); } })));
     }).catch(function (e) { fail(el, e); });
   }
   var lastDiag = "";
@@ -544,11 +560,18 @@
   /** 给别的面板用（比如"从网上取数据"）：问一次，返回 { promise（兑现为回答的全文）, cancel() }。没接入时 ready() 是 false */
   A.aiReady = function () { return !!sample; };
   A.aiWho = who;
-  A.aiAsk = function (input, tier, onText) {
-    var c = new AbortController(), o = { signal: c.signal, modelTier: tier || "default" };
+  /** extra.webSearch：允许服务商那边上网搜索几次（只有独立网页里接的是 Claude 时才有用）；extra.onSearch(x)：搜了什么、搜到几条。
+      回答完以后 meta.searches 是搜了几次，meta.searchOff 表示想搜但这个账号或模型不让搜 */
+  A.aiAsk = function (input, tier, onText, extra) {
+    var c = new AbortController(), o = { signal: c.signal, modelTier: tier || "default" }, meta = {};
     if (onText) o.onText = function (u) { try { onText(u.text); } catch (e) {} };
-    var p = sample ? Promise.resolve().then(function () { return sample(input, o); }).then(function (r) { return r.text; }) : Promise.reject({ code: "unavailable" });
-    return { promise: p, cancel: function () { c.abort(); } };
+    if (WEB && extra && extra.webSearch) { o.webSearch = extra.webSearch; if (extra.onSearch) o.onSearch = function (x) { try { extra.onSearch(x); } catch (e) {} }; }
+    var p = sample ? Promise.resolve().then(function () { return sample(input, o); }).then(function (r) { meta.searches = r.searches || 0; meta.searchOff = !!r.searchOff; return r.text; }) : Promise.reject({ code: "unavailable" });
+    return { promise: p, cancel: function () { c.abort(); }, meta: meta };
   };
-  A.aiErrText = function (e) { return WEB && e && e.code ? WEB.explain(e).text : e && e.code === "cancelled" ? "已停止。" : "出错了：" + (e && e.message || e); };
+  /** 接的 AI 能不能真的上网搜索（独立网页里接的是 Claude） */
+  A.aiCanSearch = function () { return !!(sample && WEB && WEB.canSearch && WEB.canSearch()); };
+  /** 是不是在 Claude 里打开的（那里页面不能自己联网） */
+  A.aiHost = HOST;
+  A.aiErrText = errText;
 })(MLA);

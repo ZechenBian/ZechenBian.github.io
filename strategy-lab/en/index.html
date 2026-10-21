@@ -10120,7 +10120,9 @@ if (typeof module !== "undefined" && module.exports) module.exports = QL_GUIDE;
  * 在 Claude 里打开页面时用不到这一层：那里由宿主提供 Claude（window.claude.use("sample")），而且页面不能自己联网。
  * 放到普通网站上以后没有那个能力，这里提供同样形状的替代品：sample(input, {modelTier, signal, onText}) → {text, truncated}。
  *
- *   · 服务商：DeepSeek、ChatGPT（OpenAI）、Kimi（月之暗面）、豆包（火山方舟），以及任何兼容 OpenAI Chat Completions 的接口。
+ *   · 服务商：Claude（Anthropic）、DeepSeek、ChatGPT（OpenAI）、Kimi（月之暗面）、豆包（火山方舟），以及任何兼容 OpenAI Chat Completions 的接口。
+ *     Claude 走它自己的 Messages 接口（POST /v1/messages，api: "anthropic"）；别的都走 OpenAI 兼容的 /chat/completions。
+ *     Claude 还能在服务商那边上网搜索（web_search 工具）：调用时传 webSearch: 次数 才会打开，搜索按次另外计费。
  *   · 密钥只存在本机浏览器里（localStorage "ql.ai.v1"），请求从浏览器直接发给所选的服务商；填了转发代理时经代理转发。
  *     接口地址与代理地址必须是 http(s):// 开头，而且不能指向本网站（免得把密钥发给本站）。
  *   · 有的服务商不允许网页直接调用（浏览器的跨域限制）。这时请求会以"连不上"告终，设置里可以填一个转发代理：
@@ -10137,6 +10139,10 @@ var QLAI = (function () {
      cors 能不能从网页直接调用。2026-10-09 在 https://zechenbian.github.io 上用一把无效的密钥实测：DeepSeek、OpenAI、Kimi（两个站点）都能读到
      "密钥无效"的回答，也就是允许网页调用；火山方舟的回答被浏览器的跨域限制拦下，要经转发代理 */
   var PRE = [
+    /* Claude：Messages 接口。模型名是 2026 年 10 月的；5.5 代的模型总是先自适应地想一想（关不掉），用 effort 控制想多少：
+       做小事 low，深度思考 high，其余用模型的默认值。允许网页直接调用：请求头里要带 anthropic-dangerous-direct-browser-access */
+    { id: "claude", api: "anthropic", name: "Claude (Anthropic)", short: "Claude", base: "https://api.anthropic.com/v1", model: "claude-opus-5-5", fast: "claude-haiku-5-5", models: ["claude-opus-5-5", "claude-sonnet-5-5", "claude-haiku-5-5", "claude-fable-5-1"], keyUrl: "https://platform.claude.com/settings/keys", search: true,
+      hint: "A Claude subscription (Pro, Max) does not include API usage: the API has to be activated and funded separately at platform.claude.com; keys start with sk-ant-. With Claude connected, the AI in the machine-learning lab's \"fetch data from the web\" searches the web before it proposes addresses (searches are billed separately)." },
     { id: "deepseek", name: "DeepSeek", short: "DeepSeek", base: "https://api.deepseek.com", model: "deepseek-v4-pro", fast: "deepseek-flash", models: ["deepseek-v4-pro", "deepseek-flash"], keyUrl: "https://platform.deepseek.com/api_keys",
       quiet: function () { return NOTHINK; } },
     { id: "openai", name: "ChatGPT (OpenAI)", short: "ChatGPT", base: "https://api.openai.com/v1", model: "gpt-6-sol", fast: "gpt-6-luna", models: ["gpt-6-sol", "gpt-6.1-sol", "gpt-6-luna", "gpt-5.6", "gpt-5.5", "gpt-5.4-mini"], keyUrl: "https://platform.openai.com/api-keys",
@@ -10205,7 +10211,13 @@ var QLAI = (function () {
   /** 这家服务商已知不允许网页直接调用，而这次又没有经过转发代理 */
   function noCors(k) { return !!(k && k.P && k.P.cors === false && k.base === k.P.base && !viaProxy(k)); }
   function url(k, path) { return (viaProxy(k) ? k.proxy + "/" : "") + k.base + path; }
-  function headers(k, json) { var h = {}; if (json) h["Content-Type"] = "application/json"; if (k.key) h.Authorization = "Bearer " + k.key; return h; }
+  function isA(k) { return !!(k && k.P && k.P.api === "anthropic"); }
+  function headers(k, json) {
+    var h = {}; if (json) h["Content-Type"] = "application/json";
+    if (isA(k)) { if (k.key) h["x-api-key"] = k.key; h["anthropic-version"] = "2023-06-01"; h["anthropic-dangerous-direct-browser-access"] = "true"; }
+    else if (k.key) h.Authorization = "Bearer " + k.key;
+    return h;
+  }
   /** 设置里填得对不对：返回错误代码或空串 */
   function problem(k) {
     if (!k) return "no_provider";
@@ -10228,7 +10240,7 @@ var QLAI = (function () {
     var s = res.status, all = m + " " + ec, proxy = res.headers.get("x-tianxia-proxy") === "1" || res.headers.get("x-ai-proxy") === "1";
     var code = proxy ? "proxy_refused"                                    // 转发代理自己拒绝（网站或服务商不在它的允许名单里）
       : /content.{0,12}(risk|filter|policy)|data_inspection|inappropriate|sensitive.?content|high.?risk|flagged|moderation|prohibited|blocked due to|敏感|违规|不安全|审核/i.test(all) ? "refused"
-      : s === 402 || /insufficient[_ ]?(balance|quota|funds|credit)|exceeded your current quota|quota.?exceeded|余额|欠费|arrearage|overdue|billing/i.test(all) ? "quota"
+      : s === 402 || /insufficient[_ ]?(balance|quota|funds|credit)|credit balance|exceeded your current quota|quota.?exceeded|余额|欠费|arrearage|overdue|billing/i.test(all) ? "quota"
       : s === 401 || s === 403 || (s < 500 && /api[_ -]?key|unauthori[sz]ed|authenticat|invalid.?token/i.test(all)) ? "bad_auth"
       : s === 429 ? "rate_limited"
       : /context.?length|maximum context|too many tokens|prompt is too long|input.{0,20}too long|超出.{0,6}长度/i.test(all) ? "prompt_too_large"
@@ -10289,8 +10301,43 @@ var QLAI = (function () {
       res: function () { return { text: visible(raw), fin: fin, stream: true }; }
     };
   }
-  async function readStream(res, o, beat) {
-    var p = sse(o), rd = res.body.getReader(), dec = new TextDecoder(), buf = "", done = false, i;
+  /** 逐行解析 Claude 的流（Messages 接口）：正文、思考的字数、服务商那边的搜索 */
+  function sseA(o) {
+    var raw = "", think = 0, fin = null, err = null, shown = "", blocks = {}, last = "", searches = 0;
+    function cb(f, x) { if (f) try { f(x); } catch (e) {} }
+    function add(t) { if (!t) return; raw += t; var v = visible(raw); if (v !== shown) { shown = v; cb(o.onText, { text: v }); } }
+    return {
+      line: function (l) {
+        if (l.slice(0, 5) !== "data:") return;                            // event: 行与空行
+        var d = l.slice(5).trim(); if (!d) return;
+        var j; try { j = JSON.parse(d); } catch (e) { return; }
+        var b;
+        switch (j.type) {
+          case "error": var er = j.error || {}; err = mkErr(/overload|rate/i.test(String(er.type || "")) ? "rate_limited" : "upstream_error", String(er.message || er.type || "stream error"), { retry: true }); return;
+          case "content_block_start":
+            b = j.content_block || {}; blocks[j.index] = { type: b.type, json: "" };
+            if (b.type === "text") { if (raw && last && last !== "text") raw += "\n\n"; add(b.text); }
+            else if (b.type === "web_search_tool_result") cb(o.onSearch, b.content && !Array.isArray(b.content) ? { error: String(b.content.error_code || "error") } : { results: Array.isArray(b.content) ? b.content.length : 0 });
+            last = b.type; return;
+          case "content_block_delta":
+            var dl = j.delta || {}; b = blocks[j.index];
+            if (dl.type === "text_delta") add(dl.text);
+            else if (dl.type === "thinking_delta") { think += String(dl.thinking || "").length; if (!raw) cb(o.onThink, think); }
+            else if (dl.type === "input_json_delta" && b) b.json += dl.partial_json || "";
+            return;
+          case "content_block_stop":
+            b = blocks[j.index];
+            if (b && b.type === "server_tool_use") { searches++; var q = ""; try { q = String(JSON.parse(b.json || "{}").query || ""); } catch (e) {} cb(o.onSearch, { query: q.slice(0, 200), n: searches }); }
+            return;
+          case "message_delta": if (j.delta && j.delta.stop_reason) fin = j.delta.stop_reason; return;
+        }
+      },
+      get err() { return err; },
+      res: function () { return { text: visible(raw), fin: fin === "max_tokens" || fin === "pause_turn" ? "length" : fin, stream: true, searches: searches }; }
+    };
+  }
+  async function readStream(res, o, beat, mk) {
+    var p = (mk || sse)(o), rd = res.body.getReader(), dec = new TextDecoder(), buf = "", done = false, i;
     try {
       for (;;) {
         var r = await rd.read(); beat(); if (r.done) { done = true; break; }
@@ -10306,8 +10353,27 @@ var QLAI = (function () {
     } finally { if (!done) try { rd.cancel().catch(function () {}); } catch (e) {} }
     return p.res();
   }
+  /** Claude 发一次请求。f.effort 想多少（null 用模型的默认值）；f.mtv 最大输出（0 用默认）；f.search 允许搜索几次（0 不搜）；f.stream 流式 */
+  async function onceA(k, model, m, f, o, beat) {
+    var body = { model: model, max_tokens: f.mtv || (o.tier === "quick" ? 8192 : f.effort === "high" ? 64000 : 32000), messages: m };
+    if (f.effort) body.output_config = { effort: f.effort };
+    if (f.search) body.tools = [{ type: "web_search_20250305", name: "web_search", max_uses: f.search }];
+    if (f.stream) body.stream = true;
+    var res = await post(k, "/messages", body, o.sig); beat();
+    var ct = res.headers.get("content-type") || "";
+    if (res.body && /event-stream/i.test(ct)) return readStream(res, o, beat, sseA);
+    var txt = await res.text(); beat();
+    if (/^\s*(data|event):/.test(txt)) { var p = sseA(o); txt.split("\n").forEach(function (l) { if (!p.err) p.line(l.replace(/\r$/, "")); }); if (p.err) throw p.err; return p.res(); }
+    var j; try { j = JSON.parse(txt); } catch (e) { throw mkErr("upstream_error", "not JSON: " + txt.slice(0, 160)); }
+    if (j && j.type === "error") { var er = j.error || {}; throw mkErr("upstream_error", String(er.message || er.type || "error")); }
+    var t = visible((Array.isArray(j && j.content) ? j.content : []).filter(function (c) { return c && c.type === "text"; }).map(function (c) { return c.text || ""; }).join("\n\n"));
+    if (t && o.onText) try { o.onText({ text: t }); } catch (e) {}
+    var fin = j && j.stop_reason;
+    return { text: t, fin: fin === "max_tokens" || fin === "pause_turn" ? "length" : fin, searches: (j.content || []).filter(function (c) { return c && c.type === "server_tool_use"; }).length };
+  }
   /** 发一次请求。f.extra 不要深度思考时的参数；f.mt 最大输出；f.stream 流式 */
   async function once(k, model, m, f, o, beat) {
+    if (isA(k)) return onceA(k, model, m, f, o, beat);
     var body = { model: model, messages: m };
     if (f.extra) { var q = clone(f.extra); for (var x in q) body[x] = q[x]; }
     if (f.mt && k.P.maxTok) body.max_tokens = k.P.maxTok;
@@ -10332,8 +10398,11 @@ var QLAI = (function () {
       if (sig) sig.addEventListener("abort", function () { clearTimeout(t); no(abortErr()); }, { once: true });
     });
   }
+  /** Claude 想多少：做小事 low；复杂的任务并且开着深度思考 high；其余用模型的默认值 */
+  function effortFor(o) { return o.tier === "quick" ? "low" : !o.quiet && o.tier === "complex" ? "high" : null; }
   async function call(k, model, input, o, beat) {
     var m = msgs(input), ck = k.id + "|" + k.base + "|" + model, cap = CAP[ck] || (CAP[ck] = {});
+    if (isA(k)) return callA(k, model, m, o, beat, cap);
     var extra = o.quiet && k.P.quiet ? k.P.quiet(model) : null;
     var f = { extra: cap.extra === false ? null : extra, mt: !!k.P.maxTok && cap.mt !== false, stream: cap.stream !== false };
     var dropped = [], retries = 0, blind = false;
@@ -10356,6 +10425,31 @@ var QLAI = (function () {
     }
     throw mkErr("invalid_request");
   }
+  /** Claude：参数不被接受时按报错去掉（effort、搜索）或调小（max_tokens）再试；429 / 5xx / 过载退避后重试 */
+  async function callA(k, model, m, o, beat, cap) {
+    var f = { effort: cap.effort === false ? null : effortFor(o), mtv: cap.mtv || 0, search: o.search && cap.search !== false ? Math.max(1, Math.min(10, o.search | 0)) : 0, stream: cap.stream !== false };
+    var changed = {}, retries = 0, blind = false;
+    for (var n = 0; n < 8; n++) {
+      try { var r = await onceA(k, model, m, f, o, beat); }
+      catch (e) {
+        if (!e || e.name === "AbortError") throw e;
+        if ((e.status === 400 || e.status === 422) && e.code === "invalid_request") {
+          var t = String(e.raw || "");
+          if (f.search && /web.?search|server.?tool|\btools?\b/i.test(t)) { f.search = 0; changed.search = false; continue; }
+          if (f.effort && /effort|output_config/i.test(t)) { f.effort = null; changed.effort = false; continue; }
+          if (/max_tokens/i.test(t) && f.mtv !== 4096) { f.mtv = f.mtv === 8192 ? 4096 : 8192; changed.mtv = f.mtv; continue; }
+          if (f.stream && /\bstream/i.test(t)) { f.stream = false; changed.stream = false; continue; }
+          if (!blind && (f.effort || f.search)) { blind = true; if (f.effort) { f.effort = null; changed.effort = false; } if (f.search) { f.search = 0; changed.search = false; } continue; }
+        }
+        if (retries < 2 && (e.retry || e.code === "rate_limited" || (e.code === "upstream_error" && e.status >= 500))) { retries++; await wait(e.retryAfter || (retries === 1 ? 2500 : 7000), o.sig); continue; }
+        throw e;
+      }
+      for (var x in changed) cap[x] = changed[x];                         // 改过之后成功了：这次打开页面期间记住
+      if (o.search && !f.search) r.searchOff = true;                      // 想搜，但这个账号或模型不让搜
+      return r;
+    }
+    throw mkErr("invalid_request");
+  }
 
   /* ---------- 对外：与 Claude 里的 sample 同形 ---------- */
   var TOTAL = 900000, IDLE = 180000;                                      // 整个请求最长 15 分钟；连续 3 分钟一个字节都没收到就放弃
@@ -10370,14 +10464,14 @@ var QLAI = (function () {
     function beat() { clearTimeout(idleT); idleT = setTimeout(function () { why = "timeout"; ctl.abort(); }, IDLE); }
     beat();
     try {
-      var opt = { sig: ctl.signal, onText: o.onText, onThink: o.onThink, quiet: !(tier === "complex" && k.think) }, r;
+      var opt = { sig: ctl.signal, onText: o.onText, onThink: o.onThink, onSearch: o.onSearch, tier: tier, search: o.webSearch && k.P.search ? o.webSearch : 0, quiet: !(tier === "complex" && k.think) }, r;
       try { r = await call(k, model, input, opt, beat); }
       catch (e) {
         if (!(e && e.code === "bad_model" && model !== k.model)) throw e;
         model = k.model; r = await call(k, model, input, opt, beat);       // 做小事用的那个模型在这个账号上不可用：换回主模型
       }
-      if (!r.text) throw mkErr(/content_filter|refusal|safety/i.test(String(r.fin || "")) ? "refused" : "empty_completion");
-      return { text: r.text, truncated: r.fin === "length", model: model, provider: k.id };
+      if (r.fin === "refusal" || !r.text) throw mkErr(/content_filter|refusal|safety/i.test(String(r.fin || "")) ? "refused" : "empty_completion");
+      return { text: r.text, truncated: r.fin === "length", model: model, provider: k.id, searches: r.searches || 0, searchOff: !!r.searchOff };
     } catch (e) {
       var err = ctl.signal.aborted ? mkErr(why || "cancelled") : e && e.name === "AbortError" ? mkErr("cancelled") : e;
       if (err && err.code !== "cancelled") try { console.warn("[AI]", k.id, model, err.code, err.detail || ""); } catch (x) {}   // 详情只记在本机的控制台，里面没有密钥
@@ -10400,14 +10494,14 @@ var QLAI = (function () {
   async function test(c) {
     var k = conf(c || CFG), bad = problem(k); if (bad) throw mkErr(bad);
     var t0 = Date.now();
-    var r = await timed(function (sig) { return call(k, k.model, "Connection test. Reply with the single word: OK", { sig: sig, quiet: true }, function () {}); }, 90000);
+    var r = await timed(function (sig) { return call(k, k.model, "Connection test. Reply with the single word: OK", { sig: sig, quiet: true, tier: "quick" }, function () {}); }, 90000);
     return { ms: Date.now() - t0, text: String(r.text || "").slice(0, 80), model: k.model, viaProxy: viaProxy(k) };
   }
   /** 向服务商查询可用的模型（GET /models），去掉嵌入、语音、绘图等非对话模型 */
   async function models(c) {
     var k = conf(c || CFG), bad = problem(k); if (bad && bad !== "no_model") throw mkErr(bad);
     var res = await timed(async function (sig) {
-      var r; try { r = await fetch(url(k, "/models"), { headers: headers(k, false), signal: sig, credentials: "omit", referrerPolicy: "no-referrer" }); }
+      var r; try { r = await fetch(url(k, isA(k) ? "/models?limit=100" : "/models"), { headers: headers(k, false), signal: sig, credentials: "omit", referrerPolicy: "no-referrer" }); }
       catch (e) { if (e && e.name === "AbortError") throw e; throw mkErr("network", String((e && e.message) || e), { proxy: viaProxy(k), nocors: noCors(k) }); }
       if (!r.ok) throw await httpErr(r);
       return r.json();
@@ -10444,10 +10538,12 @@ var QLAI = (function () {
     return { text: ERR[code] || "Something went wrong" + (e && e.message ? " (" + e.message + ")" : "") + ".", detail: e && e.detail && !/^network/.test(code) ? e.detail : "" };
   }
   function label(c) { var k = conf(c || CFG); return usable(k) ? { short: k.P.short, model: k.model, id: k.id } : null; }
+  /** 接的这家能不能在服务商那边上网搜索（现在只有 Claude） */
+  function canSearch() { var k = conf(); return usable(k) && !!k.P.search; }
 
   return {
     PRE: PRE, preset: byId, cfg: function () { return clone(CFG); }, save: save, conf: conf, usable: usable, problem: problem, ready: function () { return usable(conf()); },
-    isLocal: isLocal, viaProxy: viaProxy, noCors: noCors, sample: sample, test: test, models: models, label: label, explain: explain, visible: visible,
+    isLocal: isLocal, viaProxy: viaProxy, noCors: noCors, sample: sample, canSearch: canSearch, test: test, models: models, label: label, explain: explain, visible: visible,
     onChange: function (f) { subs.push(f); }, _cap: CAP, _key: LSK
   };
 })();

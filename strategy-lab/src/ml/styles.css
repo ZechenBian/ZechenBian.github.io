@@ -140,3 +140,6 @@ table.ml-lb .good { color: var(--good-ink); } table.ml-lb .bad { color: var(--cr
 .ml-web-table td, .ml-web-table th { white-space: nowrap; }
 .ml-web-cols { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 12px; max-height: 140px; overflow-y: auto; }
 .ml-web-col { display: inline-flex; gap: 4px; align-items: center; }
+
+/* 要再点一次确认的按钮（views.js 的 twoStep） */
+.btn.danger { color: var(--crit-ink); border-color: var(--crit-ink); background: var(--crit-wash); }

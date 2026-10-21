@@ -48,8 +48,9 @@ async function fails(fn) { try { await fn(); return null; } catch (e) { return e
   section("服务商的清单");
   {
     const ids = AI.PRE.map(p => p.id);
-    ok(ids.join() === "deepseek,openai,kimi,doubao,custom", "DeepSeek、ChatGPT、Kimi、豆包，最后是\"其他\"", ids.join());
-    ok(AI.PRE.slice(0, 4).every(p => /^https:\/\//.test(p.base) && p.model && p.fast && p.models.indexOf(p.model) >= 0 && /^https:\/\//.test(p.keyUrl) && p.name && p.short), "四家都有接口地址、默认模型、便宜的模型、申请密钥的网址");
+    ok(ids.join() === "claude,deepseek,openai,kimi,doubao,custom", "Claude 排第一，然后是 DeepSeek、ChatGPT、Kimi、豆包，最后是\"其他\"", ids.join());
+    ok(AI.PRE.slice(0, 5).every(p => /^https:\/\//.test(p.base) && p.model && p.fast && p.models.indexOf(p.model) >= 0 && /^https:\/\//.test(p.keyUrl) && p.name && p.short), "五家都有接口地址、默认模型、便宜的模型、申请密钥的网址");
+    ok(AI.preset("claude").api === "anthropic" && AI.preset("claude").search === true && AI.PRE.filter(p => p.search).length === 1, "只有 Claude 走自己的接口、能在服务商那边搜索");
     ok(AI.preset("custom").base === "" && AI.preset("custom").model === "", "\"其他\"的接口地址和模型由使用者自己填");
     ok(AI.preset("kimi").sites.length === 2 && AI.preset("kimi").sites[0][0] === AI.preset("kimi").base, "Kimi 有国内站和国际站两个站点");
   }
@@ -224,6 +225,88 @@ async function fails(fn) { try { await fn(); return null; } catch (e) { return e
     handler = c => { n++; return c.body.model === "deepseek-flash" ? jerr(404, { error: { message: "Model Not Exist" } }) : answer("主模型的回答"); };
     r = await AI.sample()("挑图", { modelTier: "quick" });
     ok(r.text === "主模型的回答" && r.model === "deepseek-v4-pro" && n === 2, "便宜的模型用不了：换回主模型");
+  }
+
+  section("Claude：Messages 接口");
+  {
+    const ev = (type, o) => Object.assign({ type }, o || {});
+    const text = (i, t) => ev("content_block_delta", { index: i, delta: { type: "text_delta", text: t } });
+    const claude = (parts, o) => sse([ev("message_start", { message: { id: "msg_1", role: "assistant", content: [] } }), ev("content_block_start", { index: 0, content_block: { type: "text", text: "" } })]
+      .concat((parts || ["好的"]).map(t => text(0, t)), [ev("content_block_stop", { index: 0 }), ev("message_delta", { delta: { stop_reason: (o && o.fin) || "end_turn" } }), ev("message_stop")]), o);
+    setup("claude"); handler = () => claude(["你", "好"]);
+    let s = AI.sample(), r = await s("你好", { modelTier: "default" }), c = calls[0];
+    ok(c.url === "https://api.anthropic.com/v1/messages" && c.method === "POST" && c.headers["x-api-key"] === KEY && !("Authorization" in c.headers) && c.headers["anthropic-version"] === "2023-06-01" && c.headers["anthropic-dangerous-direct-browser-access"] === "true", "发到 /v1/messages：x-api-key、anthropic-version、允许网页直接调用的请求头", c.url);
+    ok(c.credentials === "omit" && c.referrerPolicy === "no-referrer", "不带 cookie，不带来源页");
+    ok(c.body.model === "claude-opus-5-5" && c.body.stream === true && c.body.max_tokens === 32000 && !("output_config" in c.body) && !("thinking" in c.body) && !("tools" in c.body) && c.body.messages[0].content === "你好", "默认：Opus 5.5、流式、给出最大输出；不带 effort，用模型自己的默认值", JSON.stringify(c.body));
+    ok(r.text === "你好" && r.provider === "claude" && r.model === "claude-opus-5-5" && r.truncated === false && r.searches === 0, "拼出正文");
+    calls = []; await s("写一条规则", { modelTier: "complex" });
+    ok(calls[0].body.output_config && calls[0].body.output_config.effort === "high" && calls[0].body.max_tokens === 64000, "写规则（开着深度思考）：effort high，最大输出放到 64000");
+    calls = []; await s("挑图", { modelTier: "quick" });
+    ok(calls[0].body.model === "claude-haiku-5-5" && calls[0].body.output_config.effort === "low" && calls[0].body.max_tokens === 8192, "做小事：Haiku 5.5，effort low");
+    setup("claude", { think: false }); s = AI.sample(); await s("写", { modelTier: "complex" });
+    ok(!("output_config" in calls[0].body), "设置里关了深度思考：写规则也用默认的 effort（5.5 代的模型思考关不掉）");
+    // 思考、几段正文、服务商那边的搜索
+    const seen = [], thinks = [], searched = [];
+    handler = () => sse([
+      ev("message_start", { message: {} }), "event: ping",
+      ev("content_block_start", { index: 0, content_block: { type: "thinking", thinking: "" } }), ev("content_block_delta", { index: 0, delta: { type: "thinking_delta", thinking: "先搜一搜" } }), ev("content_block_stop", { index: 0 }),
+      ev("content_block_start", { index: 1, content_block: { type: "text", text: "" } }), text(1, "我先搜一下。"), ev("content_block_stop", { index: 1 }),
+      ev("content_block_start", { index: 2, content_block: { type: "server_tool_use", id: "srvtoolu_1", name: "web_search", input: {} } }),
+      ev("content_block_delta", { index: 2, delta: { type: "input_json_delta", partial_json: "{\"query\": \"布伦特" } }), ev("content_block_delta", { index: 2, delta: { type: "input_json_delta", partial_json: "原油 日价 csv\"}" } }), ev("content_block_stop", { index: 2 }),
+      ev("content_block_start", { index: 3, content_block: { type: "web_search_tool_result", tool_use_id: "srvtoolu_1", content: [{ type: "web_search_result", title: "Brent", url: "https://example.org/brent.csv" }, { type: "web_search_result", title: "EIA", url: "https://www.eia.gov/" }] } }), ev("content_block_stop", { index: 3 }),
+      ev("content_block_start", { index: 4, content_block: { type: "text", text: "" } }), text(4, "{\"candidates\": []"), text(4, "}"), ev("content_block_stop", { index: 4 }),
+      ev("message_delta", { delta: { stop_reason: "end_turn" } }), ev("message_stop")], { step: 9, crlf: true });
+    setup("claude"); calls = [];
+    r = await AI.sample()("找数据", { webSearch: 4, onText: u => seen.push(u.text), onThink: n => thinks.push(n), onSearch: x => searched.push(x) });
+    ok(calls[0].body.tools && calls[0].body.tools.length === 1 && calls[0].body.tools[0].type === "web_search_20250305" && calls[0].body.tools[0].name === "web_search" && calls[0].body.tools[0].max_uses === 4, "要搜索：带上 web_search 工具和次数上限", JSON.stringify(calls[0].body.tools));
+    ok(r.text === "我先搜一下。\n\n{\"candidates\": []}" && r.searches === 1 && !r.searchOff, "搜索前后的几段正文连起来，中间空一行；记下搜了几次", JSON.stringify(r.text));
+    ok(thinks.join() === "4" && seen[seen.length - 1] === r.text, "正文之前报告想了多少字；正文边到边报");
+    ok(searched.length === 2 && searched[0].query === "布伦特原油 日价 csv" && searched[0].n === 1 && searched[1].results === 2, "搜了什么、搜到几条，都报给页面", JSON.stringify(searched));
+    calls = []; handler = () => claude(["好"]); await AI.sample()("找", { webSearch: 3 });
+    setup("deepseek"); calls = []; handler = () => answer("好"); await AI.sample()("找", { webSearch: 3 });
+    ok(!("tools" in calls[0].body) && AI.canSearch() === false, "别家：要搜索也不带工具（它们不会在服务商那边搜）");
+    setup("claude"); ok(AI.canSearch() === true, "接的是 Claude：能搜索");
+    // 搜索没开通、effort 不认、max_tokens 太大：按报错改了再试，并记住
+    let n = 0;
+    handler = c => { n++; return c.body.tools ? jerr(400, { type: "error", error: { type: "invalid_request_error", message: "Web search is not enabled for your organization." } }) : claude(["不搜也给了"]); };
+    r = await AI.sample()("找", { webSearch: 3 });
+    ok(r.text === "不搜也给了" && n === 2 && r.searchOff === true, "组织没开通网络搜索：不搜再试一次，并告诉页面没能搜", JSON.stringify(r));
+    calls = []; r = await AI.sample()("找", { webSearch: 3 }); ok(calls.length === 1 && !calls[0].body.tools && r.searchOff === true, "这次打开页面期间记住了");
+    setup("claude", { model: "claude-old-1" }); n = 0;
+    handler = c => { n++; return c.body.output_config ? jerr(400, { type: "error", error: { type: "invalid_request_error", message: "output_config.effort: Extra inputs are not permitted" } }) : c.body.max_tokens > 8192 ? jerr(400, { type: "error", error: { type: "invalid_request_error", message: "max_tokens: 64000 > 8192, which is the maximum allowed number of output tokens for claude-old-1" } }) : claude(["老模型"]); };
+    r = await AI.sample()("写", { modelTier: "complex" });
+    ok(r.text === "老模型" && n === 3 && calls[calls.length - 1].body.max_tokens === 8192 && !calls[calls.length - 1].body.output_config, "老模型：去掉 effort、把最大输出调到 8192", n + " " + JSON.stringify(calls[calls.length - 1].body));
+    // 出错的归类
+    setup("claude");
+    const cases = [
+      [401, { type: "error", error: { type: "authentication_error", message: "invalid x-api-key" } }, "bad_auth"],
+      [400, { type: "error", error: { type: "invalid_request_error", message: "Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits." } }, "quota"],
+      [404, { type: "error", error: { type: "not_found_error", message: "model: claude-opus-9" } }, "bad_model"],
+      [429, { type: "error", error: { type: "rate_limit_error", message: "Number of request tokens has exceeded your per-minute rate limit" } }, "rate_limited"],
+      [413, { type: "error", error: { type: "request_too_large", message: "Request exceeds the maximum allowed number of bytes." } }, "upstream_error"]
+    ];
+    for (const [status, body, code] of cases) {
+      handler = () => jerr(status, body, status === 429 ? { "retry-after": "1" } : null);
+      const e = await fails(() => AI.sample()("问", {}));
+      ok(e && e.code === code, "Claude HTTP " + status + " → " + code, e && (e.code + " | " + e.detail));
+    }
+    n = 0; handler = () => { n++; return n === 1 ? jerr(529, { type: "error", error: { type: "overloaded_error", message: "Overloaded" } }) : claude(["过载之后重试成功"]); };
+    r = await AI.sample()("问", {}); ok(r.text === "过载之后重试成功" && n === 2, "529 过载：退避后重试");
+    n = 0; handler = () => { n++; return n === 1 ? sse([ev("message_start", { message: {} }), ev("content_block_start", { index: 0, content_block: { type: "text", text: "" } }), text(0, "写了一点"), ev("error", { error: { type: "overloaded_error", message: "Overloaded" } })]) : claude(["重来的全文"]); };
+    r = await AI.sample()("问", {}); ok(r.text === "重来的全文" && n === 2, "流到一半报过载：重试");
+    handler = () => claude(["写到一半"], { fin: "max_tokens" }); r = await AI.sample()("问", {}); ok(r.truncated === true, "max_tokens 用完：标成被截断");
+    handler = () => claude(["我不"], { fin: "refusal" }); let e = await fails(() => AI.sample()("问", {})); ok(e && e.code === "refused", "stop_reason 是 refusal：报被拒绝", e && e.code);
+    handler = () => jerr(200, { type: "message", content: [{ type: "text", text: "整段" }, { type: "server_tool_use", id: "x", name: "web_search", input: { query: "q" } }, { type: "text", text: "给的" }], stop_reason: "end_turn" });
+    r = await AI.sample()("问", {}); ok(r.text === "整段\n\n给的" && r.searches === 1, "不流式、整段返回：照样能用");
+    // 测试连接、模型列表、转发代理
+    handler = () => claude(["OK"]); calls = [];
+    r = await AI.test(); ok(r.text === "OK" && r.model === "claude-opus-5-5" && calls[0].body.output_config.effort === "low" && calls[0].body.max_tokens === 8192, "测试连接：effort low，很快回话");
+    handler = () => jerr(200, { data: [{ type: "model", id: "claude-opus-5-5", display_name: "Claude Opus 5.5" }, { type: "model", id: "claude-haiku-5-5" }, { type: "model", id: "claude-sonnet-5-5" }], has_more: false });
+    calls = []; const ids = await AI.models();
+    ok(ids.join() === "claude-haiku-5-5,claude-opus-5-5,claude-sonnet-5-5" && calls[0].url === "https://api.anthropic.com/v1/models?limit=100" && calls[0].headers["x-api-key"] === KEY && calls[0].headers["anthropic-dangerous-direct-browser-access"] === "true", "模型列表：/v1/models，同样的请求头", calls[0].url);
+    setup("claude", null, "https://my-proxy.example.workers.dev"); handler = () => claude(["好"]); await AI.sample()("问", {});
+    ok(calls[0].url === "https://my-proxy.example.workers.dev/https://api.anthropic.com/v1/messages" && calls[0].headers["x-api-key"] === KEY, "也可以经转发代理", calls[0].url);
+    const lab = AI.label(); ok(lab.short === "Claude" && lab.model === "claude-opus-5-5", "界面上的简称是 Claude");
   }
 
   section("停止与超时");

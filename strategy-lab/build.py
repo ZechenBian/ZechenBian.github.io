@@ -212,6 +212,27 @@ if "ml/main.js" in ML_JS:
     os.makedirs(os.path.join(ROOT, "ml"), exist_ok=True)
     open(os.path.join(ROOT, "ml/index.html"), "w", encoding="utf8").write(ml_page)
 
+    # 在 Claude 里打开的版本（dist/ml-lab.html）：发布成 Claude 里的 Artifact，声明 sample 能力，AI 就是打开页面的人自己的 Claude
+    # （window.claude.use("sample")，不用密钥，用的是自己账号的额度）。和 dist/strategy-lab.html 一样只是页面的内容，Artifact 会套上
+    # 自己的文档骨架。回到策略实验室的链接改成网站的绝对地址。那里页面不能自己联网：从网上取数据、本机引擎会说明并指向网站版。
+    ml_body = rd("src/ml/body.html"); ml_body_claude = ml_body.replace('href="../"', 'href="%s" target="_blank" rel="noopener"' % SITE)
+    assert ml_body_claude != ml_body, "回到策略实验室的链接变了：改一下这里"
+    ml_claude = "\n".join([
+        "<title>机器学习实验室</title>",
+        "<!-- %s Not open source: no copying, modification, redistribution, commercial use or AI/ML training without written permission. License: %s -->" % (COPY, LICENSE_URL),
+        '<link rel="stylesheet" href="%s">' % FONTS,
+        "<style>" + RESET + "</style>",
+        "<style>\n" + src("styles.css") + "\n</style>",
+        "<style>\n" + src("ml/styles.css") + "\n</style>",
+        "<style>\n/* KaTeX %s 的样式，字体内联。KaTeX: MIT License, (c) Khan Academy and other contributors; 字体: SIL Open Font License 1.1 */\n%s\n</style>" % (KATEX_VER, katex_css()),
+        ml_body_claude,
+        "<script>\n/* KaTeX %s — MIT License, (c) Khan Academy and other contributors. https://github.com/KaTeX/KaTeX */\n%s\n</script>" % (KATEX_VER, katex_js),
+        "<script>\n" + ml_js + "\n</script>"])
+    open(os.path.join(ROOT, "dist/ml-lab.html"), "w", encoding="utf8").write(ml_claude)
+    # 测试用：套上和 Artifact 一样的骨架（test/ui-ml-claude.js 在里面装一个假的 window.claude）
+    open(os.path.join(ROOT, "dist/ml-preview.html"), "w", encoding="utf8").write(
+        '<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>' + RESET + '</style></head><body>' + ml_claude + '</body></html>')
+
 print("built: %.0f KB (js %.0f KB, katex css %.0f KB); index.html %.0f KB%s; teen/index.html %.0f KB%s" % (len(page.encode()) / 1024, len(js.encode()) / 1024, len(katex_css().encode()) / 1024, len(zh_page.encode()) / 1024,
       "; en/index.html %.0f KB" % (len(en_page.encode()) / 1024) if en_page else "; 没有 i18n/en，只生成了中文页", len(teen_page.encode()) / 1024,
       "; ml/index.html %.0f KB" % (len(ml_page.encode()) / 1024) if ml_page else ""))

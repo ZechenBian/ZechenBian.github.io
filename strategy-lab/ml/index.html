@@ -948,6 +948,9 @@ table.ml-lb .good { color: var(--good-ink); } table.ml-lb .bad { color: var(--cr
 .ml-web-cols { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 12px; max-height: 140px; overflow-y: auto; }
 .ml-web-col { display: inline-flex; gap: 4px; align-items: center; }
 
+/* 要再点一次确认的按钮（views.js 的 twoStep） */
+.btn.danger { color: var(--crit-ink); border-color: var(--crit-ink); background: var(--crit-wash); }
+
 </style>
 <style>
 /* KaTeX 0.16.47 的样式，字体内联。KaTeX: MIT License, (c) Khan Academy and other contributors; 字体: SIL Open Font License 1.1。全文见 THIRD-PARTY-NOTICES.md */
@@ -3406,7 +3409,9 @@ var QLMD = (function () {
  * 在 Claude 里打开页面时用不到这一层：那里由宿主提供 Claude（window.claude.use("sample")），而且页面不能自己联网。
  * 放到普通网站上以后没有那个能力，这里提供同样形状的替代品：sample(input, {modelTier, signal, onText}) → {text, truncated}。
  *
- *   · 服务商：DeepSeek、ChatGPT（OpenAI）、Kimi（月之暗面）、豆包（火山方舟），以及任何兼容 OpenAI Chat Completions 的接口。
+ *   · 服务商：Claude（Anthropic）、DeepSeek、ChatGPT（OpenAI）、Kimi（月之暗面）、豆包（火山方舟），以及任何兼容 OpenAI Chat Completions 的接口。
+ *     Claude 走它自己的 Messages 接口（POST /v1/messages，api: "anthropic"）；别的都走 OpenAI 兼容的 /chat/completions。
+ *     Claude 还能在服务商那边上网搜索（web_search 工具）：调用时传 webSearch: 次数 才会打开，搜索按次另外计费。
  *   · 密钥只存在本机浏览器里（localStorage "ql.ai.v1"），请求从浏览器直接发给所选的服务商；填了转发代理时经代理转发。
  *     接口地址与代理地址必须是 http(s):// 开头，而且不能指向本网站（免得把密钥发给本站）。
  *   · 有的服务商不允许网页直接调用（浏览器的跨域限制）。这时请求会以"连不上"告终，设置里可以填一个转发代理：
@@ -3423,6 +3428,10 @@ var QLAI = (function () {
      cors 能不能从网页直接调用。2026-10-09 在 https://zechenbian.github.io 上用一把无效的密钥实测：DeepSeek、OpenAI、Kimi（两个站点）都能读到
      "密钥无效"的回答，也就是允许网页调用；火山方舟的回答被浏览器的跨域限制拦下，要经转发代理 */
   var PRE = [
+    /* Claude：Messages 接口。模型名是 2026 年 10 月的；5.5 代的模型总是先自适应地想一想（关不掉），用 effort 控制想多少：
+       做小事 low，深度思考 high，其余用模型的默认值。允许网页直接调用：请求头里要带 anthropic-dangerous-direct-browser-access */
+    { id: "claude", api: "anthropic", name: "Claude（Anthropic）", short: "Claude", base: "https://api.anthropic.com/v1", model: "claude-opus-5-5", fast: "claude-haiku-5-5", models: ["claude-opus-5-5", "claude-sonnet-5-5", "claude-haiku-5-5", "claude-fable-5-1"], keyUrl: "https://platform.claude.com/settings/keys", search: true,
+      hint: "Claude 的会员订阅（Pro、Max）不包含 API 用量：API 要在 platform.claude.com 另外开通并充值，密钥以 sk-ant- 开头。接的是 Claude 时，机器学习实验室“从网上取数据”里的 AI 会先上网搜索再给地址（搜索另外计费）。" },
     { id: "deepseek", name: "DeepSeek（深度求索）", short: "DeepSeek", base: "https://api.deepseek.com", model: "deepseek-v4-pro", fast: "deepseek-flash", models: ["deepseek-v4-pro", "deepseek-flash"], keyUrl: "https://platform.deepseek.com/api_keys",
       quiet: function () { return NOTHINK; } },
     { id: "openai", name: "ChatGPT（OpenAI）", short: "ChatGPT", base: "https://api.openai.com/v1", model: "gpt-6-sol", fast: "gpt-6-luna", models: ["gpt-6-sol", "gpt-6.1-sol", "gpt-6-luna", "gpt-5.6", "gpt-5.5", "gpt-5.4-mini"], keyUrl: "https://platform.openai.com/api-keys",
@@ -3491,7 +3500,13 @@ var QLAI = (function () {
   /** 这家服务商已知不允许网页直接调用，而这次又没有经过转发代理 */
   function noCors(k) { return !!(k && k.P && k.P.cors === false && k.base === k.P.base && !viaProxy(k)); }
   function url(k, path) { return (viaProxy(k) ? k.proxy + "/" : "") + k.base + path; }
-  function headers(k, json) { var h = {}; if (json) h["Content-Type"] = "application/json"; if (k.key) h.Authorization = "Bearer " + k.key; return h; }
+  function isA(k) { return !!(k && k.P && k.P.api === "anthropic"); }
+  function headers(k, json) {
+    var h = {}; if (json) h["Content-Type"] = "application/json";
+    if (isA(k)) { if (k.key) h["x-api-key"] = k.key; h["anthropic-version"] = "2023-06-01"; h["anthropic-dangerous-direct-browser-access"] = "true"; }
+    else if (k.key) h.Authorization = "Bearer " + k.key;
+    return h;
+  }
   /** 设置里填得对不对：返回错误代码或空串 */
   function problem(k) {
     if (!k) return "no_provider";
@@ -3514,7 +3529,7 @@ var QLAI = (function () {
     var s = res.status, all = m + " " + ec, proxy = res.headers.get("x-tianxia-proxy") === "1" || res.headers.get("x-ai-proxy") === "1";
     var code = proxy ? "proxy_refused"                                    // 转发代理自己拒绝（网站或服务商不在它的允许名单里）
       : /content.{0,12}(risk|filter|policy)|data_inspection|inappropriate|sensitive.?content|high.?risk|flagged|moderation|prohibited|blocked due to|敏感|违规|不安全|审核/i.test(all) ? "refused"
-      : s === 402 || /insufficient[_ ]?(balance|quota|funds|credit)|exceeded your current quota|quota.?exceeded|余额|欠费|arrearage|overdue|billing/i.test(all) ? "quota"
+      : s === 402 || /insufficient[_ ]?(balance|quota|funds|credit)|credit balance|exceeded your current quota|quota.?exceeded|余额|欠费|arrearage|overdue|billing/i.test(all) ? "quota"
       : s === 401 || s === 403 || (s < 500 && /api[_ -]?key|unauthori[sz]ed|authenticat|invalid.?token/i.test(all)) ? "bad_auth"
       : s === 429 ? "rate_limited"
       : /context.?length|maximum context|too many tokens|prompt is too long|input.{0,20}too long|超出.{0,6}长度/i.test(all) ? "prompt_too_large"
@@ -3575,8 +3590,43 @@ var QLAI = (function () {
       res: function () { return { text: visible(raw), fin: fin, stream: true }; }
     };
   }
-  async function readStream(res, o, beat) {
-    var p = sse(o), rd = res.body.getReader(), dec = new TextDecoder(), buf = "", done = false, i;
+  /** 逐行解析 Claude 的流（Messages 接口）：正文、思考的字数、服务商那边的搜索 */
+  function sseA(o) {
+    var raw = "", think = 0, fin = null, err = null, shown = "", blocks = {}, last = "", searches = 0;
+    function cb(f, x) { if (f) try { f(x); } catch (e) {} }
+    function add(t) { if (!t) return; raw += t; var v = visible(raw); if (v !== shown) { shown = v; cb(o.onText, { text: v }); } }
+    return {
+      line: function (l) {
+        if (l.slice(0, 5) !== "data:") return;                            // event: 行与空行
+        var d = l.slice(5).trim(); if (!d) return;
+        var j; try { j = JSON.parse(d); } catch (e) { return; }
+        var b;
+        switch (j.type) {
+          case "error": var er = j.error || {}; err = mkErr(/overload|rate/i.test(String(er.type || "")) ? "rate_limited" : "upstream_error", String(er.message || er.type || "stream error"), { retry: true }); return;
+          case "content_block_start":
+            b = j.content_block || {}; blocks[j.index] = { type: b.type, json: "" };
+            if (b.type === "text") { if (raw && last && last !== "text") raw += "\n\n"; add(b.text); }
+            else if (b.type === "web_search_tool_result") cb(o.onSearch, b.content && !Array.isArray(b.content) ? { error: String(b.content.error_code || "error") } : { results: Array.isArray(b.content) ? b.content.length : 0 });
+            last = b.type; return;
+          case "content_block_delta":
+            var dl = j.delta || {}; b = blocks[j.index];
+            if (dl.type === "text_delta") add(dl.text);
+            else if (dl.type === "thinking_delta") { think += String(dl.thinking || "").length; if (!raw) cb(o.onThink, think); }
+            else if (dl.type === "input_json_delta" && b) b.json += dl.partial_json || "";
+            return;
+          case "content_block_stop":
+            b = blocks[j.index];
+            if (b && b.type === "server_tool_use") { searches++; var q = ""; try { q = String(JSON.parse(b.json || "{}").query || ""); } catch (e) {} cb(o.onSearch, { query: q.slice(0, 200), n: searches }); }
+            return;
+          case "message_delta": if (j.delta && j.delta.stop_reason) fin = j.delta.stop_reason; return;
+        }
+      },
+      get err() { return err; },
+      res: function () { return { text: visible(raw), fin: fin === "max_tokens" || fin === "pause_turn" ? "length" : fin, stream: true, searches: searches }; }
+    };
+  }
+  async function readStream(res, o, beat, mk) {
+    var p = (mk || sse)(o), rd = res.body.getReader(), dec = new TextDecoder(), buf = "", done = false, i;
     try {
       for (;;) {
         var r = await rd.read(); beat(); if (r.done) { done = true; break; }
@@ -3592,8 +3642,27 @@ var QLAI = (function () {
     } finally { if (!done) try { rd.cancel().catch(function () {}); } catch (e) {} }
     return p.res();
   }
+  /** Claude 发一次请求。f.effort 想多少（null 用模型的默认值）；f.mtv 最大输出（0 用默认）；f.search 允许搜索几次（0 不搜）；f.stream 流式 */
+  async function onceA(k, model, m, f, o, beat) {
+    var body = { model: model, max_tokens: f.mtv || (o.tier === "quick" ? 8192 : f.effort === "high" ? 64000 : 32000), messages: m };
+    if (f.effort) body.output_config = { effort: f.effort };
+    if (f.search) body.tools = [{ type: "web_search_20250305", name: "web_search", max_uses: f.search }];
+    if (f.stream) body.stream = true;
+    var res = await post(k, "/messages", body, o.sig); beat();
+    var ct = res.headers.get("content-type") || "";
+    if (res.body && /event-stream/i.test(ct)) return readStream(res, o, beat, sseA);
+    var txt = await res.text(); beat();
+    if (/^\s*(data|event):/.test(txt)) { var p = sseA(o); txt.split("\n").forEach(function (l) { if (!p.err) p.line(l.replace(/\r$/, "")); }); if (p.err) throw p.err; return p.res(); }
+    var j; try { j = JSON.parse(txt); } catch (e) { throw mkErr("upstream_error", "not JSON: " + txt.slice(0, 160)); }
+    if (j && j.type === "error") { var er = j.error || {}; throw mkErr("upstream_error", String(er.message || er.type || "error")); }
+    var t = visible((Array.isArray(j && j.content) ? j.content : []).filter(function (c) { return c && c.type === "text"; }).map(function (c) { return c.text || ""; }).join("\n\n"));
+    if (t && o.onText) try { o.onText({ text: t }); } catch (e) {}
+    var fin = j && j.stop_reason;
+    return { text: t, fin: fin === "max_tokens" || fin === "pause_turn" ? "length" : fin, searches: (j.content || []).filter(function (c) { return c && c.type === "server_tool_use"; }).length };
+  }
   /** 发一次请求。f.extra 不要深度思考时的参数；f.mt 最大输出；f.stream 流式 */
   async function once(k, model, m, f, o, beat) {
+    if (isA(k)) return onceA(k, model, m, f, o, beat);
     var body = { model: model, messages: m };
     if (f.extra) { var q = clone(f.extra); for (var x in q) body[x] = q[x]; }
     if (f.mt && k.P.maxTok) body.max_tokens = k.P.maxTok;
@@ -3618,8 +3687,11 @@ var QLAI = (function () {
       if (sig) sig.addEventListener("abort", function () { clearTimeout(t); no(abortErr()); }, { once: true });
     });
   }
+  /** Claude 想多少：做小事 low；复杂的任务并且开着深度思考 high；其余用模型的默认值 */
+  function effortFor(o) { return o.tier === "quick" ? "low" : !o.quiet && o.tier === "complex" ? "high" : null; }
   async function call(k, model, input, o, beat) {
     var m = msgs(input), ck = k.id + "|" + k.base + "|" + model, cap = CAP[ck] || (CAP[ck] = {});
+    if (isA(k)) return callA(k, model, m, o, beat, cap);
     var extra = o.quiet && k.P.quiet ? k.P.quiet(model) : null;
     var f = { extra: cap.extra === false ? null : extra, mt: !!k.P.maxTok && cap.mt !== false, stream: cap.stream !== false };
     var dropped = [], retries = 0, blind = false;
@@ -3642,6 +3714,31 @@ var QLAI = (function () {
     }
     throw mkErr("invalid_request");
   }
+  /** Claude：参数不被接受时按报错去掉（effort、搜索）或调小（max_tokens）再试；429 / 5xx / 过载退避后重试 */
+  async function callA(k, model, m, o, beat, cap) {
+    var f = { effort: cap.effort === false ? null : effortFor(o), mtv: cap.mtv || 0, search: o.search && cap.search !== false ? Math.max(1, Math.min(10, o.search | 0)) : 0, stream: cap.stream !== false };
+    var changed = {}, retries = 0, blind = false;
+    for (var n = 0; n < 8; n++) {
+      try { var r = await onceA(k, model, m, f, o, beat); }
+      catch (e) {
+        if (!e || e.name === "AbortError") throw e;
+        if ((e.status === 400 || e.status === 422) && e.code === "invalid_request") {
+          var t = String(e.raw || "");
+          if (f.search && /web.?search|server.?tool|\btools?\b/i.test(t)) { f.search = 0; changed.search = false; continue; }
+          if (f.effort && /effort|output_config/i.test(t)) { f.effort = null; changed.effort = false; continue; }
+          if (/max_tokens/i.test(t) && f.mtv !== 4096) { f.mtv = f.mtv === 8192 ? 4096 : 8192; changed.mtv = f.mtv; continue; }
+          if (f.stream && /\bstream/i.test(t)) { f.stream = false; changed.stream = false; continue; }
+          if (!blind && (f.effort || f.search)) { blind = true; if (f.effort) { f.effort = null; changed.effort = false; } if (f.search) { f.search = 0; changed.search = false; } continue; }
+        }
+        if (retries < 2 && (e.retry || e.code === "rate_limited" || (e.code === "upstream_error" && e.status >= 500))) { retries++; await wait(e.retryAfter || (retries === 1 ? 2500 : 7000), o.sig); continue; }
+        throw e;
+      }
+      for (var x in changed) cap[x] = changed[x];                         // 改过之后成功了：这次打开页面期间记住
+      if (o.search && !f.search) r.searchOff = true;                      // 想搜，但这个账号或模型不让搜
+      return r;
+    }
+    throw mkErr("invalid_request");
+  }
 
   /* ---------- 对外：与 Claude 里的 sample 同形 ---------- */
   var TOTAL = 900000, IDLE = 180000;                                      // 整个请求最长 15 分钟；连续 3 分钟一个字节都没收到就放弃
@@ -3656,14 +3753,14 @@ var QLAI = (function () {
     function beat() { clearTimeout(idleT); idleT = setTimeout(function () { why = "timeout"; ctl.abort(); }, IDLE); }
     beat();
     try {
-      var opt = { sig: ctl.signal, onText: o.onText, onThink: o.onThink, quiet: !(tier === "complex" && k.think) }, r;
+      var opt = { sig: ctl.signal, onText: o.onText, onThink: o.onThink, onSearch: o.onSearch, tier: tier, search: o.webSearch && k.P.search ? o.webSearch : 0, quiet: !(tier === "complex" && k.think) }, r;
       try { r = await call(k, model, input, opt, beat); }
       catch (e) {
         if (!(e && e.code === "bad_model" && model !== k.model)) throw e;
         model = k.model; r = await call(k, model, input, opt, beat);       // 做小事用的那个模型在这个账号上不可用：换回主模型
       }
-      if (!r.text) throw mkErr(/content_filter|refusal|safety/i.test(String(r.fin || "")) ? "refused" : "empty_completion");
-      return { text: r.text, truncated: r.fin === "length", model: model, provider: k.id };
+      if (r.fin === "refusal" || !r.text) throw mkErr(/content_filter|refusal|safety/i.test(String(r.fin || "")) ? "refused" : "empty_completion");
+      return { text: r.text, truncated: r.fin === "length", model: model, provider: k.id, searches: r.searches || 0, searchOff: !!r.searchOff };
     } catch (e) {
       var err = ctl.signal.aborted ? mkErr(why || "cancelled") : e && e.name === "AbortError" ? mkErr("cancelled") : e;
       if (err && err.code !== "cancelled") try { console.warn("[AI]", k.id, model, err.code, err.detail || ""); } catch (x) {}   // 详情只记在本机的控制台，里面没有密钥
@@ -3686,14 +3783,14 @@ var QLAI = (function () {
   async function test(c) {
     var k = conf(c || CFG), bad = problem(k); if (bad) throw mkErr(bad);
     var t0 = Date.now();
-    var r = await timed(function (sig) { return call(k, k.model, "Connection test. Reply with the single word: OK", { sig: sig, quiet: true }, function () {}); }, 90000);
+    var r = await timed(function (sig) { return call(k, k.model, "Connection test. Reply with the single word: OK", { sig: sig, quiet: true, tier: "quick" }, function () {}); }, 90000);
     return { ms: Date.now() - t0, text: String(r.text || "").slice(0, 80), model: k.model, viaProxy: viaProxy(k) };
   }
   /** 向服务商查询可用的模型（GET /models），去掉嵌入、语音、绘图等非对话模型 */
   async function models(c) {
     var k = conf(c || CFG), bad = problem(k); if (bad && bad !== "no_model") throw mkErr(bad);
     var res = await timed(async function (sig) {
-      var r; try { r = await fetch(url(k, "/models"), { headers: headers(k, false), signal: sig, credentials: "omit", referrerPolicy: "no-referrer" }); }
+      var r; try { r = await fetch(url(k, isA(k) ? "/models?limit=100" : "/models"), { headers: headers(k, false), signal: sig, credentials: "omit", referrerPolicy: "no-referrer" }); }
       catch (e) { if (e && e.name === "AbortError") throw e; throw mkErr("network", String((e && e.message) || e), { proxy: viaProxy(k), nocors: noCors(k) }); }
       if (!r.ok) throw await httpErr(r);
       return r.json();
@@ -3730,10 +3827,12 @@ var QLAI = (function () {
     return { text: ERR[code] || "出错了" + (e && e.message ? "（" + e.message + "）" : "") + "。", detail: e && e.detail && !/^network/.test(code) ? e.detail : "" };
   }
   function label(c) { var k = conf(c || CFG); return usable(k) ? { short: k.P.short, model: k.model, id: k.id } : null; }
+  /** 接的这家能不能在服务商那边上网搜索（现在只有 Claude） */
+  function canSearch() { var k = conf(); return usable(k) && !!k.P.search; }
 
   return {
     PRE: PRE, preset: byId, cfg: function () { return clone(CFG); }, save: save, conf: conf, usable: usable, problem: problem, ready: function () { return usable(conf()); },
-    isLocal: isLocal, viaProxy: viaProxy, noCors: noCors, sample: sample, test: test, models: models, label: label, explain: explain, visible: visible,
+    isLocal: isLocal, viaProxy: viaProxy, noCors: noCors, sample: sample, canSearch: canSearch, test: test, models: models, label: label, explain: explain, visible: visible,
     onChange: function (f) { subs.push(f); }, _cap: CAP, _key: LSK
   };
 })();
@@ -14070,9 +14169,22 @@ var MLA = (function () {
     var N = runs.length, em = ST.expectedMaxNormal(N), nPair = vs.filter(Boolean).map(function (x) { return x.n; })[0];
     c.body.appendChild(h("p", { class: "ml-note" }, h("b", { text: "怎么读。" }), " “比基线好多少”是在同一批验证样本上的配对比较，正数表示比基线好（" + (E.kind === "classification" ? "准确率之差，检验用 McNemar" : E.kind === "forecast" ? "基线的 MSE 减去这个算法的 MSE，检验用 Diebold–Mariano" : "基线的 MSE 减去这个算法的 MSE，区间和 p 用正态近似") + "）；p 值按 Holm 方法对这 " + N + " 行一起校正过。绿色：区间整个在 0 的上方；红色：整个在下方。" + (E.nValid > MAXN && nPair ? "验证集有 " + E.nValid + " 个样本，配对检验只用了前 " + nPair + " 个，所以“比基线”的差和两列成绩之差可能略有出入。" : "")));
     if (N >= 2) c.body.appendChild(h("p", { class: "ml-note" }, h("b", { text: "挑出来的第一名偏乐观。" }), " 你在这个实验上试了 " + N + " 次。即使这 " + N + " 个算法其实一样好，验证集上最好的那一个平均也会比真实水平高出约 " + F(em, 2) + " 个标准误（独立的 N(0,1) 取最大值的期望；相关的候选会少一些）。所以最后要在测试集上确认，而且测试集只看一次。" + (E.looks ? "这个实验已经看过 " + E.looks + " 次测试集。" : "")));
-    c.body.appendChild(h("div", { class: "ml-row" }, h("span", { class: "sp" }), h("button", { class: "btn small", type: "button", text: "清空这个实验的记录", onclick: function () { if (confirmBox("清空这个实验的 " + N + " 条记录？（看过测试集的次数会留着。）")) A.clearExp(); } })));
+    c.body.appendChild(h("div", { class: "ml-row" }, h("span", { class: "sp" }), twoStep(h("button", { class: "btn small", type: "button", id: "btnClearExp", text: "清空这个实验的记录" }), "再点一次：清空 " + N + " 条记录（看过测试集的次数会留着）", function () { A.clearExp(); })));
   }
-  function confirmBox(msg) { try { return window.confirm(msg); } catch (e) { return true; } }
+  /** 要确认的按钮：点第一次变成"再点一次……"，4 秒内再点才执行（不用浏览器的 confirm 对话框：在 Claude 里打开时它直接返回"取消"） */
+  function twoStep(btn, ask, fn) {
+    var label = btn.textContent, armed = false, t = null;
+    function reset() { armed = false; clearTimeout(t); btn.textContent = label; btn.classList.remove("danger"); }
+    btn.addEventListener("click", function () { if (!armed) { armed = true; btn.textContent = ask; btn.classList.add("danger"); t = setTimeout(reset, 4000); return; } reset(); fn(); });
+    btn.addEventListener("blur", function () { if (armed) setTimeout(reset, 150); });
+    return btn;
+  }
+  A.twoStep = twoStep;
+  /** 复制到剪贴板：成功、失败都说一声 */
+  A.copyText = function (text) {
+    try { navigator.clipboard.writeText(text).then(function () { A.toast("已复制"); }, function () { A.toast("没能复制：这里不允许写剪贴板。可以在框里全选以后自己复制。", 3600); }); }
+    catch (e) { A.toast("没能复制：这里不允许写剪贴板。可以在框里全选以后自己复制。", 3600); }
+  };
   function fmtP(p) { return p == null || !(p === p) ? "—" : p < 0.001 ? "< 0.001" : F(p, 3); }
   function paramsText(p) { if (!p) return ""; var ks = Object.keys(p); if (!ks.length) return ""; return ks.slice(0, 5).map(function (k) { var v = p[k]; return k + "=" + (typeof v === "number" ? G(v) : String(v)); }).join("，") + (ks.length > 5 ? "…" : ""); }
   /** 载入：算法还在而且代码没变，就选它；代码变了或者已经删了，用记录里存的代码和参数表另存一份 */
@@ -14135,9 +14247,9 @@ var MLA = (function () {
       err.hidden = true; return { code: code, params: params };
     }
     var foot = [];
-    if (!ro) foot.push(h("button", { class: "btn", type: "button", text: "删除", onclick: function () { if (confirmBox("删除“" + a.name + "”？")) { A.deleteMine(a.id); m.close(); } } }));
+    if (!ro) foot.push(twoStep(h("button", { class: "btn", type: "button", id: "btnDelMine", text: "删除" }), "再点一次：删除“" + a.name + "”", function () { A.deleteMine(a.id); m.close(); }));
     foot.push(h("span", { style: { flex: "1" } }));
-    foot.push(h("button", { class: "btn", type: "button", text: "复制代码", onclick: function () { try { navigator.clipboard.writeText(ta.value); A.toast("已复制"); } catch (e) {} } }));
+    foot.push(h("button", { class: "btn", type: "button", text: "复制代码", onclick: function () { A.copyText(ta.value); } }));
     foot.push(h("button", { class: "btn", type: "button", text: ro ? "另存为我的算法" : "另存一份", onclick: function () { var x = collect(); if (!x) return; var rec = A.saveMine({ name: (ro ? a.name + "（改）" : name.value + "（副本）"), summary: a.summary, code: x.code, params: x.params, docs: a.docs, src: "mine", lang: a.lang, api: a.api, kinds: a.kinds, families: a.families }); A.selectAlgo(rec.id); m.close(); A.toast("已存为“" + rec.name + "”，可以改了。"); A.openCode(); } }));
     if (!ro) foot.push(h("button", { class: "btn primary", type: "button", text: "保存并运行", onclick: function () { var x = collect(); if (!x) return; var rec = A.saveMine({ id: a.id, name: name.value, summary: a.summary, code: x.code, params: x.params, docs: a.docs, src: a.src, lang: a.lang, api: a.api, kinds: a.kinds, families: a.families }); A.selectAlgo(rec.id); m.close(); A.run().catch(function () {}); } }));
     var m = A.modal("代码与说明：" + a.name, [tabs, body, err], { foot: foot, focus: "#codeEdit" });
@@ -15515,7 +15627,7 @@ $$\lvert\hat R_T(f)-R(f)\rvert\le\sqrt{\frac{\ln(2/\delta)}{2m}}.$$
   add("data:web", "入门", "从网上取数据", "网上 网络 下载 取数据 描述 AI 找数据 网址 URL CSV JSON zip gz 跨域 CORS 本机引擎 GitHub 现成 真实数据", R`
 "数据"块里的"从网上取…"打开一个对话框，有三种找法：
 
-1. **用一句话描述。** 比如"过去三十年的布伦特原油日价""能预测房价的表格，有面积、房间数"。你接入的 AI 给出一到四个**数据文件**的地址，并替你填好要预测的列、任务类型、要丢掉的列（尤其是会泄露答案的列）、要筛的行（比如汇率表里只留人民币）。页面按顺序去取，取到第一个能用的就停下来给你预览；都取不到，可以让 AI 换几个。AI 不会上网搜索，只能凭它知道的给地址，所以会给错；页面只认真正取得到、读得出表格的那一个。
+1. **用一句话描述。** 比如"过去三十年的布伦特原油日价""能预测房价的表格，有面积、房间数"。你接入的 AI 给出一到四个**数据文件**的地址，并替你填好要预测的列、任务类型、要丢掉的列（尤其是会泄露答案的列）、要筛的行（比如汇率表里只留人民币）。页面按顺序去取，取到第一个能用的就停下来给你预览；都取不到，可以让 AI 换几个。接的是 **Claude** 时，它先在 Anthropic 那边上网搜索（最多 5 次，搜索按次另外计费，每千次 10 美元），再从搜到的页面里挑数据文件的地址，日志里能看到它搜了什么；接的是别家时，AI 不会上网搜索，只能凭它知道的给地址，所以更容易给错。不管哪家，页面只认真正取得到、读得出表格的那一个。
 2. **直接填网址。** 文件本身的地址（以 .csv、.json 之类结尾），不是网页。
 3. **从现成的里挑。** 二十个地址核实过的真实数据：标普 500、VIX、原油、黄金、天然气、美债收益率、CPI、房价指数、CO₂、全球气温、人民币汇率、北极海冰、航空旅客，以及企鹅、泰坦尼克、钻石、汽车油耗、小费、出租车。都在 GitHub 上公开的数据仓库里（大多数是 ODC-PDDL 公有领域），而且一直在更新。
 
@@ -15532,6 +15644,8 @@ $$\lvert\hat R_T(f)-R(f)\rvert\le\sqrt{\frac{\ln(2/\delta)}{2m}}.$$
 导入的数据集标成 **从网上取的数据**（虚线框的标签），说明里记着地址、取的日期、出处和许可。这份数据是不是真实采集的、准不准，以来源的说明为准；它没有"理论最优"可比。
 
 文件不大（原文不到 30 万字符）时，原文存在浏览器里，刷新以后还在；大文件只存地址，打开页面时重新去取一次。
+
+**在 Claude 里打开时。** Claude 不让页面自己联网，所以在 Claude 里打开的实验室取不到网上的数据，也连不上本机引擎；对话框顶上会说明，并给出网站版的地址。在那里可以用“导入 CSV”导入下载好的文件。
 
 **泄露答案的列。** 网上的表经常带着由答案算出来的列：泰坦尼克号的表里有 alive（就是 survived 的文字版），出租车的表里有 total（车费加小费）。留着它们，模型会"好得难以置信"。预览里把它们去掉；现成的数据已经替你去掉了。
 `);
@@ -17921,7 +18035,22 @@ if (typeof module !== "undefined" && module.exports) module.exports = QL_MLGUIDE
       h("tbody", null, params.map(function (q) { return h("tr", null, h("td", { text: q.label }), h("td", { class: "num mono", text: q.type === "bool" ? (q.def ? "是" : "否") : q.type === "select" ? String(q.def) : G(q.def) }), h("td", { class: "num mono", text: q.type === "bool" ? "" : q.type === "select" ? q.options.map(function (o) { return o[1]; }).join(" / ") : G(q.min) + " – " + G(q.max) }), h("td", { text: q.desc || "" })); })));
   }
   function codeBlock(code) { return h("details", { class: "more" }, h("summary", { text: "代码（" + code.split("\n").length + " 行）" }), h("div", { class: "more-body" }, h("pre", { class: "code", text: code }))); }
-  function errText(e) { if (WEB && e && e.code) return WEB.explain(e).text; return e && e.code === "cancelled" ? "已停止。" : "出错了：" + (e && e.message || e); }
+  /* 在 Claude 里打开时，window.claude 的 sample 报的错（代码见 Artifact 的 sample 能力的说明） */
+  var HERR = {
+    not_granted: "你没有允许这个页面使用 Claude。重新打开页面时可以再选。", sampling_disabled: "这个账号或组织没有开通页面里使用 Claude。",
+    not_declared: "这个页面没有被授予使用 Claude 的能力。", capability_disabled: "当前的打开方式下不能使用 Claude。", capability_removed: "当前的 Claude 应用版本不支持这个调用，请更新应用。",
+    tools_unavailable: "当前的打开方式不支持这个功能。", rate_limited: "调用太频繁，或者已经用到了账号的用量上限。过一会儿再试。", session_expired: "登录已过期，请重新登录 Claude 后再试。",
+    refused: "Claude 没有接受这个请求，换个说法试试。", empty_completion: "没有得到回答，请把要求说得更具体一些再试。", invalid_json: "回答的格式不对，请再试一次。",
+    prompt_too_large: "发送的内容太长了（最多 256 KB）。把自己写的代码改短一些再试。", invalid_request: "请求的格式有误（这是页面的问题）。", transform_error: "请求没能准备好（这是页面的问题）。",
+    queue_overflow: "一下子发出的请求太多了。刷新页面再试。", upstream_error: "Claude 那边暂时出了问题。过一会儿再试。", unavailable: "这个页面现在用不了 Claude。"
+  };
+  var HOST_OFF = /^(not_granted|sampling_disabled|not_declared|capability_disabled|capability_removed)$/;   // 这次打开页面期间都用不了：关掉输入
+  function errText(e) {
+    if (WEB && e && e.code) return WEB.explain(e).text;
+    if (e && e.code === "cancelled") return "已停止。";
+    if (HOST && e && e.code) return HERR[e.code] || HERR.upstream_error;
+    return "出错了：" + (e && e.message || e) + "。";
+  }
   function fail(el, e) {
     var st = el.querySelector(".a-status"); if (st) st.remove();
     if (e && e.code === "cancelled") { el.appendChild(h("div", { class: "note", text: "已停止。" })); return; }
@@ -17934,6 +18063,7 @@ if (typeof module !== "undefined" && module.exports) module.exports = QL_MLGUIDE
       return;
     }
     el.appendChild(h("div", { class: "warn err", text: errText(e) }));
+    if (HOST && e && HOST_OFF.test(e.code || "")) { sample = null; var off = $("aiOff"); if (off) { off.hidden = false; off.textContent = errText(e) + "其余功能不受影响。"; } var sb = $("aiSend"), ta = $("aiInput"); if (sb) sb.disabled = true; if (ta) ta.disabled = true; }
   }
   /** tier：独立网页里"complex"允许深度思考（写代码），"default"直接回答（问结果、诊断） */
   function call(input, tier, onText, status) {
@@ -18002,7 +18132,7 @@ if (typeof module !== "undefined" && module.exports) module.exports = QL_MLGUIDE
     var el = card(), status = statusRow(who() + " 正在看这次运行…"), out = h("div", { class: "md" }); el.appendChild(status); el.appendChild(out);
     return call(promptDiag(), "default", function (t) { status.hidden = true; QLMD.mountPartial(out, t); scrollSoft(); }, status).then(function (res) {
       status.remove(); QLMD.mount(out, res.text); lastDiag = res.text;
-      el.appendChild(h("div", { class: "a-actions" }, h("button", { class: "btn small primary", type: "button", text: "按“下一步”自动改进", onclick: function () { A.aiImprove(nextSteps(res.text)); } }), h("button", { class: "btn small", type: "button", text: "复制报告", onclick: function () { try { navigator.clipboard.writeText(res.text); A.toast("已复制"); } catch (e) {} } })));
+      el.appendChild(h("div", { class: "a-actions" }, h("button", { class: "btn small primary", type: "button", text: "按“下一步”自动改进", onclick: function () { A.aiImprove(nextSteps(res.text)); } }), h("button", { class: "btn small", type: "button", text: "复制报告", onclick: function () { A.copyText(res.text); } })));
     }).catch(function (e) { fail(el, e); });
   }
   var lastDiag = "";
@@ -18239,13 +18369,20 @@ if (typeof module !== "undefined" && module.exports) module.exports = QL_MLGUIDE
   /** 给别的面板用（比如"从网上取数据"）：问一次，返回 { promise（兑现为回答的全文）, cancel() }。没接入时 ready() 是 false */
   A.aiReady = function () { return !!sample; };
   A.aiWho = who;
-  A.aiAsk = function (input, tier, onText) {
-    var c = new AbortController(), o = { signal: c.signal, modelTier: tier || "default" };
+  /** extra.webSearch：允许服务商那边上网搜索几次（只有独立网页里接的是 Claude 时才有用）；extra.onSearch(x)：搜了什么、搜到几条。
+      回答完以后 meta.searches 是搜了几次，meta.searchOff 表示想搜但这个账号或模型不让搜 */
+  A.aiAsk = function (input, tier, onText, extra) {
+    var c = new AbortController(), o = { signal: c.signal, modelTier: tier || "default" }, meta = {};
     if (onText) o.onText = function (u) { try { onText(u.text); } catch (e) {} };
-    var p = sample ? Promise.resolve().then(function () { return sample(input, o); }).then(function (r) { return r.text; }) : Promise.reject({ code: "unavailable" });
-    return { promise: p, cancel: function () { c.abort(); } };
+    if (WEB && extra && extra.webSearch) { o.webSearch = extra.webSearch; if (extra.onSearch) o.onSearch = function (x) { try { extra.onSearch(x); } catch (e) {} }; }
+    var p = sample ? Promise.resolve().then(function () { return sample(input, o); }).then(function (r) { meta.searches = r.searches || 0; meta.searchOff = !!r.searchOff; return r.text; }) : Promise.reject({ code: "unavailable" });
+    return { promise: p, cancel: function () { c.abort(); }, meta: meta };
   };
-  A.aiErrText = function (e) { return WEB && e && e.code ? WEB.explain(e).text : e && e.code === "cancelled" ? "已停止。" : "出错了：" + (e && e.message || e); };
+  /** 接的 AI 能不能真的上网搜索（独立网页里接的是 Claude） */
+  A.aiCanSearch = function () { return !!(sample && WEB && WEB.canSearch && WEB.canSearch()); };
+  /** 是不是在 Claude 里打开的（那里页面不能自己联网） */
+  A.aiHost = HOST;
+  A.aiErrText = errText;
 })(MLA);
 
 /* ===== ml/engine.js ===== */
@@ -18410,6 +18547,7 @@ if (typeof module !== "undefined" && module.exports) module.exports = QL_MLGUIDE
       } else {
         body.appendChild(h("p", { text: "本机引擎是一个小程序，在你自己的电脑上运行，让这一页可以用 Python（numpy、PyTorch，有苹果芯片或 NVIDIA 的 GPU 时用 GPU）训练算法。它只监听本机（127.0.0.1），每次启动换一个随机令牌；只有从它打印的网址打开的页面才能用它。" }));
         body.appendChild(h("pre", { class: "code", text: START }));
+        if (A.aiHost) body.appendChild(h("div", { class: "warn", text: "你是在 Claude 里打开的这一页：这里连不上本机引擎。要用引擎，请在浏览器里用引擎打印的网址打开实验室。" }));
         body.appendChild(h("p", { class: "note", text: "这一页现在不是从引擎打开的，所以只用浏览器里的线程（不需要引擎也能用全部内置算法）。详细的说明在仓库的 strategy-lab/ml-engine/README.md，也可以看手册里的“本机引擎”。" }));
       }
       body.appendChild(h("p", { class: "note" }, "安全：引擎会执行你选的 Python 代码，权限和你自己一样（能读写你的文件）。只运行你看过、信得过的代码；AI 写的 Python 代码也要先看一遍。", A.helpBtn ? A.helpBtn("engine:how", "本机引擎") : null));
@@ -18434,7 +18572,9 @@ if (typeof module !== "undefined" && module.exports) module.exports = QL_MLGUIDE
  *   从下面"现成的"里挑（地址都核实过：GitHub 上公开的数据仓库）。
  * 取的办法：先在浏览器里直接取（不带 Cookie）；GitHub 的地址取不到时换 jsDelivr 的镜像；网站不允许网页直接读（跨域限制）时，
  * 连着本机引擎就请引擎去取（POST /api/fetch，只取公网地址）。取来的文件可以是 CSV、TSV、JSON、JSON Lines，也可以是 .gz 或 .zip 压缩的。
- * 取到以后先预览，确认要预测的列和任务类型再导入；导入后和导入 CSV 一样用，数据集标成"从网上取的数据"并记下地址。 */
+ * 取到以后先预览，确认要预测的列和任务类型再导入；导入后和导入 CSV 一样用，数据集标成"从网上取的数据"并记下地址。
+ * 接的 AI 是 Claude 时（独立网页里），它在服务商那边先上网搜索（web_search），再给地址；别家只能凭记忆给。
+ * 在 Claude 里打开页面时，Claude 不让页面自己联网：这里取不到网上的数据，对话框会说清楚，并指向网站版。 */
 var QL_MLWEBCAT = [
   // 时间序列（GitHub 上 datasets 组织的公开数据包，大多是 ODC-PDDL 公有领域；数据一直在更新）
   { id: "sp500", name: "标普 500 月度（1871 年起，Shiller）", url: "https://raw.githubusercontent.com/datasets/s-and-p-500/main/data/data.csv", kind: "forecast", target: "SP500", time: "Date", desc: "标普 500 指数的月度值，另有股息、盈利、CPI、长期利率、PE10 等列（2023 年 6 月以后只更新了指数本身）。", source: "Robert Shiller / FRED，经 github.com/datasets/s-and-p-500 整理", license: "ODC-PDDL-1.0", real: true, keys: "股票 指数 美股 sp500 s&p shiller 月线" },
@@ -18467,6 +18607,7 @@ if (typeof MLA !== "undefined") (function (A) {
   var h = A.h, $ = A.$, clear = A.clear, QL = A.QL, S = A.S, G = A.G;
   var MAXB = 30 * 2 ** 20, LIM = (QL.mlreg && QL.mlreg.limits && QL.mlreg.limits.rows) || 50000;
   var KINDS = [["regression", "回归"], ["classification", "分类"], ["forecast", "时间序列预测"]];
+  var SITE = "https://zechenbian.github.io/strategy-lab/ml/", SEARCHES = 5;
   function kindOfGroup() { var g = A.group(); return g.family === "timeseries" ? "forecast" : g.kind || "regression"; }
   function hostOf(u) { try { return new URL(u).host; } catch (e) { return ""; } }
   function okUrl(u) { try { var x = new URL(u); return (x.protocol === "https:" || x.protocol === "http:") && !x.username && !x.password; } catch (e) { return false; } }
@@ -18504,7 +18645,7 @@ if (typeof MLA !== "undefined") (function (A) {
     if (A.engineCanFetch && A.engineCanFetch()) {
       try { log("请本机引擎去取 …"); var r3 = await viaEngine(url); r3.via = "engine"; log("✓ 本机引擎取到了（" + size(r3.bytes.length) + "）", "good"); return r3; }
       catch (e) { if (sig && sig.aborted) throw e; errs.push("本机引擎：" + e.message); log("✕ 本机引擎：" + e.message, "bad"); }
-    } else errs.push(A.engineReady && A.engineReady() ? "本机引擎的版本太旧，不能替页面取数据" : "没有连上本机引擎（连上以后，浏览器读不到的网站可以请它去取）");
+    } else errs.push(A.aiHost ? "在 Claude 里打开时页面不能联网，也连不上本机引擎（请用网站版 " + SITE + "）" : A.engineReady && A.engineReady() ? "本机引擎的版本太旧，不能替页面取数据" : "没有连上本机引擎（连上以后，浏览器读不到的网站可以请它去取）");
     var err = new Error(errs.join("；")); err.all = errs; throw err;
   }
   function size(n) { return n < 1024 ? n + " 字节" : n < 2 ** 20 ? (n / 1024).toFixed(0) + " KB" : (n / 2 ** 20).toFixed(1) + " MB"; }
@@ -18633,14 +18774,14 @@ if (typeof MLA !== "undefined") (function (A) {
 
   /* ---------- AI：把描述变成几个候选的地址 ---------- */
   function catLine(c) { return "- " + c.name + " | " + c.url + " | kind=" + c.kind + " | target=" + c.target + (c.time ? " | time=" + c.time : "") + (c.filter ? " | filter=" + JSON.stringify(c.filter) : "") + (c.drop ? " | drop=" + JSON.stringify(c.drop) : ""); }
-  function prompt(desc, kind, failed) {
+  function prompt(desc, kind, failed, search) {
     return [
       "你是数据检索助手，替一个浏览器里的机器学习实验室找可以直接下载的数据文件。用中文写说明。",
       "# 使用者想要的数据\n" + desc,
       "# 实验室现在的任务\n" + A.group().name + "（kind = " + kind + "）。可以选 regression（回归）、classification（分类）、forecast（时间序列预测）；描述里说清楚了要别的任务，就按描述来。",
       "# 要求\n" + [
         "- 给 1 到 4 个候选，按把握从大到小排。必须是文件本身的地址（CSV、TSV、JSON、JSON Lines，或者它们的 .gz / .zip），不是网页；不要需要登录、API 密钥或付费的。",
-        "- 只给你确信真实存在的地址，不确定就少给几个，不要编造。",
+        search ? "- 你可以用网络搜索（web_search 工具），最多 " + SEARCHES + " 次。先搜索，找到数据文件本身的下载地址（直链）；只给在搜索结果里见到过、或者你确信真实存在的地址，不要编造。搜索结果里的网页本身不算，要的是网页上“下载”的那个文件地址。" : "- 只给你确信真实存在的地址，不确定就少给几个，不要编造。",
         "- 浏览器只能直接读允许跨域的网站。优先用：raw.githubusercontent.com（GitHub 上公开的数据仓库，比如 github.com/datasets/*、mwaskom/seaborn-data、owid/* 等）、cdn.jsdelivr.net/gh/…、huggingface.co/datasets/<名字>/resolve/main/<文件>。别的网站只有在使用者连着本机引擎时才取得到，这种候选把 needsEngine 设成 true。",
         "- 一个文件最多 30 MB；超过 5 万行时实验室会自动抽样（时间序列留最近的）。",
         "- 指定 target（要预测的那一列，名字和文件里的表头一字不差）、kind、time（时间序列的日期列；没有就不写）、drop（要丢掉的列，特别是会泄露答案的列，比如和答案重复或由答案算出来的列）、filter（只留某一类的行，例如 {\"Country\": \"China\"}，值要和文件里的写法一字不差）、jsonPath（JSON 里记录数组的路径，例如 data.items）、zipEntry（zip 里要用的文件名）。",
@@ -18648,7 +18789,7 @@ if (typeof MLA !== "undefined") (function (A) {
       ].join("\n"),
       "# 已知可用的（地址和表头都核实过，合适就直接用）\n" + QL_MLWEBCAT.map(catLine).join("\n"),
       failed && failed.length ? "# 上一轮给的这些地址取不到或不能用，换别的\n" + failed.map(function (f) { return "- " + f.url + "：" + f.why; }).join("\n") : "",
-      "# 输出格式\n只输出一个 JSON 对象，不要别的文字，也不要代码围栏：\n{\"candidates\": [{\"name\": \"…\", \"url\": \"https://…\", \"format\": \"csv | tsv | json | jsonl | auto\", \"target\": \"…\", \"kind\": \"regression | classification | forecast\", \"time\": \"…\", \"drop\": [\"…\"], \"filter\": {\"列\": \"值\"}, \"jsonPath\": \"…\", \"zipEntry\": \"…\", \"source\": \"…\", \"license\": \"…\", \"real\": true, \"needsEngine\": false, \"why\": \"…\"}], \"note\": \"…\"}"
+      "# 输出格式\n" + (search ? "搜索完以后，最后的回答" : "") + "只输出一个 JSON 对象，不要别的文字，也不要代码围栏：\n{\"candidates\": [{\"name\": \"…\", \"url\": \"https://…\", \"format\": \"csv | tsv | json | jsonl | auto\", \"target\": \"…\", \"kind\": \"regression | classification | forecast\", \"time\": \"…\", \"drop\": [\"…\"], \"filter\": {\"列\": \"值\"}, \"jsonPath\": \"…\", \"zipEntry\": \"…\", \"source\": \"…\", \"license\": \"…\", \"real\": true, \"needsEngine\": false, \"why\": \"…\"}], \"note\": \"…\"}"
     ].filter(Boolean).join("\n\n");
   }
   function str(x, n) { return typeof x === "string" ? x.trim().slice(0, n) : ""; }
@@ -18657,7 +18798,7 @@ if (typeof MLA !== "undefined") (function (A) {
     var f = null; if (c.filter && typeof c.filter === "object" && !Array.isArray(c.filter)) { f = {}; Object.keys(c.filter).slice(0, 3).forEach(function (k) { if (typeof c.filter[k] === "string" || typeof c.filter[k] === "number") f[String(k).slice(0, 80)] = String(c.filter[k]).slice(0, 120); }); if (!Object.keys(f).length) f = null; }
     return { name: str(c.name, 60) || hostOf(c.url), url: str(c.url, 4000), format: ["csv", "tsv", "json", "jsonl", "auto"].indexOf(c.format) >= 0 ? c.format : "auto", target: str(c.target, 120), kind: ["regression", "classification", "forecast"].indexOf(c.kind) >= 0 ? c.kind : "", time: str(c.time, 120), drop: Array.isArray(c.drop) ? c.drop.filter(function (x) { return typeof x === "string"; }).slice(0, 50).map(function (x) { return x.slice(0, 120); }) : [], filter: f, jsonPath: str(c.jsonPath, 200), zipEntry: str(c.zipEntry, 200), source: str(c.source, 300), license: str(c.license, 120), real: c.real === true ? true : c.real === false ? false : null, needsEngine: !!c.needsEngine, why: str(c.why, 400) };
   }
-  function parsePlans(text) { var a = text.indexOf("{"), b = text.lastIndexOf("}"); if (a < 0 || b <= a) throw new Error("AI 的回答里没有 JSON。"); var o = JSON.parse(text.slice(a, b + 1)); return { list: (Array.isArray(o.candidates) ? o.candidates : []).map(cleanPlan).filter(Boolean).slice(0, 4), note: str(o.note, 500) }; }
+  function parsePlans(text) { var fence = /```(?:json)?\s*(\{[\s\S]*\})\s*```/.exec(text); if (fence) text = fence[1]; else { var k = text.lastIndexOf('{"candidates"'); if (k < 0) k = text.lastIndexOf('{ "candidates"'); if (k > 0) text = text.slice(k); } var a = text.indexOf("{"), b = text.lastIndexOf("}"); if (a < 0 || b <= a) throw new Error("AI 的回答里没有 JSON。"); var o = JSON.parse(text.slice(a, b + 1)); return { list: (Array.isArray(o.candidates) ? o.candidates : []).map(cleanPlan).filter(Boolean).slice(0, 4), note: str(o.note, 500) }; }
   A.webPrompt = prompt; A.webParsePlans = parsePlans;
 
   /* ---------- 对话框 ---------- */
@@ -18671,10 +18812,13 @@ if (typeof MLA !== "undefined") (function (A) {
     var cat = h("div", { class: "ml-web-cat" }), cands = h("div", { class: "ml-web-cands" }), logBox = h("ol", { class: "ml-web-log", "aria-live": "polite" }), prev = h("div", { class: "ml-web-prev" });
     var aiNote = h("div", { class: "note" });
     function log(t, cls) { logBox.appendChild(h("li", { class: cls || "", text: t })); }
-    function setBusy(b) { busy = b; [aiBtn, urlBtn].forEach(function (x) { x.disabled = b || (x === aiBtn && !(A.aiReady && A.aiReady())); }); stopBtn.hidden = !b; }
+    function setBusy(b) { busy = b; [aiBtn, urlBtn].forEach(function (x) { x.disabled = b || (x === aiBtn && (A.aiHost || !(A.aiReady && A.aiReady()))); }); stopBtn.hidden = !b; }
     var stopBtn = h("button", { class: "btn small", type: "button", text: "停止", hidden: true, onclick: function () { if (ctl) ctl.abort(); if (aiCall) aiCall.cancel(); } }), aiCall = null;
-    if (!(A.aiReady && A.aiReady())) { aiBtn.disabled = true; aiNote.textContent = "还没有接入 AI：可以直接填网址，或者从下面现成的里挑。要用描述找，先在右栏接入 AI。"; }
-    else aiNote.textContent = "AI 只能凭它知道的给地址（不会上网搜）；给的地址页面会逐个去取，取不到就换下一个。";
+    var search = !!(A.aiCanSearch && A.aiCanSearch());
+    if (A.aiHost) { aiBtn.disabled = true; aiNote.textContent = "在 Claude 里打开时用不了：页面取不到网上的文件。"; }
+    else if (!(A.aiReady && A.aiReady())) { aiBtn.disabled = true; aiNote.textContent = "还没有接入 AI：可以直接填网址，或者从下面现成的里挑。要用描述找，先在右栏接入 AI。"; }
+    else if (search) aiNote.textContent = A.aiWho() + " 会先上网搜索（最多 " + SEARCHES + " 次，搜索按次另外计费），再给几个数据文件的地址；页面逐个去取，取不到就换下一个。";
+    else aiNote.textContent = A.aiWho() + " 只能凭它知道的给地址（不会上网搜；接的是 Claude 时才会先搜索）；给的地址页面会逐个去取，取不到就换下一个。";
     function paintCat() {
       clear(cat); var s = q.value.trim().toLowerCase(), list = QL_MLWEBCAT.slice();
       list.sort(function (a, b) { return (b.kind === kind0) - (a.kind === kind0); });
@@ -18712,11 +18856,15 @@ if (typeof MLA !== "undefined") (function (A) {
     }
     function ask() {
       var text = desc.value.trim(); if (!text) { desc.focus(); return; }
-      if (busy || !(A.aiReady && A.aiReady())) return;
-      round++; setBusy(true); clear(cands); if (round === 1) clear(logBox); log((round > 1 ? "第 " + round + " 轮：" : "") + "请 " + A.aiWho() + " 找数据 …");
-      aiCall = A.aiAsk(prompt(text, kind0, round > 1 ? failed : null), "default");
+      if (busy || A.aiHost || !(A.aiReady && A.aiReady())) return;
+      round++; setBusy(true); clear(cands); if (round === 1) clear(logBox); log((round > 1 ? "第 " + round + " 轮：" : "") + "请 " + A.aiWho() + (search ? " 上网搜索、找数据 …" : " 找数据 …"));
+      aiCall = A.aiAsk(prompt(text, kind0, round > 1 ? failed : null, search), "default", null, search ? { webSearch: SEARCHES, onSearch: function (x) {
+        if (x.query) log("  " + A.aiWho() + " 搜索：" + x.query); else if (x.error) log("  这次搜索没成功（" + x.error + "）", "bad"); else if (x.results != null) log("  搜到 " + x.results + " 条结果");
+      } } : null);
+      var meta = aiCall.meta;
       aiCall.promise.then(function (reply) {
         aiCall = null; setBusy(false);
+        if (search && meta && meta.searchOff) log("（这个账号或模型没有开通网络搜索：这一轮 " + A.aiWho() + " 只能凭它知道的给地址。开通在 platform.claude.com 的组织设置里。）", "bad");
         var P; try { P = parsePlans(reply); } catch (e) { log("✕ " + e.message, "bad"); cands.appendChild(h("pre", { class: "code", text: reply.slice(0, 3000) })); return; }
         if (!P.list.length) { log("✕ AI 没有给出能用的地址。" + (P.note ? P.note : ""), "bad"); return; }
         log("AI 给了 " + P.list.length + " 个候选" + (P.note ? "。" + P.note : "。"), "good");
@@ -18767,6 +18915,7 @@ if (typeof MLA !== "undefined") (function (A) {
 
     paintCat();
     var body = [
+      A.aiHost ? h("div", { class: "warn", id: "webHost" }, "你是在 Claude 里打开的这一页：Claude 不让页面自己联网，所以这里取不到网上的数据（本机引擎也连不上）。要从网上取数据，请在浏览器里打开网站版 ", h("a", { href: SITE, target: "_blank", rel: "noopener", text: SITE }), "；也可以先把文件下载下来，再用“导入 CSV”。") : null,
       h("p", { class: "note", text: "取来的数据只在这台电脑的浏览器里处理，不会上传到别处。取的时候不带你的 Cookie 或登录信息。取到以后先预览，确认了再导入；导入的数据集会标成“从网上取的数据”并记下地址。" }),
       h("div", { class: "ml-web-sec" }, h("h3", { text: "用描述找" }), desc, h("div", { class: "ml-row" }, aiBtn, stopBtn, h("span", { class: "sp" })), aiNote),
       h("div", { class: "ml-web-sec" }, h("h3", { text: "或者直接填数据文件的网址" }), h("div", { class: "ml-row" }, url, urlBtn), h("div", { class: "note", text: "CSV、TSV、JSON、JSON Lines，或者它们的 .gz / .zip；最多 30 MB。" + (A.engineCanFetch && A.engineCanFetch() ? "已连上本机引擎：浏览器读不到的网站会请引擎去取。" : "浏览器读不到的网站（跨域限制），连上本机引擎以后可以请它去取。") })),
