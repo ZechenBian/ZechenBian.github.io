@@ -1127,8 +1127,8 @@ if (typeof MLA !== "undefined") (function (A) {
       var FL = 1e-6, Lte = lgArr(te, FL), Lter = lgArr(ter, FL), Ltrn = lgArr(trn, FL), all = Lte.concat(Lter, Ltrn), lo = all.length ? Math.min.apply(null, all) : -3, hi = all.length ? Math.max.apply(null, all) : 1;
       var layers = [{ kind: "vline", x: 1, color: "s3", width: 1.2, dash: [4, 3], label: "p = n（插值阈值）" }, { kind: "vline", x: m.p / S.n, color: "ink2", width: 1.2, row: 1 }];
       if (xs.length) layers.push({ kind: "line", x: xs, y: Ltrn, color: "s1", width: 1.4 }, { kind: "line", x: xs, y: Lter, color: "s3", width: 1.6, dash: [5, 3] }, { kind: "line", x: xs, y: Lte, color: "s2", width: 2.2 }, { kind: "points", x: xs, y: Lte, color: "s2", r: 2.6 });
-      chE.set({ x: { label: "p / n（对数坐标）", scale: "log", domain: [S.ps[0] / S.n, S.Pmax / S.n], fmt: function (v) { return G(v); } }, panels: [{ y: { label: "误差（对数坐标，" + K + " 份平均；训练误差低于 1e−6 的画在底线上）", domain: [Math.floor(Math.max(lg(FL), lo)) - 0.2, Math.ceil(hi) + 0.2], fmt: pow10 }, layers: layers }],
-        legend: [{ name: "测试误差 E[(f̂ − f)²]", color: "s2" }, { name: "训练误差", color: "s1" }, { name: "岭回归 λ = " + G(LAMR) + " 的测试误差", color: "s3" }],
+      chE.set({ x: { label: "p / n（对数坐标）", scale: "log", domain: [S.ps[0] / S.n, S.Pmax / S.n], fmt: function (v) { return G(v); } }, panels: [{ y: { label: "误差（对数坐标，" + K + " 份平均）", domain: [Math.floor(Math.max(lg(FL), lo)) - 0.2, Math.ceil(hi) + 0.2], fmt: pow10 }, layers: layers }],
+        legend: [{ name: "测试误差 E[(f̂ − f)²]", color: "s2" }, { name: "训练误差（低于 1e−6 画在底线）", color: "s1" }, { name: "岭回归 λ = " + G(LAMR) + " 的测试误差", color: "s3" }],
         hover: xs.length ? { xs: xs, tip: function (i) { return { title: "p = " + Math.round(xs[i] * S.n) + "（p/n = " + G(xs[i]) + "）", rows: [{ name: "测试（最小范数）", color: "s2", value: sci(te[i]) }, { name: "测试（岭）", color: "s3", value: sci(ter[i]) }, { name: "训练", color: "s1", value: sci(trn[i]) }] }; } } : null,
         onClick: function (i) { loop.pause(); var p = Math.round(xs[i] * S.n); pSl.set(p); setCur(p); drawFit(); drawCurve(); updStats(); } });
     }

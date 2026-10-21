@@ -26,6 +26,7 @@
     var L = A.last && !A.stale() ? A.last : null;
     if (S.view === "data") return dataView();
     if (S.view === "board") return boardView();
+    if (S.view === "anim") return animView(L);     // 模拟和教学动画不需要先运行
     if (!L) { var c = card("还没有结果", { wide: true }); c.body.appendChild(h("p", { class: "ml-note", text: A.last ? "设定改过了：上面显示的是上一次的结果。点“运行”用现在的设定再跑一次。" : "运行一次以后，这里会出现对应的图。先看看“数据”这一栏，了解这个数据集长什么样。" })); return; }
     if (S.view === "charts") return chartsView(L);
     if (S.view === "inside") return insideView(L);
@@ -119,8 +120,9 @@
   /* ---------- 动画：训练过程的快照回放 ---------- */
   var playT = 0;
   function animView(L) {
-    var res = L.res, snaps = res.snaps || [], pv = res.data || A.preview || {};
-    if (A.renderSim) A.renderSim(card, keep);    // 数据集自带的模拟（src/ml/anim.js）
+    var res = L ? L.res : null, snaps = res && res.snaps || [], pv = res && res.data || A.preview || {};
+    if (!L) { var cz = card("训练过程回放", { wide: true }); cz.body.appendChild(h("p", { class: "ml-note", text: A.last ? "设定改过了：运行一次以后，这里回放这一次训练的过程。下面是数据集的模拟和几个教学动画。" : "运行一次以后，这里回放训练的过程（决策面、学到的函数或嵌入怎样一步步变化）。下面是数据集的模拟和几个教学动画，不用运行也能看。" })); if (A.renderSim) A.renderSim(card, keep); return; }
+    if (A.renderSim) A.renderSim(card, keep);    // 数据集自带的模拟和教学动画（src/ml/anim.js）
     if (!snaps.length) { var c0 = card("训练过程回放", { wide: true }); c0.body.appendChild(h("p", { class: "ml-note", text: "这个算法训练时没有拍快照（代码里没有调用 ctx.snapshot），或者这类数据没有能画的快照。二维的数据画决策面，一维的回归画学到的曲线，玩具任务画嵌入的主成分。内置的神经网络都会拍。" })); return; }
     var i = snaps.length - 1, c = card("训练过程回放（" + snaps.length + " 张快照）", { wide: true, help: "anim:replay" }), stage = h("div", { class: "ml-two" }), left = h("div"), right = h("div");
     stage.appendChild(left); stage.appendChild(right); c.body.appendChild(stage);

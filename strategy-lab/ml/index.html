@@ -271,6 +271,7 @@ progress { width: 120px; height: 6px; accent-color: var(--accent); }
 .qc-tip-note { color: var(--muted); margin-top: 3px; white-space: normal; }
 .qc-msg { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; padding: 16px; color: var(--muted); font-size: 12.5px;
   background-image: linear-gradient(var(--c-grid) 1px, transparent 1px), linear-gradient(90deg, var(--c-grid) 1px, transparent 1px); background-size: 14px 14px; border-radius: 4px; }
+.qc-msg[hidden] { display: none; }
 
 /* ---------- Claude 面板 ---------- */
 .ai-h { display: flex; align-items: center; gap: 8px; padding: 12px 16px 8px; }
@@ -12927,7 +12928,7 @@ add({
     N("leak", "泄漏率 a", 0.5, 0.02, 1, 0.01, "x ← (1 − a)x + a·tanh(…)：越小记忆越长、反应越慢"),
     N("inScale", "输入的缩放", 1, 0.05, 5, 0.05),
     I("degree", "每个神经元的连接数", 10, 1, 100, 1),
-    S("target", "读出预测什么", "level", [["level", "下一个值 u(t+1)"], ["diff", "下一步的变化 u(t+1) − u(t)"]]),
+    S("target", "读出预测什么", "diff", [["diff", "下一步的变化 u(t+1) − u(t)"], ["level", "下一个值 u(t+1)"]], "随机游走、有趋势的序列上“变化”更稳；平稳的混沌序列上两者差不多"),
     B("autoLam", "按验证集选岭参数 λ", true, "在 10⁻¹⁰ … 10 上挑验证段一步误差最小的"),
     N("loglam", "岭参数 log₁₀ λ", -6, -12, 2, 0.1, "不按验证集选时使用"),
     I("washout", "丢掉开头几步", 50, 0, 1000, 1, "储备池从 0 状态出发，开头的状态还带着初值的痕迹")
@@ -13072,11 +13073,176 @@ $x_t-x_t'=(1-a)(x_{t-1}-x_{t-1}')+a\big[\tanh(Wx_{t-1}+c_t)-\tanh(Wx_{t-1}'+c_t)
 `
 });
 
-/*@@MORE@@*/
+add({
+  id: "transformer", name: "单层 Transformer（注意力）", group: "neural", api: "supervised", kinds: ["classification", "regression"], families: ["toy"], needs: "tokens",
+  summary: "词元嵌入加位置嵌入，末尾补一个“=”记号；一层多头注意力 + 前馈层，从“=”的位置读出：Nanda 等研究顿悟时用的结构。",
+  params: [
+    I("dim", "模型宽度 D", 32, 8, 256, 4),
+    S("heads", "注意力头数", "4", [["1", "1"], ["2", "2"], ["4", "4"], ["8", "8"]], "每个头的维数 = D / 头数"),
+    I("mlp", "前馈层宽度", 128, 8, 2048, 8),
+    N("lr", "学习率", 0.003, 0.0001, 0.03, 0.0001),
+    N("wd", "权重衰减（AdamW）", 1, 0, 5, 0.01),
+    N("beta2", "Adam 的 β₂", 0.98, 0.9, 0.999, 0.001),
+    I("batch", "小批量大小（0 = 整个训练集）", 512, 0, 16384, 1),
+    I("steps", "最多训练几步", 100000, 10, 1000000, 10)
+  ],
+  code: code(SN.base, SN.train, js`
+/* ================= 单层 Transformer =================
+ * 序列：d 个输入词元，再加一个可学的"="记号（编号 V），共 T = d + 1 个位置。x_j = E[词元_j] + P[j]。
+ * 只在最后一个位置（"="）上做查询：每个头 h，q = x_T W_q^h，k_j = x_j W_k^h，v_j = x_j W_v^h，
+ * 注意力 α_j = softmax_j(q·k_j / √d_h)，头的输出 Σ_j α_j v_j；各头拼接后乘 W_o 加回残差，再过一个 ReLU 前馈层（也带残差），
+ * 最后线性读出。只有一层、只在一个位置读出，所以其余位置的输出用不着，不必计算。
+ * 没有层归一化（和 Nanda 等 2023 的模型一样）。nn 只有二维运算，"取第 j 列""按行广播"都用和常数矩阵相乘来做。 */
+function vocabOf(part) { var t = part.tokens; if (t == null) return 0; return typeof t === "number" ? t | 0 : t.vocab | 0; }
+function columns(X, n, d, V) {
+  var cols = [], j, i;
+  for (j = 0; j < d; j++) { var c = new Int32Array(n); for (i = 0; i < n; i++) { var v = X[i * d + j] | 0; c[i] = v >= 0 && v < V ? v : 0; } cols.push(c); }
+  return cols;
+}
+function sub(cols, idx) { return cols.map(function (c) { var o = new Int32Array(idx.length); for (var i = 0; i < idx.length; i++) o[i] = c[idx[i]]; return o; }); }
+function net(M, cols, keepAttn) {
+  var nn = M.nn, n = cols[0].length, T = M.T, dh = M.dh, j, h, xs = [];
+  for (j = 0; j < T; j++) {
+    var tok = j < T - 1 ? cols[j] : new Int32Array(n).fill(M.V), pos = new Int32Array(n).fill(j);
+    xs.push(nn.add(nn.embedding(M.E.weight, tok), nn.embedding(M.P.weight, pos)));
+  }
+  var last = xs[T - 1], heads = [], ones = nn.ones([1, dh]), att = [];
+  for (h = 0; h < M.H; h++) {
+    var q = nn.matmul(last, M.Wq[h]), sc = [], vs = [];
+    for (j = 0; j < T; j++) {
+      sc.push(nn.reshape(nn.sum(nn.mul(q, nn.matmul(xs[j], M.Wk[h])), 1), [n, 1]));
+      vs.push(nn.matmul(xs[j], M.Wv[h]));
+    }
+    var A = nn.softmax(nn.scale(nn.concat(sc, 1), 1 / Math.sqrt(dh))), o = null;
+    if (keepAttn) att.push(A.data);
+    for (j = 0; j < T; j++) {
+      var a = nn.matmul(nn.matmul(A, M.sel[j]), ones), t = nn.mul(a, vs[j]);   // α_j 广播到 d_h 列，乘以 v_j
+      o = o ? nn.add(o, t) : t;
+    }
+    heads.push(o);
+  }
+  var r = nn.add(last, nn.matmul(heads.length === 1 ? heads[0] : nn.concat(heads, 1), M.Wo));
+  r = nn.add(r, M.F2.forward(nn.relu(M.F1.forward(r))));
+  var out = M.U.forward(r);
+  if (keepAttn) M.lastAttn = att;
+  return out;
+}
+function outputs(M, cols, n) {
+  var nn = M.nn, outs = [], k = 0, B = 2048;
+  for (var s = 0; s < n; s += B) {
+    var e = Math.min(n, s + B), part = cols.map(function (c) { return c.subarray(s, e); });
+    var o = nn.noGrad(function () { return net(M, part, false); }); k = o.shape[1]; outs.push(o.data);
+  }
+  var all = new Float64Array(n * k), off = 0; outs.forEach(function (a) { all.set(a, off); off += a.length; });
+  return all;
+}
+function fit(data, p, lib, ctx) {
+  var nn = lib.nn, tr = data.train, va = data.valid, cls = data.kind === "classification", K = cls ? tr.k : 1, rng = lib.rng, n = tr.n, d = tr.d, V = vocabOf(tr), i, j, h;
+  if (!nn) throw new Error("这个算法要用 lib.nn（自动求导库）。");
+  if (!V) throw new Error("Transformer 只适用于词元输入的数据（模加法、群乘法这一类）：这份数据没有 data.tokens。");
+  var H = parseInt(p.heads, 10) || 1, D = Math.max(H, Math.round(p.dim / H) * H), dh = D / H, T = d + 1, sd = 1 / Math.sqrt(D);
+  var M = { nn: nn, V: V, d: d, T: T, D: D, H: H, dh: dh, cls: cls, K: K, Wq: [], Wk: [], Wv: [], sel: [] };
+  M.E = nn.Embedding(V + 1, D, rng, sd); M.P = nn.Embedding(T, D, rng, sd);
+  for (h = 0; h < H; h++) { M.Wq.push(nn.param([D, dh], sd, rng)); M.Wk.push(nn.param([D, dh], sd, rng)); M.Wv.push(nn.param([D, dh], sd, rng)); }
+  M.Wo = nn.param([D, D], sd, rng);
+  M.F1 = nn.Linear(D, p.mlp, rng); M.F2 = nn.Linear(p.mlp, D, rng, "xavier"); M.U = nn.Linear(D, cls ? K : 1, rng, "xavier");
+  for (j = 0; j < T; j++) { var e = new Float32Array(T); e[j] = 1; M.sel.push(nn.tensor(e, [T, 1])); }
+  var params = [M.E.weight, M.P.weight].concat(M.Wq, M.Wk, M.Wv, [M.Wo, M.F1.W, M.F1.b, M.F2.W, M.F2.b, M.U.W, M.U.b]);
+  [M.F1.b, M.F2.b, M.U.b].forEach(function (b) { b.noDecay = true; });
+  M.params = params;
+  var opt = nn.adam(params, { lr: p.lr, beta1: 0.9, beta2: p.beta2, weightDecay: p.wd });
+  var cols = columns(tr.X, n, d, V), colsV = columns(va.X, va.n, d, V), yst = cls ? { m: 0, s: 1 } : yStats(tr), yt = null;
+  M.ym = yst.m; M.ys = yst.s;
+  if (!cls) { yt = new Float32Array(n); for (i = 0; i < n; i++) yt[i] = (tr.y[i] - yst.m) / yst.s; }
+  var full = !(p.batch > 0) || p.batch >= n, queue = [], bcols = cols, by = cls ? tr.y : yt;
+  var evalEvery = 10, nextEval = 1, lastEval = 0, evalMs = 0, t0 = ctx.timeLeft(), step;
+  function evaluate(st) {
+    lastEval = st;
+    var ta = ctx.timeLeft(), e1 = scoreOut(outputs(M, cols, n), n, tr, cls, K, M.ym, M.ys), e2 = scoreOut(outputs(M, colsV, va.n), va.n, va, cls, K, M.ym, M.ys), wn = 0;
+    params.forEach(function (q) { for (var z = 0; z < q.size; z++) wn += q.data[z] * q.data[z]; });
+    ctx.report(st, { loss: e1.loss, validLoss: e2.loss, trainMetric: e1.met, validMetric: e2.met, weightNorm: Math.sqrt(wn) });
+    ctx.snapshot(st, M);
+    evalMs = ta - ctx.timeLeft();
+  }
+  for (step = 1; step <= p.steps; step++) {
+    if (!full) {
+      if (!queue.length) queue = nn.batches(n, p.batch, rng);
+      var idx = queue.pop(); bcols = sub(cols, idx); by = nn.pick(cls ? tr.y : yt, idx);
+    }
+    opt.lr = p.lr * Math.min(1, step / 10);
+    var out = net(M, bcols, false), loss = cls ? nn.crossEntropy(out, by) : nn.mse(out, by);
+    opt.zeroGrad(); loss.backward(); opt.step();
+    if (step === nextEval) {
+      var stepMs = (t0 - ctx.timeLeft()) / step;
+      evaluate(step);
+      evalEvery = Math.max(1, Math.min(2000, Math.ceil(9 * evalMs / Math.max(stepMs, 1e-3))));
+      nextEval = step + (step < 10 ? 1 : evalEvery);
+    }
+    if (ctx.timeLeft() < 0) { ctx.log("时间到了：训练了 " + step + " 步。"); break; }
+  }
+  M.steps = Math.min(step, p.steps);
+  if (lastEval !== M.steps) evaluate(M.steps);
+  // 记下验证集前 256 个样本上"="对各位置的平均注意力（给"模型内部"看）
+  var m = Math.min(256, va.n);
+  if (m > 0) { nn.noGrad(function () { return net(M, colsV.map(function (c) { return c.subarray(0, m); }), true); }); M.attnN = m; }
+  M.size = nn.numParams(params);
+  return M;
+}
+function predict(M, X, n) {
+  var out = outputs(M, columns(X, n, M.d, M.V), n);
+  if (M.cls) return softmaxRows(out, n, M.K);
+  var y = new Float64Array(n); for (var i = 0; i < n; i++) y[i] = out[i] * M.ys + M.ym;
+  return y;
+}
+function inspect(M) {
+  var labels = [], txt = "词表 " + M.V + "（另加“=”），" + M.T + " 个位置，宽度 " + M.D + "，" + M.H + " 个头（每个 " + M.dh + " 维），前馈 " + M.F1.W.shape[1] + "；" + M.nn.numParams(M.params) + " 个参数" + (M.steps ? "，训练了 " + M.steps + " 步" : "") + "。";
+  for (var v = 0; v < M.V; v++) labels.push(String(v));
+  if (M.lastAttn) {
+    txt += "\n“=”对各位置的平均注意力（验证集前 " + M.attnN + " 个样本）：";
+    M.lastAttn.forEach(function (A, h) { var s = []; for (var j = 0; j < M.T; j++) { var a = 0; for (var i = 0; i < M.attnN; i++) a += A[i * M.T + j]; s.push((a / M.attnN).toFixed(2)); } txt += "\n  头 " + (h + 1) + "：" + s.join("  "); });
+  }
+  return { embedding: { rows: M.V, cols: M.D, data: M.E.weight.data.subarray(0, M.V * M.D), labels: labels },
+    layers: [{ name: "位置嵌入 P（位置 × 宽度）", rows: M.T, cols: M.D, data: M.P.weight.data }, { name: "W_o（拼接的头 × 宽度）", rows: M.D, cols: M.D, data: M.Wo.data },
+      { name: "前馈 W₁（宽度 × 前馈）", rows: M.D, cols: M.F1.W.shape[1], data: M.F1.W.data }, { name: "读出 W_U（宽度 × 输出）", rows: M.D, cols: M.U.W.shape[1], data: M.U.W.data }], text: txt };
+}
+`),
+  docs: md`
+## 模型
+输入 $d$ 个词元 $t_1,\dots,t_d$，末尾补一个可学的记号"="，共 $T=d+1$ 个位置；$x_j=E_{t_j}+P_j$（词元嵌入加位置嵌入，宽度 $D$）。一层多头注意力，只在最后一个位置查询：对第 $h$ 个头（维数 $d_h=D/H$），
+$$\alpha_j^{(h)}=\operatorname{softmax}_j\Big(\frac{(x_TW_Q^{(h)})\cdot(x_jW_K^{(h)})}{\sqrt{d_h}}\Big),\qquad o^{(h)}=\sum_j\alpha^{(h)}_j\,x_jW_V^{(h)},$$
+$r=x_T+[o^{(1)},\dots,o^{(H)}]W_O$，再过一个带残差的 ReLU 前馈层 $r'=r+W_2^\top\mathrm{ReLU}(W_1^\top r+b_1)+b_2$，最后线性读出 logits。没有层归一化。
+
+## 损失与训练
+与"嵌入 + MLP"相同：交叉熵，AdamW（$\beta_2=0.98$，权重衰减默认 1），常数学习率加 10 步预热，小批量或全批量，评价间隔自动调整，每次评价拍一张嵌入的快照。训练结束后记下验证集上"="对各位置的平均注意力（在"模型内部"的文字里）。
+
+## 参数怎么调
+- 先确认能记住：权重衰减设 0，训练准确率应当很快到 100%。
+- 顿悟：权重衰减 0.5–2，训练比例 0.3–0.6，预算一两分钟以上。比"嵌入 + MLP"每步更慢（注意力要算 $T$ 组键和值），但它正是 Power 等、Nanda 等原始实验的结构。
+- 宽度和头数影响不大；$D=32$、4 个头通常够用。
+
+## 复杂度
+每个样本：键、值 $O(T\cdot D\cdot D)$，查询与输出投影 $O(D^2)$，前馈 $O(D\cdot F)$，注意力本身 $O(TD)$。所以每步约 $3b\,(2TD^2+2D^2+2DF+DK)$ 次乘加。
+
+## 什么时候好用、什么时候失效
+输入是记号序列、输出依赖于记号之间的关系时，注意力是自然的结构，序列变长时它的优势更明显。这里的输入只有两三个位置，所以它相对"嵌入 + MLP"的优势主要是"可以研究它的机制"。数值输入的数据不适用（会直接报错）。
+
+## 理论
+**命题 1（没有位置编码时注意力是置换等变的）.** 设 $X\in\mathbb R^{T\times D}$ 的各行是 $T$ 个位置的表示，自注意力 $\mathrm{Attn}(X)=\operatorname{softmax}\big(XW_QW_K^\top X^\top/\sqrt{d_h}\big)XW_V$（softmax 按行）。对任意置换矩阵 $\Pi$，$\mathrm{Attn}(\Pi X)=\Pi\,\mathrm{Attn}(X)$。
+
+*证明.* $\operatorname{softmax}(\Pi S\Pi^\top)=\Pi\operatorname{softmax}(S)\Pi^\top$（按行的 softmax 与同时置换行和列可交换），所以 $\mathrm{Attn}(\Pi X)=\Pi\operatorname{softmax}(S)\Pi^\top\Pi XW_V=\Pi\,\mathrm{Attn}(X)$，用到了 $\Pi^\top\Pi=I$。$\square$
+所以位置嵌入 $P_j$ 是必须的：没有它，模型分不清 $a-b$ 与 $b-a$。对加法这种交换的运算，学到的位置嵌入往往很相近。
+
+**万能逼近（只陈述）.** Yun 等（2020）证明：带位置编码的 Transformer（足够多层）可以在 $L^p$ 意义下任意逼近紧支撑的连续序列到序列函数；单层的版本没有这样的一般结论。
+
+**模加法里的机制（实验结论，不是定理）.** Nanda 等（2023）在训练到顿悟之后的单层 Transformer 里发现：嵌入集中在少数几个频率 $\omega_k=2\pi k/p$ 的 $\cos,\sin$ 上，注意力与前馈层用三角恒等式把 $\cos\omega_ka,\cos\omega_kb$ 组合成 $\cos\omega_k(a+b)$，读出层再按 $\cos\omega_k(a+b-c)$ 给类别 $c$ 打分——与"嵌入 + MLP"说明里的定理 1 是同一个解。
+
+参考：A. Vaswani 等, Attention is all you need, *NeurIPS* (2017)；N. Nanda 等, Progress measures for grokking via mechanistic interpretability, *ICLR* (2023)；C. Yun 等, Are transformers universal approximators of sequence-to-sequence functions?, *ICLR* (2020)；A. Power 等 (2022)。
+`
+});
 
 return ALGOS;
 })();
-if (typeof module !== "undefined" && module.exports) { module.exports = QL_MLALGOS; module.exports.GROUPS = QL_MLALGO_GROUPS; }
+if (typeof module !== "undefined" && module.exports) module.exports = QL_MLALGOS;
 
 /* ===== ml/app.js ===== */
 /* 机器学习实验室 · 界面主体（一）：小工具、状态与存档、左栏（任务 → 数据 → 算法 → 设置）、运行的调度、摘要。
@@ -13498,6 +13664,7 @@ var MLA = (function () {
     var L = A.last && !A.stale() ? A.last : null;
     if (S.view === "data") return dataView();
     if (S.view === "board") return boardView();
+    if (S.view === "anim") return animView(L);     // 模拟和教学动画不需要先运行
     if (!L) { var c = card("还没有结果", { wide: true }); c.body.appendChild(h("p", { class: "ml-note", text: A.last ? "设定改过了：上面显示的是上一次的结果。点“运行”用现在的设定再跑一次。" : "运行一次以后，这里会出现对应的图。先看看“数据”这一栏，了解这个数据集长什么样。" })); return; }
     if (S.view === "charts") return chartsView(L);
     if (S.view === "inside") return insideView(L);
@@ -13591,8 +13758,9 @@ var MLA = (function () {
   /* ---------- 动画：训练过程的快照回放 ---------- */
   var playT = 0;
   function animView(L) {
-    var res = L.res, snaps = res.snaps || [], pv = res.data || A.preview || {};
-    if (A.renderSim) A.renderSim(card, keep);    // 数据集自带的模拟（src/ml/anim.js）
+    var res = L ? L.res : null, snaps = res && res.snaps || [], pv = res && res.data || A.preview || {};
+    if (!L) { var cz = card("训练过程回放", { wide: true }); cz.body.appendChild(h("p", { class: "ml-note", text: A.last ? "设定改过了：运行一次以后，这里回放这一次训练的过程。下面是数据集的模拟和几个教学动画。" : "运行一次以后，这里回放训练的过程（决策面、学到的函数或嵌入怎样一步步变化）。下面是数据集的模拟和几个教学动画，不用运行也能看。" })); if (A.renderSim) A.renderSim(card, keep); return; }
+    if (A.renderSim) A.renderSim(card, keep);    // 数据集自带的模拟和教学动画（src/ml/anim.js）
     if (!snaps.length) { var c0 = card("训练过程回放", { wide: true }); c0.body.appendChild(h("p", { class: "ml-note", text: "这个算法训练时没有拍快照（代码里没有调用 ctx.snapshot），或者这类数据没有能画的快照。二维的数据画决策面，一维的回归画学到的曲线，玩具任务画嵌入的主成分。内置的神经网络都会拍。" })); return; }
     var i = snaps.length - 1, c = card("训练过程回放（" + snaps.length + " 张快照）", { wide: true, help: "anim:replay" }), stage = h("div", { class: "ml-two" }), left = h("div"), right = h("div");
     stage.appendChild(left); stage.appendChild(right); c.body.appendChild(stage);
@@ -14979,8 +15147,8 @@ if (typeof MLA !== "undefined") (function (A) {
       var FL = 1e-6, Lte = lgArr(te, FL), Lter = lgArr(ter, FL), Ltrn = lgArr(trn, FL), all = Lte.concat(Lter, Ltrn), lo = all.length ? Math.min.apply(null, all) : -3, hi = all.length ? Math.max.apply(null, all) : 1;
       var layers = [{ kind: "vline", x: 1, color: "s3", width: 1.2, dash: [4, 3], label: "p = n（插值阈值）" }, { kind: "vline", x: m.p / S.n, color: "ink2", width: 1.2, row: 1 }];
       if (xs.length) layers.push({ kind: "line", x: xs, y: Ltrn, color: "s1", width: 1.4 }, { kind: "line", x: xs, y: Lter, color: "s3", width: 1.6, dash: [5, 3] }, { kind: "line", x: xs, y: Lte, color: "s2", width: 2.2 }, { kind: "points", x: xs, y: Lte, color: "s2", r: 2.6 });
-      chE.set({ x: { label: "p / n（对数坐标）", scale: "log", domain: [S.ps[0] / S.n, S.Pmax / S.n], fmt: function (v) { return G(v); } }, panels: [{ y: { label: "误差（对数坐标，" + K + " 份平均；训练误差低于 1e−6 的画在底线上）", domain: [Math.floor(Math.max(lg(FL), lo)) - 0.2, Math.ceil(hi) + 0.2], fmt: pow10 }, layers: layers }],
-        legend: [{ name: "测试误差 E[(f̂ − f)²]", color: "s2" }, { name: "训练误差", color: "s1" }, { name: "岭回归 λ = " + G(LAMR) + " 的测试误差", color: "s3" }],
+      chE.set({ x: { label: "p / n（对数坐标）", scale: "log", domain: [S.ps[0] / S.n, S.Pmax / S.n], fmt: function (v) { return G(v); } }, panels: [{ y: { label: "误差（对数坐标，" + K + " 份平均）", domain: [Math.floor(Math.max(lg(FL), lo)) - 0.2, Math.ceil(hi) + 0.2], fmt: pow10 }, layers: layers }],
+        legend: [{ name: "测试误差 E[(f̂ − f)²]", color: "s2" }, { name: "训练误差（低于 1e−6 画在底线）", color: "s1" }, { name: "岭回归 λ = " + G(LAMR) + " 的测试误差", color: "s3" }],
         hover: xs.length ? { xs: xs, tip: function (i) { return { title: "p = " + Math.round(xs[i] * S.n) + "（p/n = " + G(xs[i]) + "）", rows: [{ name: "测试（最小范数）", color: "s2", value: sci(te[i]) }, { name: "测试（岭）", color: "s3", value: sci(ter[i]) }, { name: "训练", color: "s1", value: sci(trn[i]) }] }; } } : null,
         onClick: function (i) { loop.pause(); var p = Math.round(xs[i] * S.n); pSl.set(p); setCur(p); drawFit(); drawCurve(); updStats(); } });
     }
@@ -16162,7 +16330,7 @@ $p<n$ 时就是最小二乘，$p>n$ 时是所有插值解（$\Phi\theta=y$）里
 
 ## 怎么读
 
-误差先随 $p$ 下降（偏差减小），在 $p\approx n$ 处冲到一个尖峰（插值阈值），过了阈值又下降，往往降到比左边的最低点还低。加上岭正则，尖峰被压平。
+误差先随 $p$ 下降（偏差减小），在 $p\approx n$ 处冲到一个尖峰（插值阈值），过了阈值又下降；第二次下降能不能低过左边的最低点，取决于目标函数、噪声和特征的分布（这里的默认设定下两者差不多）。加上岭正则，尖峰被压平。
 
 ## 为什么在 $p\approx n$ 处爆炸
 
