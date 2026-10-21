@@ -80,16 +80,17 @@
       any = true; var E = ins.embedding, n = E.rows;
       var color = meta.p ? function (t) { return t / Math.max(1, n - 1); } : null;
       c = card("嵌入的主成分（前两个）", { help: "inside:pca", foot: "每个点是词表里的一个元素（模加法里是 0 … p−1）。颜色按编号由浅到深。" }); keep(V.embedPCA(c.body, E, E.labels || Array.from({ length: n }, function (_, i) { return i; }), color));
-      if (QL.mltoy && meta.p && A.ds().id === "modadd") { var fr = QL.mltoy.fourier(rowsOf(E), meta.p); c = card("嵌入的傅里叶谱", { help: "inside:fourier", foot: "把嵌入的每一列看成 ℤ/p 上的函数做离散傅里叶变换：grokking 之后能量集中在少数几个频率上（Nanda 等 2023）。最大的几个频率：" + (fr.top || []).slice(0, 6).join("、") + "。" }); keep(V.spectrum(c.body, fr)); }
-      if (QL.mltoy && meta.irreps && A.ds().id === "group") { var fve = QL.mltoy.irrepFVE(rowsOf(E), meta); c = card("嵌入按不可约表示分解", { help: "inside:irreps", foot: "嵌入矩阵的每一列是群上的函数，按同型分量做正交投影后的方差占比；灰色是随机嵌入的期望值 dim(M_ρ)/(|G|−1)。" }); keep(V.irrepBars(c.body, fve)); }
+      if (QL.mltoy && meta.p && A.ds().id === "modadd") { var fr = safe(function () { return QL.mltoy.fourier(E, meta); }); if (fr) c = card("嵌入的傅里叶谱", { help: "inside:fourier", foot: "把嵌入的每一列看成 ℤ/p 上的函数做离散傅里叶变换：grokking 之后能量集中在少数几个频率上（Nanda 等 2023）。最大的几个频率：" + (fr.top || []).slice(0, 6).join("、") + "。" }); keep(V.spectrum(c.body, fr)); }
+      if (QL.mltoy && meta.irreps && A.ds().id === "group") { var fve = safe(function () { return QL.mltoy.irrepFVE(E, meta); }); if (fve) c = card("嵌入按不可约表示分解", { help: "inside:irreps", foot: "嵌入矩阵的每一列是群上的函数，按同型分量做正交投影后的方差占比；灰色是随机嵌入的期望值 dim(M_ρ)/(|G|−1)。" }); keep(V.irrepBars(c.body, fve)); }
     }
-    if (A.ds().id === "ising" && QL.mltoy && meta.T && res.kind === "classification") { any = true; isingCard(res, meta); }
+    if (A.ds().id === "ising" && QL.mltoy && meta.T && res.kind === "classification" && res.k === 2) { any = true; isingCard(res, meta, L); }
     (ins.activations || []).forEach(function (a) { any = true; c = card("激活值的分布：" + a.name, { help: "inside:act" }); keep(V.histogram(c.body, a.data, { xLabel: "激活值" })); });
     if (ins.tree && ins.tree.nodes) { any = true; c = card("树的结构（前几层）", { help: "inside:tree" }); c.body.appendChild(h("pre", { class: "code", text: treeText(ins.tree.nodes, pv.featureNames, pv.classes) })); }
     if (ins.text) { any = true; c = card("模型的说明"); c.body.appendChild(h("pre", { class: "code", text: ins.text })); }
     if (res.importance) { any = true; c = card("特征重要性（置换）", { help: "chart:importance" }); keep(V.importanceBars(c.body, res.importance)); }
     if (!any) { c = card("这个模型没有交出内部的东西", { wide: true }); c.body.appendChild(h("p", { class: "ml-note", text: "算法的代码里定义 inspect(model) 并返回 layers（权重矩阵）、embedding（嵌入）、coef（系数）、tree（树）或 text，这里就会画出来。内置的神经网络、线性模型和树模型都定义了它。" })); }
   }
+  function safe(f) { try { return f(); } catch (e) { console.warn(e); return null; } }
   function rowsOf(E) { var out = []; for (var i = 0; i < E.rows; i++) out.push(Array.prototype.slice.call(E.data, i * E.cols, (i + 1) * E.cols)); return out; }
   function treeText(nodes, names, classes) {
     var lines = [];
@@ -102,18 +103,19 @@
     }
     walk(0, 0); return lines.join("\n");
   }
-  function isingCard(res, meta) {
-    var idx = res.index.valid, pr = res.pred.valid, k = res.k, T = meta.T, byT = {}, i;
-    for (i = 0; i < idx.length; i++) { var t = T[idx[i]], key = String(t); if (!byT[key]) byT[key] = { t: t, s: 0, n: 0 }; byT[key].s += pr[i * k + 1]; byT[key].n++; }
-    var pts = Object.keys(byT).map(function (x) { return byT[x]; }).sort(function (a, b) { return a.t - b.t; }), xs = pts.map(function (p) { return p.t; }), ys = pts.map(function (p) { return p.s / p.n; });
-    var probs = new Float64Array(idx.length), Ts = new Float64Array(idx.length); for (i = 0; i < idx.length; i++) { probs[i] = pr[i * k + 1]; Ts[i] = T[idx[i]]; }
-    var cross = QL.mltoy.isingCrossover(probs, Ts), c = card("网络读出的“临界温度”", { help: "inside:ising", foot: "每个温度上，网络判“有序”的平均概率。它穿过 1/2 的地方是交叉温度 T* = " + (cross && cross.Tstar ? F(cross.Tstar, 3) : "—") + "；精确的 Tc = " + F(meta.Tc, 4) + "。T* 和 Tc 的差距随格子变大而缩小的速度，见手册里的有限尺寸标度。" });
+  function isingCard(res, meta, L) {
+    // "远离 T_c"方案：训练集和验证集只有远离 T_c 的温度，中间温度全在测试集里，交叉温度只能在测试集上读
+    var far = A.dsParams().protocol === "far", w = far ? "test" : "valid";
+    if (far && !(L.revealed || (A.isRevealed && A.isRevealed(L)))) { var c0 = card("网络读出的“临界温度”", { help: "inside:ising" }); c0.body.appendChild(h("p", { class: "ml-note", text: "“远离 T_c”方案下，中间的温度全在测试集里。揭晓测试集以后，这里画出网络在每个温度上判“有序”的平均概率和它穿过 1/2 的温度 T*。" })); return; }
+    var idx = res.index[w], pr = res.pred[w], k = res.k, i;
+    var probs = new Float64Array(idx.length), Ts = new Float64Array(idx.length); for (i = 0; i < idx.length; i++) { probs[i] = pr[i * k + 1]; Ts[i] = meta.T[idx[i]]; }
+    var cross = QL.mltoy.isingCrossover(probs, Ts), xs = cross.temps, ys = cross.mean;
+    var c = card("网络读出的“临界温度”", { help: "inside:ising", foot: "每个温度上，网络判“有序”的平均概率（" + (w === "test" ? "测试集" : "验证集") + "）。它穿过 1/2 的温度 T* = " + (cross.Tstar === cross.Tstar ? F(cross.Tstar, 3) : "—") + "；精确的 T_c = " + F(meta.Tc, 4) + "。T* 不一定是 T_c：固定阈值的读法在 L → ∞ 时收敛到 Yang 温度（低于 T_c），标签本身又用了 T_c。细节见手册和数据集的说明。" });
     var ch = V.chart(c.body, 240); keep(ch);
     var layers = [{ kind: "hline", y: 0.5, color: "muted", width: 1, dash: [4, 3] }, { kind: "vline", x: meta.Tc, color: "s3", width: 1.5, label: "Tc" }, { kind: "line", x: xs, y: ys, color: "s1", width: 2 }, { kind: "points", x: xs, y: ys, color: "s1", r: 3 }];
-    if (cross && cross.Tstar) layers.push({ kind: "vline", x: cross.Tstar, color: "s2", width: 1.5, dash: [5, 3], label: "T*", row: 1 });
+    if (cross.Tstar === cross.Tstar) layers.push({ kind: "vline", x: cross.Tstar, color: "s2", width: 1.5, dash: [5, 3], label: "T*" });
     ch.set({ x: { label: "温度 T" }, panels: [{ y: { label: "判为有序的平均概率", fmt: function (v) { return P(v, 0); } }, layers: layers }] });
   }
-
   /* ---------- 动画：训练过程的快照回放 ---------- */
   var playT = 0;
   function animView(L) {
@@ -131,7 +133,7 @@
       else if (s.kind === "fn1d") { clear(left); charts = charts.filter(function (x) { return x !== cvBox; }); cvBox = keep(V.fn1d(left, s, pv, null)); }
       else if (s.kind === "embed") {
         clear(left); cvBox = keep(V.embedPCA(left, s.data, null, function (t) { return t / Math.max(1, s.data.rows - 1); }));
-        var meta = pv.meta || {}; if (QL.mltoy && meta.p && A.ds().id === "modadd") { if (specBox) { try { specBox.destroy(); } catch (e) {} } clear(right); specBox = keep(V.spectrum(right, QL.mltoy.fourier(rowsOf(s.data), meta.p))); }
+        var meta = pv.meta || {}; if (QL.mltoy && meta.p && A.ds().id === "modadd") { var sp1 = safe(function () { return QL.mltoy.fourier(s.data, meta); }); if (specBox) { try { specBox.destroy(); } catch (e) {} } clear(right); if (sp1) specBox = keep(V.spectrum(right, sp1)); }
       }
       if (s.kind !== "embed") { if (curveCh) { try { curveCh.destroy(); } catch (e) {} } clear(right); curveCh = keep(V.curve(right, res, { mark: s.step })); }
     }
@@ -342,7 +344,7 @@
         data = QL.mlreg.fromCSV(table, { target: tgt.value, kind: kind.value });
         var k = data.y && !data.X ? "forecast" : data.classes ? "classification" : "regression";
         if (kind.value === "forecast") k = "forecast";
-        def = { id: "csv", family: k === "forecast" ? "timeseries" : "tabular", kind: k, name: "导入的数据：" + (file.files && file.files[0] ? file.files[0].name : "粘贴的表格"), summary: "你导入的 CSV（" + (data.n || data.T) + " 行）。要预测的列：" + tgt.value + "。", params: [], docs: "你自己导入的数据。注意：导入时缺失值用整列的中位数（或众数）补上，这会让训练集\"看到\"一点验证集和测试集的信息；做严肃的比较时，最好先在表格里处理好缺失值。", plot: k === "forecast" ? "series" : data.d === 2 ? "scatter2d" : "table" };
+        def = { id: "csv", family: k === "forecast" ? "timeseries" : "tabular", kind: k, name: "导入的数据：" + (file.files && file.files[0] ? file.files[0].name : "粘贴的表格"), summary: "你导入的 CSV（" + (data.n || data.T) + " 行）。要预测的列：" + tgt.value + "。", params: [], docs: "你自己导入的数据。数值列的缺失值在划分之后用训练集那一列的中位数补上（验证集、测试集的信息不会漏进训练）；类别列做独热编码，缺失算作单独的一类。", plot: k === "forecast" ? "series" : data.d === 2 ? "scatter2d" : "table" };
       } catch (e) { err.hidden = false; err.textContent = e.message; return; }
       A.csv = { def: def, data: data, hash: A.hashStr(ta.value.slice(0, 200000)) };
       try { if (ta.value.length < 1500000) localStorage.setItem("ql.ml.csv.v1", JSON.stringify({ text: ta.value, target: tgt.value, kind: kind.value, name: def.name })); } catch (e) {}

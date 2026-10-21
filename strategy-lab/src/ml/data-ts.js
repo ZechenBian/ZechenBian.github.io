@@ -5,7 +5,9 @@
  * truthMean[t]：上帝视角的一步预测 E[y_t | 到 t−1 为止的信息]。能用可观测的过去精确算出时就用它
  * （meta.truthMeanInfo = "observed"）；只有知道隐藏状态才算得出时（混沌系统加了观测噪声），用隐藏状态
  * 算（meta.truthMeanInfo = "hidden"），这比任何只看观测的方法都多知道一些。
- * oracle(p) = { forecast(past, h), note, exact }：past 是从第 0 个开始、截至当前时刻（含）的全部观测。
+ * oracle(p) = { forecast(past, h), note, exact }：past 是从第 0 个开始、截至当前时刻（含）的全部观测，返回长度 h 的 Float64Array；
+ *   exact = false 表示只是近似（例如有观测噪声的混沌系统）。
+ * bayes(p) = { metric: "mse", value, note }：一步预测的最小均方误差；这组参数下算不出来（例如四阶矩无穷）时返回 null。
  * 这个函数会被 toString() 拼进后台线程，所以必须自包含：真实行情也写在函数体里。 */
 function QL_MLDATA_TS(QL) {
 "use strict";

@@ -263,7 +263,7 @@ section("分析工具：傅里叶谱");
   const T = QL.mltoy;
   for (const [p, k] of [[31, 1], [31, 7], [23, 11], [113, 40]]) {
     const E = []; for (let a = 0; a < p; a++) E.push([Math.cos(2 * Math.PI * k * a / p), Math.sin(2 * Math.PI * k * a / p)]);
-    const f = T.fourier(E, p); near(f.energy[k - 1], 1, 1e-10, "E[a] = (cos 2πka/p, sin 2πka/p)：能量全在 k = " + k + "（p = " + p + "）"); ok(f.top[0].k === k, "  最大频率是 " + k);
+    const f = T.fourier(E, p); near(f.energy[k - 1], 1, 1e-10, "E[a] = (cos 2πka/p, sin 2πka/p)：能量全在 k = " + k + "（p = " + p + "）"); ok(f.top[0] === k && Math.abs(f.topShare[0] - 1) < 1e-10, "  最大频率是 " + k);
   }
   const p = 31, E2 = { rows: p, cols: 5, data: new Float32Array(p * 5) };
   for (let a = 0; a < p; a++) { E2.data[a * 5] = 3 * Math.cos(2 * Math.PI * 4 * a / p); E2.data[a * 5 + 1] = 3 * Math.sin(2 * Math.PI * 4 * a / p); E2.data[a * 5 + 2] = Math.cos(2 * Math.PI * 9 * a / p + 1); E2.data[a * 5 + 3] = 7; E2.data[a * 5 + 4] = -2; }
@@ -272,6 +272,7 @@ section("分析工具：傅里叶谱");
   const rr = new RNG(5, 5, 5), Er = []; for (let a = 0; a < p; a++) { const row = []; for (let j = 0; j < 400; j++) row.push(rr.normal()); Er.push(row); }
   const fr = T.fourier(Er, p); ok(Math.max.apply(null, Array.from(fr.energy)) < 0.1 && Math.abs(fr.uniform - 2 / (p - 1)) < 1e-12, "随机嵌入：每个频率约 2/(p−1)", Math.max.apply(null, Array.from(fr.energy)).toFixed(3));
   const X = gen("modadd", { op: "mul", p: 29 }), XM = X.meta, Em = []; for (let t = 0; t < 28; t++) Em.push([Math.cos(2 * Math.PI * 3 * XM.dlog[t] / 28), Math.sin(2 * Math.PI * 3 * XM.dlog[t] / 28), 0]);
+  ok(Math.abs(T.fourier(Em, XM).energy[2] - 1) < 1e-10, "fourier(E, meta) 等同 fourierFor"); let thrown = ""; try { T.fourier(Em, 29); } catch (e) { thrown = e.message; } ok(/少于/.test(thrown), "行数不够时给出说得清的错误", thrown);
   const fm = T.fourierFor(Em, XM); near(fm.energy[2], 1, 1e-10, "乘法：按离散对数重排后能量全在 k = 3（Z/28）");
   const fa = T.fourierFor(Array.from({ length: 31 }, (_, a) => [Math.cos(2 * Math.PI * 5 * a / 31), Math.sin(2 * Math.PI * 5 * a / 31)]), gen("modadd", {}).meta); near(fa.energy[4], 1, 1e-10, "fourierFor 对加法用 Z/p");
 }

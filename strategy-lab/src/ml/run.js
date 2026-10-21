@@ -256,6 +256,8 @@ function fracOf(def, p, opts) {
 R.prepSupervised = function (m, D) {
   var def = D.def, data = D.data, opts = m.opts || {};
   var sp = R.split(def, data, fracOf(def, D.p, opts), new QL.RNG(opts.splitSeed == null ? D.seed : opts.splitSeed, 202, 0));
+  // 导入的表格里有缺失值：划分之后用训练集各列的中位数补（不让验证集、测试集的信息漏进来）
+  if (data.meta && data.meta.hasNaN && QL.mlreg.impute) { data = D.data = QL.mlreg.impute(data, sp.train); }
   var tr = R.subset(def, data, sp.train), va = R.subset(def, data, sp.valid), te = R.subset(def, data, sp.test);
   if (!tr.n || !va.n || !te.n) throw new Error("划分之后有一份是空的（训练 " + tr.n + "、验证 " + va.n + "、测试 " + te.n + "）：样本太少，或者比例不对。");
   // 训练集太大时只在一部分上算训练指标：第 q 个取第 floor(q·n/20000) 行（本机引擎按同样的规则取）
@@ -286,7 +288,15 @@ R.scoreSupervised = function (P, outs) {
     try {
       var O = def.oracle(D.p);
       if (O && isFn(O.predict)) {
-        var orc = function (sb) { var o = new Float64Array(def.kind === "classification" ? sb.n * k : sb.n), x = new Float64Array(sb.d); for (var i = 0; i < sb.n; i++) { for (var j = 0; j < sb.d; j++) x[j] = sb.X[i * sb.d + j]; var v = O.predict(x); if (def.kind === "classification") for (var c = 0; c < k; c++) o[i * k + c] = v[c]; else o[i] = v; } return cleanPred(def.kind, o, sb.n, k, "理论最优的预测"); };
+        // 两种写法都认：predict(X, n) 一次给整批（同算法的 predict），或者 predict(x) 一行一行地给
+        var orc = function (sb) {
+          var want = def.kind === "classification" ? sb.n * k : sb.n, b = null;
+          try { b = O.predict(sb.X, sb.n); } catch (e) { b = null; }
+          if (b && typeof b.length === "number" && b.length === want && sb.n > 1) return cleanPred(def.kind, b, sb.n, k, "理论最优的预测");
+          var o = new Float64Array(want), x = new Float64Array(sb.d);
+          for (var i = 0; i < sb.n; i++) { for (var j = 0; j < sb.d; j++) x[j] = sb.X[i * sb.d + j]; var v = O.predict(x); if (def.kind === "classification") for (var c = 0; c < k; c++) o[i * k + c] = v[c]; else o[i] = typeof v === "number" ? v : v[0]; }
+          return cleanPred(def.kind, o, sb.n, k, "理论最优的预测");
+        };
         var oVa = orc(va), oTe = orc(te);
         res.oracle = { note: O.note || "", metrics: { valid: S.metrics(def.kind, oVa, va.y, k), test: S.metrics(def.kind, oTe, te.y, k) }, loss: { valid: Float32Array.from(S.perExample(def.kind, oVa, va.y, k).loss), test: Float32Array.from(S.perExample(def.kind, oTe, te.y, k).loss) } };
       }

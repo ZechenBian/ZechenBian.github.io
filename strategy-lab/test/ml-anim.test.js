@@ -248,10 +248,12 @@ section("线性代数：Cholesky、SVD");
 
 section("随机特征：最小范数解（p ≥ n 时插值，且等于伪逆解）");
 {
-  const rng = new RNG(12, 1, 2), n = 25, xs = new Float64Array(n).map(() => 2 * rng.u() - 1), y = new Float64Array(n).map((_, i) => Math.sin(3 * xs[i]) + 0.1 * rng.normal());
-  const pool = M.rfPool(200, rng, 2);
-  for (const p of [50, 100, 200]) {
-    const Phi = M.rfMatrix(xs, n, pool, p), a = M.minNormSolve(Phi, n, p, y), res = maxAbsDiff(matvec(Phi, a, n, p), y);
+  // x ∈ [−1, 1]³（一维的 ReLU 特征常常不满秩，见 anim.js 里 rfPool 的说明）
+  const rng = new RNG(12, 1, 2), n = 25, d = 3, X = new Float64Array(n * d).map(() => 2 * rng.u() - 1), y = new Float64Array(n).map((_, i) => Math.sin(2.2 * X[i * d]) + 0.1 * rng.normal());
+  const pool = M.rfPool(200, d, rng);
+  ok(pool.W.length === 200 * d && pool.b.length === 200 && pool.d === d, "特征池的形状");
+  for (const p of [26, 50, 100, 200]) {
+    const Phi = M.rfMatrix(X, n, pool, p), a = M.minNormSolve(Phi, n, p, y), res = maxAbsDiff(matvec(Phi, a, n, p), y);
     ok(res < 1e-8, "p = " + p + " > n = " + n + "：Φa = y（插值）", "最大残差 " + res.toExponential(2));
     // 伪逆解 = Φᵀ(ΦΦᵀ)⁻¹y（Φ 行满秩时），用高斯消元直接解
     const GG = new Float64Array(n * n); for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) { let s = 0; for (let k = 0; k < p; k++) s += Phi[i * p + k] * Phi[j * p + k]; GG[i * n + j] = s; }
@@ -261,21 +263,34 @@ section("随机特征：最小范数解（p ≥ n 时插值，且等于伪逆解
     // 范数最小：加上零空间里的任意方向，插值不变、范数变大
     const v = new Float64Array(p).map(() => rng.normal()), Pv = M.minNormSolve(Phi, n, p, matvec(Phi, v, n, p)), nul = v.map((x, i) => x - Pv[i]);
     const a2 = a.map((x, i) => x + 0.3 * nul[i]);
-    ok(maxAbsDiff(matvec(Phi, a2, n, p), y) < 1e-7 && norm(a2) > norm(a), "p = " + p + "：零空间方向不改变插值、只让范数变大", norm(a).toFixed(3) + " < " + norm(a2).toFixed(3));
+    ok(maxAbsDiff(matvec(Phi, a2, n, p), y) < 1e-7 && norm(a2) > norm(a) * (1 + 1e-9), "p = " + p + "：零空间方向不改变插值、只让范数变大", norm(a).toFixed(3) + " < " + norm(a2).toFixed(3));
     // 岭回归 λ → 0⁺ 趋于最小范数解
-    const ar = M.ridgeSolve(Phi, n, p, y, 1e-10);
-    ok(maxAbsDiff(ar, a) / Math.max(...a.map(Math.abs)) < 1e-3, "p = " + p + "：岭回归 λ = 1e-10 ≈ 最小范数解");
+    const ar = M.ridgeSolve(Phi, n, p, y, 1e-10), relR = maxAbsDiff(ar, a) / Math.max(...a.map(Math.abs));
+    ok(relR < 1e-3, "p = " + p + "：岭回归 λ = 1e-10 ≈ 最小范数解", relR.toExponential(2));
   }
-  for (const p of [5, 15]) {
-    const Phi = M.rfMatrix(xs, n, pool, p), a = M.minNormSolve(Phi, n, p, y), GG = new Float64Array(p * p), rr = new Float64Array(p);
+  for (const p of [5, 15, 25]) {
+    const Phi = M.rfMatrix(X, n, pool, p), a = M.minNormSolve(Phi, n, p, y), GG = new Float64Array(p * p), rr = new Float64Array(p);
     for (let i = 0; i < p; i++) { for (let j = 0; j < p; j++) { let s = 0; for (let k = 0; k < n; k++) s += Phi[k * p + i] * Phi[k * p + j]; GG[i * p + j] = s; } let s = 0; for (let k = 0; k < n; k++) s += Phi[k * p + i] * y[k]; rr[i] = s; }
-    const aLS = gaussSolve(GG, rr, p), predA = matvec(Phi, a, n, p), predLS = matvec(Phi, aLS, n, p);
-    ok(maxAbsDiff(predA, predLS) < 1e-7, "p = " + p + " < n：等于普通最小二乘（正规方程）的拟合值");
+    const aLS = gaussSolve(GG, rr, p), rel = maxAbsDiff(a, aLS) / Math.max(...aLS.map(Math.abs));
+    ok(rel < 1e-6, "p = " + p + " ≤ n：等于普通最小二乘（正规方程）的解", rel.toExponential(2));
     ok(maxAbsDiff(M.ridgeSolve(Phi, n, p, y, 0), aLS) / Math.max(...aLS.map(Math.abs)) < 1e-6, "p = " + p + "：岭回归 λ = 0 = 正规方程解");
   }
+  // 秩亏的 Φ（p > n 但有两行相同）：没法插值，最小范数解仍是伪逆解——拟合值是 y 在列空间上的投影（两行相同的样本拟合成它们的平均）
+  {
+    const p = 40, Phi = M.rfMatrix(X, n, pool, p); for (let j = 0; j < p; j++) Phi[1 * p + j] = Phi[0 * p + j];
+    const a = M.minNormSolve(Phi, n, p, y), fit = matvec(Phi, a, n, p), avg = (y[0] + y[1]) / 2;
+    ok(Math.abs(fit[0] - avg) < 1e-8 && Math.abs(fit[1] - avg) < 1e-8 && maxAbsDiff(fit.subarray(2), y.subarray(2)) < 1e-8, "两行相同（秩亏）：那两个样本拟合成平均值，其余照样插值");
+  }
+  // 薄 QR：Q 列正交，A = QR，R 上三角
+  {
+    const r = 60, c = 12, Amat = new Float64Array(r * c).map(() => rng.normal()), qr = M.qrThin(Amat, r, c); let rec = 0, orth = 0, low = 0;
+    for (let i = 0; i < r; i++) for (let j = 0; j < c; j++) { let s = 0; for (let k = 0; k <= j; k++) s += qr.Q[k * r + i] * qr.R[k * c + j]; rec = Math.max(rec, Math.abs(s - Amat[i * c + j])); }
+    for (let a = 0; a < c; a++) for (let b = 0; b < c; b++) { let s = 0; for (let k = 0; k < r; k++) s += qr.Q[a * r + k] * qr.Q[b * r + k]; orth = Math.max(orth, Math.abs(s - (a === b ? 1 : 0))); if (a > b) low = Math.max(low, Math.abs(qr.R[a * c + b])); }
+    ok(rec < 1e-12 && orth < 1e-13 && low === 0, "薄 QR：A = QR，QᵀQ = I，R 上三角", "重构 " + rec.toExponential(1) + "，正交 " + orth.toExponential(1));
+  }
   // 特征缩放 1/√p 不影响最小范数解的预测
-  const p = 60, Phi = M.rfMatrix(xs, n, pool, p), Phi2 = Phi.map(v => v * 7.5), xt = Float64Array.from([-0.9, -0.2, 0.33, 0.8]);
-  const a1 = M.minNormSolve(Phi, n, p, y), a2 = M.minNormSolve(Phi2, n, p, y), Ft = M.rfMatrix(xt, 4, pool, p), Ft2 = Ft.map(v => v * 7.5);
+  const p = 60, Phi = M.rfMatrix(X, n, pool, p), Phi2 = Phi.map(v => v * 7.5), Xt = Float64Array.from([-0.9, 0.1, 0.3, -0.2, 0.5, -0.7, 0.33, 0, 0.8, 0.8, -0.8, 0.2]);
+  const a1 = M.minNormSolve(Phi, n, p, y), a2 = M.minNormSolve(Phi2, n, p, y), Ft = M.rfMatrix(Xt, 4, pool, p), Ft2 = Ft.map(v => v * 7.5);
   ok(maxAbsDiff(matvec(Ft, a1, 4, p), matvec(Ft2, a2, 4, p)) < 1e-8, "特征整体乘一个常数，最小范数解的预测不变");
 }
 

@@ -189,7 +189,7 @@ if "ml/main.js" in ML_JS:
     ML_ICON = ICON.replace("%232a78d6", "%236a4fc8")
     ml_page = "\n".join([
         "<!doctype html>",
-        "<!--\n  %s\n  Not open source: no copying, modification, redistribution, commercial use or AI/ML training without written permission.\n  非开源：未经书面许可，不得复制、修改、再分发、商用或用于 AI/机器学习训练。\n  License: %s\n  Third-party code bundled in this page (KaTeX, MIT License) keeps its own license: see THIRD-PARTY-NOTICES.md.\n-->" % (COPY, LICENSE_URL),
+        "<!--\n  %s\n  Not open source: no copying, modification, redistribution, commercial use or AI/ML training without written permission.\n  非开源：未经书面许可，不得复制、修改、再分发、商用或用于 AI/机器学习训练。\n  License: %s\n  Third-party code bundled in this page (KaTeX, MIT License) and four UCI datasets (CC BY 4.0) keep their own licenses: see THIRD-PARTY-NOTICES.md.\n-->" % (COPY, LICENSE_URL),
         '<html lang="zh-CN">', "<head>", '<meta charset="utf-8">', '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">',
         '<meta name="author" content="Zechen Bian">', '<meta name="copyright" content="© 2026 Zechen Bian. All rights reserved.">', '<meta name="robots" content="noai, noimageai">',
         '<link rel="license" href="%s">' % LICENSE_URL,

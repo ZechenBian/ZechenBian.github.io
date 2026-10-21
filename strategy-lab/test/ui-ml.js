@@ -99,7 +99,7 @@ function staticServer() {
     opt = opt || {};
     const ctx = await browser.newContext({ viewport: opt.viewport || { width: 1440, height: 920 }, colorScheme: opt.dark ? "dark" : "light" });
     const page = await ctx.newPage();
-    page.on("console", (m) => { if (m.type() === "error") logs.push("[console] " + m.text()); });
+    page.on("console", (m) => { if (m.type() === "error" && !/Failed to load resource: net::ERR_(FAILED|TUNNEL)/.test(m.text())) logs.push("[console] " + m.text()); });
     page.on("pageerror", (e) => logs.push("[pageerror] " + e.message + "\n" + String(e.stack || "").split("\n").slice(0, 3).join("\n")));
     await page.route((u) => /^https?:$/.test(u.protocol) && u.hostname !== "127.0.0.1", (r) => { external.push(new URL(r.request().url()).hostname); r.abort(); });
     if (opt.init) await page.addInitScript(opt.init);

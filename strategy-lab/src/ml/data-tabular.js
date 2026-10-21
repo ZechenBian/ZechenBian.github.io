@@ -5,7 +5,10 @@
  * 这个函数会被 toString() 拼进后台线程，所以必须自包含：真实数据也以紧凑字符串的形式写在函数体里。
  * 真实数据的编码：每列先乘 10^dec 变成整数、减去该列最小值，再按固定宽度写成 90 进制的字符
  * （字符表见 ALPH，不含引号、反斜杠和 <）。解码时 (整数 + 最小值) / 10^dec：整数除以 10 的幂是正确舍入的，
- * 所以得到的浮点数与直接解析原来的十进制文本逐位相同。 */
+ * 所以得到的浮点数与直接解析原来的十进制文本逐位相同。
+ * 约定：oracle(p) = { predict(X, n), note }，输出与算法的 predict 相同（回归 Float64Array(n)；分类 Float64Array(n·k)，每行是概率）。
+ *       bayes(p) = { metric: "mse" | "acc", value, se?（蒙特卡罗估计时的标准误）, also?（其他指标，如 logloss）, note }。
+ *       oracle 和 bayes 只依赖参数：需要"真系数"的数据集（稀疏线性、稀疏逻辑回归）用固定种子由 (d, s) 决定系数，与数据的种子无关。 */
 function QL_MLDATA_TABULAR(QL) {
 "use strict";
 var add = QL.mlreg.add, RNG = QL.RNG, R = String.raw, TAU = 2 * Math.PI;

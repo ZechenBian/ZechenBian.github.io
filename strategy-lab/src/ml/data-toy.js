@@ -651,8 +651,9 @@ function centered(M, m, order) {
   for (i = 0; i < m; i++) for (j = 0; j < D; j++) Z[i * D + j] -= mu[j];
   return Z;
 }
-/** 每个频率的能量占比：Ê_k = Σ_a e^{−2πika/N} (E_a − Ē)，k 与 N−k 合并（即 cos 与 sin 合并），除以 Σ_{k≠0} |Ê_k|²（= N·Σ_a |E_a − Ē|²，Parseval） */
+/** 每个频率的能量占比（返回 energy[k−1]，k = 1..⌊N/2⌋；top = 能量最大的几个频率，topShare 是它们的占比；effective = 1/Σ占比²，"有效频率个数"）：Ê_k = Σ_a e^{−2πika/N} (E_a − Ē)，k 与 N−k 合并（即 cos 与 sin 合并），除以 Σ_{k≠0} |Ê_k|²（= N·Σ_a |E_a − Ē|²，Parseval） */
 function fourier(E, N, opts) {
+  if (N && typeof N === "object") return fourierFor(E, N);   // 第二个参数也可以直接给数据集的 meta
   opts = opts || {};
   var M = asRows(E, N), D = M.D, Z = centered(M, N, opts.order), pw = new Float64Array(N), a, j, k;
   var cs = new Float64Array(N), sn = new Float64Array(N);
@@ -668,7 +669,8 @@ function fourier(E, N, opts) {
   var idx = []; for (k = 0; k < K; k++) idx.push(k); idx.sort(function (x, y) { return share[y] - share[x]; });
   var ipr = 0; for (k = 0; k < K; k++) ipr += share[k] * share[k];
   var freqs = new Int32Array(K); for (k = 0; k < K; k++) freqs[k] = k + 1;
-  return { N: N, freqs: freqs, energy: share, abs: abs, total: total, top: idx.slice(0, Math.min(8, K)).map(function (q) { return { k: q + 1, share: share[q] }; }), effective: ipr > 0 ? 1 / ipr : 0, uniform: K ? 1 / K : 0 };
+  var top = idx.slice(0, Math.min(8, K));
+  return { N: N, freqs: freqs, energy: share, abs: abs, total: total, top: top.map(function (q) { return q + 1; }), topShare: top.map(function (q) { return share[q]; }), effective: ipr > 0 ? 1 / ipr : 0, uniform: K ? 1 / K : 0 };
 }
 /** 按数据集 meta 选对的群阶与行顺序（乘法：按 g⁰, g¹, … 重排） */
 function fourierFor(E, meta) {

@@ -134,7 +134,7 @@ var QL_MLANIM = (function () {
       xr: [-2.2, 2.2], yr: [-0.8, 2.4], start: [-1.5, 2.1], min: [[1, 1]], fmin: 0, delta: 0.03 };
     if (id === "saddle") return { id: id, f: function (x, y) { return 0.5 * x * x + 0.25 * y * y * y * y - 0.5 * y * y; },
       grad: function (x, y, g) { g[0] = x; g[1] = y * y * y - y; return g; },
-      xr: [-3, 3], yr: [-2.2, 2.2], start: [-2.6, 0.004], min: [[0, 1], [0, -1]], saddle: [0, 0], fmin: -0.25, delta: 0.01 };
+      xr: [-3, 3], yr: [-2.2, 2.2], start: [-2.6, 1e-4], min: [[0, 1], [0, -1]], saddle: [0, 0], fmin: -0.25, delta: 0.01 };
     var kappa = Math.max(1, +o.kappa || 20), th = o.theta == null ? 0.5 : +o.theta, cs = Math.cos(th), sn = Math.sin(th), l1 = 1 / kappa;
     var u0 = -2.8, v0 = 1.2;    // 起点：沿平缓方向很远，沿陡峭方向不远
     return { id: "quad", kappa: kappa, theta: th,
@@ -215,30 +215,51 @@ var QL_MLANIM = (function () {
     for (j = 0; j < c; j++) { var nn = 0; for (k = 0; k < r; k++) nn += U[j * r + k] * U[j * r + k]; nn = Math.sqrt(nn); s[j] = nn; if (nn > 0) for (k = 0; k < r; k++) U[j * r + k] /= nn; }
     return { U: U, s: s, V: V, r: r, c: c };
   }
-  /** 最小范数最小二乘 a = Φ⁺y（Φ 是 n×p，按行展开）。p ≤ n 时对 Φ 做 SVD，p > n 时对 Φᵀ 做（让 SVD 的矩阵"高"）；
-   *  小于 rcond·s_max 的奇异值当作 0（即 Moore–Penrose 伪逆）。p ≥ n 且 Φ 行满秩时解恰好插值 Φa = y，并且在所有插值解里范数最小 */
+  /** 薄 QR：A（r×c，按行展开，r ≥ c）= Q R，Q 按列存（r×c，列正交），R 是 c×c 上三角（按行展开）。
+   *  经典 Gram–Schmidt 做两遍（CGS2）：第二遍把第一遍的舍入误差再正交化掉一次，Q 的正交性和 Householder 一样好 */
+  function qrThin(A, r, c) {
+    var Q = new Float64Array(r * c), R = new Float64Array(c * c), i, j, k;
+    for (k = 0; k < r; k++) for (j = 0; j < c; j++) Q[j * r + k] = A[k * c + j];
+    for (j = 0; j < c; j++) {
+      var oj = j * r;
+      for (var pass = 0; pass < 2; pass++) for (i = 0; i < j; i++) {
+        var oi = i * r, d = 0; for (k = 0; k < r; k++) d += Q[oi + k] * Q[oj + k];
+        R[i * c + j] += d; for (k = 0; k < r; k++) Q[oj + k] -= d * Q[oi + k];
+      }
+      var nn = 0; for (k = 0; k < r; k++) nn += Q[oj + k] * Q[oj + k]; nn = Math.sqrt(nn);
+      R[j * c + j] = nn; if (nn > 0) for (k = 0; k < r; k++) Q[oj + k] /= nn;
+    }
+    return { Q: Q, R: R };
+  }
+  /** 最小范数最小二乘 a = Φ⁺y（Φ 是 n×p，按行展开）。小于 rcond·s_max 的奇异值当作 0（即 Moore–Penrose 伪逆）。
+   *  p ≤ n：Φ = U S Vᵀ，a = V S⁺ Uᵀ y。p > n：先做薄 QR Φᵀ = Q R（p×n 与 n×n），再对小的 R 做 SVD R = U_R S V_Rᵀ，
+   *  于是 Φ = V_R S (Q U_R)ᵀ，a = Q U_R S⁺ V_Rᵀ y——比直接对 p×n 的 Φᵀ 做 Jacobi 快得多。
+   *  p ≥ n 且 Φ 行满秩时解恰好插值 Φa = y，并且在所有插值解里范数最小（a 落在 Φ 的行空间里） */
   function minNormSolve(Phi, n, p, y, rcond) {
     rcond = rcond == null ? 1e-12 : rcond;
     var a = new Float64Array(p), i, j, k, sv, smax = 0, tol, z;
     if (p <= n) {
-      sv = svdThin(Phi, n, p);                      // Φ = U S Vᵀ，a = V S⁺ Uᵀ y
+      sv = svdThin(Phi, n, p);
       for (j = 0; j < p; j++) smax = Math.max(smax, sv.s[j]); tol = rcond * smax;
       for (j = 0; j < p; j++) {
         if (!(sv.s[j] > tol)) continue;
         z = 0; for (k = 0; k < n; k++) z += sv.U[j * n + k] * y[k]; z /= sv.s[j];
         for (i = 0; i < p; i++) a[i] += sv.V[j * p + i] * z;
       }
-    } else {
-      var At = new Float64Array(p * n);              // Φᵀ = U S Vᵀ（U 是 p×n），所以 Φ = V S Uᵀ，a = U S⁺ Vᵀ y
-      for (i = 0; i < n; i++) for (j = 0; j < p; j++) At[j * n + i] = Phi[i * p + j];
-      sv = svdThin(At, p, n);
-      for (j = 0; j < n; j++) smax = Math.max(smax, sv.s[j]); tol = rcond * smax;
-      for (j = 0; j < n; j++) {
-        if (!(sv.s[j] > tol)) continue;
-        z = 0; for (k = 0; k < n; k++) z += sv.V[j * n + k] * y[k]; z /= sv.s[j];
-        for (i = 0; i < p; i++) a[i] += sv.U[j * p + i] * z;
-      }
+      return a;
     }
+    var At = new Float64Array(p * n);
+    for (i = 0; i < n; i++) for (j = 0; j < p; j++) At[j * n + i] = Phi[i * p + j];
+    var qr = qrThin(At, p, n);
+    sv = svdThin(qr.R, n, n);
+    for (j = 0; j < n; j++) smax = Math.max(smax, sv.s[j]); tol = rcond * smax;
+    var w = new Float64Array(n);                     // w = U_R S⁺ V_Rᵀ y（长度 n），a = Q w
+    for (j = 0; j < n; j++) {
+      if (!(sv.s[j] > tol)) continue;
+      z = 0; for (k = 0; k < n; k++) z += sv.V[j * n + k] * y[k]; z /= sv.s[j];
+      for (i = 0; i < n; i++) w[i] += sv.U[j * n + i] * z;
+    }
+    for (j = 0; j < n; j++) { var wj = w[j], oj = j * p; if (wj) for (i = 0; i < p; i++) a[i] += qr.Q[oj + i] * wj; }
     return a;
   }
   /** 岭回归 a = (ΦᵀΦ + λI)⁻¹Φᵀy；p > n 时用等价的 Φᵀ(ΦΦᵀ + λI)⁻¹y（解小的那个方程组） */
@@ -293,12 +314,20 @@ var QL_MLANIM = (function () {
   /* ================================================================== *
    *  六、随机 ReLU 特征
    * ================================================================== */
-  /** 特征池：φ_j(x) = max(0, w_j x + b_j)/√p，w_j、b_j ~ N(0, scale²)。拐点 −b_j/w_j 服从柯西分布，一半落在 [−1, 1] 里 */
-  function rfPool(P, rng, scale) { scale = scale || 2; var w = new Float64Array(P), b = new Float64Array(P); for (var j = 0; j < P; j++) { w[j] = scale * rng.normal(); b[j] = scale * rng.normal(); } return { w: w, b: b, P: P }; }
-  /** n 个点上前 p 个特征的矩阵（n×p，按行展开）。除以 √p 不改变最小范数解的预测（Φ 乘常数时 Φ⁺ 除以同一个常数），只影响岭回归的 λ 的尺度 */
-  function rfMatrix(xs, n, pool, p, out) {
-    out = out || new Float64Array(n * p); var sc = 1 / Math.sqrt(p);
-    for (var i = 0; i < n; i++) for (var j = 0; j < p; j++) { var z = pool.w[j] * xs[i] + pool.b[j]; out[i * p + j] = z > 0 ? z * sc : 0; }
+  /** 特征池：φ_j(x) = max(0, ⟨w_j, x⟩ + b_j)/√p，x ∈ ℝ^d，w_j ~ N(0, wScale²·I_d)，b_j ~ N(0, bScale²)。
+   *  为什么不用一维的 x：一维时 φ_j 是折点在 −b_j/w_j 的折线，n 个点上的特征矩阵的秩 = Σ_段 min(该段的点数, 2)（"段"由落在相邻数据点之间的折点切出），
+   *  只要有两个相邻的空隙里都没有折点就不满秩——p = n 时几乎总是这样，插值阈值被抹平。d ≥ 2 时折点是超平面，n 个一般位置的点上 p ≥ n 个特征一般就满秩了 */
+  function rfPool(P, d, rng, wScale, bScale) {
+    wScale = wScale == null ? 1 : wScale; bScale = bScale == null ? 0.5 : bScale;
+    var W = new Float64Array(P * d), b = new Float64Array(P);
+    for (var j = 0; j < P; j++) { for (var k = 0; k < d; k++) W[j * d + k] = wScale * rng.normal(); b[j] = bScale * rng.normal(); }
+    return { W: W, b: b, P: P, d: d };
+  }
+  /** n 个点（X 是 n×d，按行展开）上前 p 个特征的矩阵（n×p，按行展开）。
+   *  除以 √p 不改变最小范数解的预测（Φ 乘常数时 Φ⁺ 除以同一个常数），只影响岭回归的 λ 的尺度 */
+  function rfMatrix(X, n, pool, p, out) {
+    out = out || new Float64Array(n * p); var sc = 1 / Math.sqrt(p), d = pool.d, W = pool.W, b = pool.b;
+    for (var i = 0; i < n; i++) for (var j = 0; j < p; j++) { var z = b[j]; for (var k = 0; k < d; k++) z += W[j * d + k] * X[i * d + k]; out[i * p + j] = z > 0 ? z * sc : 0; }
     return out;
   }
 
@@ -307,7 +336,7 @@ var QL_MLANIM = (function () {
     isingLattice: isingLattice, isingEnergy: isingEnergy, isingMag: isingMag, isingInit: isingInit, metroAccept: metroAccept, metropolisSweep: metropolisSweep, wolffStep: wolffStep, yangM: yangM,
     percLabel: percLabel, spanThreshold: spanThreshold,
     surface: surface, OPTIMIZERS: OPTIMIZERS, optInit: optInit, optStep: optStep,
-    cholSolve: cholSolve, svdThin: svdThin, minNormSolve: minNormSolve, ridgeSolve: ridgeSolve,
+    cholSolve: cholSolve, svdThin: svdThin, qrThin: qrThin, minNormSolve: minNormSolve, ridgeSolve: ridgeSolve,
     legendre: legendre, polyFit: polyFit, polyEval: polyEval, biasVariance: biasVariance,
     rfPool: rfPool, rfMatrix: rfMatrix
   };
