@@ -607,6 +607,8 @@
     L.push({ kind: "操作", name: "打开 " + A.AI + " 面板", key: "claude ai 助手", run: function () { A.openClaude(true); } });
     if (!A.aiHost && A.openAiSettings) L.push({ kind: "操作", name: "AI 设置：服务商、密钥、模型", key: "ai 设置 接入 密钥 key deepseek chatgpt openai kimi 豆包 doubao 模型", run: function () { A.openAiSettings(); } });
     L.push({ kind: "操作", name: "打开手册", key: "手册 说明 帮助 help guide 文档 怎么用", run: function () { if (A.openGuide) A.openGuide(); } });
+    // 机器学习实验室是另一张页面（ml/，只有中文）；在 Claude 里打开时旁边没有这张页面
+    if (!A.aiHost) L.push({ kind: "操作", name: "打开机器学习实验室（另一张页面，中文）", key: "机器学习 实验室 ml machine learning 训练 模型 神经网络 算法 数据集", run: function () { location.href = (/^en/i.test(document.documentElement.getAttribute("lang") || "") ? "../" : "") + "ml/"; } });
     if (A.humanOk && A.humanOk()) L.push({ kind: "操作", name: "亲手玩一局（" + A.wdef().short + "）", key: "play human 亲手 自己 玩 手动 打一局", run: function () { A.openHuman(); } });
     L.push({ kind: "操作", name: "恢复默认设置", key: "reset 重置 默认", run: function () { A.resetting = true; try { localStorage.removeItem("ql.lab.v1"); } catch (e) {} A.toast("已清除本机保存的设置。重新打开页面后生效；在那之前的改动不会再保存。", 5000); } });
     Object.keys(A.CH).forEach(function (id) { var c = A.CH[id]; if (!A.chartOk(id)) return; L.push({ kind: "图表", name: (A.shown().indexOf(id) >= 0 ? "收起：" : "显示：") + A.chartName(id), hint: c.about, key: c.name + " " + (c.keys || ""), run: function () { A.toggleChart(id, true); } }); });

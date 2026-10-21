@@ -31,7 +31,9 @@
       h("p", { class: "lb-lead", text: "和别人一起玩的几种办法。这张页面没有自己的服务器：要给别人看的东西，由你自己贴到 GitHub 上；实时房间走公共的中继。不联网的时候，自己玩的部分照样能用。" }),
       grid,
       // 青少年版是另一张页面（teen/），只有中文：先亲手打一局，再学编程和算法的基本想法，最后自己写一条规则
-      h("p", { class: "note lb-teen" }, h("a", { href: (/^en/i.test(document.documentElement.getAttribute("lang") || "") ? "../" : "") + "teen/", id: "lbTeen", text: "青少年版" }), h("span", { text: "：给中学生的入口。先亲手打一局，再学编程和算法的基本想法，最后自己写一条规则（中文）。" }))
+      h("p", { class: "note lb-teen" }, h("a", { href: (/^en/i.test(document.documentElement.getAttribute("lang") || "") ? "../" : "") + "teen/", id: "lbTeen", text: "青少年版" }), h("span", { text: "：给中学生的入口。先亲手打一局，再学编程和算法的基本想法，最后自己写一条规则（中文）。" })),
+      // 机器学习实验室也是另一张页面（ml/），只有中文
+      h("p", { class: "note lb-teen" }, h("a", { href: (/^en/i.test(document.documentElement.getAttribute("lang") || "") ? "../" : "") + "ml/", id: "lbML", text: "机器学习实验室" }), h("span", { text: "：在浏览器里做机器学习实验。表格、时间序列、图像与格点、科研玩具四类任务，几十种内置算法，也可以让 AI 写；学习曲线、排行榜与配对检验、模型内部和训练过程的动画（中文）。" }))
     ], { cls: "lbm", focus: ".lb-card .btn" });
     return m;
   };

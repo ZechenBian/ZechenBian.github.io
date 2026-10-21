@@ -1,0 +1,27 @@
+# Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+# Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
+# 机器学习实验室的本机 Python 引擎。安装与用法见 README.md；页面和引擎之间的接口见 PROTOCOL.md。
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mllab-engine"
+version = "0.1.0"
+description = "策略实验室 · 机器学习实验室的本机 Python 引擎（在自己的电脑上用 Python / PyTorch 运行算法）"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "Zechen Bian" }]
+dependencies = ["numpy>=1.23"]
+# 版权所有，保留所有权利；不是开源软件（见仓库根目录 LICENSE）。下面这个分类会让 PyPI 拒绝上传，防止误发布。
+classifiers = ["Private :: Do Not Upload"]
+
+[project.optional-dependencies]
+torch = ["torch>=2.1"]
+
+[project.scripts]
+mllab-engine = "mllab_engine.__main__:main"
+
+[tool.setuptools]
+packages = ["mllab_engine"]

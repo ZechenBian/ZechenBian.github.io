@@ -1,0 +1,32 @@
+<div class="app ml" id="app" data-tab="res">
+  <header class="top">
+    <div class="brand"><h1>机器学习实验室</h1><small>任务 → 数据 → 算法 → 反馈</small></div>
+    <div class="top-world"><span id="topTask"></span></div>
+    <div class="top-actions">
+      <a class="btn" id="btnLab" href="../" title="回到策略实验室"><span class="lang-long">策略实验室</span><span class="lang-short">实验室</span></a>
+      <button class="btn" id="btnEngine" type="button" title="本机 Python 引擎：在你自己的电脑上用 Python / PyTorch 跑算法">本机引擎</button>
+      <button class="btn" id="btnGuide" type="button" title="说明：每种任务、每个数据集、每个算法、每张图、每种检验">手册 <kbd>?</kbd></button>
+      <button class="btn primary" id="btnAI" type="button" aria-pressed="false">AI</button>
+    </div>
+  </header>
+  <nav class="tabs" id="tabs" role="tablist" aria-label="面板">
+    <button type="button" role="tab" data-tab="ctl" aria-selected="false">任务与算法</button>
+    <button type="button" role="tab" data-tab="res" aria-selected="true">结果</button>
+    <button type="button" role="tab" data-tab="ai" aria-selected="false">AI</button>
+  </nav>
+  <div class="shell">
+    <aside class="pane pane-ctl" id="paneCtl" aria-label="任务、数据与算法">
+      <section class="blk" id="blkTask"></section>
+      <section class="blk" id="blkData"></section>
+      <section class="blk" id="blkAlgo"></section>
+      <section class="blk" id="blkSet"></section>
+    </aside>
+    <main class="pane pane-res" id="paneRes">
+      <section class="summary" id="summary" aria-live="polite"></section>
+      <nav class="ml-views" id="views" role="tablist" aria-label="结果的几种看法"></nav>
+      <div class="grid" id="grid"></div>
+    </main>
+    <aside class="pane pane-ai" id="paneAi" aria-label="AI"></aside>
+  </div>
+</div>
+<div id="overlays"></div>
