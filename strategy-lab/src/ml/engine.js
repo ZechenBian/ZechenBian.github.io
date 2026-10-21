@@ -161,6 +161,7 @@
       } else {
         body.appendChild(h("p", { text: "本机引擎是一个小程序，在你自己的电脑上运行，让这一页可以用 Python（numpy、PyTorch，有苹果芯片或 NVIDIA 的 GPU 时用 GPU）训练算法。它只监听本机（127.0.0.1），每次启动换一个随机令牌；只有从它打印的网址打开的页面才能用它。" }));
         body.appendChild(h("pre", { class: "code", text: START }));
+        if (A.aiHost) body.appendChild(h("div", { class: "warn", text: "你是在 Claude 里打开的这一页：这里连不上本机引擎。要用引擎，请在浏览器里用引擎打印的网址打开实验室。" }));
         body.appendChild(h("p", { class: "note", text: "这一页现在不是从引擎打开的，所以只用浏览器里的线程（不需要引擎也能用全部内置算法）。详细的说明在仓库的 strategy-lab/ml-engine/README.md，也可以看手册里的“本机引擎”。" }));
       }
       body.appendChild(h("p", { class: "note" }, "安全：引擎会执行你选的 Python 代码，权限和你自己一样（能读写你的文件）。只运行你看过、信得过的代码；AI 写的 Python 代码也要先看一遍。", A.helpBtn ? A.helpBtn("engine:how", "本机引擎") : null));

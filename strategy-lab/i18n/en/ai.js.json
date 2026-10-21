@@ -1,4 +1,6 @@
 [
+{"zh":"Claude（Anthropic）","en":"Claude (Anthropic)"},
+{"zh":"Claude 的会员订阅（Pro、Max）不包含 API 用量：API 要在 platform.claude.com 另外开通并充值，密钥以 sk-ant- 开头。接的是 Claude 时，机器学习实验室“从网上取数据”里的 AI 会先上网搜索再给地址（搜索另外计费）。","en":"A Claude subscription (Pro, Max) does not include API usage: the API has to be activated and funded separately at platform.claude.com; keys start with sk-ant-. With Claude connected, the AI in the machine-learning lab's \"fetch data from the web\" searches the web before it proposes addresses (searches are billed separately)."},
 {"zh":"DeepSeek（深度求索）","en":"DeepSeek"},
 {"zh":"ChatGPT（OpenAI）","en":"ChatGPT (OpenAI)"},
 {"zh":"ChatGPT 的会员订阅不包含 API 用量：API 要在 platform.openai.com 另外开通并充值。","en":"A ChatGPT subscription does not include API usage: the API has to be activated and funded separately at platform.openai.com."},
@@ -12,7 +14,7 @@
 {"zh":"其他（兼容 OpenAI 的接口）","en":"Other (OpenAI-compatible API)"},
 {"zh":"任何兼容 OpenAI Chat Completions 的接口都可以：填接口地址（到 /v1 为止）、密钥和模型名。本机的 Ollama、LM Studio 也算（例如 http://localhost:11434/v1，可以不填密钥）。","en":"Any API compatible with OpenAI Chat Completions works: enter the base URL (up to /v1), the key and the model name. Ollama or LM Studio on this machine counts too (for example http://localhost:11434/v1; the key may be left empty)."},
 {"zh":"/content.{0,12}(risk|filter|policy)|data_inspection|inappropriate|sensitive.?content|high.?risk|flagged|moderation|prohibited|blocked due to|敏感|违规|不安全|审核/i","en":"/content.{0,12}(risk|filter|policy)|data_inspection|inappropriate|sensitive.?content|high.?risk|flagged|moderation|prohibited|blocked due to|敏感|违规|不安全|审核/i"},
-{"zh":"/insufficient[_ ]?(balance|quota|funds|credit)|exceeded your current quota|quota.?exceeded|余额|欠费|arrearage|overdue|billing/i","en":"/insufficient[_ ]?(balance|quota|funds|credit)|exceeded your current quota|quota.?exceeded|余额|欠费|arrearage|overdue|billing/i"},
+{"zh":"/insufficient[_ ]?(balance|quota|funds|credit)|credit balance|exceeded your current quota|quota.?exceeded|余额|欠费|arrearage|overdue|billing/i","en":"/insufficient[_ ]?(balance|quota|funds|credit)|credit balance|exceeded your current quota|quota.?exceeded|余额|欠费|arrearage|overdue|billing/i"},
 {"zh":"/context.?length|maximum context|too many tokens|prompt is too long|input.{0,20}too long|超出.{0,6}长度/i","en":"/context.?length|maximum context|too many tokens|prompt is too long|input.{0,20}too long|超出.{0,6}长度/i"},
 {"zh":"/not.?(exist|found)|does not exist|invalid model|unknown model|not.?activated|NotOpen|未开通|不存在|no access/i","en":"/not.?(exist|found)|does not exist|invalid model|unknown model|not.?activated|NotOpen|未开通|不存在|no access/i"},
 {"zh":"还没有接入 AI。先点\"接入 AI…\"，选一家服务商并填上密钥。","en":"No AI is connected yet. Click \"Connect an AI…\" first, then choose a provider and enter a key."},

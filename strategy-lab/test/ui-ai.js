@@ -32,9 +32,10 @@ const KEY = "test-key-ok";
   // ---- 2) 设置：五个选项，密钥是密码框
   await page.locator('#aiOff button:has-text("接入 AI…")').click(); await page.waitForSelector(".ai-set");
   const provs = await page.locator(".ai-provs .chip").allInnerTexts();
-  ok(provs.length === 5 && /DeepSeek/.test(provs[0]) && /ChatGPT/.test(provs[1]) && /Kimi/.test(provs[2]) && /豆包/.test(provs[3]) && /其他/.test(provs[4]), "可以选 DeepSeek、ChatGPT、Kimi、豆包，或者其他兼容的接口", provs.join(" / "));
+  ok(provs.length === 6 && /Claude/.test(provs[0]) && /DeepSeek/.test(provs[1]) && /ChatGPT/.test(provs[2]) && /Kimi/.test(provs[3]) && /豆包/.test(provs[4]) && /其他/.test(provs[5]), "可以选 Claude、DeepSeek、ChatGPT、Kimi、豆包，或者其他兼容的接口", provs.join(" / "));
   const f0 = await page.evaluate(() => ({ type: document.getElementById("aiKey").type, ac: document.getElementById("aiKey").autocomplete, ph: document.getElementById("aiModel").placeholder, link: document.querySelector(".ai-set a").href, rel: document.querySelector(".ai-set a").rel, sel: document.querySelector('.ai-provs [aria-pressed="true"]').dataset.p }));
-  ok(f0.type === "password" && f0.ac === "off" && f0.ph === "deepseek-v4-pro" && f0.link === "https://platform.deepseek.com/api_keys" && /noopener/.test(f0.rel) && f0.sel === "deepseek", "密钥是密码框；默认选 DeepSeek，给出默认模型和申请密钥的链接", JSON.stringify(f0));
+  ok(f0.type === "password" && f0.ac === "off" && f0.ph === "claude-opus-5-5" && f0.link === "https://platform.claude.com/settings/keys" && /noopener/.test(f0.rel) && f0.sel === "claude", "密钥是密码框；默认选 Claude，给出默认模型和申请密钥的链接", JSON.stringify(f0));
+  ok(/会员订阅（Pro、Max）不包含 API 用量/.test(await page.locator(".ai-hint").innerText()), "Claude：提醒会员订阅不含 API 用量");
   await page.screenshot({ path: SH("ai-2-settings.png") });
   await page.click('.ai-provs [data-p="kimi"]');
   ok((await page.locator("#aiSite option").count()) === 2 && (await page.inputValue("#aiSite")) === "https://api.moonshot.cn/v1" && /国内站和国际站的密钥不通用/.test(await page.locator(".ai-hint").innerText()) && (await page.getAttribute("#aiModel", "placeholder")) === "kimi-k3", "Kimi：可以选国内站或国际站");

@@ -45,19 +45,29 @@ function dataSite() {
   return new Promise((r) => s.listen(0, "127.0.0.1", () => r({ port: s.address().port, hits, close: () => new Promise((q) => s.close(q)) })));
 }
 
-/* ---------- 假 AI：按提示词给候选（第一个 404） ---------- */
+/* ---------- 假 AI：按提示词给候选（第一个 404）。/v1/messages 扮演 Claude：先"搜索"一次，再给候选 ---------- */
 function mockAI(dataPort) {
   const calls = [];
-  const CORS = { "access-control-allow-origin": "*", "access-control-allow-headers": "authorization, content-type", "access-control-allow-methods": "GET, POST, OPTIONS" };
+  const CORS = { "access-control-allow-origin": "*", "access-control-allow-headers": "authorization, content-type, x-api-key, anthropic-version, anthropic-dangerous-direct-browser-access", "access-control-allow-methods": "GET, POST, OPTIONS" };
   const s = http.createServer((req, res) => {
     if (req.method === "OPTIONS") { res.writeHead(204, CORS); res.end(); return; }
     let raw = ""; req.on("data", (d) => { raw += d; }); req.on("end", () => {
       const body = JSON.parse(raw || "{}"); calls.push(body);
+      Object.defineProperty(body, "__req", { value: { path: req.url, key: req.headers["x-api-key"] || "", version: req.headers["anthropic-version"] || "", browser: req.headers["anthropic-dangerous-direct-browser-access"] || "" } });
       const base = "http://127.0.0.1:" + dataPort;
       const text = JSON.stringify({ candidates: [
         { name: "不存在的文件", url: base + "/cors/missing.csv", format: "csv", target: "y", kind: "regression", real: true, why: "测试：这个地址是 404" },
         { name: "测试销售表", url: base + "/cors/sales.csv", format: "csv", target: "y", kind: "regression", drop: ["leak"], source: "测试用的假网站", license: "测试", real: true, why: "x1、x2、color 预测 y；leak 是由 y 算出来的，要丢掉" }
       ], note: "测试" });
+      if (/\/messages$/.test(req.url)) {
+        if (req.headers["x-api-key"] !== "test-key-ok") { res.writeHead(401, Object.assign({ "content-type": "application/json" }, CORS)); res.end(JSON.stringify({ type: "error", error: { type: "authentication_error", message: "invalid x-api-key" } })); return; }
+        const ev = [{ type: "message_start", message: { id: "msg_test", role: "assistant", content: [] } }, { type: "content_block_start", index: 0, content_block: { type: "text", text: "" } }, { type: "content_block_delta", index: 0, delta: { type: "text_delta", text: "我先搜一下。" } }, { type: "content_block_stop", index: 0 }];
+        if (body.tools && body.tools.some((t) => t.name === "web_search")) ev.push({ type: "content_block_start", index: 1, content_block: { type: "server_tool_use", id: "srvtoolu_t", name: "web_search", input: {} } }, { type: "content_block_delta", index: 1, delta: { type: "input_json_delta", partial_json: "{\"query\": \"x1 x2 color y 销售表 csv\"}" } }, { type: "content_block_stop", index: 1 },
+          { type: "content_block_start", index: 2, content_block: { type: "web_search_tool_result", tool_use_id: "srvtoolu_t", content: [{ type: "web_search_result", title: "测试销售表", url: base + "/cors/sales.csv" }, { type: "web_search_result", title: "说明页", url: base + "/cors/page.html" }] } }, { type: "content_block_stop", index: 2 });
+        ev.push({ type: "content_block_start", index: 3, content_block: { type: "text", text: "" } }, { type: "content_block_delta", index: 3, delta: { type: "text_delta", text: text.slice(0, 40) } }, { type: "content_block_delta", index: 3, delta: { type: "text_delta", text: text.slice(40) } }, { type: "content_block_stop", index: 3 }, { type: "message_delta", delta: { stop_reason: "end_turn" } }, { type: "message_stop" });
+        res.writeHead(200, Object.assign({ "content-type": "text/event-stream" }, CORS));
+        res.end(ev.map((e) => "event: " + e.type + "\ndata: " + JSON.stringify(e) + "\n\n").join("")); return;
+      }
       if (!body.stream) { res.writeHead(200, Object.assign({ "content-type": "application/json" }, CORS)); res.end(JSON.stringify({ choices: [{ message: { content: text }, finish_reason: "stop" }] })); return; }
       res.writeHead(200, Object.assign({ "content-type": "text/event-stream" }, CORS));
       res.write("data: " + JSON.stringify({ choices: [{ delta: { content: text } }] }) + "\n\n");
@@ -113,6 +123,20 @@ function pageSite() { const s = http.createServer((req, res) => { if (req.url.sp
     ok(!(st.names || []).some((n) => /leak/.test(n)), "丢掉的列不在特征里", JSON.stringify(st.names));
     const run = await page.evaluate(async () => { try { const r = await MLA.run({ quiet: true }); return { r2: r.metrics.valid.r2 }; } catch (e) { return { err: e.message }; } });
     ok(run.r2 > 0.8, "导入的数据能训练", JSON.stringify(run));
+
+    section("接的是 Claude：先上网搜索，再给地址");
+    await page.evaluate((port) => QLAI.save({ p: "claude", by: { claude: { base: "http://127.0.0.1:" + port + "/v1", key: "test-key-ok" } } }), ai.port);
+    await page.click("#btnWeb"); await page.waitForSelector("#webDesc");
+    ok(/Claude 会先上网搜索（最多 5 次/.test(await page.locator(".ml-web-sec .note").first().innerText()), "对话框里说明：Claude 会先上网搜索", await page.locator(".ml-web-sec .note").first().innerText());
+    let nc = ai.calls.length; await page.fill("#webDesc", "一张用 x1、x2 和颜色预测 y 的表"); await page.click("#webAsk");
+    await page.waitForSelector("#webImport", { timeout: 30000 });
+    lt = await logText(page); const cc = ai.calls[nc] || {};
+    ok(cc.__req && cc.__req.path === "/v1/messages" && cc.__req.key === "test-key-ok" && cc.__req.version === "2023-06-01" && cc.__req.browser === "true", "请求发到 Claude 的 /v1/messages，带着 x-api-key 和允许网页调用的请求头", JSON.stringify(cc.__req));
+    ok(cc.tools && cc.tools[0].type === "web_search_20250305" && cc.tools[0].max_uses === 5 && cc.max_tokens > 0 && cc.model === "claude-opus-5-5", "带上了网络搜索工具，最多 5 次", JSON.stringify(cc.tools));
+    ok(/web_search 工具/.test(cc.messages[0].content) && /搜索完以后，最后的回答只输出一个 JSON/.test(cc.messages[0].content), "提示词里交代了先搜索、最后只输出 JSON");
+    ok(/请 Claude 上网搜索、找数据/.test(lt) && /Claude 搜索：x1 x2 color y 销售表 csv/.test(lt) && /搜到 2 条结果/.test(lt) && /AI 给了 2 个候选/.test(lt) && /读出 400 行、5 列/.test(lt), "日志里看得到它搜了什么、搜到几条；搜索前的那句话不影响读出候选", lt.slice(0, 500));
+    if (process.env.ML_SHOTS) await page.screenshot({ path: path.join(process.env.ML_SHOTS, "web-claude.png") });
+    await page.keyboard.press("Escape");
 
     section("直接填网址：gzip、超过 5 万行、zip、JSON、网页、404");
     await page.click("#btnWeb"); await page.waitForSelector("#webUrl");
