@@ -909,6 +909,23 @@ table.ml-lb .good { color: var(--good-ink); } table.ml-lb .bad { color: var(--cr
 .ml-ai-rounds { margin: 6px 0; padding-left: 1.4em; display: grid; gap: 8px; }
 .ml-ai-rounds > li { font-size: 12.5px; }
 
+/* 数据的来源：模拟 / 真实 / 导入 */
+.ml-badge { display: inline-flex; align-items: center; font: 600 11px/1.55 var(--font-body); padding: 0 7px; border-radius: 999px; border: 1px solid; white-space: nowrap; vertical-align: middle; margin-left: 6px; letter-spacing: 0.02em; }
+.ml-badge.sim { color: var(--warn-ink); border-color: var(--c-warn); background: rgba(250, 178, 25, 0.12); }
+.ml-badge.real { color: var(--good-ink); border-color: var(--c-good); background: rgba(12, 163, 12, 0.10); }
+.ml-badge.csv { color: var(--accent-ink); border-color: var(--accent); background: var(--accent-wash); }
+.blk h2 .ml-badge { margin-left: 8px; }
+.ml-origin { display: flex; gap: 8px; align-items: flex-start; font-size: 12px; color: var(--ink2); margin: 8px 0 4px; line-height: 1.55; padding: 7px 9px; border-radius: 6px; border: 1px solid var(--line); }
+.ml-origin .ml-badge { margin-left: 0; flex: none; margin-top: 1px; }
+.ml-origin.sim { background: rgba(250, 178, 25, 0.07); border-color: rgba(250, 178, 25, 0.45); }
+.ml-origin.real { background: rgba(12, 163, 12, 0.06); border-color: rgba(12, 163, 12, 0.4); }
+.ml-origin.csv { background: var(--accent-wash); border-color: var(--accent); }
+.card.ml-origin-card.sim { border-left: 3px solid var(--c-warn); }
+.card.ml-origin-card.real { border-left: 3px solid var(--c-good); }
+.card.ml-origin-card.csv { border-left: 3px solid var(--accent); }
+.gd-link .ml-badge { margin-left: 6px; font-size: 10px; padding: 0 5px; }
+.gd-kicker .ml-badge { margin-left: 8px; }
+
 </style>
 <style>
 /* KaTeX 0.16.47 的样式，字体内联。KaTeX: MIT License, (c) Khan Academy and other contributors; 字体: SIL Open Font License 1.1。全文见 THIRD-PARTY-NOTICES.md */
@@ -13361,6 +13378,14 @@ var MLA = (function () {
   A.dsParams = function () { var d = A.ds(), st = dsState(); if (!d || d.id === "csv") return {}; var cur = st.params[d.id] || (st.params[d.id] = {}); return into(cur, REG.clean(d, cur)); };
   A.dsSeed = function () { return dsState().seed | 0 || 1; };
   A.apiOf = function (def) { return def && def.kind === "forecast" ? "forecast" : "supervised"; };
+  /** 数据从哪里来：模拟（程序按已知规律生成）、真实（采集来的，数据集带着出处）、导入（你自己的 CSV） */
+  A.dsOrigin = function (d) {
+    if (!d) return null;
+    if (d.id === "csv") return { k: "csv", short: "导入", label: "你导入的数据", note: "你自己的 CSV 文件，只在这台电脑的浏览器里处理。没有“理论最优”可比。" };
+    if (d.source) { var demo = /演示|不保证/.test(String(d.source.license || "")); return { k: "real", short: "真实", label: "真实数据", note: "从真实世界采集来的数据" + (demo ? "（打包进页面的演示快照，不保证准确）" : "") + "：" + d.source.name + "。真实规律未知，所以没有“理论最优”可比。" }; }
+    return { k: "sim", short: "模拟", label: "模拟数据", note: "不是真实世界的数据：程序按说明里写的规律随机生成，种子相同就逐位相同。正因为规律已知，才能给出“理论最优”来对照。" };
+  };
+  A.originBadge = function (d, long) { var o = A.dsOrigin(d); return o ? h("span", { class: "ml-badge " + o.k, title: o.note, text: long ? o.label : o.short }) : null; };
   /** 这个数据集能用的算法：内置的、我的（自己改的和 AI 写的）、Python（连着本机引擎时） */
   A.algosFor = function (def) {
     if (!def) return [];
@@ -13440,18 +13465,20 @@ var MLA = (function () {
     host.appendChild(h("div", { class: "ml-groups", role: "group", "aria-label": "任务类型" }, REG.groups.map(function (x) {
       return h("button", { class: "chip", type: "button", "data-g": x.id, "aria-pressed": x.id === g.id ? "true" : "false", onclick: function () { A.selectGroup(x.id); } }, h("span", { text: x.name }), h("small", { text: x.short || SHORT[x.id] || "" }));
     })));
-    $("topTask").textContent = g.name + " · " + (A.ds() ? A.ds().name : "");
+    $("topTask").textContent = g.name + " · " + (A.ds() ? A.ds().name + "（" + A.dsOrigin(A.ds()).label + "）" : "");
   };
   A.renderData = function () {
     var host = clear($("blkData")), g = A.group(), d = A.ds(), st = dsState(), list = A.dsOf(g);
-    host.appendChild(h("h2", null, "数据", h("small", { text: d ? kindName(d.kind) : "" }), h("span", { class: "sp" }), d ? helpBtn("ds:" + d.id, d.name) : null));
+    host.appendChild(h("h2", null, "数据", h("small", { text: d ? kindName(d.kind) : "" }), d ? A.originBadge(d, true) : null, h("span", { class: "sp" }), d ? helpBtn("ds:" + d.id, d.name) : null));
     var sel = h("select", { class: "ml-pick", id: "dsSel", "aria-label": "数据集", onchange: function () { A.selectDs(sel.value); } });
     var real = list.filter(function (x) { return x.source; }), syn = list.filter(function (x) { return !x.source; });
-    if (syn.length) sel.appendChild(h("optgroup", { label: "模拟的数据（真值已知）" }, syn.map(function (x) { return h("option", { value: x.id, text: x.name, selected: x.id === st.id }); })));
-    if (real.length) sel.appendChild(h("optgroup", { label: "真实数据" }, real.map(function (x) { return h("option", { value: x.id, text: x.name, selected: x.id === st.id }); })));
-    if (A.csv && (g.family === A.csv.def.family) && (!g.kind || g.kind === A.csv.def.kind)) sel.appendChild(h("optgroup", { label: "导入的" }, h("option", { value: "csv", text: A.csv.def.name, selected: st.id === "csv" })));
+    if (real.length) sel.appendChild(h("optgroup", { label: "真实数据（采集来的）" }, real.map(function (x) { return h("option", { value: x.id, text: "〔真实〕" + x.name, selected: x.id === st.id }); })));
+    if (syn.length) sel.appendChild(h("optgroup", { label: "模拟数据（程序生成，规律已知）" }, syn.map(function (x) { return h("option", { value: x.id, text: "〔模拟〕" + x.name, selected: x.id === st.id }); })));
+    if (A.csv && (g.family === A.csv.def.family) && (!g.kind || g.kind === A.csv.def.kind)) sel.appendChild(h("optgroup", { label: "你导入的数据" }, h("option", { value: "csv", text: "〔导入〕" + A.csv.def.name, selected: st.id === "csv" })));
     host.appendChild(sel);
     if (!d) return;
+    var og = A.dsOrigin(d);
+    host.appendChild(h("div", { class: "ml-origin " + og.k }, h("span", { class: "ml-badge " + og.k, text: og.label }), h("span", { text: og.note })));
     host.appendChild(h("p", { class: "ml-blurb", text: d.summary || "" }));
     if (d.id !== "csv") {
       var vals = A.dsParams();
@@ -13462,7 +13489,7 @@ var MLA = (function () {
     host.appendChild(h("div", { class: "ml-row" }, h("label", { class: "note", for: "dsSeed", text: "种子" }), seedI, h("button", { class: "btn small", type: "button", text: "换一批", title: "换一个种子：同样的设定，另一批随机样本", onclick: A.newSeed }), h("span", { class: "sp" }),
       (g.family === "tabular" || g.family === "timeseries") && A.openCsv ? h("button", { class: "btn small", type: "button", text: "导入 CSV…", onclick: function () { A.openCsv(); } }) : null));
     if (d.source) host.appendChild(h("div", { class: "ml-src" }, "来源：", d.source.url ? h("a", { href: d.source.url, target: "_blank", rel: "noopener noreferrer", text: d.source.name }) : d.source.name, d.source.license ? "（" + d.source.license + "）" : ""));
-    $("topTask").textContent = g.name + " · " + d.name;
+    $("topTask").textContent = g.name + " · " + d.name + "（" + og.label + "）";
   };
   function kindName(k) { return k === "regression" ? "回归" : k === "classification" ? "分类" : k === "forecast" ? "预测" : ""; }
   A.kindName = kindName;
@@ -13625,7 +13652,7 @@ var MLA = (function () {
     host.appendChild(head);
     if (!run) drop();
     if (run) {
-      $("sumMeta").textContent = run.algo.name + " · " + run.def.name;
+      $("sumMeta").textContent = run.algo.name + " · " + run.def.name + "（" + A.dsOrigin(run.def).label + "）";
       var el = Math.round((Date.now() - run.t0) / 1000), budget = S.budget;
       head.appendChild(h("span", { class: "note", id: "liveClock", text: (run.msg || "") + " · " + el + " 秒" }));
       head.appendChild(h("button", { class: "btn small", type: "button", text: "停止", onclick: function () { A.stop(); } }));
@@ -13636,13 +13663,13 @@ var MLA = (function () {
     }
     var L = A.last;
     if (!L) {
-      $("sumMeta").textContent = d ? d.name : "";
+      $("sumMeta").textContent = d ? d.name + "（" + A.dsOrigin(d).label + "）" : "";
       host.appendChild(h("div", { class: "ml-empty" }, h("b", { text: "还没有运行。" }), " 左栏选好任务、数据和算法以后点“运行”（或按 ⌘/Ctrl + Enter）。算法在后台线程里训练，算完以后这里显示训练集和验证集上的成绩；测试集的成绩先遮住，确定不再改了再揭晓。",
         A.lastError ? h("div", { class: "warn err", style: { "margin-top": "10px" } }, h("span", { text: "上一次运行出错：" + A.lastError.message + (A.lastError.line ? "（第 " + A.lastError.line + " 行）" : "") }), A.aiFix ? h("button", { class: "btn small", type: "button", text: "让 AI 修", onclick: function () { A.aiFix(A.lastError); } }) : null) : null));
       return;
     }
     var res = L.res, pk = res.primary, mfmt = function (v) { return A.metFmt(pk, v); }, stale = A.stale();
-    $("sumMeta").textContent = L.algo.name + " · " + L.def.name + (stale ? " · 设定已经改了，这是上一次的结果" : "");
+    $("sumMeta").textContent = L.algo.name + " · " + L.def.name + "（" + A.dsOrigin(L.def).label + "）" + (stale ? " · 设定已经改了，这是上一次的结果" : "");
     var seV = A.primarySE(res, "valid"), tiles = h("div", { class: "ml-tiles" });
     tiles.appendChild(tile(A.metName(pk) + " · 训练", mfmt(res.metrics.train[pk]), gapNote(res)));
     tiles.appendChild(tile(A.metName(pk) + " · 验证", mfmt(res.metrics.valid[pk]), "± " + mfmt(seV) + "（1 个标准误）"));
@@ -13718,7 +13745,7 @@ var MLA = (function () {
   function card(title, opt) {
     opt = opt || {};
     var b = h("div", { class: "card-b" }), c = h("div", { class: "card" + (opt.wide ? " wide" : ""), id: opt.id || null },
-      h("div", { class: "card-h" }, h("h3", { text: title }), opt.help ? A.helpBtn(opt.help, title) : null, opt.head || null), opt.ctl ? h("div", { class: "card-c" }, opt.ctl) : null, b, opt.foot ? h("div", { class: "card-f" }, opt.foot) : null);
+      h("div", { class: "card-h" }, h("h3", { text: title }), opt.head || null, opt.help ? A.helpBtn(opt.help, title) : null), opt.ctl ? h("div", { class: "card-c" }, opt.ctl) : null, b, opt.foot ? h("div", { class: "card-f" }, opt.foot) : null);
     $("grid").appendChild(c);
     return { el: c, body: b };
   }
@@ -13756,7 +13783,7 @@ var MLA = (function () {
   function chartsView(L) {
     var res = L.res, w = which(L), pv = res.data || A.preview || {}, cls = res.kind === "classification";
     var stepCurve = !L.algo.curveX || /步|轮|迭代|epoch/i.test(L.algo.curveX);
-    var c = card(stepCurve ? "学习曲线" : "训练过程的记录", { help: "chart:curve", wide: !(res.snaps && res.snaps.length), foot: stepCurve ? "实线是训练集，虚线是验证集。验证损失先降后升，就是开始过拟合的地方。" : "横轴是“" + L.algo.curveX + "”：算法在训练时逐个汇报的量。" }); keep(V.curve(c.body, res, { xLabel: L.algo.curveX }));
+    var c = card(stepCurve ? "学习曲线" : "训练过程的记录", { head: A.originBadge(L.def, true), help: "chart:curve", wide: !(res.snaps && res.snaps.length), foot: stepCurve ? "实线是训练集，虚线是验证集。验证损失先降后升，就是开始过拟合的地方。" : "横轴是“" + L.algo.curveX + "”：算法在训练时逐个汇报的量。" }); keep(V.curve(c.body, res, { xLabel: L.algo.curveX }));
     var last = res.snaps && res.snaps.length ? res.snaps[res.snaps.length - 1] : null;
     if (last && last.kind === "grid2d") { c = card(cls ? "决策面" : "学到的函数（二维）", { help: "chart:surface", foot: cls ? "底色是模型在每个位置判的类别，越深越有把握；点是训练样本。细线是决策边界。" : "底色是模型的预测值；点是训练样本（颜色是真实的 y）。" }); keep(V.surface(c.body, last, pv)); }
     if (last && last.kind === "fn1d") { c = card("学到的函数", { help: "chart:fn1d", foot: pv.xy && pv.xy.truth ? "虚线是真函数（数据集的理论最优）；灰点是数据。" : "" }); keep(V.fn1d(c.body, last, pv, pv.xy && pv.xy.truth)); }
@@ -13869,6 +13896,9 @@ var MLA = (function () {
     var d = A.ds(), pv = A.preview, c;
     if (!d) return;
     if (!pv) { c = card("数据", { wide: true }); c.body.appendChild(h("p", { class: "ml-note", text: A.dataErr ? "数据没有生成出来：" + A.dataErr : "正在生成数据…" })); return; }
+    var og = A.dsOrigin(d), ob = card(og.label + "：" + d.name, { wide: true, help: "ds:" + d.id, head: A.originBadge(d, true) });
+    ob.el.classList.add("ml-origin-card", og.k);
+    ob.body.appendChild(h("p", { class: "ml-note", text: og.note }));
     if (A.renderSim) A.renderSim(card, keep, true);
     var foot = "共 " + pv.n + " 个样本" + (pv.d ? "，每个 " + pv.d + " 个特征" : "") + (pv.classes ? "，" + pv.classes.length + " 类" : "") + "。";
     if (pv.series) { c = card("序列", { wide: true, foot: "共 " + pv.series.T + " 个时刻；浅色底是验证段和测试段。" }); keep(V.series(c.body, pv)); }
@@ -13878,7 +13908,7 @@ var MLA = (function () {
     if (pv.meta && pv.meta.table && pv.meta.order && pv.meta.order <= 120) { c = card("乘法表", { foot: "第 a 行第 b 列是 ab 的编号（颜色）。" }); keep(V.cayley(c.body, pv.meta.table, pv.meta.order, null)); }
     if (pv.classCounts) { c = card("各类的样本数"); var chc = V.chart(c.body, 200), k = pv.classCounts.length, x0 = [], x1 = [], y = [], xm = []; for (var j = 0; j < k; j++) { x0.push(j - 0.4); x1.push(j + 0.4); y.push(pv.classCounts[j]); xm.push(j); } keep(chc); chc.set({ x: { label: "", domain: [-0.6, k - 0.4], ticks: k <= 20 ? xm : null, fmt: function (v) { var q = Math.round(v); return k <= 12 && pv.classes ? String(pv.classes[q]) : String(q); } }, panels: [{ y: { label: "样本数", zero: true }, layers: [{ kind: "bars", x0: x0, x1: x1, y: y, color: "s1", maxW: 56 }] }] }); }
     if (pv.featureNames && !pv.images && !pv.series) { c = card("特征"); c.body.appendChild(h("p", { class: "ml-note", text: pv.featureNames.join("、") })); }
-    c = card("这个数据集", { wide: true, help: "ds:" + d.id });
+    c = card("这个数据集的说明", { wide: true, help: "ds:" + d.id, head: A.originBadge(d, true) });
     var md = h("div"); c.body.appendChild(md); QLMD.mount(md, d.docs || d.summary || "");
     if (d.source) c.body.appendChild(h("p", { class: "ml-src" }, "来源：" + d.source.name + (d.source.license ? "，许可：" + d.source.license : "") + (d.source.cite ? "。" + d.source.cite : "")));
   }
@@ -13990,7 +14020,7 @@ var MLA = (function () {
   }
   function boardView() {
     var key = A.expKey(), E = RB.exps[key], d = A.ds();
-    var c = card("排行榜：" + (d ? d.name : ""), { wide: true, help: "board:how" });
+    var c = card("排行榜：" + (d ? d.name : ""), { wide: true, help: "board:how", head: d ? A.originBadge(d, true) : null });
     if (!E || !E.runs.length) { c.body.appendChild(h("p", { class: "ml-note", text: "这个实验（同一个数据集、同样的参数和种子、同样的划分）还没有记录。每运行一次，这里就多一行：所有算法在完全相同的样本上比，可以做配对检验。" + (E && E.looks ? "这个实验的测试集已经看过 " + E.looks + " 次。" : "") })); return; }
     var pk = E.primary, hb = E.hb, runs = E.runs.slice();
     var vs = runs.map(function (r) { return versus(E, r, "v"); }), adj = ST.holm(vs.map(function (x) { return x ? x.p : NaN; }));
@@ -14132,9 +14162,9 @@ var MLA = (function () {
     function renderNav(q) {
       clear(nav); var groups = {}, order = [];
       entries.forEach(function (e) { if (q && (e.title + " " + (e.keys || "") + " " + e.md).toLowerCase().indexOf(q.toLowerCase()) < 0) return; if (!groups[e.group]) { groups[e.group] = []; order.push(e.group); } groups[e.group].push(e); });
-      order.forEach(function (g) { nav.appendChild(h("h4", { text: g })); groups[g].forEach(function (e) { nav.appendChild(h("button", { class: "gd-link", type: "button", "aria-current": e.key === key ? "true" : "false", onclick: function () { show(e.key); } }, e.title)); }); });
+      order.forEach(function (g) { nav.appendChild(h("h4", { text: g })); groups[g].forEach(function (e) { nav.appendChild(h("button", { class: "gd-link", type: "button", "aria-current": e.key === key ? "true" : "false", onclick: function () { show(e.key); } }, e.title, e.badge ? h("span", { class: "ml-badge " + e.badge.k, text: e.badge.short }) : null)); }); });
     }
-    function show(k) { key = k; var e = byKey[k]; clear(art); if (!e) return; var inn = h("div", { class: "gd-in" }, h("div", { class: "gd-kicker", text: e.group }), h("h2", { class: "gd-title", text: e.title })), md = h("div"); inn.appendChild(md); art.appendChild(inn); QLMD.mount(md, e.md); if (e.after) e.after(inn); art.scrollTop = 0; renderNav(search.value); }
+    function show(k) { key = k; var e = byKey[k]; clear(art); if (!e) return; var inn = h("div", { class: "gd-in" }, h("div", { class: "gd-kicker" }, e.group, e.badge ? h("span", { class: "ml-badge " + e.badge.k, text: e.badge.label }) : null), h("h2", { class: "gd-title", text: e.title })), md = h("div"); inn.appendChild(md); art.appendChild(inn); QLMD.mount(md, e.md); if (e.after) e.after(inn); art.scrollTop = 0; renderNav(search.value); }
     search.addEventListener("input", function () { renderNav(search.value); });
     var hd = h("div", { class: "gd-h" }, h("h2", { text: "手册" }), search, h("button", { class: "iconbtn", type: "button", "aria-label": "关闭", text: "✕", onclick: function () { m.close(); } }));
     var m = A.modal("手册", [hd, h("div", { class: "gd-main" }, nav, art)], { bare: true, cls: "guide", focus: ".gd-art" });
@@ -17515,7 +17545,10 @@ $$\langle\lvert m\rvert\rangle_L\approx L^{-\beta/\nu}\,\Phi\big((T-T_c)L^{1/\nu
   }
   function dsEntry(reg, def) {
     var real = !!def.source, L = [];
-    L.push("**类型.** " + (FAMILY[def.family] || def.family) + " · " + (KIND[def.kind] || def.kind) + " · 主指标：" + (PRIMARY[def.kind] || "") + " · " + (real ? "真实数据" : "模拟的数据（生成规律已知）") + "。");
+    var demo = real && /演示|不保证/.test(String(def.source.license || ""));
+    L.push(real ? "**数据的来源：真实数据。** 从真实世界采集来的" + (demo ? "（打包进页面的演示快照，不保证准确）" : "") + "，出处见文末的“来源”。真实规律未知，所以没有理论最优可比。"
+      : "**数据的来源：模拟数据。** 不是真实世界的数据：程序按下面写的规律随机生成，同样的参数和种子总是生成逐位相同的样本。正因为规律已知，才能给出理论最优来对照。");
+    L.push("**类型.** " + (FAMILY[def.family] || def.family) + " · " + (KIND[def.kind] || def.kind) + " · 主指标：" + (PRIMARY[def.kind] || "") + " · " + (real ? "真实数据" : "模拟数据（生成规律已知）") + "。");
     L.push(String(def.docs || def.summary || "（这个数据集没有写说明。）"));
     L.push("## 参数\n\n" + paramTable(def.params) + "\n\n另有**种子**（\"数据\"块下面）：同样的参数和种子总是生成逐位相同的样本；\"换一批\"把种子加一。");
     L.push("## 划分\n\n" + splitText(reg, def));
@@ -17529,7 +17562,7 @@ $$\langle\lvert m\rvert\rangle_L\approx L^{-\beta/\nu}\,\Phi\big((T-T_c)L^{1/\nu
       if (s.cite) src += "\n- 引用：" + cell(s.cite);
       L.push("## 来源\n\n" + src);
     }
-    return { key: "ds:" + def.id, group: "数据集", title: String(def.name), keys: [def.id, FAMILY[def.family], KIND[def.kind], def.summary || "", real ? "真实数据 " + (def.source.name || "") : "模拟"].join(" "), md: L.join("\n\n") };
+    return { key: "ds:" + def.id, group: "数据集", title: String(def.name), badge: real ? { k: "real", short: "真实", label: "真实数据" } : { k: "sim", short: "模拟", label: "模拟数据" }, keys: [def.id, FAMILY[def.family], KIND[def.kind], def.summary || "", real ? "真实数据 " + (def.source.name || "") : "模拟"].join(" "), md: L.join("\n\n") };
   }
   function algoEntry(a, groupNames, reg, py) {
     var L = [], kinds = (a.kinds || []).map(function (k) { return KIND[k] || k; }), fams = (a.families || []).map(function (f) { return FAMILY[f] || f; });
@@ -17564,7 +17597,7 @@ $$\langle\lvert m\rvert\rangle_L\approx L^{-\beta/\nu}\,\Phi\big((T-T_c)L^{1/\nu
     reg = reg || { groups: [], list: [] };
     (reg.groups || []).forEach(function (g) { push(taskEntry(reg, g, algos || [], groupNames, pyAlgos || [])); });
     (reg.list || []).forEach(function (d) { push(dsEntry(reg, d)); });
-    push({ key: "ds:csv", group: "数据集", title: "导入的 CSV", keys: "CSV 导入 表格 自己的数据 缺失值 独热编码 分隔符 表头", md: code(CSV_DOC).replace(/^\s+|\s+$/g, "") });
+    push({ key: "ds:csv", group: "数据集", title: "导入的 CSV", badge: { k: "csv", short: "导入", label: "你导入的数据" }, keys: "CSV 导入 表格 自己的数据 缺失值 独热编码 分隔符 表头", md: code(CSV_DOC).replace(/^\s+|\s+$/g, "") });
     (algos || []).forEach(function (a) { if (a && a.id) push(algoEntry(a, groupNames, reg, false)); });
     (pyAlgos || []).forEach(function (a) { if (a && a.id) push(algoEntry(a, groupNames, reg, true)); });
     return out;
@@ -17658,6 +17691,7 @@ if (typeof module !== "undefined" && module.exports) module.exports = QL_MLGUIDE
     if (!d) return "（没有数据集）";
     L.push("任务分组：" + g.name + "；family = " + d.family + "，kind = " + d.kind + "。");
     L.push("数据集：" + d.name + (d.id === "csv" ? "（使用者导入的 CSV）" : "（id " + d.id + "）") + "。" + (d.summary || ""));
+    var og = A.dsOrigin(d); if (og) L.push("数据的来源：" + og.label + "。" + og.note);
     if (d.id !== "csv" && d.params && d.params.length) L.push("数据集参数：" + paramLine(d.params, A.dsParams()) + "；种子 " + A.dsSeed() + "。");
     if (d.kind === "forecast") { var se = pv.series || {}; L.push("序列：共 " + (se.T || "?") + " 个时刻，频率 " + (se.freq || "?") + (se.label ? "，" + se.label : "") + "。按时间切成训练 / 验证 / 测试 = " + S.split.train + " / " + S.split.valid + " / " + F(1 - S.split.train - S.split.valid, 2) + "，预测步长 H = " + S.horizon + "。"); }
     else {

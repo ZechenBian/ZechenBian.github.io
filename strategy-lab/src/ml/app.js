@@ -82,6 +82,14 @@ var MLA = (function () {
   A.dsParams = function () { var d = A.ds(), st = dsState(); if (!d || d.id === "csv") return {}; var cur = st.params[d.id] || (st.params[d.id] = {}); return into(cur, REG.clean(d, cur)); };
   A.dsSeed = function () { return dsState().seed | 0 || 1; };
   A.apiOf = function (def) { return def && def.kind === "forecast" ? "forecast" : "supervised"; };
+  /** 数据从哪里来：模拟（程序按已知规律生成）、真实（采集来的，数据集带着出处）、导入（你自己的 CSV） */
+  A.dsOrigin = function (d) {
+    if (!d) return null;
+    if (d.id === "csv") return { k: "csv", short: "导入", label: "你导入的数据", note: "你自己的 CSV 文件，只在这台电脑的浏览器里处理。没有“理论最优”可比。" };
+    if (d.source) { var demo = /演示|不保证/.test(String(d.source.license || "")); return { k: "real", short: "真实", label: "真实数据", note: "从真实世界采集来的数据" + (demo ? "（打包进页面的演示快照，不保证准确）" : "") + "：" + d.source.name + "。真实规律未知，所以没有“理论最优”可比。" }; }
+    return { k: "sim", short: "模拟", label: "模拟数据", note: "不是真实世界的数据：程序按说明里写的规律随机生成，种子相同就逐位相同。正因为规律已知，才能给出“理论最优”来对照。" };
+  };
+  A.originBadge = function (d, long) { var o = A.dsOrigin(d); return o ? h("span", { class: "ml-badge " + o.k, title: o.note, text: long ? o.label : o.short }) : null; };
   /** 这个数据集能用的算法：内置的、我的（自己改的和 AI 写的）、Python（连着本机引擎时） */
   A.algosFor = function (def) {
     if (!def) return [];
@@ -161,18 +169,20 @@ var MLA = (function () {
     host.appendChild(h("div", { class: "ml-groups", role: "group", "aria-label": "任务类型" }, REG.groups.map(function (x) {
       return h("button", { class: "chip", type: "button", "data-g": x.id, "aria-pressed": x.id === g.id ? "true" : "false", onclick: function () { A.selectGroup(x.id); } }, h("span", { text: x.name }), h("small", { text: x.short || SHORT[x.id] || "" }));
     })));
-    $("topTask").textContent = g.name + " · " + (A.ds() ? A.ds().name : "");
+    $("topTask").textContent = g.name + " · " + (A.ds() ? A.ds().name + "（" + A.dsOrigin(A.ds()).label + "）" : "");
   };
   A.renderData = function () {
     var host = clear($("blkData")), g = A.group(), d = A.ds(), st = dsState(), list = A.dsOf(g);
-    host.appendChild(h("h2", null, "数据", h("small", { text: d ? kindName(d.kind) : "" }), h("span", { class: "sp" }), d ? helpBtn("ds:" + d.id, d.name) : null));
+    host.appendChild(h("h2", null, "数据", h("small", { text: d ? kindName(d.kind) : "" }), d ? A.originBadge(d, true) : null, h("span", { class: "sp" }), d ? helpBtn("ds:" + d.id, d.name) : null));
     var sel = h("select", { class: "ml-pick", id: "dsSel", "aria-label": "数据集", onchange: function () { A.selectDs(sel.value); } });
     var real = list.filter(function (x) { return x.source; }), syn = list.filter(function (x) { return !x.source; });
-    if (syn.length) sel.appendChild(h("optgroup", { label: "模拟的数据（真值已知）" }, syn.map(function (x) { return h("option", { value: x.id, text: x.name, selected: x.id === st.id }); })));
-    if (real.length) sel.appendChild(h("optgroup", { label: "真实数据" }, real.map(function (x) { return h("option", { value: x.id, text: x.name, selected: x.id === st.id }); })));
-    if (A.csv && (g.family === A.csv.def.family) && (!g.kind || g.kind === A.csv.def.kind)) sel.appendChild(h("optgroup", { label: "导入的" }, h("option", { value: "csv", text: A.csv.def.name, selected: st.id === "csv" })));
+    if (real.length) sel.appendChild(h("optgroup", { label: "真实数据（采集来的）" }, real.map(function (x) { return h("option", { value: x.id, text: "〔真实〕" + x.name, selected: x.id === st.id }); })));
+    if (syn.length) sel.appendChild(h("optgroup", { label: "模拟数据（程序生成，规律已知）" }, syn.map(function (x) { return h("option", { value: x.id, text: "〔模拟〕" + x.name, selected: x.id === st.id }); })));
+    if (A.csv && (g.family === A.csv.def.family) && (!g.kind || g.kind === A.csv.def.kind)) sel.appendChild(h("optgroup", { label: "你导入的数据" }, h("option", { value: "csv", text: "〔导入〕" + A.csv.def.name, selected: st.id === "csv" })));
     host.appendChild(sel);
     if (!d) return;
+    var og = A.dsOrigin(d);
+    host.appendChild(h("div", { class: "ml-origin " + og.k }, h("span", { class: "ml-badge " + og.k, text: og.label }), h("span", { text: og.note })));
     host.appendChild(h("p", { class: "ml-blurb", text: d.summary || "" }));
     if (d.id !== "csv") {
       var vals = A.dsParams();
@@ -183,7 +193,7 @@ var MLA = (function () {
     host.appendChild(h("div", { class: "ml-row" }, h("label", { class: "note", for: "dsSeed", text: "种子" }), seedI, h("button", { class: "btn small", type: "button", text: "换一批", title: "换一个种子：同样的设定，另一批随机样本", onclick: A.newSeed }), h("span", { class: "sp" }),
       (g.family === "tabular" || g.family === "timeseries") && A.openCsv ? h("button", { class: "btn small", type: "button", text: "导入 CSV…", onclick: function () { A.openCsv(); } }) : null));
     if (d.source) host.appendChild(h("div", { class: "ml-src" }, "来源：", d.source.url ? h("a", { href: d.source.url, target: "_blank", rel: "noopener noreferrer", text: d.source.name }) : d.source.name, d.source.license ? "（" + d.source.license + "）" : ""));
-    $("topTask").textContent = g.name + " · " + d.name;
+    $("topTask").textContent = g.name + " · " + d.name + "（" + og.label + "）";
   };
   function kindName(k) { return k === "regression" ? "回归" : k === "classification" ? "分类" : k === "forecast" ? "预测" : ""; }
   A.kindName = kindName;
@@ -346,7 +356,7 @@ var MLA = (function () {
     host.appendChild(head);
     if (!run) drop();
     if (run) {
-      $("sumMeta").textContent = run.algo.name + " · " + run.def.name;
+      $("sumMeta").textContent = run.algo.name + " · " + run.def.name + "（" + A.dsOrigin(run.def).label + "）";
       var el = Math.round((Date.now() - run.t0) / 1000), budget = S.budget;
       head.appendChild(h("span", { class: "note", id: "liveClock", text: (run.msg || "") + " · " + el + " 秒" }));
       head.appendChild(h("button", { class: "btn small", type: "button", text: "停止", onclick: function () { A.stop(); } }));
@@ -357,13 +367,13 @@ var MLA = (function () {
     }
     var L = A.last;
     if (!L) {
-      $("sumMeta").textContent = d ? d.name : "";
+      $("sumMeta").textContent = d ? d.name + "（" + A.dsOrigin(d).label + "）" : "";
       host.appendChild(h("div", { class: "ml-empty" }, h("b", { text: "还没有运行。" }), " 左栏选好任务、数据和算法以后点“运行”（或按 ⌘/Ctrl + Enter）。算法在后台线程里训练，算完以后这里显示训练集和验证集上的成绩；测试集的成绩先遮住，确定不再改了再揭晓。",
         A.lastError ? h("div", { class: "warn err", style: { "margin-top": "10px" } }, h("span", { text: "上一次运行出错：" + A.lastError.message + (A.lastError.line ? "（第 " + A.lastError.line + " 行）" : "") }), A.aiFix ? h("button", { class: "btn small", type: "button", text: "让 AI 修", onclick: function () { A.aiFix(A.lastError); } }) : null) : null));
       return;
     }
     var res = L.res, pk = res.primary, mfmt = function (v) { return A.metFmt(pk, v); }, stale = A.stale();
-    $("sumMeta").textContent = L.algo.name + " · " + L.def.name + (stale ? " · 设定已经改了，这是上一次的结果" : "");
+    $("sumMeta").textContent = L.algo.name + " · " + L.def.name + "（" + A.dsOrigin(L.def).label + "）" + (stale ? " · 设定已经改了，这是上一次的结果" : "");
     var seV = A.primarySE(res, "valid"), tiles = h("div", { class: "ml-tiles" });
     tiles.appendChild(tile(A.metName(pk) + " · 训练", mfmt(res.metrics.train[pk]), gapNote(res)));
     tiles.appendChild(tile(A.metName(pk) + " · 验证", mfmt(res.metrics.valid[pk]), "± " + mfmt(seV) + "（1 个标准误）"));

@@ -70,6 +70,7 @@
     if (!d) return "（没有数据集）";
     L.push("任务分组：" + g.name + "；family = " + d.family + "，kind = " + d.kind + "。");
     L.push("数据集：" + d.name + (d.id === "csv" ? "（使用者导入的 CSV）" : "（id " + d.id + "）") + "。" + (d.summary || ""));
+    var og = A.dsOrigin(d); if (og) L.push("数据的来源：" + og.label + "。" + og.note);
     if (d.id !== "csv" && d.params && d.params.length) L.push("数据集参数：" + paramLine(d.params, A.dsParams()) + "；种子 " + A.dsSeed() + "。");
     if (d.kind === "forecast") { var se = pv.series || {}; L.push("序列：共 " + (se.T || "?") + " 个时刻，频率 " + (se.freq || "?") + (se.label ? "，" + se.label : "") + "。按时间切成训练 / 验证 / 测试 = " + S.split.train + " / " + S.split.valid + " / " + F(1 - S.split.train - S.split.valid, 2) + "，预测步长 H = " + S.horizon + "。"); }
     else {
