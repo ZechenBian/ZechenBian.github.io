@@ -118,3 +118,25 @@ table.ml-lb .good { color: var(--good-ink); } table.ml-lb .bad { color: var(--cr
 .card.ml-origin-card.csv { border-left: 3px solid var(--accent); }
 .gd-link .ml-badge { margin-left: 6px; font-size: 10px; padding: 0 5px; }
 .gd-kicker .ml-badge { margin-left: 8px; }
+.ml-badge.web { color: var(--accent-ink); border-color: var(--accent); border-style: dashed; background: transparent; }
+.ml-origin.web { background: transparent; border-color: var(--accent); border-style: dashed; }
+.card.ml-origin-card.web { border-left: 3px dashed var(--accent); }
+
+/* 从网上取数据 */
+.mlweb-box { width: min(860px, 96vw); }
+.ml-web-sec { margin: 10px 0; }
+.ml-web-sec h3, .ml-web-h { font-size: 13.5px; margin: 0 0 6px; }
+.ml-web-sec textarea { width: 100%; box-sizing: border-box; min-height: 64px; }
+.ml-web-sec .ml-row input[type="url"] { flex: 1 1 260px; min-width: 0; }
+.ml-web-sec > input[type="text"] { width: 100%; box-sizing: border-box; margin: 6px 0; }
+.ml-web-cat, .ml-web-cands { display: grid; gap: 6px; margin: 6px 0; }
+.ml-web-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: start; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; }
+.ml-web-item .note { margin-top: 2px; overflow-wrap: anywhere; }
+.ml-web-item .tag, .ml-web-item .ml-badge { margin-left: 6px; }
+.ml-web-log { margin: 6px 0; padding-left: 0; list-style: none; font: 12px/1.6 var(--font-mono); color: var(--ink2); max-height: 180px; overflow-y: auto; overflow-wrap: anywhere; }
+.ml-web-log:empty { display: none; }
+.ml-web-log .good { color: var(--good-ink); } .ml-web-log .bad { color: var(--crit-ink); }
+.ml-web-prev:not(:empty) { border-top: 1px solid var(--line); padding-top: 10px; margin-top: 8px; display: grid; gap: 8px; }
+.ml-web-table td, .ml-web-table th { white-space: nowrap; }
+.ml-web-cols { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 12px; max-height: 140px; overflow-y: auto; }
+.ml-web-col { display: inline-flex; gap: 4px; align-items: center; }

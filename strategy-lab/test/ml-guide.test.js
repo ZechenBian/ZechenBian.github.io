@@ -57,7 +57,7 @@ function check(e) {
 
 section("静态条目");
 {
-  ok(Array.isArray(G) && G.length === 57, "静态条目一共 57 条", String(G.length));
+  ok(Array.isArray(G) && G.length === 58, "静态条目一共 58 条", String(G.length));
   ok(G.every(e => e && typeof e.key === "string" && typeof e.group === "string" && typeof e.title === "string" && typeof e.md === "string" && typeof e.keys === "string"), "每一条都有 key、group、title、keys、md");
   ok(G[0].key === "start" && G[0].group === "入门", "第一条是入门的\"这个实验室是什么\"（不带键打开手册时显示它）");
   const groups = []; G.forEach(e => { if (groups.indexOf(e.group) < 0) groups.push(e.group); });

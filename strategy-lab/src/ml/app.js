@@ -74,7 +74,7 @@ var MLA = (function () {
   A.group = function () { var g = REG.groups.filter(function (x) { return x.id === S.group; })[0]; return g || REG.groups[0]; };
   A.dsOf = function (g) { return REG.inGroup ? REG.inGroup(g.id) : REG.list.filter(function (d) { return d.family === g.family && (!g.kind || d.kind === g.kind); }); };
   function csvFits(g) { return !!(A.csv && A.csv.def.family === g.family && (!g.kind || g.kind === A.csv.def.kind)); }
-  function dsState() { var g = A.group(); var st = S.ds[g.id]; if (!st || !REG.get(st.id) && !(st.id === "csv" && csvFits(g))) { var first = A.dsOf(g)[0]; st = S.ds[g.id] = { id: first ? first.id : "", seed: 1, params: {} }; } return st; }
+  function dsState() { var g = A.group(); var st = S.ds[g.id]; if (!st || !REG.get(st.id) && !(st.id === "csv" && (csvFits(g) || A.csvPending))) { var first = A.dsOf(g)[0]; st = S.ds[g.id] = { id: first ? first.id : "", seed: 1, params: {} }; } return st; }
   A.csv = null;   // 导入的 CSV：{ def, data }（只在这次打开页面期间有效，另外尽量存一份原文）
   A.ds = function () { var st = dsState(); if (st.id === "csv" && csvFits(A.group())) return A.csv.def; return REG.get(st.id) || A.dsOf(A.group())[0]; };
   /** 把 p 的内容换成 q 的（同一个对象：界面上的输入框改的就是存档里的这一个） */
@@ -85,6 +85,10 @@ var MLA = (function () {
   /** 数据从哪里来：模拟（程序按已知规律生成）、真实（采集来的，数据集带着出处）、导入（你自己的 CSV） */
   A.dsOrigin = function (d) {
     if (!d) return null;
+    if (d.id === "csv" && d.web) {
+      var w = d.web, host = ""; try { host = new URL(w.url).host; } catch (e) {}
+      return { k: "web", short: "网上", label: "从网上取的数据", note: "从 " + (host || "网上") + " 取来的" + (w.real === false ? "（来源说它是模拟或合成的数据）" : w.real === true ? "（来源说它是采集来的真实数据）" : "") + "：" + w.url + "。准不准、是不是真实采集的，以来源的说明为准；没有“理论最优”可比。" };
+    }
     if (d.id === "csv") return { k: "csv", short: "导入", label: "你导入的数据", note: "你自己的 CSV 文件，只在这台电脑的浏览器里处理。没有“理论最优”可比。" };
     if (d.source) { var demo = /演示|不保证/.test(String(d.source.license || "")); return { k: "real", short: "真实", label: "真实数据", note: "从真实世界采集来的数据" + (demo ? "（打包进页面的演示快照，不保证准确）" : "") + "：" + d.source.name + "。真实规律未知，所以没有“理论最优”可比。" }; }
     return { k: "sim", short: "模拟", label: "模拟数据", note: "不是真实世界的数据：程序按说明里写的规律随机生成，种子相同就逐位相同。正因为规律已知，才能给出“理论最优”来对照。" };
@@ -178,7 +182,7 @@ var MLA = (function () {
     var real = list.filter(function (x) { return x.source; }), syn = list.filter(function (x) { return !x.source; });
     if (real.length) sel.appendChild(h("optgroup", { label: "真实数据（采集来的）" }, real.map(function (x) { return h("option", { value: x.id, text: "〔真实〕" + x.name, selected: x.id === st.id }); })));
     if (syn.length) sel.appendChild(h("optgroup", { label: "模拟数据（程序生成，规律已知）" }, syn.map(function (x) { return h("option", { value: x.id, text: "〔模拟〕" + x.name, selected: x.id === st.id }); })));
-    if (A.csv && (g.family === A.csv.def.family) && (!g.kind || g.kind === A.csv.def.kind)) sel.appendChild(h("optgroup", { label: "你导入的数据" }, h("option", { value: "csv", text: "〔导入〕" + A.csv.def.name, selected: st.id === "csv" })));
+    if (A.csv && (g.family === A.csv.def.family) && (!g.kind || g.kind === A.csv.def.kind)) sel.appendChild(h("optgroup", { label: A.csv.def.web ? "从网上取的数据" : "你导入的数据" }, h("option", { value: "csv", text: (A.csv.def.web ? "〔网上〕" : "〔导入〕") + A.csv.def.name, selected: st.id === "csv" })));
     host.appendChild(sel);
     if (!d) return;
     var og = A.dsOrigin(d);
@@ -191,7 +195,8 @@ var MLA = (function () {
     var seedI = h("input", { type: "number", id: "dsSeed", min: 1, max: 999999, step: 1, value: A.dsSeed(), "aria-label": "种子" });
     seedI.addEventListener("change", function () { var x = Math.max(1, Math.round(+seedI.value || 1)); seedI.value = x; st.seed = x; A.persist(); A.dataChanged(); });
     host.appendChild(h("div", { class: "ml-row" }, h("label", { class: "note", for: "dsSeed", text: "种子" }), seedI, h("button", { class: "btn small", type: "button", text: "换一批", title: "换一个种子：同样的设定，另一批随机样本", onclick: A.newSeed }), h("span", { class: "sp" }),
-      (g.family === "tabular" || g.family === "timeseries") && A.openCsv ? h("button", { class: "btn small", type: "button", text: "导入 CSV…", onclick: function () { A.openCsv(); } }) : null));
+      (g.family === "tabular" || g.family === "timeseries") && A.openCsv ? h("button", { class: "btn small", type: "button", text: "导入 CSV…", onclick: function () { A.openCsv(); } }) : null,
+      (g.family === "tabular" || g.family === "timeseries") && A.openWeb ? h("button", { class: "btn small", type: "button", id: "btnWeb", text: "从网上取…", title: "用一句话描述想要的数据，或者填一个数据文件的网址", onclick: function () { A.openWeb(); } }) : null));
     if (d.source) host.appendChild(h("div", { class: "ml-src" }, "来源：", d.source.url ? h("a", { href: d.source.url, target: "_blank", rel: "noopener noreferrer", text: d.source.name }) : d.source.name, d.source.license ? "（" + d.source.license + "）" : ""));
     $("topTask").textContent = g.name + " · " + d.name + "（" + og.label + "）";
   };

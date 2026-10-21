@@ -9,6 +9,7 @@ Host 必须是 127.0.0.1:端口 或 localhost:端口（防 DNS 重绑定：恶�
 
 每次运行在一个新的子进程里（见 worker.py），一次只跑一个；进度用 Server-Sent Events 推给页面。
 完整的接口见 PROTOCOL.md。"""
+import base64
 import collections
 import errno
 import hmac
@@ -28,6 +29,7 @@ import time
 from urllib.parse import parse_qs, urlsplit
 
 from . import __version__
+from . import fetcher
 from . import worker
 
 PKG_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -258,7 +260,8 @@ class Engine:
         cur = self.current
         return {"version": __version__, "python": "%d.%d.%d" % sys.version_info[:3], "numpy": dist_version("numpy"),
                 "torch": self.torch_info(), "cpu_count": os.cpu_count(), "platform": sys.platform,
-                "busy": cur is not None, "running": cur.id if cur is not None else None, "maxBodyMB": self.max_body // (1024 * 1024)}
+                "busy": cur is not None, "running": cur.id if cur is not None else None, "maxBodyMB": self.max_body // (1024 * 1024),
+                "fetch": {"maxMB": fetcher.MAX_BYTES // (1024 * 1024)}}
 
     def page_path(self):
         if self.page:
@@ -655,6 +658,28 @@ class Handler(http.server.BaseHTTPRequestHandler):
             if method != "GET":
                 return self._json(405, {"error": "只能 GET。"}, {"Allow": "GET"})
             return self._json(200, {"examples": eng.examples()})
+        if path == "/api/fetch":
+            # 替页面从网上取一个数据文件（浏览器因为跨域限制读不到的网站）：只取公网地址，最多 50 MB，见 fetcher.py
+            if method != "POST":
+                return self._json(405, {"error": "只能 POST。"}, {"Allow": "POST"})
+            body = self._read_body()
+            if body is None:
+                return None
+            try:
+                req = json.loads(body.decode("utf-8"))
+            except (UnicodeDecodeError, ValueError) as e:
+                return self._json(400, {"error": "请求体不是合法的 JSON：%s" % e})
+            url = req.get("url") if isinstance(req, dict) else None
+            if not isinstance(url, str) or not url.strip():
+                return self._json(400, {"error": "要给 url。"})
+            try:
+                r = fetcher.fetch(url, version=__version__)
+            except fetcher.FetchError as e:
+                return self._json(502, {"error": str(e), "status": e.status})
+            data = r.pop("data")
+            r["data"] = {"$b64": base64.b64encode(data).decode("ascii"), "dtype": "u1", "shape": [len(data)]}
+            eng.say("取数据：%s（%.1f MB）" % (r["url"], r["bytes"] / 2 ** 20))
+            return self._json(200, r)
         if path == "/api/run":
             if method != "POST":
                 return self._json(405, {"error": "只能 POST。"}, {"Allow": "POST"})

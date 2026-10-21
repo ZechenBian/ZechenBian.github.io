@@ -383,6 +383,25 @@
   };
 
   /* ---------- 导入 CSV ---------- */
+  var CSV_DOC = "你自己导入的数据。数值列的缺失值在划分之后用训练集那一列的中位数补上（验证集、测试集的信息不会漏进训练）；类别列做独热编码，缺失算作单独的一类。";
+  var CKEY = "ql.ml.csv.v1";
+  /** 把一张表（parseCSV 的结果）变成当前的数据集。o: { target, kind, features, time, name, summary, docs, web（从网上取的：来源）, text（原文，用来区分实验和存档）, store } */
+  A.importTable = function (table, o) {
+    var data = QL.mlreg.fromCSV(table, { target: o.target, kind: o.kind, features: o.features && o.features.length ? o.features : undefined, time: o.time || undefined });
+    var k = o.kind === "forecast" ? "forecast" : data.classes ? "classification" : "regression";
+    var def = { id: "csv", family: k === "forecast" ? "timeseries" : "tabular", kind: k, name: o.name || "导入的数据", summary: o.summary || "你导入的 CSV（" + (data.n || data.T || (data.y && data.y.length)) + " 行）。要预测的列：" + o.target + "。", params: [], docs: o.docs || CSV_DOC, plot: k === "forecast" ? "series" : data.d === 2 ? "scatter2d" : "table", web: o.web || null };
+    A.csv = { def: def, data: data, hash: A.hashStr([o.target, o.kind, (o.features || []).join(","), o.time || "", o.web ? JSON.stringify(o.web.plan || {}) : "", o.text || ""].join("\u0000")) };
+    if (o.store !== false) {
+      var rec = { v: 2, target: o.target, kind: o.kind, features: o.features || null, time: o.time || null, name: def.name, summary: def.summary, docs: def.docs, web: o.web || null };
+      if (o.text && o.text.length < 300000) rec.text = o.text;
+      try { if (rec.text || rec.web) localStorage.setItem(CKEY, JSON.stringify(rec)); else localStorage.removeItem(CKEY); } catch (e) { try { delete rec.text; localStorage.setItem(CKEY, JSON.stringify(rec)); } catch (e2) {} }
+    }
+    if (o.select !== false) {
+      var want = def.family === "timeseries" ? "ts" : def.kind === "classification" ? "tab-cls" : "tab-reg"; S.group = want; (S.ds[want] = S.ds[want] || { id: "csv", seed: 1, params: {} }).id = "csv";
+      A.persist(); A.renderLeft(); A.dataChanged();
+    }
+    return def;
+  };
   A.openCsv = function () {
     var g = A.group(), file = h("input", { type: "file", accept: ".csv,.tsv,.txt,text/csv" }), ta = h("textarea", { class: "codeedit", spellcheck: "false", placeholder: "也可以把 CSV 的内容直接贴在这里（第一行是列名）", style: { "min-height": "120px" } });
     var box = h("div"), err = h("div", { class: "warn err", hidden: true }), table = null;
@@ -397,24 +416,28 @@
     }
     var ok = h("button", { class: "btn primary", type: "button", text: "导入", onclick: function () {
       if (!table) parse(); if (!table) return;
-      var data, def;
-      try {
-        data = QL.mlreg.fromCSV(table, { target: tgt.value, kind: kind.value });
-        var k = data.y && !data.X ? "forecast" : data.classes ? "classification" : "regression";
-        if (kind.value === "forecast") k = "forecast";
-        def = { id: "csv", family: k === "forecast" ? "timeseries" : "tabular", kind: k, name: "导入的数据：" + (file.files && file.files[0] ? file.files[0].name : "粘贴的表格"), summary: "你导入的 CSV（" + (data.n || data.T) + " 行）。要预测的列：" + tgt.value + "。", params: [], docs: "你自己导入的数据。数值列的缺失值在划分之后用训练集那一列的中位数补上（验证集、测试集的信息不会漏进训练）；类别列做独热编码，缺失算作单独的一类。", plot: k === "forecast" ? "series" : data.d === 2 ? "scatter2d" : "table" };
-      } catch (e) { err.hidden = false; err.textContent = e.message; return; }
-      A.csv = { def: def, data: data, hash: A.hashStr(tgt.value + "\u0000" + kind.value + "\u0000" + ta.value) };
-      try { if (ta.value.length < 300000) localStorage.setItem("ql.ml.csv.v1", JSON.stringify({ text: ta.value, target: tgt.value, kind: kind.value, name: def.name })); else localStorage.removeItem("ql.ml.csv.v1"); } catch (e) {}
-      var want = def.family === "timeseries" ? "ts" : def.kind === "classification" ? "tab-cls" : "tab-reg"; S.group = want; (S.ds[want] = S.ds[want] || { id: "csv", seed: 1, params: {} }).id = "csv";
-      A.persist(); m.close(); A.renderLeft(); A.dataChanged(); A.toast("已导入：" + def.summary);
+      var def;
+      try { def = A.importTable(table, { target: tgt.value, kind: kind.value, name: "导入的数据：" + (file.files && file.files[0] ? file.files[0].name : "粘贴的表格"), text: ta.value }); }
+      catch (e) { err.hidden = false; err.textContent = e.message; return; }
+      m.close(); A.toast("已导入：" + def.summary);
     } });
     var m = A.modal("导入 CSV", [h("p", { class: "note", text: "数据只在这台电脑的浏览器里处理，不会上传。第一行是列名；数值列直接用，其余的列按类别做独热编码（最多 30 个取值）。最多 5 万行、200 列。" }), file, ta, box,
       h("div", { class: "fields" }, h("div", { class: "field" }, h("label", { text: "要预测的列" }), h("span"), tgt), h("div", { class: "field" }, h("label", { text: "任务" }), h("span"), kind)), err], { foot: [ok] });
   };
+  /** 打开页面时恢复上次导入（或从网上取）的数据。原文存着就直接用；从网上取的大文件只存了地址，重新去取（异步，取到以后再选回它） */
   A.restoreCsv = function () {
-    try { var o = JSON.parse(localStorage.getItem("ql.ml.csv.v1") || "null"); if (!o || !o.text) return; var t = QL.mlreg.parseCSV(o.text), data = QL.mlreg.fromCSV(t, { target: o.target, kind: o.kind }), k = o.kind === "forecast" ? "forecast" : data.classes ? "classification" : "regression";
-      A.csv = { def: { id: "csv", family: k === "forecast" ? "timeseries" : "tabular", kind: k, name: o.name || "导入的数据", summary: "你上次导入的 CSV。", params: [], docs: "你自己导入的数据。", plot: k === "forecast" ? "series" : data.d === 2 ? "scatter2d" : "table" }, data: data, hash: A.hashStr(o.target + "\u0000" + o.kind + "\u0000" + o.text) };
+    var o = null; try { o = JSON.parse(localStorage.getItem(CKEY) || "null"); } catch (e) {} if (!o) return;
+    var opt = { target: o.target, kind: o.kind, features: o.features, time: o.time, name: o.name, summary: o.summary, docs: o.docs, web: o.web, text: o.text, store: false, select: false };
+    function done(table) { try { A.importTable(table, opt); return true; } catch (e) { return false; } }
+    try {
+      if (o.text) { done(o.web && A.webTable ? A.webTable(o.text, o.web.plan || {}).table : QL.mlreg.parseCSV(o.text)); return; }
+      if (o.web && A.webRefetch) {
+        A.csvPending = true;
+        A.webRefetch(o.web).then(function (r) {
+          A.csvPending = false; opt.text = r.text;
+          if (done(r.table) && !A.last && S.group === (o.kind === "forecast" ? "ts" : o.kind === "classification" ? "tab-cls" : "tab-reg") && S.ds[S.group] && S.ds[S.group].id === "csv") { A.renderLeft(); A.dataChanged(); }
+        }, function () { A.csvPending = false; });
+      }
     } catch (e) {}
   };
 
