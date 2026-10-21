@@ -179,7 +179,7 @@ open(os.path.join(ROOT, "teen/index.html"), "w", encoding="utf8").write(teen_pag
 # 共用策略实验室的内核、模型库、图表、隔离环境、公式渲染和 AI 接入（src/ai.js：密钥设置与策略实验室是同一份）
 ML_JS = ["ml.js", "core.js", "charts.js", "sandbox.js", "jobs.js", "md.js", "ai.js",
          "ml/nn.js", "ml/stats.js", "ml/registry.js", "ml/data-tabular.js", "ml/data-ts.js", "ml/data-image.js", "ml/data-toy.js", "ml/run.js", "ml/runner.js",
-         "ml/viz.js", "ml/algos.js", "ml/app.js", "ml/views.js", "ml/anim.js", "ml/guide.js", "ml/ai.js", "ml/engine.js", "ml/main.js"]
+         "ml/viz.js", "ml/algos.js", "ml/app.js", "ml/views.js", "ml/anim.js", "ml/guide.js", "ml/ai.js", "ml/engine.js", "ml/web.js", "ml/main.js"]
 ML_JS = [f for f in ML_JS if os.path.exists(os.path.join(ROOT, "src", f))]
 ml_page = ""
 if "ml/main.js" in ML_JS:

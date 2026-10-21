@@ -541,4 +541,14 @@
     window.claude.use("sample").then(function (fn) { sb.textContent = "发送"; if (!fn) { var o = $("aiOff"); o.hidden = false; o.textContent = "当前的打开方式不能调用 Claude。"; return; } sample = fn; sb.disabled = false; }, function () { sb.textContent = "发送"; var o = $("aiOff"); o.hidden = false; o.textContent = "当前的打开方式不能调用 Claude。"; });
   };
   A.aiSend = send; A.aiMode = setMode;
+  /** 给别的面板用（比如"从网上取数据"）：问一次，返回 { promise（兑现为回答的全文）, cancel() }。没接入时 ready() 是 false */
+  A.aiReady = function () { return !!sample; };
+  A.aiWho = who;
+  A.aiAsk = function (input, tier, onText) {
+    var c = new AbortController(), o = { signal: c.signal, modelTier: tier || "default" };
+    if (onText) o.onText = function (u) { try { onText(u.text); } catch (e) {} };
+    var p = sample ? Promise.resolve().then(function () { return sample(input, o); }).then(function (r) { return r.text; }) : Promise.reject({ code: "unavailable" });
+    return { promise: p, cancel: function () { c.abort(); } };
+  };
+  A.aiErrText = function (e) { return WEB && e && e.code ? WEB.explain(e).text : e && e.code === "cancelled" ? "已停止。" : "出错了：" + (e && e.message || e); };
 })(MLA);

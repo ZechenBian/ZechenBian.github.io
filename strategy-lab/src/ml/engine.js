@@ -12,6 +12,7 @@
   function token() { return E && E.token ? String(E.token) : ""; }
   A.engineReady = function () { return !!(token() && info); };
   A.engineInfo = function () { return info; };
+  A.engineCanFetch = function () { return !!(A.engineReady() && info.fetch); };
 
   /* ---------- 数组的编码（PROTOCOL.md §2） ---------- */
   function b64(t) { var u8 = new Uint8Array(t.buffer, t.byteOffset, t.byteLength), s = "", CH = 0x8000; for (var i = 0; i < u8.length; i += CH) s += String.fromCharCode.apply(null, u8.subarray(i, i + CH)); return btoa(s); }
@@ -38,6 +39,7 @@
       });
     }, function () { throw new Error("连不上本机引擎：引擎可能已经关了。在终端里重新启动它，再用它打印的网址打开这一页。"); });
   }
+  A.engineApi = function (method, path, body) { return api(method, path, body); };
   function refresh() {
     if (!token()) return Promise.resolve(null);
     return api("GET", "/api/info").then(function (j) { info = j; infoErr = ""; return api("GET", "/api/examples").then(function (x) { examples = (x && x.examples) || []; publish(); return info; }, function () { publish(); return info; }); },

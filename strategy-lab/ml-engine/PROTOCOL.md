@@ -100,7 +100,7 @@ JSON 里没有 NaN / ∞：引擎把不是有限数的浮点数写成 `null`。
 ```
 
 `torch.device` 是 `"mps"`（苹果芯片 GPU）、`"cuda"`、`"cpu"`，没装 PyTorch 时 `available: false`、`version` 和 `device` 都是 `null`（检查失败时另有 `error`）。
-`busy` / `running`：现在有没有运行、是哪一次。顶栏的"本机引擎"状态用它。
+`busy` / `running`：现在有没有运行、是哪一次。顶栏的"本机引擎"状态用它。`fetch`：有这一项说明引擎支持 `POST /api/fetch`（§4½）。
 
 ## 4. `GET /api/examples`
 
@@ -115,6 +115,22 @@ JSON 里没有 NaN / ∞：引擎把不是有限数的浮点数写成 `null`。
 
 `params` 的格式同 DESIGN.md §2（`type`: `int` | `num` | `bool` | `select`）。`needs` 含 `torch` 而 `/api/info` 说没有 PyTorch 时，页面应该把它标成不可用。
 元数据来自文件头的注释：版权两行之后，`# @name …`、`# @api …`、`# @kinds a, b`、`# @families …`、`# @needs …`、`# @params <JSON 一行>`，再往下的注释是说明，第一行非注释处结束。
+
+## 4½. `POST /api/fetch`：替页面从网上取一个数据文件
+
+页面"从网上取数据"时，先在浏览器里直接取；网站不允许跨域读取（浏览器拦下）时，改请引擎去取。请求体 `{"url": "https://…"}`，回应：
+
+```json
+{ "status": 200, "url": "重定向之后的地址", "contentType": "text/csv", "bytes": 123456,
+  "data": {"$b64": "…", "dtype": "u1", "shape": [123456]} }
+```
+
+`data` 是原始字节（不解压、不转码：gzip、zip、编码的识别都在页面里做）。出错时 `502 {"error": "中文说明", "status": 网站回的 HTTP 状态或 null}`。
+
+* 只取 `http://`、`https://`；地址里不能带用户名密码。
+* 主机名解析出的每个地址都必须是公网地址（`ipaddress.is_global`），每一次重定向的目标也重新检查，最多 5 次重定向。这样页面（或者 AI 给的地址）没法借引擎去访问 127.0.0.1、局域网里的设备、云服务器的元数据地址。测试时设 `MLLAB_ALLOW_PRIVATE_FETCH=1` 放行。
+* 不带 Cookie 或任何登录信息；`User-Agent: mllab-engine/<版本>`；最多 50 MB（`/api/info` 的 `fetch.maxMB`），30 秒超时。
+* 和运行互不影响：正在跑算法时也可以取。
 
 ## 5. `POST /api/run`
 

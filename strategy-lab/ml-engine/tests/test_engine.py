@@ -692,6 +692,95 @@ class EngineTest(unittest.TestCase):
         self.assertEqual(self.request("POST", "/api/run/%s/cancel" % rid, body={})[0], 200)    # 已经结束的：什么也不做
 
 
+class FetchTest(unittest.TestCase):
+    """POST /api/fetch：替页面取浏览器取不到的数据文件。只取公网地址；测试里的数据服务器在本机，用 MLLAB_ALLOW_PRIVATE_FETCH=1 放行"""
+
+    @classmethod
+    def setUpClass(cls):
+        import http.server as hs
+        import threading as th
+
+        class H(hs.BaseHTTPRequestHandler):
+            def log_message(self, *a):
+                pass
+
+            def do_GET(self):
+                if self.path == "/data.csv":
+                    body = "x,y\n1,2\n3,4\n".encode("utf-8")
+                    self.send_response(200); self.send_header("Content-Type", "text/csv"); self.send_header("Content-Length", str(len(body))); self.end_headers(); self.wfile.write(body)
+                elif self.path == "/redirect":
+                    self.send_response(302); self.send_header("Location", "/data.csv"); self.end_headers()
+                elif self.path == "/big":
+                    self.send_response(200); self.send_header("Content-Length", str(80 * 2 ** 20)); self.end_headers()
+                else:
+                    self.send_response(404); self.end_headers()
+
+        cls.data = hs.ThreadingHTTPServer(("127.0.0.1", 0), H)
+        cls.dport = cls.data.server_address[1]
+        cls.dthread = th.Thread(target=cls.data.serve_forever, daemon=True); cls.dthread.start()
+        cls.tmp = tempfile.TemporaryDirectory()
+        page = os.path.join(cls.tmp.name, "index.html")
+        with open(page, "w", encoding="utf-8") as f:
+            f.write("<!doctype html><html><head></head><body></body></html>")
+        cls.eng = Engine(port=0, page=page, quiet=True)
+        cls.eng.bind(); cls.thread = cls.eng.start_thread(); cls.port = cls.eng.port
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.eng.close(); cls.thread.join(5); cls.data.shutdown(); cls.tmp.cleanup()
+        os.environ.pop("MLLAB_ALLOW_PRIVATE_FETCH", None)
+
+    def post(self, body, token=True):
+        c = http.client.HTTPConnection("127.0.0.1", self.port, timeout=60)
+        data = json.dumps(body).encode("utf-8")
+        hdr = {"Host": "127.0.0.1:%d" % self.port, "Content-Type": "application/json", "Content-Length": str(len(data))}
+        if token:
+            hdr["X-QLML-Token"] = self.eng.token
+        c.request("POST", "/api/fetch", body=data, headers=hdr)
+        r = c.getresponse(); raw = r.read(); c.close()
+        return r.status, json.loads(raw.decode("utf-8")) if raw else None
+
+    def test_needs_token(self):
+        st, _ = self.post({"url": "http://127.0.0.1:%d/data.csv" % self.dport}, token=False)
+        self.assertEqual(st, 401)
+
+    def test_private_addresses_are_refused(self):
+        os.environ.pop("MLLAB_ALLOW_PRIVATE_FETCH", None)
+        for u in ["http://127.0.0.1:%d/data.csv" % self.dport, "http://localhost:%d/data.csv" % self.dport, "http://10.0.0.1/x.csv", "http://169.254.169.254/latest/meta-data", "http://[::1]/x"]:
+            st, obj = self.post({"url": u})
+            self.assertEqual(st, 502, u)
+            self.assertIn("内网或本机", obj["error"], u)
+
+    def test_bad_schemes(self):
+        for u in ["file:///etc/passwd", "ftp://example.com/x", "javascript:alert(1)", "http://user:pw@example.com/x"]:
+            st, obj = self.post({"url": u})
+            self.assertEqual(st, 502, u)
+        st, obj = self.post({"nourl": 1})
+        self.assertEqual(st, 400)
+
+    def test_fetch_redirect_and_limits(self):
+        os.environ["MLLAB_ALLOW_PRIVATE_FETCH"] = "1"
+        try:
+            st, obj = self.post({"url": "http://127.0.0.1:%d/redirect" % self.dport})
+            self.assertEqual(st, 200, obj)
+            data = codec.decode(obj["data"])
+            self.assertEqual(bytes(np.asarray(data, dtype=np.uint8)).decode("utf-8"), "x,y\n1,2\n3,4\n")
+            self.assertTrue(obj["url"].endswith("/data.csv"))
+            self.assertEqual(obj["bytes"], 12)
+            st, obj = self.post({"url": "http://127.0.0.1:%d/missing.csv" % self.dport})
+            self.assertEqual(st, 502); self.assertIn("404", obj["error"])
+            st, obj = self.post({"url": "http://127.0.0.1:%d/big" % self.dport})
+            self.assertEqual(st, 502); self.assertIn("太大", obj["error"])
+        finally:
+            os.environ.pop("MLLAB_ALLOW_PRIVATE_FETCH", None)
+
+    def test_info_advertises_fetch(self):
+        c = http.client.HTTPConnection("127.0.0.1", self.port, timeout=30)
+        c.request("GET", "/api/info", headers={"Host": "127.0.0.1:%d" % self.port, "X-QLML-Token": self.eng.token})
+        r = c.getresponse(); obj = json.loads(r.read()); c.close()
+        self.assertEqual(obj["fetch"]["maxMB"], 50)
+
+
 class StaticTest(unittest.TestCase):
     def test_all_sources_compile(self):
         # PyTorch 的例子在这里没法运行（没有 PyTorch），至少要能编译；也按 Python 3.10 的语法检查一遍
