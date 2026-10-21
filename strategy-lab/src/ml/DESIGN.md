@@ -146,7 +146,7 @@ function inspect(model)                        // 可选
   truth: { valid, test },                                // 对应的真值（分类是 Int32Array 的类别）
   loss: { valid: Float32Array, test: Float32Array },     // 逐样本损失（平方误差 / 对数损失 / 0-1 正确与否另存 correct），给配对检验用
   correct: { valid: Uint8Array, test: Uint8Array } (分类),
-  importance: [ { name, drop, se } ] | null,             // 置换重要性（验证集，主指标的下降）
+  importance: { metric: "acc" | "mse", base, items: [ { name, drop, se } ] } | null,   // 置换重要性（验证集，主指标变差多少；本机引擎的运行是 null）
   internals: inspect 的输出（截断过的）| null,
   data: { preview… }（画图用的样本：二维散点、序列、几张图片；只取一部分）,
   size: 参数个数 | null, log: [ "…" ] }
@@ -168,7 +168,7 @@ internals（inspect 可以返回其中任意几项；runner 对 nn 模型会自�
 页面发：`{ type: "job", kind: "ml-run", dataset: { id, params, seed }, algo: { api, params, code }, opts: { budgetMs, snapEvery, maxCurve, importance: true, splitSeed } }`
 线程回：`{ type: "ready" }`，若干 `{ type: "progress", phase: "data" | "fit" | "eval", step, point?, snap?, msg? }`，最后 `{ type: "done", result }` 或 `{ type: "error", message, line }`。
 另一种任务 `kind: "ml-data"`：只生成数据并返回（预览和发给本机引擎用）。
-超时：页面侧按"多久没有动静"判死（默认 30 秒，fit 期间每次 report 都算动静），另有总预算。
+超时：页面侧按"多久没有动静"判死（max(20 秒, 1.5 × 预算 + 10 秒)，fit 期间每次 report 都算动静）。
 
 ## 7. nn.js（lib.nn）——自动求导小库
 

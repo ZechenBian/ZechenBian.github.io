@@ -198,7 +198,8 @@ var QLMLViz = (function () {
   function calibrationChart(host, cal) {
     var ch = chart(host, 240), x = [], y = [], se = [];
     for (var i = 0; i < cal.mid.length; i++) if (cal.count[i] > 0) { x.push(cal.conf[i]); y.push(cal.acc[i]); se.push(Math.sqrt(Math.max(1e-9, cal.acc[i] * (1 - cal.acc[i]) / cal.count[i]))); }
-    ch.set({ x: { label: "模型给出的置信度", domain: [0, 1] }, panels: [{ y: { label: "实际正确的比例", fmt: function (v) { return C.fmtPct(v, 0); } }, layers: [{ kind: "line", x: [0, 1], y: [0, 1], color: "muted", width: 1, dash: [4, 3] }, { kind: "errbar", x: x, y: y, se: se, color: "s1" }, { kind: "points", x: x, y: y, color: "s1", r: 3.5 }] }],
+    var bin = cal.mode === "binary";
+    ch.set({ x: { label: bin ? "模型给出的 P(类别 1)" : "模型给出的置信度（最大的那个概率）", domain: [0, 1] }, panels: [{ y: { label: bin ? "实际是类别 1 的比例" : "实际判对的比例", fmt: function (v) { return C.fmtPct(v, 0); } }, layers: [{ kind: "line", x: [0, 1], y: [0, 1], color: "muted", width: 1, dash: [4, 3] }, { kind: "errbar", x: x, y: y, se: se, color: "s1" }, { kind: "points", x: x, y: y, color: "s1", r: 3.5 }] }],
       legend: [{ name: "每一档（误差棒 = 1 个标准误）；ECE = " + F(cal.ece, 3), color: "s1", mark: "dot" }, { name: "完美校准", color: "muted" }] });
     return ch;
   }

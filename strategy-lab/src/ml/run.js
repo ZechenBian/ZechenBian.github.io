@@ -214,7 +214,7 @@ R.makeData = function (m) {
   checkData(def, data);
   return { def: def, p: p, data: data, seed: seed };
 };
-R.preview = function (def, data, sp) {
+R.preview = function (def, data, sp, p) {
   var out = { plot: def.plot || "" };
   if (def.kind === "forecast") {
     var T = data.y.length, stride = Math.max(1, Math.ceil(T / 2000)), ys = [];
@@ -230,7 +230,18 @@ R.preview = function (def, data, sp) {
   } else if (data.d === 1) {
     var mm = Math.min(data.n, 900), p1 = new Float32Array(mm * 2);
     for (i = 0; i < mm; i++) { var r1 = Math.floor(i * data.n / mm); p1[2 * i] = data.X[r1]; p1[2 * i + 1] = data.y[r1]; }
-    out.xy = { pts: p1, truth: data.truth ? null : null };
+    out.xy = { pts: p1, truth: null };
+    // 一维回归：数据集给了理论最优（真函数）时，在 200 个点上算出来画成虚线
+    if (def.kind === "regression" && isFn(def.oracle)) {
+      try {
+        var O1 = def.oracle(p || {}), lo1 = Infinity, hi1 = -Infinity, t1;
+        for (t1 = 0; t1 < data.n; t1++) { if (data.X[t1] < lo1) lo1 = data.X[t1]; if (data.X[t1] > hi1) hi1 = data.X[t1]; }
+        var gx = new Float64Array(200); for (t1 = 0; t1 < 200; t1++) gx[t1] = lo1 + (t1 + 0.5) / 200 * (hi1 - lo1);
+        var gy = O1 && isFn(O1.predict) ? O1.predict(gx, 200) : null;
+        if (!(gy && gy.length === 200)) { gy = new Float64Array(200); for (t1 = 0; t1 < 200; t1++) { var v1 = O1.predict(gx.subarray(t1, t1 + 1)); gy[t1] = typeof v1 === "number" ? v1 : v1[0]; } }
+        out.xy.truth = { x: Array.from(gx), y: Array.from(gy) };
+      } catch (e) { out.xy.truth = null; }
+    }
   } else if (data.shape) {
     var nImg = Math.min(32, data.n), d = data.d, imgs = new Float32Array(nImg * d), labs = new Int32Array(nImg), pick = [];
     var step = Math.max(1, Math.floor(data.n / nImg));
@@ -303,7 +314,7 @@ R.scoreSupervised = function (P, outs) {
     } catch (e) { res.oracle = { note: "理论最优没算出来：" + String(e && e.message || e), metrics: null }; }
   }
   if (isFn(def.bayes)) { try { res.bayes = def.bayes(D.p); } catch (e) {} }
-  res.data = R.preview(def, D.data, P.sp);
+  res.data = R.preview(def, D.data, P.sp, D.p);
   return res;
 };
 /** 二维数据画决策面用的网格（本机引擎也拿这个网格去预测） */
@@ -410,7 +421,7 @@ R.scoreForecast = function (P, outs) {
   };
   if (O) res.oracle = { note: O.note || "", metrics: { valid: M(eVa, eVa.orc), test: M(eTe, eTe.orc) }, loss: { valid: perOrigin(eVa, eVa.orc), test: perOrigin(eTe, eTe.orc) } };
   if (isFn(def.bayes)) { try { res.bayes = def.bayes(D.p); } catch (e) {} }
-  res.data = R.preview(def, D.data, { t1: P.t1, t2: P.t2 });
+  res.data = R.preview(def, D.data, { t1: P.t1, t2: P.t2 }, D.p);
   return res;
 };
 function runForecast(m, D, A, post) {
@@ -457,8 +468,8 @@ QL.jobs = QL.jobs || {};
 QL.jobs["ml-data"] = function (m) {
   var D = R.makeData(m), def = D.def, sp;
   if (def.kind !== "forecast") sp = R.split(def, D.data, fracOf(def, D.p, m.opts || {}), new QL.RNG(m.opts && m.opts.splitSeed != null ? m.opts.splitSeed : D.seed, 202, 0));
-  else { var T = D.data.y.length; sp = { t1: Math.floor(T * 0.6), t2: Math.floor(T * 0.8) }; }
-  var out = { preview: R.preview(def, D.data, sp), params: D.p };
+  else { var T = D.data.y.length, o2 = m.opts || {}, ft = o2.split && o2.split.train || 0.6, fv = o2.split && o2.split.valid || 0.2; sp = { t1: Math.floor(T * ft), t2: Math.floor(T * (ft + fv)) }; }
+  var out = { preview: R.preview(def, D.data, sp, D.p), params: D.p };
   if (m.full) { out.data = D.data; out.split = sp; }
   return out;
 };

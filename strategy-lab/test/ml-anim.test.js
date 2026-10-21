@@ -327,11 +327,39 @@ section("偏差—方差分解：E[(ŷ − y)²] = 偏差² + 方差 + σ²");
     }
     direct /= R * J;
     const bv = M.biasVariance(preds, R, J, ft, sigma);
-    near(bv.bias2 + bv.variance + bv.noise, bv.expected, 1e-12 * bv.expected, deg + " 次：偏差² + 方差 + σ² 恰好等于期望测试误差（代数恒等式）");
+    near(bv.bias2 + bv.variance + bv.noise, bv.expected, 1e-12 * bv.expected, deg + " 次：偏差² + 方差 + σ² 恰好等于期望测试误差（无偏估计，代数恒等式）");
+    near(bv.bias2Plug + bv.varPlug + bv.noise, bv.expected, 1e-12 * bv.expected, deg + " 次：直接代入的偏差² + 方差 + σ² 也恰好相等");
+    near(bv.bias2Plug - bv.bias2, bv.variance / R, 1e-12 * bv.variance, deg + " 次：直接代入的偏差²比无偏估计多 方差/R");
     ok(Math.abs(direct - bv.expected) < 0.06 * bv.expected, deg + " 次：用新抽的带噪声 y 直接算的测试误差 ≈ 分解之和", direct.toFixed(4) + " vs " + bv.expected.toFixed(4));
     if (deg === 1) ok(bv.bias2 > bv.variance, "1 次拟合 sin(πx)：偏差主导", bv.bias2.toFixed(3) + " > " + bv.variance.toFixed(3));
     if (deg === 9) ok(bv.variance > bv.bias2, "9 次拟合、n = 20：方差主导", bv.variance.toFixed(3) + " > " + bv.bias2.toFixed(4));
   }
+}
+
+section("偏差—方差：无偏估计（R 小的时候也不把方差算进偏差）");
+{
+  // 每个测试点上 ŷ = f + 噪声（N(0, 1)），真偏差 = 0、真方差 = 1：直接代入的偏差² ≈ 1/R，无偏估计 ≈ 0
+  const rng = new RNG(6, 6, 6), R = 5, J = 400, truth = new Float64Array(J), reps = 200; let plug = 0, unb = 0, vv = 0;
+  for (let t = 0; t < reps; t++) { const pr = new Float64Array(R * J).map(() => rng.normal()); const bv = M.biasVariance(pr, R, J, truth, 0); plug += bv.bias2Plug / reps; unb += bv.bias2 / reps; vv += bv.variance / reps; }
+  near(plug, 1 / R, 0.01, "直接代入：E[偏差²] ≈ 方差/R = 0.2"); near(unb, 0, 0.01, "无偏估计：E[偏差²] ≈ 0"); near(vv, 1, 0.01, "无偏的方差 ≈ 1");
+}
+
+section("偏差—方差：固定设计时的精确值 vs 蒙特卡罗");
+{
+  // x 的位置固定，每份训练集只有噪声不同：精确的偏差²、方差应当和大量重复的无偏估计一致
+  const rng = new RNG(13, 1, 1), n = 15, J = 81, sigma = 0.4, f = x => Math.tanh(4 * x), xs = new Float64Array(n).map(() => 2 * rng.u() - 1), fx = xs.map(f);
+  const xt = new Float64Array(J).map((_, j) => -1 + 2 * (j + 0.5) / J), ft = xt.map(f);
+  for (const [deg, lam] of [[1, 0], [4, 1e-6], [9, 1e-3]]) {
+    const ex = M.polyBiasVarExact(xs, n, fx, deg, lam, xt, J, ft, sigma), R = 3000, preds = new Float64Array(R * J), buf = new Float64Array(deg + 1);
+    for (let r = 0; r < R; r++) { const ys = fx.map(v => v + sigma * rng.normal()), c = M.polyFit(xs, ys, n, deg, lam); for (let j = 0; j < J; j++) preds[r * J + j] = M.polyEval(c, xt[j], buf); }
+    const mc = M.biasVariance(preds, R, J, ft, sigma);
+    ok(Math.abs(mc.variance - ex.variance) < 0.06 * ex.variance, deg + " 次（λ = " + lam + "）：方差的精确值 = 蒙特卡罗", ex.variance.toExponential(3) + " vs " + mc.variance.toExponential(3));
+    ok(Math.abs(mc.bias2 - ex.bias2) < 0.05 * ex.bias2 + 3 * ex.variance / R, deg + " 次：偏差²的精确值 = 蒙特卡罗", ex.bias2.toExponential(3) + " vs " + mc.bias2.toExponential(3));
+    near(ex.bias2 + ex.variance + ex.noise, ex.expected, 1e-14, deg + " 次：精确值的三项之和 = 期望测试误差");
+  }
+  // 插值（deg = n − 1，λ = 0）时设计点上 s(x_i) = e_i：方差 = σ²（只在设计点上测）
+  const xi = Float64Array.from([-0.8, -0.3, 0.2, 0.7]), e1 = M.polyBiasVarExact(xi, 4, xi.map(f), 3, 0, xi, 4, xi.map(f), 0.5);
+  near(e1.variance, 0.25, 1e-10, "恰好插值时，设计点上的方差 = σ²"); near(e1.bias2, 0, 1e-20, "恰好插值时，设计点上的偏差 = 0");
 }
 
 console.log("\n（用时 " + ((Date.now() - t0) / 1000).toFixed(1) + " 秒）");

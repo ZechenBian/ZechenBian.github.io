@@ -111,7 +111,8 @@
     if (res.oracle && res.oracle.metrics) out.push("理论最优（知道真实的生成规律）验证集 " + A.metName(pk) + " = " + fm(pk, res.oracle.metrics.valid[pk]) + (res.oracle.note ? "（" + res.oracle.note + "）" : "") + "。");
     if (res.bayes && res.bayes.value != null) out.push("理论上限：" + A.metName(res.bayes.metric || pk) + " = " + fm(res.bayes.metric || pk, res.bayes.value) + (res.bayes.note ? "（" + res.bayes.note + "）" : "") + "。");
     out.push(curveText(res.curve));
-    if (res.importance && res.importance.length) out.push("置换重要性（验证集上主指标变差多少，前 12 个）：" + res.importance.slice().sort(function (a, b) { return b.drop - a.drop; }).slice(0, 12).map(function (x) { return x.name + " " + G(x.drop) + " ± " + G(x.se); }).join("；") + "。");
+    var imp = res.importance && res.importance.items ? res.importance.items : null;
+    if (imp && imp.length) out.push("置换重要性（验证集上把一列打乱后" + (res.importance.metric === "acc" ? "准确率下降" : "MSE 上升") + "多少，前 12 个）：" + imp.slice().sort(function (a, b) { return b.drop - a.drop; }).slice(0, 12).map(function (x) { return x.name + " " + G(x.drop) + " ± " + G(x.se); }).join("；") + "。");
     if (res.kind === "classification" && res.k <= 12) {
       var k = res.k, M = QL.mlstats.confusion(res.pred.valid, res.truth.valid, k), rows = [];
       for (var i = 0; i < k; i++) { var tot = 0, c; for (c = 0; c < k; c++) tot += M[i * k + c]; rows.push("真实 " + i + "：" + Array.from({ length: k }, function (_, c2) { return M[i * k + c2]; }).join(" ") + "（对 " + (tot ? P(M[i * k + i] / tot, 0) : "—") + "）"); }

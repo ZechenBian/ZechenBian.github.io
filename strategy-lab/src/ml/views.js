@@ -44,20 +44,20 @@
     var c = card("学习曲线", { help: "chart:curve", wide: !(res.snaps && res.snaps.length), foot: "实线是训练集，虚线是验证集。验证损失先降后升，就是开始过拟合的地方。" }); keep(V.curve(c.body, res));
     var last = res.snaps && res.snaps.length ? res.snaps[res.snaps.length - 1] : null;
     if (last && last.kind === "grid2d") { c = card(cls ? "决策面" : "学到的函数（二维）", { help: "chart:surface", foot: cls ? "底色是模型在每个位置判的类别，越深越有把握；点是训练样本。细线是决策边界。" : "底色是模型的预测值；点是训练样本（颜色是真实的 y）。" }); keep(V.surface(c.body, last, pv)); }
-    if (last && last.kind === "fn1d") { c = card("学到的函数", { help: "chart:fn1d" }); keep(V.fn1d(c.body, last, pv, null)); }
+    if (last && last.kind === "fn1d") { c = card("学到的函数", { help: "chart:fn1d", foot: pv.xy && pv.xy.truth ? "虚线是真函数（数据集的理论最优）；灰点是数据。" : "" }); keep(V.fn1d(c.body, last, pv, pv.xy && pv.xy.truth)); }
     if (res.kind === "forecast") {
       var hSel = Math.min(res.horizon || 1, S.hShow || 1);
       var ctl = res.horizon > 1 ? h("label", null, "第 ", h("input", { type: "number", min: 1, max: res.horizon, value: hSel, onchange: function (e) { S.hShow = Math.max(1, Math.min(res.horizon, +e.target.value || 1)); A.renderViews(); } }), " 步的预测") : null;
       c = card("预测对实际", { wide: true, help: "chart:forecast", ctl: ctl }); keep(V.forecastPlot(c.body, res, pv, L.revealed, hSel));
       if (res.horizon > 1) { c = card("误差随预测步长", { help: "chart:errh" }); keep(V.errByH(c.body, res, w)); }
-      c = card("残差的分布", { ctl: setCtl(L) }); keep(V.residuals(c.body, res.pred[w], res.truth[w]));
+      c = card("残差的分布", { ctl: setCtl(L), help: "chart:resid" }); keep(V.residuals(c.body, res.pred[w], res.truth[w]));
     } else if (cls) {
       var names = pv.classes || null;
       c = card("混淆矩阵", { help: "chart:confusion", ctl: setCtl(L), foot: "每一行是一个真实类别，格子里是它被判成各类的比例；对角线越深越好。" }); keep(V.confusion(c.body, res.pred[w], res.truth[w], res.k, names));
       if (res.k > 2) { c = card("每一类的准确率", { help: "chart:perclass" }); keep(V.perClass(c.body, res.pred[w], res.truth[w], res.k, names)); }
       if (res.k === 2) { var pp = probPos(res.pred[w]), roc = ST.roc(pp, res.truth[w]); c = card("ROC 曲线", { help: "chart:roc" }); keep(V.rocChart(c.body, roc)); }
       var cal = ST.calibration(res.k === 2 ? probPos(res.pred[w]) : res.pred[w], res.truth[w], 10);
-      c = card("校准曲线", { help: "chart:calibration", foot: "模型说“有 80% 把握”的那些样本里，实际对了多少。点在对角线上就是校准得好。" }); keep(V.calibrationChart(c.body, cal));
+      c = card("校准曲线", { help: "chart:calibration", foot: res.k === 2 ? "模型说“是类别 1 的概率为 80%”的那些样本里，实际有多少是类别 1。点在对角线上就是校准得好。" : "模型最有把握的那一类概率为 80% 的那些样本里，实际判对了多少。点在对角线上就是校准得好。" }); keep(V.calibrationChart(c.body, cal));
     } else {
       c = card("预测对实际", { help: "chart:predactual", ctl: setCtl(L) }); keep(V.predActual(c.body, res.pred[w], res.truth[w], { name: w === "test" ? "测试集" : "验证集" }));
       c = card("残差的分布", { help: "chart:resid" }); keep(V.residuals(c.body, res.pred[w], res.truth[w]));
@@ -130,7 +130,7 @@
     function draw() {
       var s = snaps[i]; lab.textContent = "第 " + G(s.step) + " 步（" + (i + 1) + " / " + snaps.length + "）";
       if (s.kind === "grid2d") { if (!cvBox) cvBox = keep(V.surface(left, s, pv, { caption: "第 " + G(s.step) + " 步" })); else cvBox.set(function (ctx, w, hh) { V.drawSurface(ctx, w, hh, s, pv.scatter ? pv.scatter.pts : null, { caption: "第 " + G(s.step) + " 步" }); }); }
-      else if (s.kind === "fn1d") { clear(left); charts = charts.filter(function (x) { return x !== cvBox; }); cvBox = keep(V.fn1d(left, s, pv, null)); }
+      else if (s.kind === "fn1d") { if (cvBox && cvBox.destroy) { try { cvBox.destroy(); } catch (e) {} } clear(left); charts = charts.filter(function (x) { return x !== cvBox; }); cvBox = keep(V.fn1d(left, s, pv, pv.xy && pv.xy.truth)); }
       else if (s.kind === "embed") {
         clear(left); cvBox = keep(V.embedPCA(left, s.data, null, function (t) { return t / Math.max(1, s.data.rows - 1); }));
         var meta = pv.meta || {}; if (QL.mltoy && meta.p && A.ds().id === "modadd") { var sp1 = safe(function () { return QL.mltoy.fourier(s.data, meta); }); if (specBox) { try { specBox.destroy(); } catch (e) {} } clear(right); if (sp1) specBox = keep(V.spectrum(right, sp1)); }
