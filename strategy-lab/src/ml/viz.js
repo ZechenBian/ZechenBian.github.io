@@ -55,7 +55,8 @@ var QLMLViz = (function () {
   }
 
   /* ---------- 学习曲线 ---------- */
-  var CURVE_NAMES = { loss: "训练损失", validLoss: "验证损失", trainMetric: "训练指标", validMetric: "验证指标", trainAcc: "训练准确率", validAcc: "验证准确率", lr: "学习率", gradNorm: "梯度范数", weightNorm: "权重范数" };
+  var CURVE_NAMES = { loss: "训练损失", validLoss: "验证损失", trainMetric: "训练指标", validMetric: "验证指标", trainAcc: "训练准确率", validAcc: "验证准确率", lr: "学习率", gradNorm: "梯度范数", weightNorm: "权重范数",
+    oobLoss: "袋外损失", oobAcc: "袋外准确率", nonzero: "非零系数个数", df: "有效自由度", aic: "AIC", bic: "BIC", objective: "目标函数", negLogML: "负对数边际似然", logEll: "log 长度尺度", negLogLik: "负对数似然", logLam: "log λ" };
   function curveKeys(curve) { var seen = {}; curve.forEach(function (p) { for (var k in p) if (k !== "step") seen[k] = 1; }); return Object.keys(seen); }
   /** 学习曲线：损失一张面板（可选对数坐标），准确率/指标一张，其余（学习率、范数）各自一张 */
   function curve(host, res, opt) {
@@ -72,7 +73,9 @@ var QLMLViz = (function () {
     other.slice(0, 2).forEach(function (k) { panels.push({ y: { label: CURVE_NAMES[k] || k, scale: cv.every(function (p) { return p[k] == null || p[k] > 0; }) && /lr|norm/i.test(k) ? "log" : "linear" }, layers: [layerOf(k)], weight: 0.7 }); });
     if (opt.mark != null) panels.forEach(function (p) { p.layers.push({ kind: "vline", x: opt.mark, color: "muted", width: 1 }); });
     var ch = chart(host, 120 + 110 * panels.length);
-    ch.set({ x: { label: "训练步数" }, panels: panels, legend: legend, hover: { xs: xs, tip: function (i) { return { title: "第 " + G(xs[i]) + " 步", rows: keys.filter(function (k) { return cv[i][k] != null; }).map(function (k) { return { name: CURVE_NAMES[k] || k, value: G(cv[i][k]) }; }) }; } } });
+    var xi = xs.every(function (v) { return v === Math.round(v); }) && xs[xs.length - 1] - xs[0] <= 12, xt = null;
+    if (xi) { xt = []; for (var q = xs[0]; q <= xs[xs.length - 1]; q++) xt.push(q); }
+    ch.set({ x: { label: opt.xLabel || "训练步数", ticks: xt, fmt: xi ? function (v) { return String(Math.round(v)); } : undefined }, panels: panels, legend: legend, hover: { xs: xs, tip: function (i) { return { title: "第 " + G(xs[i]) + " 步", rows: keys.filter(function (k) { return cv[i][k] != null; }).map(function (k) { return { name: CURVE_NAMES[k] || k, value: G(cv[i][k]) }; }) }; } } });
     return ch;
   }
 

@@ -3,8 +3,8 @@
 /* 机器学习实验室 · 内置算法库
  * QL_MLALGOS：内置算法的列表。每个算法的代码是一段 JavaScript 字符串（界面里可以看、改、复制；AI 写的算法也是同样的格式），
  * 在后台线程的隔离环境里编译，只能用标准 JavaScript 和传进来的 lib、ctx（接口见 src/ml/DESIGN.md §3）。
- * 几个算法共用的小工具（标准化、Cholesky、L-BFGS、分箱的决策树、Nelder–Mead……）写成"片段"，拼在各自代码的最前面，
- * 所以每段代码都自成一体：复制出去单独改也能跑。
+ * 几个算法共用的小工具（标准化、Cholesky、L-BFGS、分箱的决策树、Nelder–Mead……）写成"片段"，拼在各自代码的后面
+ * （算法本身的 fit / predict 在最前面），所以每段代码都自成一体：复制出去单独改也能跑。
  * 说明（docs）是 Markdown + KaTeX：模型、损失与训练、参数怎么调、复杂度、什么时候好用 / 失效、理论（定义、定理与证明梗概）。
  * 写法上的约定：代码和说明都用 String.raw 式的模板（反斜杠原样保留），所以里面不能出现反引号和美元符号紧跟左花括号；
  * 说明里的行内代码用 ˋ（U+02CB）代替反引号，取出时换回来。
@@ -14,13 +14,17 @@ var QL_MLALGO_GROUPS = { baseline: "基线", linear: "线性模型", neighbors: 
 var QL_MLALGOS = (function () {
 "use strict";
 function js(s) { return String.raw({ raw: s.raw }).replace(/^\n/, ""); }
-function md(s) { return String.raw({ raw: s.raw }).replace(/^\n/, "").replace(/ˋ/g, "`"); }
+function md(s) { return String.raw({ raw: s.raw }).replace(/^\n/, "").replace(/\u02cb/g, "`"); }
 function I(key, label, def, min, max, step, desc) { return { key: key, label: label, def: def, min: min, max: max, step: step || 1, type: "int", desc: desc || "" }; }
 function N(key, label, def, min, max, step, desc) { return { key: key, label: label, def: def, min: min, max: max, step: step, type: "num", desc: desc || "" }; }
 function S(key, label, def, options, desc) { return { key: key, label: label, def: def, options: options, type: "select", desc: desc || "" }; }
 function B(key, label, def, desc) { return { key: key, label: label, def: def, type: "bool", desc: desc || "" }; }
-/** 把几段代码拼成一段（片段在前，算法本身在后） */
-function code() { return Array.prototype.slice.call(arguments).join("\n"); }
+/** 把几段代码拼成一段：算法本身在前（打开"代码与说明"先看到 fit / predict），共用的小工具在后。
+ *  顶层只有函数声明（会被提升）和简单的常量，所以先后次序不影响运行。 */
+function code() {
+  var parts = Array.prototype.slice.call(arguments), main = parts.pop();
+  return main + "\n/* ================= 以下是几个内置算法共用的小工具（各算法里的同名函数是同一份） ================= */\n" + parts.join("\n");
+}
 
 /* ================================================================== *
  *  共用的代码片段
@@ -916,7 +920,7 @@ function inspect(M) {
 后验是 $\operatorname{softmax}_c\,\delta_c(x)$。
 
 ## 损失与训练
-最大似然的闭式解：$\hat\mu_c$ 是类内均值，LDA 的 $\hat\Sigma$ 是合并的类内协方差（除以 $n-k$ 的近似：这里除以 $n$），QDA 的 $\hat\Sigma_c$ 除以 $n_c-1$。再做收缩 $\hat\Sigma\leftarrow(1-\gamma)\hat\Sigma+\gamma\,\frac{\operatorname{tr}\hat\Sigma}d I$。用 Cholesky 分解求 $\Sigma^{-1}\mu_c$（LDA）或 $L_c^{-1}(x-\mu_c)$ 与 $\log\det\Sigma_c=2\sum_j\log(L_c)_{jj}$（QDA）。先把特征标准化，只为数值稳定（判别分析对可逆仿射变换不变）。
+最大似然的闭式解：$\hat\mu_c$ 是类内均值，LDA 的 $\hat\Sigma$ 是合并的类内协方差（这里除以 $n$；无偏估计除以 $n-k$，样本多时差别可以忽略），QDA 的 $\hat\Sigma_c$ 除以 $n_c-1$。再做收缩 $\hat\Sigma\leftarrow(1-\gamma)\hat\Sigma+\gamma\,\frac{\operatorname{tr}\hat\Sigma}d I$。用 Cholesky 分解求 $\Sigma^{-1}\mu_c$（LDA）或 $L_c^{-1}(x-\mu_c)$ 与 $\log\det\Sigma_c=2\sum_j\log(L_c)_{jj}$（QDA）。先把特征标准化，只为数值稳定（判别分析对可逆仿射变换不变）。
 
 ## 参数怎么调
 - 两类的协方差明显不同（一类紧、一类散）时 QDA 更好；否则 LDA 参数少得多，方差更小。
@@ -1285,7 +1289,7 @@ function fit(data, p, lib, ctx) {
       pt.validLoss = vse / va.n; pt.validMetric = vse / va.n;
     }
     ctx.report(nT, pt);
-    ctx.snapshot(nT, M);
+    if (snapDue(nT)) ctx.snapshot(nT, M);
   }
   M.size = 0; M.trees.forEach(function (T2) { M.size += T2.size * (K + 2); });
   M.oob = pt;
@@ -1407,7 +1411,7 @@ function fit(data, p, lib, ctx) {
     M.rounds.push(trees);
     var e1 = lossOf(M, F, tr.y, n), e2 = lossOf(M, Fv, va.y, va.n);
     ctx.report(r + 1, { loss: e1.loss, validLoss: e2.loss, trainMetric: e1.met, validMetric: e2.met });
-    ctx.snapshot(r + 1, M);
+    if (snapDue(r + 1)) ctx.snapshot(r + 1, M);
     if (e2.loss < best.loss - 1e-12) best = { loss: e2.loss, round: r + 1 };
     else if (p.patience > 0 && r + 1 - best.round >= p.patience) { ctx.log("早停：验证损失在第 " + best.round + " 轮之后 " + p.patience + " 轮没有变好。"); break; }
   }
@@ -2319,7 +2323,7 @@ $\sigma$ 取 ReLU、GELU 或 $x^2$。输出是 $p$ 个类别的 softmax（回归
 交叉熵（回归是均方误差），**AdamW**，$\beta_2=0.98$，常数学习率（前 10 步线性预热），**很大的解耦权重衰减**（默认 1）；默认每步 512 个样本的小批量，批量设为 0 就是整个训练集（全批量）。训练一直进行到步数上限或时间预算用完。评价的间隔自动调整（每次评价全部训练集与验证集，大约只占一成的时间）；每次评价拍一张快照，"动画回放"里能看到嵌入的傅里叶谱怎样从一团噪声变成几个尖峰。曲线里还画了全部参数的 $\ell_2$ 范数（权重范数）。
 
 ## 参数怎么调
-- 模 $p$ 加法（训练比例 0.3–0.6）上看顿悟：权重衰减 0.5–2、学习率 $10^{-3}$–$3\times10^{-3}$、预算一两分钟以上；权重衰减为 0 时，训练准确率到 100% 之后验证准确率一般不再上升。
+- 模 $p$ 加法（训练比例 0.3–0.6）上看顿悟：权重衰减 0.5–2、学习率 $10^{-3}$–$3\times10^{-3}$、预算一两分钟以上；权重衰减为 0 时，训练准确率到 100% 之后验证准确率一般不再上升。实测（默认参数，模 31、训练比例 0.6，2 核的云端 CPU）：约 550 步训练准确率到 100%，验证准确率在 800 步之前几乎为 0，之后上升，约 2800 步到 100%，用时约 50 秒。
 - 训练比例越小，顿悟越晚（或者不发生）；$p$ 越大越慢。
 - $x^2$ 激活配合拼接，对应 Gromov（2023）的可解模型；ReLU 更通用。
 - 想先确认"能记住"：权重衰减设 0，训练准确率很快到 100%。
@@ -2819,8 +2823,8 @@ function inspect(M) {
   docs: md`
 ## 模型
 线性高斯状态空间模型（"结构时间序列"）。**局部线性趋势**：
-$$y_t=\mu_t+\varepsilon_t,\qquad \mu_{t+1}=\mu_t+\nu_t+\xi_t,\qquad \nu_{t+1}=\nu_t+\zeta_t,$$
-$\varepsilon_t\sim N(0,\sigma^2_\varepsilon)$、$\xi_t\sim N(0,\sigma^2_\xi)$、$\zeta_t\sim N(0,\sigma^2_\zeta)$ 相互独立。**局部水平**去掉斜率 $\nu$。$h$ 步预测 $\hat y_{t+h\mid t}=\hat\mu_{t\mid t}+h\,\hat\nu_{t\mid t}$（局部水平时是 $\hat\mu_{t\mid t}$）。
+$$y_t=\mu_t+\varepsilon_t,\qquad \mu_{t+1}=\mu_t+\nu_t+ξ_t,\qquad \nu_{t+1}=\nu_t+\zeta_t,$$
+$\varepsilon_t\sim N(0,\sigma^2_\varepsilon)$、$ξ_t\sim N(0,\sigma^2_ξ)$、$\zeta_t\sim N(0,\sigma^2_\zeta)$ 相互独立。**局部水平**去掉斜率 $\nu$。$h$ 步预测 $\hat y_{t+h\mid t}=\hat\mu_{t\mid t}+h\,\hat\nu_{t\mid t}$（局部水平时是 $\hat\mu_{t\mid t}$）。
 
 ## 损失与训练
 给定三个方差，卡尔曼滤波逐步算出 $\hat x_{t\mid t}=\mathbb E[x_t\mid y_{\le t}]$ 与其协方差 $P_{t\mid t}$，同时得到一步预测误差 $v_t$ 和它的方差 $F_t$。对数似然用**预测误差分解**：
@@ -2844,7 +2848,7 @@ $$a_{t\mid t}=a_{t\mid t-1}+K_t(y_t-Za_{t\mid t-1}),\qquad P_{t\mid t}=P_{t\mid 
 
 *证明梗概.* 归纳。设 $x_{t-1}\mid y_{<t}$ 为正态；线性变换加独立的正态噪声，$x_t\mid y_{<t}\sim N(a_{t\mid t-1},P_{t\mid t-1})$。再加上 $y_t=Zx_t+\varepsilon_t$，$(x_t,y_t)\mid y_{<t}$ 联合正态，协方差分块为 $\begin{pmatrix}P&PZ^\top\\ZP&F\end{pmatrix}$；用正态条件分布的公式（舒尔补）对 $y_t$ 取条件，即得更新式。$\square$
 
-**命题 2（局部水平模型 = 简单指数平滑）.** 局部水平模型中记 $q=\sigma^2_\xi/\sigma^2_\varepsilon$。预测方差 $P_{t\mid t-1}$（以 $\sigma^2_\varepsilon$ 为单位）的稳态是 $\bar P=\frac{q+\sqrt{q^2+4q}}2$，稳态增益 $\alpha=\frac{\bar P}{\bar P+1}=\frac{-q+\sqrt{q^2+4q}}2$，滤波 $\hat\mu_t=\hat\mu_{t-1}+\alpha(y_t-\hat\mu_{t-1})$ 正是平滑系数为 $\alpha$ 的简单指数平滑。
+**命题 2（局部水平模型 = 简单指数平滑）.** 局部水平模型中记 $q=\sigma^2_ξ/\sigma^2_\varepsilon$。预测方差 $P_{t\mid t-1}$（以 $\sigma^2_\varepsilon$ 为单位）的稳态是 $\bar P=\frac{q+\sqrt{q^2+4q}}2$，稳态增益 $\alpha=\frac{\bar P}{\bar P+1}=\frac{-q+\sqrt{q^2+4q}}2$，滤波 $\hat\mu_t=\hat\mu_{t-1}+\alpha(y_t-\hat\mu_{t-1})$ 正是平滑系数为 $\alpha$ 的简单指数平滑。
 
 *证明.* 单位化后 Riccati 递推为 $P_{t+1\mid t}=\frac{P_{t\mid t-1}}{P_{t\mid t-1}+1}+q$，不动点满足 $\bar P^2-q\bar P-q=0$，取正根。代入 $\alpha=\bar P/(\bar P+1)$ 并化简即得。$\square$
 
@@ -3262,13 +3266,13 @@ add({
   id: "transformer", name: "单层 Transformer（注意力）", group: "neural", api: "supervised", kinds: ["classification", "regression"], families: ["toy"], needs: "tokens",
   summary: "词元嵌入加位置嵌入，末尾补一个“=”记号；一层多头注意力 + 前馈层，从“=”的位置读出：Nanda 等研究顿悟时用的结构。",
   params: [
-    I("dim", "模型宽度 D", 32, 8, 256, 4),
+    I("dim", "模型宽度 D", 64, 8, 256, 4),
     S("heads", "注意力头数", "4", [["1", "1"], ["2", "2"], ["4", "4"], ["8", "8"]], "每个头的维数 = D / 头数"),
     I("mlp", "前馈层宽度", 128, 8, 2048, 8),
-    N("lr", "学习率", 0.003, 0.0001, 0.03, 0.0001),
+    N("lr", "学习率", 0.001, 0.0001, 0.03, 0.0001),
     N("wd", "权重衰减（AdamW）", 1, 0, 5, 0.01),
     N("beta2", "Adam 的 β₂", 0.98, 0.9, 0.999, 0.001),
-    I("batch", "小批量大小（0 = 整个训练集）", 512, 0, 16384, 1),
+    I("batch", "小批量大小（0 = 整个训练集）", 256, 0, 16384, 1),
     I("steps", "最多训练几步", 100000, 10, 1000000, 10)
   ],
   code: code(SN.base, SN.train, js`
@@ -3403,7 +3407,7 @@ $r=x_T+[o^{(1)},\dots,o^{(H)}]W_O$，再过一个带残差的 ReLU 前馈层 $r'
 ## 参数怎么调
 - 先确认能记住：权重衰减设 0，训练准确率应当很快到 100%。
 - 顿悟：权重衰减 0.5–2，训练比例 0.3–0.6，预算一两分钟以上。比"嵌入 + MLP"每步更慢（注意力要算 $T$ 组键和值），但它正是 Power 等、Nanda 等原始实验的结构。
-- 宽度和头数影响不大；$D=32$、4 个头通常够用。
+- 默认 $D=64$、4 个头、学习率 $10^{-3}$、批量 256：模 31 加法、训练比例 0.6 时（实测，2 核的云端 CPU），约 700 步记住训练集，验证准确率随后才上升，约 1500 步接近 100%，大约要一分半钟；之后权重范数开始下降。$D=32$ 时每步更快，但记忆和泛化几乎同时发生，看不出两个阶段；学习率 $3\times10^{-3}$ 时训练不稳。
 
 ## 复杂度
 每个样本：键、值 $O(T\cdot D\cdot D)$，查询与输出投影 $O(D^2)$，前馈 $O(D\cdot F)$，注意力本身 $O(TD)$。所以每步约 $3b\,(2TD^2+2D^2+2DF+DK)$ 次乘加。
@@ -3425,6 +3429,17 @@ $r=x_T+[o^{(1)},\dots,o^{(H)}]W_O$，再过一个带残差的 ReLU 前馈层 $r'
 `
 });
 
+/* 学习曲线的横轴是什么（界面上默认写"训练步数"；这些算法的横轴另有含义）。没有曲线的算法不写 */
+var CURVE_X = {
+  ridge: "λ 的序号（从强到弱；打开“按验证集选 λ”时才有曲线）", lasso: "正则化路径上的第几步（λ 从大到小）", logreg: "L-BFGS 的迭代次数",
+  knn: "邻居数 k（打开“按验证集选 k”时才有曲线）", tree: "叶子数（剪枝时）；不剪枝时是深度", forest: "树的棵数", gbm: "提升的轮数",
+  gp: "长度尺度 ℓ 的序号（从小到大）", rff: "L-BFGS 的迭代次数（分类时才有曲线）", svm: "训练轮数", mlp: "训练轮数", cnn: "训练轮数",
+  embmlp: "训练步数", transformer: "训练步数", ar: "自回归的阶数 p", ets: "候选模型的序号", kalman: "Nelder–Mead 的迭代次数",
+  lagboost: "提升的轮数（一步模型）", lagmlp: "训练轮数", esn: "岭参数 λ 的序号（从小到大）"
+};
+ALGOS.forEach(function (a) { if (CURVE_X[a.id]) a.curveX = CURVE_X[a.id]; });
+// 分组名也挂在列表上（不可枚举：遍历和 JSON 都看不到），Node 里 require 这个文件时可以用 ALGOS.GROUPS 拿到
+Object.defineProperty(ALGOS, "GROUPS", { value: QL_MLALGO_GROUPS, enumerable: false });
 return ALGOS;
 })();
 if (typeof module !== "undefined" && module.exports) module.exports = QL_MLALGOS;

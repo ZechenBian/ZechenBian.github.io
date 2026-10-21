@@ -42,7 +42,8 @@
   }
   function chartsView(L) {
     var res = L.res, w = which(L), pv = res.data || A.preview || {}, cls = res.kind === "classification";
-    var c = card("学习曲线", { help: "chart:curve", wide: !(res.snaps && res.snaps.length), foot: "实线是训练集，虚线是验证集。验证损失先降后升，就是开始过拟合的地方。" }); keep(V.curve(c.body, res));
+    var stepCurve = !L.algo.curveX || /步|轮|迭代|epoch/i.test(L.algo.curveX);
+    var c = card(stepCurve ? "学习曲线" : "训练过程的记录", { help: "chart:curve", wide: !(res.snaps && res.snaps.length), foot: stepCurve ? "实线是训练集，虚线是验证集。验证损失先降后升，就是开始过拟合的地方。" : "横轴是“" + L.algo.curveX + "”：算法在训练时逐个汇报的量。" }); keep(V.curve(c.body, res, { xLabel: L.algo.curveX }));
     var last = res.snaps && res.snaps.length ? res.snaps[res.snaps.length - 1] : null;
     if (last && last.kind === "grid2d") { c = card(cls ? "决策面" : "学到的函数（二维）", { help: "chart:surface", foot: cls ? "底色是模型在每个位置判的类别，越深越有把握；点是训练样本。细线是决策边界。" : "底色是模型的预测值；点是训练样本（颜色是真实的 y）。" }); keep(V.surface(c.body, last, pv)); }
     if (last && last.kind === "fn1d") { c = card("学到的函数", { help: "chart:fn1d", foot: pv.xy && pv.xy.truth ? "虚线是真函数（数据集的理论最优）；灰点是数据。" : "" }); keep(V.fn1d(c.body, last, pv, pv.xy && pv.xy.truth)); }
@@ -137,7 +138,7 @@
         clear(left); cvBox = keep(V.embedPCA(left, s.data, null, function (t) { return t / Math.max(1, s.data.rows - 1); }));
         var meta = pv.meta || {}; if (QL.mltoy && meta.p && A.ds().id === "modadd") { var sp1 = safe(function () { return QL.mltoy.fourier(s.data, meta); }); if (specBox) { try { specBox.destroy(); } catch (e) {} } clear(right); if (sp1) specBox = keep(V.spectrum(right, sp1)); }
       }
-      if (s.kind !== "embed") { if (curveCh) { try { curveCh.destroy(); } catch (e) {} } clear(right); curveCh = keep(V.curve(right, res, { mark: s.step })); }
+      if (s.kind !== "embed") { if (curveCh) { try { curveCh.destroy(); } catch (e) {} } clear(right); curveCh = keep(V.curve(right, res, { mark: s.step, xLabel: L.algo.curveX })); }
     }
     slider.addEventListener("input", function () { i = +slider.value; stopPlay(); draw(); });
     function stopPlay() { clearInterval(playT); playT = 0; btn.textContent = "▶ 播放"; }

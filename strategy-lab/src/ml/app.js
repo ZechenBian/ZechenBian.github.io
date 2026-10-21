@@ -83,14 +83,22 @@ var MLA = (function () {
   A.algosFor = function (def) {
     if (!def) return [];
     var api = A.apiOf(def);
-    function fits(a) { return a.api === api && (!a.kinds || a.kinds.indexOf(def.kind) >= 0) && (!a.families || a.families.indexOf(def.family) >= 0); }
+    // needs: "tokens"（嵌入、注意力）只给输入是记号的数据集；预览还没出来时先列着
+    var tok = A.preview ? !!A.preview.tokens : null;
+    function fits(a) { return a.api === api && (!a.kinds || a.kinds.indexOf(def.kind) >= 0) && (!a.families || a.families.indexOf(def.family) >= 0) && !(a.needs === "tokens" && tok === false); }
     var list = (window.QL_MLALGOS || []).filter(fits).map(function (a) { return Object.assign({ src: "builtin", lang: "js" }, a); });
     S.my.forEach(function (a) { if (fits(a) && (a.lang !== "py" || (A.engineReady && A.engineReady()))) list.push(a); });
     if (A.engineReady && A.engineReady()) (window.QL_MLPY || []).filter(fits).forEach(function (a) { list.push(Object.assign({ src: "py", lang: "py" }, a)); });
     return list;
   };
   function algoState() { var d = A.ds(), key = d ? d.family + "/" + d.kind : "_"; var st = S.algo[key]; if (!st) st = S.algo[key] = { id: "", params: {} }; return st; }
-  A.algo = function () { var d = A.ds(), list = A.algosFor(d), st = algoState(); var a = list.filter(function (x) { return x.id === st.id; })[0]; if (!a) { a = list[0] || null; st.id = a ? a.id : ""; } return a; };
+  /** 第一次进入某类任务时默认选的算法：能看出东西来的那一个（找不到就用列表里的第一个） */
+  var DEFAULT_ALGO = { "tabular/classification": "mlp", "tabular/regression": "gbm", "timeseries/forecast": "ets", "image/classification": "cnn", "image/regression": "cnn", "toy/classification": "embmlp", "toy/regression": "mlp" };
+  A.algo = function () {
+    var d = A.ds(), list = A.algosFor(d), st = algoState(); var a = list.filter(function (x) { return x.id === st.id; })[0];
+    if (!a) { var want = d ? DEFAULT_ALGO[d.family + "/" + d.kind] : null; a = list.filter(function (x) { return x.id === want; })[0] || list[0] || null; st.id = a ? a.id : ""; }
+    return a;
+  };
   A.algoParams = function () { var a = A.algo(), st = algoState(); if (!a) return {}; var p = cleanParams(a.params || [], st.params[a.id] || {}); st.params[a.id] = p; return p; };
   function cleanParams(spec, vals) {
     var o = {};
@@ -170,7 +178,7 @@ var MLA = (function () {
   };
   function kindName(k) { return k === "regression" ? "回归" : k === "classification" ? "分类" : k === "forecast" ? "预测" : ""; }
   A.kindName = kindName;
-  var GROUP_NAMES = { baseline: "基线", linear: "线性模型", neighbors: "近邻", trees: "树模型", kernel: "核方法", neural: "神经网络", probabilistic: "概率模型", ts: "时间序列模型", other: "其他" };
+  var GROUP_NAMES = Object.assign({ baseline: "基线", linear: "线性模型", neighbors: "近邻", trees: "树模型", kernel: "核方法", neural: "神经网络", probabilistic: "概率模型", ts: "时间序列", other: "其他" }, window.QL_MLALGO_GROUPS || {});
   A.renderAlgo = function () {
     var host = clear($("blkAlgo")), d = A.ds(), list = A.algosFor(d), a = A.algo();
     host.appendChild(h("h2", null, "算法", h("small", { text: a ? (a.src === "ai" ? "AI 写的" : a.src === "mine" ? "我的" : a.src === "py" ? "Python · 本机引擎" : "内置") : "" }), h("span", { class: "sp" }), a && a.src !== "ai" && a.src !== "mine" ? helpBtn("algo:" + a.id, a.name) : null));
@@ -219,10 +227,11 @@ var MLA = (function () {
   A.runOpts = runOpts;
   /** 数据变了：重新生成预览；当前结果标成"过期" */
   A.dataChanged = function (soft) {
+    if (A.preview && A.preview.dsId !== (A.ds() && A.ds().id)) A.preview = null;   // 换了数据集：旧的预览作废（算法列表要按新数据集的输入类型筛）
     A.renderAlgo();
     if (prevJob) prevJob.cancel();
     var spec = dsSpec(), mine = prevJob = QLMLRunner.run({ kind: "ml-data", data: { dataset: spec, opts: runOpts() }, mine: true, budgetMs: 15000 });
-    mine.promise.then(function (out) { if (prevJob !== mine) return; prevJob = null; A.preview = out.preview; A.emit("preview"); A.renderViews(); },
+    mine.promise.then(function (out) { if (prevJob !== mine) return; prevJob = null; var tokWas = A.preview ? !!A.preview.tokens : null; A.preview = out.preview; A.preview.dsId = spec.id; if (tokWas !== !!out.preview.tokens) A.renderAlgo(); A.emit("preview"); A.renderViews(); },
       function (e) { if (prevJob !== mine || e.cancelled) return; prevJob = null; A.preview = null; A.dataErr = e.message; A.renderViews(); });
     A.renderSummary(); A.renderViews();
     if (!soft) A.emit("data");
