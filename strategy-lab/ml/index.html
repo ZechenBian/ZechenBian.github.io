@@ -13515,8 +13515,7 @@ var MLA = (function () {
   A.runOpts = runOpts;
   /** 数据变了：重新生成预览；当前结果标成"过期" */
   A.dataChanged = function (soft) {
-    if (A.preview && A.preview.dsId !== (A.ds() && A.ds().id)) A.preview = null;   // 换了数据集：旧的预览作废（算法列表要按新数据集的输入类型筛）
-    A.renderAlgo();
+    if (A.preview && A.preview.dsId !== (A.ds() && A.ds().id)) { A.preview = null; A.renderAlgo(); }   // 换了数据集：旧的预览作废，算法列表按新数据集重新筛（只改参数时不重画算法那一块，免得抢走正在输入的框）
     if (prevJob) prevJob.cancel();
     A.dataErr = null;
     var spec = dsSpec(), mine = prevJob = QLMLRunner.run({ kind: "ml-data", data: { dataset: spec, opts: runOpts() }, mine: true, budgetMs: 15000 });
