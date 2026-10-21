@@ -2176,7 +2176,10 @@ $$\langle\lvert m\rvert\rangle_L\approx L^{-\beta/\nu}\,\Phi\big((T-T_c)L^{1/\nu
   }
   function dsEntry(reg, def) {
     var real = !!def.source, L = [];
-    L.push("**类型.** " + (FAMILY[def.family] || def.family) + " · " + (KIND[def.kind] || def.kind) + " · 主指标：" + (PRIMARY[def.kind] || "") + " · " + (real ? "真实数据" : "模拟的数据（生成规律已知）") + "。");
+    var demo = real && /演示|不保证/.test(String(def.source.license || ""));
+    L.push(real ? "**数据的来源：真实数据。** 从真实世界采集来的" + (demo ? "（打包进页面的演示快照，不保证准确）" : "") + "，出处见文末的“来源”。真实规律未知，所以没有理论最优可比。"
+      : "**数据的来源：模拟数据。** 不是真实世界的数据：程序按下面写的规律随机生成，同样的参数和种子总是生成逐位相同的样本。正因为规律已知，才能给出理论最优来对照。");
+    L.push("**类型.** " + (FAMILY[def.family] || def.family) + " · " + (KIND[def.kind] || def.kind) + " · 主指标：" + (PRIMARY[def.kind] || "") + " · " + (real ? "真实数据" : "模拟数据（生成规律已知）") + "。");
     L.push(String(def.docs || def.summary || "（这个数据集没有写说明。）"));
     L.push("## 参数\n\n" + paramTable(def.params) + "\n\n另有**种子**（\"数据\"块下面）：同样的参数和种子总是生成逐位相同的样本；\"换一批\"把种子加一。");
     L.push("## 划分\n\n" + splitText(reg, def));
@@ -2190,7 +2193,7 @@ $$\langle\lvert m\rvert\rangle_L\approx L^{-\beta/\nu}\,\Phi\big((T-T_c)L^{1/\nu
       if (s.cite) src += "\n- 引用：" + cell(s.cite);
       L.push("## 来源\n\n" + src);
     }
-    return { key: "ds:" + def.id, group: "数据集", title: String(def.name), keys: [def.id, FAMILY[def.family], KIND[def.kind], def.summary || "", real ? "真实数据 " + (def.source.name || "") : "模拟"].join(" "), md: L.join("\n\n") };
+    return { key: "ds:" + def.id, group: "数据集", title: String(def.name), badge: real ? { k: "real", short: "真实", label: "真实数据" } : { k: "sim", short: "模拟", label: "模拟数据" }, keys: [def.id, FAMILY[def.family], KIND[def.kind], def.summary || "", real ? "真实数据 " + (def.source.name || "") : "模拟"].join(" "), md: L.join("\n\n") };
   }
   function algoEntry(a, groupNames, reg, py) {
     var L = [], kinds = (a.kinds || []).map(function (k) { return KIND[k] || k; }), fams = (a.families || []).map(function (f) { return FAMILY[f] || f; });
@@ -2225,7 +2228,7 @@ $$\langle\lvert m\rvert\rangle_L\approx L^{-\beta/\nu}\,\Phi\big((T-T_c)L^{1/\nu
     reg = reg || { groups: [], list: [] };
     (reg.groups || []).forEach(function (g) { push(taskEntry(reg, g, algos || [], groupNames, pyAlgos || [])); });
     (reg.list || []).forEach(function (d) { push(dsEntry(reg, d)); });
-    push({ key: "ds:csv", group: "数据集", title: "导入的 CSV", keys: "CSV 导入 表格 自己的数据 缺失值 独热编码 分隔符 表头", md: code(CSV_DOC).replace(/^\s+|\s+$/g, "") });
+    push({ key: "ds:csv", group: "数据集", title: "导入的 CSV", badge: { k: "csv", short: "导入", label: "你导入的数据" }, keys: "CSV 导入 表格 自己的数据 缺失值 独热编码 分隔符 表头", md: code(CSV_DOC).replace(/^\s+|\s+$/g, "") });
     (algos || []).forEach(function (a) { if (a && a.id) push(algoEntry(a, groupNames, reg, false)); });
     (pyAlgos || []).forEach(function (a) { if (a && a.id) push(algoEntry(a, groupNames, reg, true)); });
     return out;

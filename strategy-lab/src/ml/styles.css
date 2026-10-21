@@ -101,3 +101,20 @@ table.ml-lb .good { color: var(--good-ink); } table.ml-lb .bad { color: var(--cr
 .ml-eng-list { margin: 0; padding-left: 1.2em; font-size: 12.5px; display: grid; gap: 3px; }
 .ml-ai-rounds { margin: 6px 0; padding-left: 1.4em; display: grid; gap: 8px; }
 .ml-ai-rounds > li { font-size: 12.5px; }
+
+/* 数据的来源：模拟 / 真实 / 导入 */
+.ml-badge { display: inline-flex; align-items: center; font: 600 11px/1.55 var(--font-body); padding: 0 7px; border-radius: 999px; border: 1px solid; white-space: nowrap; vertical-align: middle; margin-left: 6px; letter-spacing: 0.02em; }
+.ml-badge.sim { color: var(--warn-ink); border-color: var(--c-warn); background: rgba(250, 178, 25, 0.12); }
+.ml-badge.real { color: var(--good-ink); border-color: var(--c-good); background: rgba(12, 163, 12, 0.10); }
+.ml-badge.csv { color: var(--accent-ink); border-color: var(--accent); background: var(--accent-wash); }
+.blk h2 .ml-badge { margin-left: 8px; }
+.ml-origin { display: flex; gap: 8px; align-items: flex-start; font-size: 12px; color: var(--ink2); margin: 8px 0 4px; line-height: 1.55; padding: 7px 9px; border-radius: 6px; border: 1px solid var(--line); }
+.ml-origin .ml-badge { margin-left: 0; flex: none; margin-top: 1px; }
+.ml-origin.sim { background: rgba(250, 178, 25, 0.07); border-color: rgba(250, 178, 25, 0.45); }
+.ml-origin.real { background: rgba(12, 163, 12, 0.06); border-color: rgba(12, 163, 12, 0.4); }
+.ml-origin.csv { background: var(--accent-wash); border-color: var(--accent); }
+.card.ml-origin-card.sim { border-left: 3px solid var(--c-warn); }
+.card.ml-origin-card.real { border-left: 3px solid var(--c-good); }
+.card.ml-origin-card.csv { border-left: 3px solid var(--accent); }
+.gd-link .ml-badge { margin-left: 6px; font-size: 10px; padding: 0 5px; }
+.gd-kicker .ml-badge { margin-left: 8px; }

@@ -9,7 +9,7 @@
   function card(title, opt) {
     opt = opt || {};
     var b = h("div", { class: "card-b" }), c = h("div", { class: "card" + (opt.wide ? " wide" : ""), id: opt.id || null },
-      h("div", { class: "card-h" }, h("h3", { text: title }), opt.help ? A.helpBtn(opt.help, title) : null, opt.head || null), opt.ctl ? h("div", { class: "card-c" }, opt.ctl) : null, b, opt.foot ? h("div", { class: "card-f" }, opt.foot) : null);
+      h("div", { class: "card-h" }, h("h3", { text: title }), opt.head || null, opt.help ? A.helpBtn(opt.help, title) : null), opt.ctl ? h("div", { class: "card-c" }, opt.ctl) : null, b, opt.foot ? h("div", { class: "card-f" }, opt.foot) : null);
     $("grid").appendChild(c);
     return { el: c, body: b };
   }
@@ -47,7 +47,7 @@
   function chartsView(L) {
     var res = L.res, w = which(L), pv = res.data || A.preview || {}, cls = res.kind === "classification";
     var stepCurve = !L.algo.curveX || /步|轮|迭代|epoch/i.test(L.algo.curveX);
-    var c = card(stepCurve ? "学习曲线" : "训练过程的记录", { help: "chart:curve", wide: !(res.snaps && res.snaps.length), foot: stepCurve ? "实线是训练集，虚线是验证集。验证损失先降后升，就是开始过拟合的地方。" : "横轴是“" + L.algo.curveX + "”：算法在训练时逐个汇报的量。" }); keep(V.curve(c.body, res, { xLabel: L.algo.curveX }));
+    var c = card(stepCurve ? "学习曲线" : "训练过程的记录", { head: A.originBadge(L.def, true), help: "chart:curve", wide: !(res.snaps && res.snaps.length), foot: stepCurve ? "实线是训练集，虚线是验证集。验证损失先降后升，就是开始过拟合的地方。" : "横轴是“" + L.algo.curveX + "”：算法在训练时逐个汇报的量。" }); keep(V.curve(c.body, res, { xLabel: L.algo.curveX }));
     var last = res.snaps && res.snaps.length ? res.snaps[res.snaps.length - 1] : null;
     if (last && last.kind === "grid2d") { c = card(cls ? "决策面" : "学到的函数（二维）", { help: "chart:surface", foot: cls ? "底色是模型在每个位置判的类别，越深越有把握；点是训练样本。细线是决策边界。" : "底色是模型的预测值；点是训练样本（颜色是真实的 y）。" }); keep(V.surface(c.body, last, pv)); }
     if (last && last.kind === "fn1d") { c = card("学到的函数", { help: "chart:fn1d", foot: pv.xy && pv.xy.truth ? "虚线是真函数（数据集的理论最优）；灰点是数据。" : "" }); keep(V.fn1d(c.body, last, pv, pv.xy && pv.xy.truth)); }
@@ -160,6 +160,9 @@
     var d = A.ds(), pv = A.preview, c;
     if (!d) return;
     if (!pv) { c = card("数据", { wide: true }); c.body.appendChild(h("p", { class: "ml-note", text: A.dataErr ? "数据没有生成出来：" + A.dataErr : "正在生成数据…" })); return; }
+    var og = A.dsOrigin(d), ob = card(og.label + "：" + d.name, { wide: true, help: "ds:" + d.id, head: A.originBadge(d, true) });
+    ob.el.classList.add("ml-origin-card", og.k);
+    ob.body.appendChild(h("p", { class: "ml-note", text: og.note }));
     if (A.renderSim) A.renderSim(card, keep, true);
     var foot = "共 " + pv.n + " 个样本" + (pv.d ? "，每个 " + pv.d + " 个特征" : "") + (pv.classes ? "，" + pv.classes.length + " 类" : "") + "。";
     if (pv.series) { c = card("序列", { wide: true, foot: "共 " + pv.series.T + " 个时刻；浅色底是验证段和测试段。" }); keep(V.series(c.body, pv)); }
@@ -169,7 +172,7 @@
     if (pv.meta && pv.meta.table && pv.meta.order && pv.meta.order <= 120) { c = card("乘法表", { foot: "第 a 行第 b 列是 ab 的编号（颜色）。" }); keep(V.cayley(c.body, pv.meta.table, pv.meta.order, null)); }
     if (pv.classCounts) { c = card("各类的样本数"); var chc = V.chart(c.body, 200), k = pv.classCounts.length, x0 = [], x1 = [], y = [], xm = []; for (var j = 0; j < k; j++) { x0.push(j - 0.4); x1.push(j + 0.4); y.push(pv.classCounts[j]); xm.push(j); } keep(chc); chc.set({ x: { label: "", domain: [-0.6, k - 0.4], ticks: k <= 20 ? xm : null, fmt: function (v) { var q = Math.round(v); return k <= 12 && pv.classes ? String(pv.classes[q]) : String(q); } }, panels: [{ y: { label: "样本数", zero: true }, layers: [{ kind: "bars", x0: x0, x1: x1, y: y, color: "s1", maxW: 56 }] }] }); }
     if (pv.featureNames && !pv.images && !pv.series) { c = card("特征"); c.body.appendChild(h("p", { class: "ml-note", text: pv.featureNames.join("、") })); }
-    c = card("这个数据集", { wide: true, help: "ds:" + d.id });
+    c = card("这个数据集的说明", { wide: true, help: "ds:" + d.id, head: A.originBadge(d, true) });
     var md = h("div"); c.body.appendChild(md); QLMD.mount(md, d.docs || d.summary || "");
     if (d.source) c.body.appendChild(h("p", { class: "ml-src" }, "来源：" + d.source.name + (d.source.license ? "，许可：" + d.source.license : "") + (d.source.cite ? "。" + d.source.cite : "")));
   }
@@ -281,7 +284,7 @@
   }
   function boardView() {
     var key = A.expKey(), E = RB.exps[key], d = A.ds();
-    var c = card("排行榜：" + (d ? d.name : ""), { wide: true, help: "board:how" });
+    var c = card("排行榜：" + (d ? d.name : ""), { wide: true, help: "board:how", head: d ? A.originBadge(d, true) : null });
     if (!E || !E.runs.length) { c.body.appendChild(h("p", { class: "ml-note", text: "这个实验（同一个数据集、同样的参数和种子、同样的划分）还没有记录。每运行一次，这里就多一行：所有算法在完全相同的样本上比，可以做配对检验。" + (E && E.looks ? "这个实验的测试集已经看过 " + E.looks + " 次。" : "") })); return; }
     var pk = E.primary, hb = E.hb, runs = E.runs.slice();
     var vs = runs.map(function (r) { return versus(E, r, "v"); }), adj = ST.holm(vs.map(function (x) { return x ? x.p : NaN; }));
@@ -423,9 +426,9 @@
     function renderNav(q) {
       clear(nav); var groups = {}, order = [];
       entries.forEach(function (e) { if (q && (e.title + " " + (e.keys || "") + " " + e.md).toLowerCase().indexOf(q.toLowerCase()) < 0) return; if (!groups[e.group]) { groups[e.group] = []; order.push(e.group); } groups[e.group].push(e); });
-      order.forEach(function (g) { nav.appendChild(h("h4", { text: g })); groups[g].forEach(function (e) { nav.appendChild(h("button", { class: "gd-link", type: "button", "aria-current": e.key === key ? "true" : "false", onclick: function () { show(e.key); } }, e.title)); }); });
+      order.forEach(function (g) { nav.appendChild(h("h4", { text: g })); groups[g].forEach(function (e) { nav.appendChild(h("button", { class: "gd-link", type: "button", "aria-current": e.key === key ? "true" : "false", onclick: function () { show(e.key); } }, e.title, e.badge ? h("span", { class: "ml-badge " + e.badge.k, text: e.badge.short }) : null)); }); });
     }
-    function show(k) { key = k; var e = byKey[k]; clear(art); if (!e) return; var inn = h("div", { class: "gd-in" }, h("div", { class: "gd-kicker", text: e.group }), h("h2", { class: "gd-title", text: e.title })), md = h("div"); inn.appendChild(md); art.appendChild(inn); QLMD.mount(md, e.md); if (e.after) e.after(inn); art.scrollTop = 0; renderNav(search.value); }
+    function show(k) { key = k; var e = byKey[k]; clear(art); if (!e) return; var inn = h("div", { class: "gd-in" }, h("div", { class: "gd-kicker" }, e.group, e.badge ? h("span", { class: "ml-badge " + e.badge.k, text: e.badge.label }) : null), h("h2", { class: "gd-title", text: e.title })), md = h("div"); inn.appendChild(md); art.appendChild(inn); QLMD.mount(md, e.md); if (e.after) e.after(inn); art.scrollTop = 0; renderNav(search.value); }
     search.addEventListener("input", function () { renderNav(search.value); });
     var hd = h("div", { class: "gd-h" }, h("h2", { text: "手册" }), search, h("button", { class: "iconbtn", type: "button", "aria-label": "关闭", text: "✕", onclick: function () { m.close(); } }));
     var m = A.modal("手册", [hd, h("div", { class: "gd-main" }, nav, art)], { bare: true, cls: "guide", focus: ".gd-art" });
