@@ -175,5 +175,43 @@ teen_page = "\n".join([
 os.makedirs(os.path.join(ROOT, "teen"), exist_ok=True)
 open(os.path.join(ROOT, "teen/index.html"), "w", encoding="utf8").write(teen_page)
 
-print("built: %.0f KB (js %.0f KB, katex css %.0f KB); index.html %.0f KB%s; teen/index.html %.0f KB" % (len(page.encode()) / 1024, len(js.encode()) / 1024, len(katex_css().encode()) / 1024, len(zh_page.encode()) / 1024,
-      "; en/index.html %.0f KB" % (len(en_page.encode()) / 1024) if en_page else "; 没有 i18n/en，只生成了中文页", len(teen_page.encode()) / 1024))
+# 机器学习实验室（ml/index.html）：另一张独立的页面，中文，不进英文版的翻译流程。源码在 src/ml/（设计见 src/ml/DESIGN.md）。
+# 共用策略实验室的内核、模型库、图表、隔离环境、公式渲染和 AI 接入（src/ai.js：密钥设置与策略实验室是同一份）
+ML_JS = ["ml.js", "core.js", "charts.js", "sandbox.js", "jobs.js", "md.js", "ai.js",
+         "ml/nn.js", "ml/stats.js", "ml/registry.js", "ml/data-tabular.js", "ml/data-ts.js", "ml/data-image.js", "ml/data-toy.js", "ml/run.js", "ml/runner.js",
+         "ml/viz.js", "ml/algos.js", "ml/app.js", "ml/views.js", "ml/anim.js", "ml/guide.js", "ml/ai.js", "ml/engine.js", "ml/main.js"]
+ML_JS = [f for f in ML_JS if os.path.exists(os.path.join(ROOT, "src", f))]
+ml_page = ""
+if "ml/main.js" in ML_JS:
+    # 本机 Python 引擎附带的示例算法不嵌进页面：从引擎打开页面时，页面向引擎要（GET /api/examples，见 ml-engine/PROTOCOL.md）
+    ml_js = "/* %s\n   Not open source. %s */\n" % (COPY, LICENSE_URL) + "\n".join("/* ===== %s ===== */\n%s" % (f, src(f)) for f in ML_JS)
+    assert "</script" not in ml_js.lower(), "内联脚本里不能出现 </script"
+    ML_ICON = ICON.replace("%232a78d6", "%236a4fc8")
+    ml_page = "\n".join([
+        "<!doctype html>",
+        "<!--\n  %s\n  Not open source: no copying, modification, redistribution, commercial use or AI/ML training without written permission.\n  非开源：未经书面许可，不得复制、修改、再分发、商用或用于 AI/机器学习训练。\n  License: %s\n  Third-party code bundled in this page (KaTeX, MIT License) and four UCI datasets (CC BY 4.0) keep their own licenses: see THIRD-PARTY-NOTICES.md.\n-->" % (COPY, LICENSE_URL),
+        '<html lang="zh-CN">', "<head>", '<meta charset="utf-8">', '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">',
+        '<meta name="author" content="Zechen Bian">', '<meta name="copyright" content="© 2026 Zechen Bian. All rights reserved.">', '<meta name="robots" content="noai, noimageai">',
+        '<link rel="license" href="%s">' % LICENSE_URL,
+        "<title>机器学习实验室 · 策略实验室</title>",
+        '<meta name="description" content="在浏览器里做机器学习实验：表格、时间序列、图像与格点、科研玩具四类任务，几十种内置算法，也可以让 AI 写算法；学习曲线、决策面、排行榜与配对检验、模型内部和训练过程的动画回放。全部在本地运行。">',
+        '<link rel="icon" href="%s">' % ML_ICON,
+        '<link rel="preconnect" href="https://fonts.googleapis.com">',
+        '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>',
+        '<link rel="stylesheet" href="%s" media="print" onload="this.media=\'all\'">' % FONTS,
+        "<style>" + RESET + "</style>",
+        "<style>\n" + src("styles.css") + "\n</style>",
+        "<style>\n" + src("ml/styles.css") + "\n</style>",
+        "<style>\n/* KaTeX %s 的样式，字体内联。KaTeX: MIT License, (c) Khan Academy and other contributors; 字体: SIL Open Font License 1.1。全文见 THIRD-PARTY-NOTICES.md */\n%s\n</style>" % (KATEX_VER, katex_css()),
+        "</head>", "<body>",
+        '<noscript><p style="padding:24px">这个页面要开着 JavaScript 才能用。</p></noscript>',
+        rd("src/ml/body.html"),
+        "<script>\n/* KaTeX %s — MIT License, (c) Khan Academy and other contributors. https://github.com/KaTeX/KaTeX */\n%s\n</script>" % (KATEX_VER, katex_js),
+        "<script>\n" + ml_js + "\n</script>",
+        "</body>", "</html>", ""])
+    os.makedirs(os.path.join(ROOT, "ml"), exist_ok=True)
+    open(os.path.join(ROOT, "ml/index.html"), "w", encoding="utf8").write(ml_page)
+
+print("built: %.0f KB (js %.0f KB, katex css %.0f KB); index.html %.0f KB%s; teen/index.html %.0f KB%s" % (len(page.encode()) / 1024, len(js.encode()) / 1024, len(katex_css().encode()) / 1024, len(zh_page.encode()) / 1024,
+      "; en/index.html %.0f KB" % (len(en_page.encode()) / 1024) if en_page else "; 没有 i18n/en，只生成了中文页", len(teen_page.encode()) / 1024,
+      "; ml/index.html %.0f KB" % (len(ml_page.encode()) / 1024) if ml_page else ""))

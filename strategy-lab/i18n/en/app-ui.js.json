@@ -294,5 +294,7 @@
 {"zh":"SILSO 太阳黑子数","en":"SILSO sunspot number"},
 {"zh":"（分号分隔、没有表头：数值列选第 4 列，含义选\"一般信号\"，月度数据每年 12 步）。","en":" (semicolon-separated, no header row: choose column 4 as the value column and \"General signal\" as its meaning; monthly data has 12 steps per year)."},
 {"zh":"页面本身不能联网，所以需要你下载后拖进来。导入的数据只保存在这台设备的浏览器里。","en":"The page itself cannot go online, so you need to download the file and drag it in. Imported data is saved only in the browser on this device."},
-{"zh":"数据","en":"Data"}
+{"zh":"数据","en":"Data"},
+{"zh": "打开机器学习实验室（另一张页面，中文）", "en": "Open the Machine Learning Lab (a separate page, in Chinese)"},
+{"zh": "机器学习 实验室 ml machine learning 训练 模型 神经网络 算法 数据集", "en": "machine learning lab ml training models neural networks algorithms datasets"}
 ]

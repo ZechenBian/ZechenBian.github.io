@@ -5,5 +5,7 @@
 {"zh":"青少年版","en":"Teen edition"},
 {"zh":"：给中学生的入口。先亲手打一局，再学编程和算法的基本想法，最后自己写一条规则（中文）。","en":": an entry point for secondary-school students. Play an episode by hand first, then learn the basic ideas of programming and algorithms, then write a rule of your own (in Chinese)."},
 {"zh":"打开大厅（每日一局、每日一题、实时房间、十项全能、规则同场、世界工坊）","en":"Open the lobby (daily episode, daily challenge, live rooms, decathlon, rule arena, world workshop)"},
-{"zh":"大厅 lobby 一起 多人 联机 社区 排行 榜","en":"lobby together multiplayer online community ranking leaderboard board"}
+{"zh":"大厅 lobby 一起 多人 联机 社区 排行 榜","en":"lobby together multiplayer online community ranking leaderboard board"},
+{"zh": "机器学习实验室", "en": "Machine Learning Lab"},
+{"zh": "：在浏览器里做机器学习实验。表格、时间序列、图像与格点、科研玩具四类任务，几十种内置算法，也可以让 AI 写；学习曲线、排行榜与配对检验、模型内部和训练过程的动画（中文）。", "en": ": machine-learning experiments in the browser. Four kinds of task (tabular data, time series, images and lattices, research toy problems), dozens of built-in algorithms, or have an AI write one; learning curves, a leaderboard with paired tests, model internals and animated replays of training (in Chinese)."}
 ]

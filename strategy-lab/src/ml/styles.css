@@ -1,0 +1,103 @@
+/* Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+   Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。 */
+/* 机器学习实验室的附加样式。三栏工作台、按钮、卡片、弹层、手册、AI 面板都沿用策略实验室的 styles.css（两份样式都内联进页面）。 */
+
+/* 顶栏 */
+.app.ml .brand h1 { letter-spacing: 0.06em; }
+#btnEngine.on { border-color: var(--c-good); color: var(--good-ink); }
+#btnEngine.on::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--c-good); }
+
+/* 左栏：任务的五个入口、数据集与算法的列表 */
+.ml-groups { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.ml-groups .chip { border-radius: 6px; text-align: left; padding: 6px 10px; display: grid; gap: 1px; }
+.ml-groups .chip small { font-size: 11px; color: var(--muted); font-weight: 400; line-height: 1.35; }
+.ml-groups .chip:last-child:nth-child(odd) { grid-column: 1 / -1; }
+.ml-pick { width: 100%; }
+.ml-row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-top: 8px; }
+.ml-row .sp { flex: 1; }
+.ml-blurb { font-size: 12.5px; color: var(--ink2); margin: 6px 0 8px; line-height: 1.55; }
+.ml-src { font-size: 11px; color: var(--muted); margin-top: 4px; }
+.ml-src a { color: var(--muted); }
+.ml-run { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px; margin-top: 12px; }
+.ml-run .btn.primary { justify-content: center; font-size: 14px; padding: 7px 12px; }
+.ml-status { font-size: 12px; color: var(--muted); margin-top: 6px; min-height: 1.5em; overflow-wrap: anywhere; }
+.ml-status.bad { color: var(--crit-ink); }
+.ml-tagline { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px; }
+
+/* 中栏：摘要 */
+.ml-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(124px, 1fr)); gap: 0; border-top: 1px solid var(--line); }
+.ml-tile { padding: 9px 14px 10px; border-right: 1px solid var(--line); min-width: 0; }
+.ml-tile:last-child { border-right: 0; }
+.ml-tile .k { font-size: 11.5px; color: var(--muted); display: flex; gap: 6px; align-items: center; }
+.ml-tile .v { font: 600 20px/1.25 var(--font-mono); font-variant-numeric: tabular-nums; margin-top: 2px; overflow-wrap: anywhere; }
+.ml-tile .s { font-size: 11.5px; color: var(--muted); margin-top: 1px; font-family: var(--font-mono); }
+.ml-tile.test .v { color: var(--ink2); }
+.ml-lock { display: inline-flex; align-items: center; gap: 6px; margin-top: 4px; }
+.ml-prog { height: 3px; background: var(--line); border-radius: 2px; overflow: hidden; margin: 8px 14px 0; }
+.ml-prog > i { display: block; height: 100%; width: 0; background: var(--accent); transition: width 0.2s linear; }
+.ml-live { padding: 6px 14px 10px; display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 12px; align-items: start; }
+.ml-live.one { grid-template-columns: minmax(0, 1fr); }
+@media (max-width: 760px) { .ml-live { grid-template-columns: minmax(0, 1fr); } }
+.ml-empty { padding: 18px 16px; color: var(--ink2); font-size: 13.5px; line-height: 1.7; }
+.ml-empty b { color: var(--ink); }
+
+/* 中栏：几种看法 */
+.ml-views { display: flex; gap: 6px; flex-wrap: wrap; margin: 0 0 12px; }
+.ml-views .chip { padding: 4px 13px; }
+.ml-views .chip .n { font: 500 11px var(--font-mono); color: var(--muted); margin-left: 4px; }
+
+/* 图 */
+.ml-chart { min-width: 0; }
+.ml-cv { width: 100%; min-width: 0; }
+.ml-cv canvas { display: block; border-radius: 4px; }
+.ml-cv.square { max-width: 420px; }
+.ml-two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 560px) { .ml-two { grid-template-columns: minmax(0, 1fr); } }
+.ml-thumbs { display: grid; grid-template-columns: repeat(auto-fill, minmax(58px, 1fr)); gap: 8px; }
+.ml-thumb { margin: 0; display: grid; gap: 2px; justify-items: center; min-width: 0; }
+.ml-thumb canvas { width: 100%; height: auto; aspect-ratio: 1; image-rendering: pixelated; border: 1px solid var(--line); border-radius: 3px; }
+.ml-thumb figcaption { font-size: 11px; color: var(--muted); text-align: center; overflow-wrap: anywhere; }
+.ml-note { font-size: 12px; color: var(--muted); margin: 4px 0 2px; line-height: 1.55; }
+.ml-note b { color: var(--ink2); font-weight: 600; }
+.ml-kv { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 12px; font-size: 12.5px; }
+.ml-kv dt { color: var(--muted); }
+.ml-kv dd { margin: 0; font-family: var(--font-mono); overflow-wrap: anywhere; }
+
+/* 排行榜 */
+table.ml-lb { border-collapse: collapse; width: 100%; font-size: 12.5px; }
+table.ml-lb th { text-align: left; font-weight: 500; font-size: 11.5px; color: var(--muted); padding: 4px 10px 4px 0; border-bottom: 1px solid var(--line); white-space: nowrap; position: sticky; top: 0; background: var(--surface); }
+table.ml-lb td { padding: 5px 10px 5px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+table.ml-lb td.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+table.ml-lb td.num small { color: var(--muted); }
+table.ml-lb tr.cur td { background: var(--accent-wash); }
+table.ml-lb tr.base td { color: var(--muted); }
+table.ml-lb td .tag { margin-left: 6px; }
+table.ml-lb td.acts { white-space: nowrap; text-align: right; }
+table.ml-lb .good { color: var(--good-ink); } table.ml-lb .bad { color: var(--crit-ink); }
+.ml-lbwrap { overflow-x: auto; }
+
+/* 动画 */
+.ml-player { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 6px 0 2px; }
+.ml-player input[type="range"] { flex: 1 1 160px; min-width: 0; }
+.ml-player .lab { font: 500 12px var(--font-mono); color: var(--ink2); min-width: 7em; }
+
+/* 代码编辑 */
+.ml-code-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.ml-code-err { white-space: pre-wrap; font: 12px/1.5 var(--font-mono); }
+.ml-params-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.ml-params-table td, .ml-params-table th { border-bottom: 1px solid var(--line); padding: 3px 6px 3px 0; text-align: left; vertical-align: top; }
+.ml-params-table th { color: var(--muted); font-weight: 500; }
+
+/* 本机引擎 */
+.ml-eng { display: grid; gap: 10px; }
+.ml-eng pre.code { max-height: none; }
+
+/* 窄屏 */
+@media (max-width: 779.9px) {
+  .ml-tile .v { font-size: 17px; }
+  .ml-groups { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 559.9px) { .ml-eng pre.code { white-space: pre-wrap; overflow-wrap: anywhere; } }
+.ml-eng-list { margin: 0; padding-left: 1.2em; font-size: 12.5px; display: grid; gap: 3px; }
+.ml-ai-rounds { margin: 6px 0; padding-left: 1.4em; display: grid; gap: 8px; }
+.ml-ai-rounds > li { font-size: 12.5px; }

@@ -12,6 +12,8 @@ A place to run quantitative-strategy experiments in the browser: pick a game, a 
 
 **▶ 青少年版（给中学生，中文）:** https://zechenbian.github.io/strategy-lab/teen/
 
+**▶ 机器学习实验室（中文）/ Machine Learning Lab (in Chinese):** https://zechenbian.github.io/strategy-lab/ml/
+
 页面右上角的按钮在中文和英文之间切换，切换后当前的玩法、世界、规则和参数都还在。The button at the top right switches between Chinese and English and keeps the current game, world, rule and parameters.
 
 ---
@@ -76,6 +78,20 @@ A place to run quantitative-strategy experiments in the browser: pick a game, a 
 
 它用的是实验室的引擎（裁判、规则、隔离环境都是同一份代码），但去掉了所有和投资有关的内容，游戏里的分数就是分数。页面打开之后不再联网、不要账号、没有排行榜服务器：进度、成绩和写的代码只存在这台设备的浏览器里。学生的代码在隔离环境里跑，死循环会被掐掉。游戏是数据文件（[src/teen/games.js](src/teen/games.js)），每个由题面、裁判、几条带讲解的基准规则、填空的起始代码和“这题背后的想法”组成，加游戏不用动界面。
 
+### 机器学习实验室
+
+[ml/](ml/) 是另一张单独的页面（中文），在浏览器里做机器学习实验，流程是 任务 → 数据 → 算法 → 反馈：
+
+- **四类任务、38 个数据集。** 表格（回归、分类：两个半月、螺旋、棋盘格、稀疏线性……以及 UCI 的鸢尾花、葡萄酒、乳腺癌）、时间序列（随机游走、AR(2)、季节、机制切换、logistic 映射、Lorenz、Mackey–Glass、GARCH，以及七条真实行情）、图像与格点（二维伊辛模型、手写数字、几何形状、逾渗）、科研玩具（模加法的顿悟、有限群的乘法、稀疏奇偶、集合函数、老师–学生网络）。模拟的数据都知道真实规律，所以每个结果旁边都有“理论最优”或贝叶斯最优可比；也可以导入自己的 CSV。
+- **24 个内置算法**，从岭回归、Lasso、逻辑回归、朴素贝叶斯、LDA/QDA、k 近邻、决策树、随机森林、梯度提升、高斯过程、随机傅里叶特征、支持向量机，到多层感知机、卷积网络、嵌入 + MLP、单层 Transformer；时间序列有季节朴素、漂移、AR、指数平滑（Holt–Winters）、卡尔曼、滞后特征 + 梯度提升、滞后窗口 MLP、回声状态网络。每个都附有可以改的代码和带公式、定理与证明梗概的说明。神经网络用页面里的一个自动求导小库（[src/ml/nn.js](src/ml/nn.js)）。
+- **AI 写算法。** 右栏接入你自己的 AI（和策略实验室共用同一份设置）：写算法（写成符合接口的代码，自动存下并运行）、诊断（把训练与验证的差距、学习曲线、基线、理论最优、混淆矩阵、特征重要性交给它，要一份报告）、自动改进（写改进版 → 运行 → 只按验证集决定换不换，重复几轮）、问结果。发给 AI 的内容里没有测试集的答案。
+- **几种反馈。** 学习曲线、决策面、预测对实际、混淆矩阵、ROC、校准曲线、置换重要性；模型内部（权重、系数、树、嵌入的主成分和傅里叶谱、按群的不可约表示分解、伊辛模型读出的交叉温度）；训练过程的快照回放；排行榜：同一个实验里的所有运行在同一批样本上做配对检验（McNemar、配对自助法、Diebold–Mariano），Holm 校正，并提示“挑出来的第一名偏乐观”。测试集默认遮住，点一下才揭晓，并记下看了几次。
+- **动画与模拟。** 伊辛模型的实时 Metropolis / Wolff 模拟和扫温度，逾渗的团簇与连通概率，时间序列的滚动预测；教学动画：五种优化器在病态二次型、Rosenbrock、鞍点上赛跑，偏差–方差分解，双下降。
+- **手册**（按 ? 打开）：每类任务、每个数据集、每个算法、每张图、每种检验都有一页，另有几篇理论（泛化、偏差与方差、双下降、顿悟、等变性、时间序列、相变）。
+- **本机 Python 引擎（可选）。** [ml-engine/](ml-engine/) 是一个只用标准库和 numpy 的小程序，在你自己的电脑上运行（有 PyTorch 时用 PyTorch，苹果芯片上用 MPS）。`python -m mllab_engine` 启动后，用它打印的 `http://127.0.0.1:端口/ml/?engine=令牌` 打开页面，算法列表里就多了 Python 写的算法。它只监听本机，每次启动换一个随机令牌；页面只把训练集、验证集和测试集的输入发过去，拿回原始的预测，打分仍在页面里做（和浏览器里的算法同一段代码）。安装和安全须知见 [ml-engine/README.md](ml-engine/README.md)，接口见 [ml-engine/PROTOCOL.md](ml-engine/PROTOCOL.md)。
+
+全部在浏览器里本地运行，算法在隔离的后台线程里训练，别人写的代码（包括 AI 写的）碰不到页面和网络。设计文档在 [src/ml/DESIGN.md](src/ml/DESIGN.md)。
+
 ### 数字是在你的电脑上现算的
 
 - **对照表**（每条内置规则 × 每个世界或场景，共 701 格）不写在页面里：第一次打开时用后台线程在本机算，算出一格显示一格，结果存在浏览器里，下次直接读。
@@ -118,9 +134,12 @@ strategy-lab/
 ├── index.html    构建出来的独立网页，中文（上面的网址打开的就是它）
 ├── en/index.html 构建出来的独立网页，英文
 ├── teen/index.html 构建出来的青少年版（中文）
+├── ml/index.html 构建出来的机器学习实验室（中文）
 ├── build.py      把 src/ 拼成一个文件
 ├── src/          引擎、内置规则、界面、手册的文字（只有一份，中文）；大厅的几样东西也在这里（hub.js 读写 GitHub，mq.js 是实时房间的中继，sandbox.js 是隔离环境）
 ├── src/teen/     青少年版：七个小游戏、两组课、它自己的界面和样式
+├── src/ml/       机器学习实验室：数据集、算法、自动求导、统计检验、运行器、界面、手册、动画（设计见 src/ml/DESIGN.md）
+├── ml-engine/    机器学习实验室的本机 Python 引擎（可选）
 ├── i18n/         英文版：译文表和生成工具
 ├── data/         示例行情
 ├── daily/        每日一题的题目（数据，页面运行时才取）、校验脚本、结算的程序、出题和审题的流程
@@ -129,14 +148,14 @@ strategy-lab/
 
 ```sh
 npm install                      # 取 KaTeX 的发行文件；英文版的生成工具要用 acorn，测试要用 Playwright
-python3 build.py                 # 生成 index.html、en/index.html 和 teen/index.html（以及 dist/ 下在 Claude 里发布用的那一份）
+python3 build.py                 # 生成 index.html、en/index.html、teen/index.html 和 ml/index.html（以及 dist/ 下在 Claude 里发布用的那一份）
 npx playwright install chromium  # 只有跑界面测试才需要
 sh test/run-all.sh               # 全部测试，要半个多小时
 ```
 
 **英文版是怎么来的。** 源码只有一份，是中文的。构建时 [i18n/i18n.js](i18n/i18n.js) 把源码里每一段给人看的中文（界面上的字、手册、规则的说明、规则代码里的注释、发给 AI 的提示词，一共六千多段）换成 [i18n/en/](i18n/en/) 里的译文，代码本身一个字不动，所以两种语言跑的是同一套计算：同样的设定下结果逐位相同，现算的缓存也是共用的。译文入库时逐段自动核对：公式、现算的数字标记、代码必须和原文一致，占位符不能多也不能少。改了源码里的中文而没有补译文，构建会失败并指出是哪一段。细节见 [i18n/README.md](i18n/README.md)。
 
-测试分两部分：Node 里对引擎和手册里每个数字的核对（约 2600 项），无头浏览器里的界面检查（约 1450 项）。AI 接口的测试用的是本机的一个假服务商，大厅的测试把 GitHub 和 drand 换成本机的假数据、把中继换成本机的假中继，都不会向外发请求。每日一题的结算程序在测试里是直接调用的：私钥是测试自己造的，容器换成子进程，所以容器那一层只在 GitHub Actions 上实际运行时才用得上。青少年版的测试（`node test/teen.test.js`、`node test/ui-teen.js`）把讲解里写的每个数拿精确计算去对，把七个游戏按最简单的办法亲手打一遍、核对得分和对应的基准规则一模一样，并核对页面打开之后没有任何对外的请求。别人写的代码那一部分是真测：测试里放了会联网、会改内置对象、会去动别人成绩的规则和裁判，核对它们一样也办不到。英文版的测试（`node test/ui-en.js`，大厅的那几样在 `node test/ui-en-lobby.js`）把页面的每一处走一遍：每个世界、每套玩法、每条规则、每张图、手册的每一页，页面上不能出现汉字；并核对两种语言算出来的数相同。单独跑一个：`node test/obs.test.js`、`node test/ui-standalone.js`。
+测试分两部分：Node 里对引擎和手册里每个数字的核对（约 2600 项），无头浏览器里的界面检查（约 1450 项）。AI 接口的测试用的是本机的一个假服务商，大厅的测试把 GitHub 和 drand 换成本机的假数据、把中继换成本机的假中继，都不会向外发请求。每日一题的结算程序在测试里是直接调用的：私钥是测试自己造的，容器换成子进程，所以容器那一层只在 GitHub Actions 上实际运行时才用得上。青少年版的测试（`node test/teen.test.js`、`node test/ui-teen.js`）把讲解里写的每个数拿精确计算去对，把七个游戏按最简单的办法亲手打一遍、核对得分和对应的基准规则一模一样，并核对页面打开之后没有任何对外的请求。别人写的代码那一部分是真测：测试里放了会联网、会改内置对象、会去动别人成绩的规则和裁判，核对它们一样也办不到。英文版的测试（`node test/ui-en.js`，大厅的那几样在 `node test/ui-en-lobby.js`）把页面的每一处走一遍：每个世界、每套玩法、每条规则、每张图、手册的每一页，页面上不能出现汉字；并核对两种语言算出来的数相同。机器学习实验室的测试：Node 里的统计检验、自动求导（逐个运算做梯度检查）、38 个数据集（理论最优、贝叶斯最优与独立计算对照）、24 个算法（在每类声称适用的数据上跑通并达到质量下限）、动画背后的数值和手册里引用的每个数，约 1700 项；`node test/ui-ml.js` 在无头浏览器里把每个数据集跑一遍，走一遍各视图、代码编辑、导入 CSV、手册和 AI 面板的四种用法（本机的假服务商）；`node test/ui-ml-engine.js` 起一个真的本机引擎，用 numpy 写的示例算法跑通，并核对没有令牌、别的来源都调不了它；引擎自己的单元测试是 `cd ml-engine && python3 -m unittest`。单独跑一个：`node test/obs.test.js`、`node test/ui-standalone.js`。
 
 引擎和规则是纯 JavaScript，没有运行时依赖。页面内联了 [KaTeX](https://katex.org) 来排公式（MIT 许可，见 [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)）；界面字体从 Google Fonts 加载，连不上时用系统字体。
 
@@ -202,6 +221,20 @@ Four games (accept-and-cooldown, the secretary problem, betting on a biased coin
 
 It runs on the lab's engine (referee, rules and sandbox are the same code) but leaves out everything related to investing; scores are just scores. Once loaded the page makes no network requests, needs no account and has no leaderboard server: progress, scores and code stay in this device's browser. Students' code runs in the sandbox, and an endless loop is stopped. Games are data ([src/teen/games.js](src/teen/games.js)): statement, referee, a few explained reference rules, starter code with blanks, and "the idea behind it".
 
+### Machine Learning Lab
+
+[ml/](ml/) is another separate page (in Chinese) for machine-learning experiments in the browser, organised as task → data → algorithm → feedback:
+
+- **Four kinds of task, 38 datasets.** Tabular (regression and classification: two moons, spirals, checkerboard, sparse linear models, and the UCI Iris, Wine and breast-cancer data), time series (random walk, AR(2), seasonal, regime switching, the logistic map, Lorenz, Mackey–Glass, GARCH, and seven real price series), images and lattices (the 2-D Ising model, handwritten digits, shapes, percolation) and research toy problems (grokking on modular addition, multiplication in finite groups, sparse parity, set functions, teacher–student networks). The simulated datasets know their true generating process, so every result can be compared with the optimal or Bayes-optimal one; you can also import a CSV.
+- **24 built-in algorithms**, from ridge, lasso, logistic regression, naive Bayes, LDA/QDA, k-nearest neighbours, decision trees, random forests, gradient boosting, Gaussian processes, random Fourier features and support vector machines to multilayer perceptrons, convolutional networks, embedding + MLP and a one-layer transformer; for time series, seasonal naive, drift, AR, exponential smoothing (Holt–Winters), a Kalman filter, lag features + boosting, a lag-window MLP and an echo state network. Each comes with editable code and notes with formulas, theorems and proof sketches. The neural networks use a small autograd library in the page ([src/ml/nn.js](src/ml/nn.js)).
+- **AI-written algorithms.** Connect your own AI provider in the right pane (the same settings as Strategy Lab) to write an algorithm (code that fits the interface, saved and run at once), diagnose a run (it receives the train/validation gap, learning curves, baselines, the optimum, the confusion matrix and feature importance, and writes a report), improve automatically (write a new version → run it → keep it only if it is better on the validation set, for a few rounds), or ask about the results. Nothing sent to the AI contains the test labels.
+- **Several kinds of feedback.** Learning curves, decision surfaces, predicted vs actual, confusion matrices, ROC and calibration curves, permutation importance; model internals (weights, coefficients, trees, principal components and Fourier spectra of embeddings, decomposition into irreducible representations of a group, the crossover temperature an Ising classifier reads out); a replay of training snapshots; and a leaderboard in which all runs of one experiment are compared on the same examples with paired tests (McNemar, paired bootstrap, Diebold–Mariano), Holm-corrected, with a note on why the winner is optimistic. The test set is hidden until you reveal it, and the number of looks is recorded.
+- **Animations and simulations.** Live Metropolis / Wolff simulation of the Ising model with a temperature sweep, percolation clusters and crossing probabilities, rolling-origin forecasting; teaching demos of five optimizers racing on an ill-conditioned quadratic, the Rosenbrock function and a saddle, the bias–variance decomposition, and double descent.
+- **Handbook** (press ?): a page for every task, dataset, algorithm, chart and test, plus essays on generalisation, bias and variance, double descent, grokking, equivariance, time series and phase transitions.
+- **Optional local Python engine.** [ml-engine/](ml-engine/) is a small program (standard library and numpy; PyTorch if installed, with MPS on Apple silicon) that runs on your own computer. Start it with `python -m mllab_engine` and open the printed `http://127.0.0.1:PORT/ml/?engine=TOKEN` address: the algorithm list then includes algorithms written in Python. It listens on localhost only and uses a new random token on every start; the page sends it only the inputs of the training, validation and test sets, receives raw predictions and scores them itself, with the same code as the browser algorithms. Installation and security notes are in [ml-engine/README.md](ml-engine/README.md) (in Chinese), the protocol in [ml-engine/PROTOCOL.md](ml-engine/PROTOCOL.md).
+
+Everything runs locally in the browser; algorithms train in an isolated background thread, and code written by others (including an AI) cannot reach the page or the network. The design document is [src/ml/DESIGN.md](src/ml/DESIGN.md).
+
 ### The numbers are computed on your machine
 
 - The **comparison table** (every built-in rule × every world or scenario, 701 cells) is not shipped with the page. It is computed locally by background threads the first time you open it, cell by cell, and cached in the browser.
@@ -241,14 +274,14 @@ The page was first built to run inside Claude; opened there, the panel uses Clau
 
 ```sh
 npm install                      # fetches the KaTeX distribution files; the English build uses acorn and the tests use Playwright
-python3 build.py                 # writes index.html and en/index.html (and the build for publishing inside Claude, under dist/)
+python3 build.py                 # writes index.html, en/index.html, teen/index.html and ml/index.html (and the build for publishing inside Claude, under dist/)
 npx playwright install chromium  # only needed for the browser tests
 sh test/run-all.sh               # the whole suite, a little over half an hour
 ```
 
 **How the English edition is made.** There is one source tree, written in Chinese. At build time [i18n/i18n.js](i18n/i18n.js) replaces every piece of user-visible Chinese in the source (interface text, the handbook, the notes on each rule, the comments in rule code, the prompts sent to the AI: a little over six thousand units) with its translation from [i18n/en/](i18n/en/) and leaves the code itself untouched. Both languages therefore run the same computation: the same settings give identical results, and the cache of live-computed numbers is shared. Every translation is checked automatically when it is imported: formulas, live-number tokens and code must match the original, and no placeholder may be added or lost. If a Chinese string changes and no translation is supplied, the build fails and names the string. Details are in [i18n/README.md](i18n/README.md).
 
-The tests come in two parts: checks in Node of the engine and of every number quoted in the handbook (about 2,600), and browser checks in headless Chromium (about 1,450). The AI-interface tests talk to a mock provider on localhost; the lobby tests replace GitHub and drand with local fixtures and the relays with a local broker; nothing is sent outside. The daily challenge's settlement program is called directly by the tests, with a key pair the tests generate and a child process in place of the container, so the container layer itself is only exercised when the workflow really runs on GitHub Actions. The teen edition's tests (`node test/teen.test.js`, `node test/ui-teen.js`) recompute every number quoted in its explanations, play each of the seven games by hand with the simplest policy and check that the score equals the corresponding reference rule's exactly, and check that the page makes no external request once loaded. The handling of other people's code is tested for real: the tests include rules and referees that try to reach the network, patch built-ins and tamper with other players' results, and check that none of it works. The English-edition test (`node test/ui-en.js`, with the lobby features in `node test/ui-en-lobby.js`) walks through every world, game, rule, chart and handbook page, requires that no Chinese appears anywhere on the page, and checks that the two languages compute the same numbers. To run one file: `node test/obs.test.js`, `node test/ui-standalone.js`.
+The tests come in two parts: checks in Node of the engine and of every number quoted in the handbook (about 2,600), and browser checks in headless Chromium (about 1,450). The AI-interface tests talk to a mock provider on localhost; the lobby tests replace GitHub and drand with local fixtures and the relays with a local broker; nothing is sent outside. The daily challenge's settlement program is called directly by the tests, with a key pair the tests generate and a child process in place of the container, so the container layer itself is only exercised when the workflow really runs on GitHub Actions. The teen edition's tests (`node test/teen.test.js`, `node test/ui-teen.js`) recompute every number quoted in its explanations, play each of the seven games by hand with the simplest policy and check that the score equals the corresponding reference rule's exactly, and check that the page makes no external request once loaded. The handling of other people's code is tested for real: the tests include rules and referees that try to reach the network, patch built-ins and tamper with other players' results, and check that none of it works. The English-edition test (`node test/ui-en.js`, with the lobby features in `node test/ui-en-lobby.js`) walks through every world, game, rule, chart and handbook page, requires that no Chinese appears anywhere on the page, and checks that the two languages compute the same numbers. The Machine Learning Lab has its own tests: in Node, the statistical tests, the autograd library (a gradient check for every operation), the 38 datasets (optima and Bayes-optimal values against independent computations), the 24 algorithms (each runs on every kind of data it claims and meets a quality floor), the numerics behind the animations and every number quoted in its handbook, about 1,700 checks; `node test/ui-ml.js` runs every dataset in headless Chromium and walks through the views, the code editor, CSV import, the handbook and the four AI modes (against a local mock provider); `node test/ui-ml-engine.js` starts a real local engine, runs the numpy example algorithms through it, and checks that requests without the token or from another origin are refused; the engine has its own unit tests (`cd ml-engine && python3 -m unittest`). To run one file: `node test/obs.test.js`, `node test/ui-standalone.js`.
 
 The engine and the rules are plain JavaScript with no runtime dependencies. The page inlines [KaTeX](https://katex.org) for typesetting (MIT licence, see [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)); interface fonts load from Google Fonts and fall back to system fonts when unreachable.
 
