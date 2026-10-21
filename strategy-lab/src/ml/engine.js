@@ -69,7 +69,7 @@
     var d = A.ds(), spec = A.dsSpec(), opts = A.runOpts(), key = A.expKey(), aKey = A.algoKey();
     var state = { id: null, es: null, prep: null, cancelled: false, done: false };
     var job = { cancel: function () { state.cancelled = true; if (state.prep) state.prep.cancel(); if (state.es) try { state.es.close(); } catch (e) {} if (state.id) api("POST", "/api/run/" + state.id + "/cancel", {}).catch(function () {}); } };
-    var me = A.beginExternal(job, d, a);
+    var me = A.beginExternal(job, d, a), prog = function (m) { A.progress(m, me); };
     var grid = null, kk = 0;
     function fail(e) { if (state.done) return; state.done = true; var err = e && e.message ? e : { message: String(e && e.message || e) }; if (state.cancelled) err = { cancelled: true, message: "已取消" }; A.failExternal(me, err); throw err; }
     state.prep = QLMLRunner.run({ kind: "ml-prep", data: { dataset: spec, opts: opts }, mine: true, budgetMs: 30000 });
@@ -83,23 +83,29 @@
         data = { kind: P.kind, train: part(P.train, true), valid: part(P.valid, true), test: part(P.test, false) };
         if (grid) data.grid = { X: enc(grid.X, [grid.X.length / (grid.kind === "fn1d" ? 1 : 2), grid.kind === "fn1d" ? 1 : 2]), kind: grid.kind };
       }
-      A.progress({ phase: "data", msg: "发送到本机引擎…" });
+      prog({ phase: "data", msg: "发送到本机引擎…" });
       return api("POST", "/api/run", { api: P.api, kind: P.kind, code: a.code, params: params, seed: A.dsSeed(), budgetMs: opts.budgetMs, data: data }).catch(function (e) {
         if (e.status === 409) throw new Error("本机引擎正在跑另一次运行（一次只跑一个）。等它跑完，或者在引擎的终端里看看。");
         throw e;
       });
     }).then(function (r) {
       state.id = r.id;
+      if (state.cancelled) { api("POST", "/api/run/" + r.id + "/cancel", {}).catch(function () {}); throw { cancelled: true, message: "已取消" }; }
       return new Promise(function (resolve, reject) {
+        // 多久没有任何事件就算引擎没了（引擎每 15 秒发一次心跳注释，EventSource 看不到注释，所以按预算放宽）
+        var idleMs = Math.max(60000, opts.budgetMs * 1.5 + 30000), idleT = 0;
+        function arm() { clearTimeout(idleT); idleT = setTimeout(function () { try { es.close(); } catch (e) {} reject(new Error("本机引擎超过 " + Math.round(idleMs / 1000) + " 秒没有动静：它可能已经关了或者卡住了。看一下引擎的终端。")); }, idleMs); }
+        var done0 = resolve, fail0 = reject; resolve = function (v) { clearTimeout(idleT); done0(v); }; reject = function (e) { clearTimeout(idleT); fail0(e); };
         var es = state.es = new EventSource(r.events + (r.events.indexOf("?") >= 0 ? "&" : "?") + "token=" + encodeURIComponent(token()));
-        function J(e) { try { return JSON.parse(e.data, reviver); } catch (x) { return {}; } }
-        es.addEventListener("ready", function (e) { var m = J(e); A.progress({ phase: "data", msg: "引擎已就绪（Python " + (m.python || "") + (m.torch ? "，PyTorch " + m.torch + " · " + (m.device || "") : "") + "）" }); });
-        es.addEventListener("progress", function (e) { A.progress(J(e)); });
+        arm();
+        function J(e) { arm(); try { return JSON.parse(e.data, reviver); } catch (x) { return {}; } }
+        es.addEventListener("ready", function (e) { var m = J(e); prog({ phase: "data", msg: "引擎已就绪（Python " + (m.python || "") + (m.torch ? "，PyTorch " + m.torch + " · " + (m.device || "") : "") + "）" }); });
+        es.addEventListener("progress", function (e) { prog(J(e)); });
         es.addEventListener("snap", function (e) {
           var m = J(e);
-          if (m.kind === "grid2d" && grid && grid.bounds) A.progress({ snap: { step: m.step, kind: "grid2d", data: { nx: grid.nx, ny: grid.ny, x0: grid.bounds.x0, x1: grid.bounds.x1, y0: grid.bounds.y0, y1: grid.bounds.y1, k: kk, values: m.values } } });
+          if (m.kind === "grid2d" && grid && grid.bounds) prog({ snap: { step: m.step, kind: "grid2d", data: { nx: grid.nx, ny: grid.ny, x0: grid.bounds.x0, x1: grid.bounds.x1, y0: grid.bounds.y0, y1: grid.bounds.y1, k: kk, values: m.values } } });
         });
-        es.addEventListener("log", function () {});
+        es.addEventListener("log", function () { arm(); });
         es.addEventListener("done", function (e) { es.close(); resolve(J(e).result); });
         es.addEventListener("error", function (e) {
           if (e.data) { es.close(); var m = J(e); reject({ message: m.message || "本机引擎报错", line: m.line || 0, cancelled: !!m.cancelled, timeout: !!m.timeout, traceback: m.traceback || "" }); return; }
@@ -108,7 +114,7 @@
       });
     }).then(function (R) {
       if (state.cancelled) throw { cancelled: true, message: "已取消" };
-      A.progress({ phase: "eval", msg: "打分中…" });
+      prog({ phase: "eval", msg: "打分中…" });
       var outs = { train: R.pred.train, valid: R.pred.valid, test: R.pred.test, curve: R.curve || [], log: R.log || [], fitMs: R.fitMs, predUs: R.predUs, size: R.size, internals: R.internals || null, engine: "py", ms: R.ms, importance: null };
       if (R.api !== "forecast") {
         outs.gridSnaps = (R.snaps || []).filter(function (s) { return s.kind === "grid2d" || s.kind === "fn1d"; }).map(function (s) { return { step: s.step, kind: s.kind, values: s.values }; });

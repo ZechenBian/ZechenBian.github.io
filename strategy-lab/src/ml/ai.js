@@ -71,7 +71,7 @@
     L.push("任务分组：" + g.name + "；family = " + d.family + "，kind = " + d.kind + "。");
     L.push("数据集：" + d.name + (d.id === "csv" ? "（使用者导入的 CSV）" : "（id " + d.id + "）") + "。" + (d.summary || ""));
     if (d.id !== "csv" && d.params && d.params.length) L.push("数据集参数：" + paramLine(d.params, A.dsParams()) + "；种子 " + A.dsSeed() + "。");
-    if (d.kind === "forecast") { var se = pv.series || {}; L.push("序列：共 " + (se.T || "?") + " 个时刻，频率 " + (se.freq || "?") + (se.label ? "，" + se.label : "") + "。按时间切成训练 / 验证 / 测试 = " + S.split.train + " / " + S.split.valid + " / " + F(1 - S.split.train - S.split.valid, 2) + "，预测步长 H = " + (A.last && A.last.res.horizon || S.horizon) + "。"); }
+    if (d.kind === "forecast") { var se = pv.series || {}; L.push("序列：共 " + (se.T || "?") + " 个时刻，频率 " + (se.freq || "?") + (se.label ? "，" + se.label : "") + "。按时间切成训练 / 验证 / 测试 = " + S.split.train + " / " + S.split.valid + " / " + F(1 - S.split.train - S.split.valid, 2) + "，预测步长 H = " + S.horizon + "。"); }
     else {
       L.push("样本 " + (pv.n || "?") + " 个，每个 " + (pv.d || "?") + " 维" + (pv.shape ? "（图像形状 " + JSON.stringify(pv.shape) + "）" : "") + (pv.tokens ? "（每个特征是 0.." + ((pv.tokens.vocab || pv.tokens) - 1) + " 的记号，词表大小 data.train.tokens.vocab）" : "") + "。");
       if (pv.classes) L.push("类别（k = " + pv.classes.length + "）：" + pv.classes.slice(0, 30).join("、") + (pv.classCounts ? "；各类样本数 " + pv.classCounts.slice(0, 30).join("、") : "") + "。");
@@ -165,12 +165,13 @@
       "# 要求\n这是第 " + round + " 轮。写一个你认为在验证集主指标上会更好的版本：可以改结构、损失、优化、特征、正则化或超参数的默认值。一次只做一两个有理由的改动，在\"为什么这样设计\"一节里说清楚改了什么、为什么预期会更好。不要只是把训练时间拉长；时间预算是固定的。" + (A.ds().family === "toy" ? "注意玩具任务的现象（比如顿悟）往往需要足够的权重衰减和训练步数。" : ""),
       codeRules(), fmtRules()].filter(Boolean).join("\n\n");
   }
+  function staleNote() { return A.last && A.stale() ? "（注意：“任务”一节是现在的设定，“结果”一节是使用者改设定之前那一次运行的，两者可能对不上；回答时要考虑到这一点。）" : ""; }
   function promptDiag() {
-    return [RULES, "# 任务\n" + dsText(), "# 算法\n" + algoText(A.last ? A.last.algo : A.algo(), A.last ? A.last.params : A.algoParams(), true), "# 这次运行的结果\n" + resText(null, true), boardText(),
+    return [RULES, staleNote(), "# 任务\n" + dsText(), "# 算法\n" + algoText(A.last ? A.last.algo : A.algo(), A.last ? A.last.params : A.algoParams(), true), "# 这次运行的结果\n" + resText(null, true), boardText(),
       "# 要求\n写一份诊断报告（Markdown，每节用二级标题）：\n## 结论\n（三五句话：好不好、主要问题是什么）\n## 证据\n（逐条引用上面的数字：训练与验证的差距、学习曲线的走势、和基线及理论最优的距离、混淆矩阵或特征重要性里的线索；说明每条证据支持什么判断）\n## 偏差还是方差\n（欠拟合、过拟合还是两者都不是；为什么）\n## 数据与评价\n（数据本身的难度、噪声的下限、样本量是否够、指标是否合适、有没有泄漏或划分的问题）\n## 下一步\n（按预期收益排序的三条具体建议：改什么、改成多少、预期验证集主指标怎么变、怎么验证）\n只根据给你的材料下结论；材料不够的地方说缺什么。"].filter(Boolean).join("\n\n");
   }
   function askRules() {
-    return [RULES, "下面是实验室当前的状态。回答使用者的问题：先直接回答，再给理由；需要推导就写推导。", "# 任务\n" + dsText(), "# 算法\n" + algoText(A.last ? A.last.algo : A.algo(), A.last ? A.last.params : A.algoParams(), true), "# 结果\n" + resText(null, true), boardText()].filter(Boolean).join("\n\n");
+    return [RULES, "下面是实验室当前的状态。回答使用者的问题：先直接回答，再给理由；需要推导就写推导。", staleNote(), "# 任务\n" + dsText(), "# 算法\n" + algoText(A.last ? A.last.algo : A.algo(), A.last ? A.last.params : A.algoParams(), true), "# 结果\n" + resText(null, true), boardText()].filter(Boolean).join("\n\n");
   }
   A.aiPrompt = function (kind, x) { return kind === "diag" ? promptDiag() : kind === "ask" ? askRules() : promptWrite(x || "", null); };   // 测试和调试用
 
@@ -187,9 +188,9 @@
   }
   A.parseReply = parseReply;
   /** AI 给的参数表：只留认得的字段，数夹到范围里 */
-  function cleanParams(list) {
+  function cleanParams(list, max) {
     var seen = {}, out = [];
-    (Array.isArray(list) ? list : []).slice(0, 10).forEach(function (q) {
+    (Array.isArray(list) ? list : []).slice(0, max || 10).forEach(function (q) {
       if (!q || typeof q.key !== "string" || !/^[A-Za-z_$][\w$]*$/.test(q.key) || seen[q.key]) return; seen[q.key] = 1;
       var label = String(q.label || q.key).slice(0, 40), desc = q.desc ? String(q.desc).slice(0, 300) : "";
       if (q.type === "bool" || typeof q.def === "boolean") { out.push({ key: q.key, label: label, def: !!q.def, type: "bool", desc: desc }); return; }
@@ -248,6 +249,7 @@
   }
   /** 一次"写代码"的请求：流式显示，返回 { rec（存好的算法）, explain } */
   function writeOnce(el, prompt, label) {
+    var d0 = A.ds(), key0 = A.expKey();
     var status = statusRow(who() + " " + label + "…"), live = h("div"); el.appendChild(status); el.appendChild(live);
     var exEl = null;
     return call(prompt, "complex", function (t) {
@@ -256,10 +258,10 @@
     }, status).then(function (res) {
       var r = parseReply(res.text); status.remove(); live.remove();
       if (r.stage < 3 || !r.code) throw { code: "bad_format", text: res.text };
-      var meta = r.meta || {}, params = cleanParams(meta.params), d = A.ds();
+      var meta = r.meta || {}, params = cleanParams(meta.params), d = d0;
       var bad = QLMLRunner.syntax(r.code);
       var rec = A.saveMine({ name: String(meta.name || "AI 写的算法").slice(0, 24), summary: String(meta.summary || "").slice(0, 200), code: r.code, params: params, docs: r.explain || "", src: "ai", api: A.apiOf(d), kinds: [d.kind], families: [d.family] });
-      return { rec: rec, explain: r.explain || "", syntax: bad, truncated: res.truncated };
+      return { rec: rec, explain: r.explain || "", syntax: bad, truncated: res.truncated, moved: A.expKey() !== key0 };
     });
   }
   function headOf(rec) { return h("div", { class: "a-h" }, h("b", { text: rec.name }), h("span", { class: "tag", text: "AI 写的" })); }
@@ -284,6 +286,7 @@
       var line = statusRow("已存进“AI 写的”，正在运行…"), acts = h("div", { class: "a-actions" }); el.appendChild(line); el.appendChild(acts);
       acts.appendChild(h("button", { class: "btn small", type: "button", text: "代码与说明", onclick: function () { A.selectAlgo(rec.id); A.openCode(); } }));
       if (w.syntax) { line.className = "warn err"; clear(line); line.textContent = "代码有语法错误：" + w.syntax; acts.appendChild(fixBtn(w.syntax, attempt)); A.selectAlgo(rec.id); return; }
+      if (w.moved) { line.className = "note"; clear(line); line.textContent = "AI 写代码的时候，数据或设定改过了：代码已经存进“AI 写的”，没有自动运行。"; return; }
       return runRec(rec).then(function (res) {
         line.className = "note"; clear(line); line.textContent = "运行完成：" + resultLine(res);
         acts.appendChild(h("button", { class: "btn small primary", type: "button", text: "让 " + NAME + " 诊断", onclick: function () { A.aiDiagnose(); } }));
@@ -316,7 +319,7 @@
       var el0 = card(), st0 = statusRow("先用现在的设定跑一次，作为起点…"); el0.appendChild(st0);
       return A.run({ quiet: true }).then(function () { el0.remove(); return doImprove(rounds, extra); }, function (e) { st0.remove(); el0.appendChild(h("div", { class: "warn err", text: "起点没有跑通：" + (e.message || e) + "。先修好它（可以用“写算法”让 AI 修），再自动改进。" })); });
     }
-    var pk = A.last.res.primary, hb = A.last.res.higherBetter, hist = [], me = improving = { stop: false };
+    var pk = A.last.res.primary, hb = A.last.res.higherBetter, hist = [], me = improving = { stop: false }, key0 = A.expKey();
     var best = { algo: A.last.algo, params: A.last.params, val: A.last.res.metrics.valid[pk], text: resText(null, false), res: A.last.res };
     var start = best.val, el = card(), log = h("ol", { class: "ml-ai-rounds" }), box = h("div");
     el.appendChild(h("div", { class: "a-h" }, h("b", { text: "自动改进：" + rounds + " 轮" }), h("span", { class: "tag", text: "只按验证集挑" })));
@@ -325,6 +328,7 @@
     function better(v) { return hb ? v > best.val : v < best.val; }
     function round(i) {
       if (me.stop || i > rounds) return Promise.resolve();
+      if (A.expKey() !== key0) { box.appendChild(h("div", { class: "warn", text: "数据或设定在自动改进的中途改了：停在第 " + (i - 1) + " 轮。" })); me.stop = true; return Promise.resolve(); }
       var li = h("li"); log.appendChild(li);
       var sub = h("div"); li.appendChild(sub);
       return writeOnce(sub, promptImprove(i, hist, best, extra), "第 " + i + " 轮：正在写改进版").then(function (w) {
@@ -356,6 +360,10 @@
           hist.push({ name: rec.name, line: "运行出错：" + String(e.message || e).slice(0, 160) });
           return round(i + 1);
         });
+      }, function (e) {
+        if (e && e.code === "cancelled") { me.stop = true; clear(sub); sub.appendChild(h("div", { class: "note", text: "已停止。" })); return; }
+        if (e && e.code === "bad_format") { clear(sub); sub.appendChild(h("div", { class: "warn", text: "第 " + i + " 轮的回答没有按约定的格式给出，跳过这一轮。" })); hist.push({ name: "（第 " + i + " 轮）", line: "回答的格式不对" }); return round(i + 1); }
+        throw e;
       });
     }
     return round(1).then(function () {
@@ -400,7 +408,7 @@
   function ensureOpen() { A.openAI(true); if (!sample) { A.toast(WEB ? "还没有接入 AI：先在右栏点“接入 AI…”" : "这里不能调用 AI。", 3600); return false; } if (busy) { A.toast(who() + " 还在忙上一件事。"); return false; } return true; }
   A.aiDiagnose = function () { if (!ensureOpen()) return; if (!A.last) { A.toast("先运行一次。"); return; } setMode("diag"); send("诊断这次运行：" + A.last.algo.name + " · " + A.last.def.name, { mode: "diag" }); };
   A.aiImprove = function (extra) { if (!ensureOpen()) return; setMode("improve"); send("自动改进 " + (roundsSel ? roundsSel.value : 3) + " 轮" + (typeof extra === "string" && extra ? "（按诊断的建议）" : ""), { mode: "improve", extra: typeof extra === "string" ? extra : "" }); };
-  A.aiFix = function (err) { if (!ensureOpen()) return; var e = err || A.lastError; if (!e) return; if (e.algo) A.selectAlgo(e.algo.id); setMode("write"); send("修复这段代码的错误：" + String(e.message).slice(0, 200), { fix: String(e.message).slice(0, 1200) + (e.line ? "（第 " + e.line + " 行：" + lineOf(e.algo && e.algo.code, e.line) + "）" : "") }); };
+  A.aiFix = function (err) { var e = err || A.lastError; if (!e) return; if (e.algo && e.algo.lang === "py") { A.toast("AI 现在只写 JavaScript 的算法。Python 的出错信息（含完整的调用栈）在本机引擎的终端里。", 4600); return; } if (!ensureOpen()) return; if (e.algo) A.selectAlgo(e.algo.id); setMode("write"); send("修复这段代码的错误：" + String(e.message).slice(0, 200), { fix: String(e.message).slice(0, 1200) + (e.line ? "（第 " + e.line + " 行：" + lineOf(e.algo && e.algo.code, e.line) + "）" : "") }); };
 
   /* ---------- 例子 ---------- */
   function examples(m) {

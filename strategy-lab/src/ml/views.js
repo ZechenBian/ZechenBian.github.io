@@ -24,6 +24,10 @@
     VIEWS.forEach(function (x) { nav.appendChild(h("button", { class: "chip", type: "button", role: "tab", "data-v": x[0], "aria-pressed": S.view === x[0] ? "true" : "false", onclick: function () { A.setView(x[0]); } }, x[1], x[0] === "board" && nRuns ? h("span", { class: "n", text: String(nRuns) }) : null)); });
     wipe();
     var L = A.last && !A.stale() ? A.last : null;
+    try { draw(L); }
+    catch (e) { console.error(e); var ce = card("这一栏没有画完", { wide: true }); ce.body.appendChild(h("p", { class: "warn err", text: "画图时出错了：" + String(e && e.message || e) + "。换一栏看看，或者重新运行。" })); }
+  };
+  function draw(L) {
     if (S.view === "data") return dataView();
     if (S.view === "board") return boardView();
     if (S.view === "anim") return animView(L);     // 模拟和教学动画不需要先运行
@@ -82,8 +86,8 @@
       any = true; var E = ins.embedding, n = E.rows;
       var color = meta.p ? function (t) { return t / Math.max(1, n - 1); } : null;
       c = card("嵌入的主成分（前两个）", { help: "inside:pca", foot: "每个点是词表里的一个元素（模加法里是 0 … p−1）。颜色按编号由浅到深。" }); keep(V.embedPCA(c.body, E, E.labels || Array.from({ length: n }, function (_, i) { return i; }), color));
-      if (QL.mltoy && meta.p && A.ds().id === "modadd") { var fr = safe(function () { return QL.mltoy.fourier(E, meta); }); if (fr) c = card("嵌入的傅里叶谱", { help: "inside:fourier", foot: "把嵌入的每一列看成 ℤ/p 上的函数做离散傅里叶变换：grokking 之后能量集中在少数几个频率上（Nanda 等 2023）。最大的几个频率：" + (fr.top || []).slice(0, 6).join("、") + "。" }); keep(V.spectrum(c.body, fr)); }
-      if (QL.mltoy && meta.irreps && A.ds().id === "group") { var fve = safe(function () { return QL.mltoy.irrepFVE(E, meta); }); if (fve) c = card("嵌入按不可约表示分解", { help: "inside:irreps", foot: "嵌入矩阵的每一列是群上的函数，按同型分量做正交投影后的方差占比；灰色是随机嵌入的期望值 dim(M_ρ)/(|G|−1)。" }); keep(V.irrepBars(c.body, fve)); }
+      if (QL.mltoy && meta.p && A.ds().id === "modadd") { var fr = safe(function () { return QL.mltoy.fourier(E, meta); }); if (fr) { c = card("嵌入的傅里叶谱", { help: "inside:fourier", foot: "把嵌入的每一列看成 ℤ/p 上的函数做离散傅里叶变换：grokking 之后能量集中在少数几个频率上（Nanda 等 2023）。最大的几个频率：" + (fr.top || []).slice(0, 6).join("、") + "。" }); keep(V.spectrum(c.body, fr)); } }
+      if (QL.mltoy && meta.irreps && A.ds().id === "group") { var fve = safe(function () { return QL.mltoy.irrepFVE(E, meta); }); if (fve) { c = card("嵌入按不可约表示分解", { help: "inside:irreps", foot: "嵌入矩阵的每一列是群上的函数，按同型分量做正交投影后的方差占比；灰色是随机嵌入的期望值 dim(M_ρ)/(|G|−1)。" }); keep(V.irrepBars(c.body, fve)); } }
     }
     if (A.ds().id === "ising" && QL.mltoy && meta.T && res.kind === "classification" && res.k === 2) { any = true; isingCard(res, meta, L); }
     (ins.activations || []).forEach(function (a) { any = true; c = card("激活值的分布：" + a.name, { help: "inside:act" }); keep(V.histogram(c.body, a.data, { xLabel: "激活值" })); });
@@ -171,112 +175,160 @@
   }
 
   /* ---------- 排行榜：存档 ---------- */
-  var RKEY = "ql.ml.runs.v1", MAXRUN = 40;
-  var RB = (function () { try { var o = JSON.parse(localStorage.getItem(RKEY) || "null"); if (o && o.v === 1) return o; } catch (e) {} return { v: 1, exps: {} }; })();
-  function saveRuns() {
-    for (var tries = 0; tries < 6; tries++) {
-      try { localStorage.setItem(RKEY, JSON.stringify(RB)); return; }
-      catch (e) {   // 存不下：丢掉最旧的实验
-        var keys = Object.keys(RB.exps).sort(function (a, b) { return (RB.exps[a].t || 0) - (RB.exps[b].t || 0); });
-        if (keys.length <= 1) return; delete RB.exps[keys[0]];
-      }
-    }
+  // 一个实验 = 同一个数据集、同样的参数和种子、同样的划分（A.expKey）。存在 localStorage 里；两个标签页同时开着时，存之前先把另一边存的合并进来
+  var RKEY = "ql.ml.runs.v1", MAXRUN = 40, MAXCH = 2400000;   // 整份存档最多约 240 万个字符（和本站的其他页面共用浏览器给的空间）
+  function loadRB() { try { var o = JSON.parse(localStorage.getItem(RKEY) || "null"); if (o && o.v === 1 && o.exps) return o; } catch (e) {} return { v: 1, exps: {} }; }
+  var RB = loadRB();
+  /** 两份实验记录合并：运行按编号取并集（删掉的编号记在 gone 里，不会被另一边"复活"），看测试集的次数取大的 */
+  function mergeExp(a, b) {
+    if (!a) return b; if (!b) return a;
+    if (a.truth && b.truth && a.truth !== b.truth) return (a.t || 0) >= (b.t || 0) ? a : b;
+    var gone = {}; (a.gone || []).concat(b.gone || []).forEach(function (x) { gone[x] = 1; });
+    var byId = {}, runs = [];
+    a.runs.concat(b.runs).forEach(function (r) { if (gone[r.id]) return; var o = byId[r.id]; if (!o) { byId[r.id] = r; runs.push(r); } else if (r.looked) o.looked = true; });
+    runs.sort(function (x, y) { return x.t - y.t; });
+    var top = (a.t || 0) >= (b.t || 0) ? a : b, out = Object.assign({}, top);
+    out.runs = runs.slice(-MAXRUN); out.looks = Math.max(a.looks || 0, b.looks || 0); out.gone = Object.keys(gone).slice(-300); out.t = Math.max(a.t || 0, b.t || 0);
+    return out;
   }
+  /** 太大时先丢最旧的运行的逐样本损失（这几行就不再做配对检验），还不够再丢最旧的实验（只留下看测试集的次数） */
+  function shrink(o, limit) {
+    var json = JSON.stringify(o); if (json.length <= limit) return json;
+    var all = []; Object.keys(o.exps).forEach(function (k) { o.exps[k].runs.forEach(function (r) { if (r.lV || r.cV) all.push(r); }); });
+    all.sort(function (x, y) { return x.t - y.t; });
+    for (var i = 0; i < all.length && json.length > limit; i++) { var r = all[i]; r.lV = r.lT = r.cV = r.cT = null; r.stripped = true; if (i % 5 === 4) json = JSON.stringify(o); }
+    json = JSON.stringify(o);
+    var ks = Object.keys(o.exps).sort(function (x, y) { return (o.exps[x].t || 0) - (o.exps[y].t || 0); });
+    for (var j = 0; j < ks.length - 1 && json.length > limit; j++) { var E = o.exps[ks[j]]; o.exps[ks[j]] = { name: E.name, ds: E.ds, kind: E.kind, primary: E.primary, hb: E.hb, looks: E.looks || 0, runs: [], gone: (E.gone || []).concat(E.runs.map(function (r) { return r.id; })).slice(-300), t: E.t, truth: E.truth, stub: true }; json = JSON.stringify(o); }
+    return json;
+  }
+  function saveRuns() {
+    var disk = loadRB();
+    Object.keys(disk.exps).forEach(function (k) { RB.exps[k] = mergeExp(RB.exps[k], disk.exps[k]); });
+    var limit = MAXCH;
+    for (var tries = 0; tries < 4; tries++) {
+      try { localStorage.setItem(RKEY, shrink(RB, limit)); return true; }
+      catch (e) { limit = Math.floor(limit / 2); }
+    }
+    A.toast("浏览器的存储空间不够了：排行榜这一次没有存下来（刷新页面以后会丢）。", 4200);
+    return false;
+  }
+  if (window.addEventListener) window.addEventListener("storage", function (e) { if (e.key === RKEY) { var disk = loadRB(); Object.keys(disk.exps).forEach(function (k) { RB.exps[k] = mergeExp(RB.exps[k], disk.exps[k]); }); if (S.view === "board") A.renderViews(); } });
   var MAXN = 6000;    // 逐样本的损失最多存这么多（取前 MAXN 个，配对检验在同一批样本上做）
   function enc(arr, kind) { if (!arr) return null; var n = Math.min(arr.length, MAXN), ta = kind === "u8" ? Uint8Array.from(arr.subarray ? arr.subarray(0, n) : arr.slice(0, n)) : Float32Array.from(arr.subarray ? arr.subarray(0, n) : arr.slice(0, n)), u = new Uint8Array(ta.buffer), s = ""; for (var i = 0; i < u.length; i += 8192) s += String.fromCharCode.apply(null, u.subarray(i, i + 8192)); return { k: kind || "f4", b: btoa(s) }; }
   function dec(o) { if (!o) return null; var s = atob(o.b), u = new Uint8Array(s.length); for (var i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return o.k === "u8" ? u : new Float32Array(u.buffer); }
+  /** 这批验证 / 测试样本的指纹：同一个"实验键"下数据其实变了（换了导入的文件、数据集的代码升级了）时，旧记录不能拿来配对 */
+  function truthHash(res) { var t = res.truth.valid, u = res.truth.test, s = res.kind + "|" + t.length + "|" + u.length + "|", i; for (i = 0; i < Math.min(t.length, 3000); i++) s += (+t[i]).toPrecision(6) + ","; for (i = 0; i < Math.min(u.length, 500); i++) s += (+u[i]).toPrecision(6) + ","; return A.hashStr(s); }
   A.expRuns = function () { var E = RB.exps[A.expKey()]; return E ? E.runs : []; };
   A.expOf = function (key) { return RB.exps[key || A.expKey()] || null; };
+  var vsCache = {};
   /** 一次运行结束：记进这个实验的排行榜。返回这条记录的编号 */
   A.record = function (L) {
-    var res = L.res, key = L.key, E = RB.exps[key];
-    if (!E) E = RB.exps[key] = { name: L.def.name, ds: L.def.id, kind: res.kind, primary: res.primary, hb: res.higherBetter, looks: 0, runs: [], t: Date.now() };
-    E.t = Date.now();
-    E.base = { name: res.baseline.name, mV: res.baseline.metrics.valid, mT: res.baseline.metrics.test, lV: enc(res.baseline.loss.valid), lT: enc(res.baseline.loss.test), cV: res.baseline.correct ? enc(res.baseline.correct.valid, "u8") : null, cT: res.baseline.correct ? enc(res.baseline.correct.test, "u8") : null };
+    var res = L.res, key = L.key, E = RB.exps[key], th = truthHash(res);
+    if (E && (E.truth && E.truth !== th || E.kind !== res.kind || E.primary !== res.primary)) E = null;   // 数据变了：另起一个实验
+    if (!E || E.stub && !E.runs.length && E.truth !== th) E = RB.exps[key] = { name: L.def.name, ds: L.def.id, kind: res.kind, primary: res.primary, hb: res.higherBetter, looks: E && E.truth === th ? E.looks || 0 : 0, runs: [], gone: [], t: Date.now(), truth: th };
+    E.t = Date.now(); E.truth = th; E.stub = false; E.nValid = res.split.nValid; E.nTest = res.split.nTest;
+    E.base = { name: res.baseline.name, mV: res.baseline.metrics.valid, mT: res.baseline.metrics.test, lV: enc(res.baseline.loss.valid), lT: enc(res.baseline.loss.test), cV: res.baseline.correct ? enc(res.baseline.correct.valid, "u8") : null, cT: res.baseline.correct ? enc(res.baseline.correct.test, "u8") : null, stamp: Date.now() };
     E.oracle = res.oracle && res.oracle.metrics ? { mV: res.oracle.metrics.valid, mT: res.oracle.metrics.test } : null;
     var id = "r" + Date.now().toString(36) + Math.floor(Math.random() * 1e6).toString(36);
-    var a = L.algo, rec = { id: id, t: Date.now(), name: a.name, algoId: a.id, src: a.src || "builtin", lang: a.lang || "js", params: L.params, code: a.src === "builtin" || a.src === "py" ? null : a.code, codeHash: A.hashStr(a.code || ""),
+    var a = L.algo, rec = { id: id, t: Date.now(), name: a.name, algoId: a.id, src: a.src || "builtin", lang: a.lang || "js", params: Object.assign({}, L.params), spec: a.src === "builtin" || a.src === "py" ? null : a.params || [], code: a.src === "builtin" || a.src === "py" ? null : a.code, codeHash: A.hashStr(a.code || ""),
       m: res.metrics, looked: false, lV: enc(res.loss.valid), lT: enc(res.loss.test), cV: res.correct ? enc(res.correct.valid, "u8") : null, cT: res.correct ? enc(res.correct.test, "u8") : null, size: res.size, fitMs: res.fitMs, ms: res.ms, H: res.horizon || 1 };
     E.runs.push(rec);
-    if (E.runs.length > MAXRUN) E.runs.splice(0, E.runs.length - MAXRUN);
-    saveRuns(); A.renderViews();
+    if (E.runs.length > MAXRUN) { E.runs.splice(0, E.runs.length - MAXRUN).forEach(function (r) { E.gone.push(r.id); }); }
+    saveRuns();
+    try { A.renderViews(); } catch (e) { console.error(e); }
     return id;
   };
   A.isRevealed = function (L) { var E = RB.exps[L.key]; if (!E) return false; var r = E.runs.filter(function (x) { return x.id === L.runId; })[0]; return !!(r && r.looked); };
-  A.looksText = function () { var E = RB.exps[A.expKey()]; return E && E.looks ? "这个实验已经看过 " + E.looks + " 次测试集" : "还没有看过测试集"; };
+  A.looksText = function (L) { var E = RB.exps[L && L.key || A.expKey()]; return E && E.looks ? "这个实验已经看过 " + E.looks + " 次测试集" : "还没有看过测试集"; };
   /** 揭晓测试集：记下次数。看得越多，测试集的成绩越不像"没见过的数据" */
   A.reveal = function (L, runId) {
-    var E = RB.exps[L ? L.key : A.expKey()]; if (!E) return;
+    var key = L ? L.key : A.expKey(), E = RB.exps[key];
+    if (!E) { if (!L) return; E = RB.exps[key] = { name: L.def ? L.def.name : "", kind: L.res ? L.res.kind : "", looks: 0, runs: [], gone: [], t: Date.now(), stub: true }; }
     var id = runId || (L && L.runId), r = E.runs.filter(function (x) { return x.id === id; })[0];
-    if (r && !r.looked) { r.looked = true; E.looks = (E.looks || 0) + 1; saveRuns(); }
-    if (L && (!runId || runId === L.runId)) L.revealed = true;
+    if (r ? !r.looked : L && !L.revealed) { if (r) r.looked = true; E.looks = (E.looks || 0) + 1; saveRuns(); }
+    if (L && L.res && (!runId || runId === L.runId)) L.revealed = true;
     A.renderSummary(); A.renderViews();
     if (E.looks > 1) A.toast("这个实验的测试集已经看过 " + E.looks + " 次了：照着测试集挑算法，测试集的成绩就会偏乐观。", 4200);
   };
-  A.clearExp = function () { delete RB.exps[A.expKey()]; saveRuns(); A.renderViews(); A.renderSummary(); };
+  /** 清空记录：运行删掉，看测试集的次数留着（清空不能把"看过"变成"没看过"） */
+  A.clearExp = function () { var k = A.expKey(), E = RB.exps[k]; if (E) RB.exps[k] = { name: E.name, ds: E.ds, kind: E.kind, primary: E.primary, hb: E.hb, looks: E.looks || 0, runs: [], gone: (E.gone || []).concat(E.runs.map(function (r) { return r.id; })).slice(-300), t: Date.now(), truth: E.truth, stub: true }; saveRuns(); A.renderViews(); A.renderSummary(); };
 
   /* ---------- 排行榜：检验 ---------- */
-  /** 一条记录和基线在同一批样本上的配对比较。分类：McNemar（正确与否）；回归：逐样本平方误差的配对自助法；预测：Diebold–Mariano */
+  /** 一条记录和基线在同一批样本上的配对比较，diff 为正表示比基线好。分类：准确率之差，McNemar 检验；回归：逐样本平方误差之差（基线减模型），正态近似的区间和 p；
+   *  预测：同上，长期方差按 Diebold–Mariano（H > 1 时等权截断在 H − 1 阶）。只用前 MAXN 个样本 */
   function versus(E, r, set) {
     var base = E.base; if (!base) return null;
-    var cls = E.kind === "classification";
+    var ck = (E.truth || "") + "|" + base.stamp + "|" + r.id + "|" + set; if (vsCache[ck]) return vsCache[ck];
+    var cls = E.kind === "classification", out = null;
     if (cls) {
-      var ca = dec(set === "v" ? r.cV : r.cT), cb = dec(set === "v" ? base.cV : base.cT); if (!ca || !cb) return null;
-      var n = Math.min(ca.length, cb.length), sa = 0, sb = 0; for (var i = 0; i < n; i++) { sa += ca[i]; sb += cb[i]; }
-      var mc = ST.mcnemar(ca.subarray(0, n), cb.subarray(0, n)), d = (sa - sb) / n, se = Math.sqrt(Math.max(1e-12, (mc.b + mc.c) / n - d * d) / n);
-      return { diff: d, lo: d - 1.96 * se, hi: d + 1.96 * se, p: mc.p, se: se };
+      var ca = dec(set === "v" ? r.cV : r.cT), cb = dec(set === "v" ? base.cV : base.cT);
+      if (ca && cb) {
+        var n = Math.min(ca.length, cb.length), sa = 0, sb = 0; for (var i = 0; i < n; i++) { sa += ca[i]; sb += cb[i]; }
+        var mc = ST.mcnemar(ca.subarray(0, n), cb.subarray(0, n)), d = (sa - sb) / n, se = Math.sqrt(Math.max(1e-12, (mc.b + mc.c) / n - d * d) / n);
+        out = { diff: d, lo: d - 1.96 * se, hi: d + 1.96 * se, p: mc.p, se: se, n: n };
+      }
+    } else {
+      var la = dec(set === "v" ? r.lV : r.lT), lb = dec(set === "v" ? base.lV : base.lT);
+      if (la && lb) {
+        var m = Math.min(la.length, lb.length), H = E.kind === "forecast" ? r.H || 1 : 1;
+        var dm = ST.dieboldMariano(lb.subarray(0, m), la.subarray(0, m), H, H > 1 ? { kernel: "rect" } : undefined), dd = dm.dbar, se2 = dm.lrv > 0 ? Math.sqrt(dm.lrv / m) : NaN;
+        if (E.kind !== "forecast") { var z = se2 > 0 ? dd / se2 : 0; dm = { p: se2 > 0 ? Math.min(1, 2 * ST.normCdf(-Math.abs(z))) : dd === 0 ? 1 : 0 }; }
+        out = { diff: dd, lo: dd - 1.96 * se2, hi: dd + 1.96 * se2, p: dm.p, se: se2, n: m };
+      }
     }
-    var la = dec(set === "v" ? r.lV : r.lT), lb = dec(set === "v" ? base.lV : base.lT); if (!la || !lb) return null;
-    var m = Math.min(la.length, lb.length);
-    if (E.kind === "forecast") { var dm = ST.dieboldMariano(lb.subarray(0, m), la.subarray(0, m), r.H || 1, (r.H || 1) > 1 ? { kernel: "rect" } : undefined), dd = 0; for (var j = 0; j < m; j++) dd += lb[j] - la[j]; dd /= m; var se2 = dm.stat ? Math.abs(dd / dm.stat) : NaN; return { diff: dd, lo: dd - 1.96 * se2, hi: dd + 1.96 * se2, p: dm.p, se: se2 }; }
-    var pb = ST.pairedBootstrap(lb.subarray(0, m), la.subarray(0, m), 600, new QL.RNG(7, 7, 7));
-    return { diff: pb.diff, lo: pb.lo, hi: pb.hi, p: pb.pNormal != null ? pb.pNormal : pb.p, se: pb.se };
+    vsCache[ck] = out; return out;
   }
   function boardView() {
     var key = A.expKey(), E = RB.exps[key], d = A.ds();
     var c = card("排行榜：" + (d ? d.name : ""), { wide: true, help: "board:how" });
-    if (!E || !E.runs.length) { c.body.appendChild(h("p", { class: "ml-note", text: "这个实验（同一个数据集、同样的参数和种子、同样的划分）还没有记录。每运行一次，这里就多一行：所有算法在完全相同的样本上比，可以做配对检验。" })); return; }
+    if (!E || !E.runs.length) { c.body.appendChild(h("p", { class: "ml-note", text: "这个实验（同一个数据集、同样的参数和种子、同样的划分）还没有记录。每运行一次，这里就多一行：所有算法在完全相同的样本上比，可以做配对检验。" + (E && E.looks ? "这个实验的测试集已经看过 " + E.looks + " 次。" : "") })); return; }
     var pk = E.primary, hb = E.hb, runs = E.runs.slice();
-    var vs = runs.map(function (r) { return versus(E, r, "v"); }), adj = ST.holm(vs.map(function (x) { return x ? x.p : 1; }));
+    var vs = runs.map(function (r) { return versus(E, r, "v"); }), adj = ST.holm(vs.map(function (x) { return x ? x.p : NaN; }));
     var order = runs.map(function (r, i) { return i; }).sort(function (a, b) { var x = runs[a].m.valid[pk], y = runs[b].m.valid[pk]; return hb ? y - x : x - y; });
-    var tb = h("tbody"), tbl = h("table", { class: "ml-lb" }, h("thead", null, h("tr", null, ["", "算法", "验证 · " + A.metName(pk), "比基线（95% 区间）", "p（Holm）", "测试", "训练用时", "参数量", ""].map(function (x) { return h("th", { text: x }); }))), tb);
+    var tb = h("tbody"), tbl = h("table", { class: "ml-lb" }, h("thead", null, h("tr", null, ["", "算法", "验证 · " + A.metName(pk), "比基线好多少（95% 区间）", "p（Holm）", "测试", "训练用时", "参数量", ""].map(function (x) { return h("th", { text: x }); }))), tb);
     tb.appendChild(h("tr", { class: "base" }, h("td", { text: "—" }), h("td", { text: (E.base && E.base.name) || "基线" }), h("td", { class: "num", text: A.metFmt(pk, E.base.mV[pk]) }), h("td"), h("td"), h("td", { class: "num", text: E.looks ? A.metFmt(pk, E.base.mT[pk]) : "🔒" }), h("td"), h("td"), h("td")));
     if (E.oracle) tb.appendChild(h("tr", { class: "base" }, h("td", { text: "—" }), h("td", { text: "理论最优（知道真实规律）" }), h("td", { class: "num", text: A.metFmt(pk, E.oracle.mV[pk]) }), h("td"), h("td"), h("td", { class: "num", text: E.looks ? A.metFmt(pk, E.oracle.mT[pk]) : "🔒" }), h("td"), h("td"), h("td")));
     order.forEach(function (i, rank) {
       var r = runs[i], v = vs[i], cur = A.last && A.last.runId === r.id;
       var better = v ? (v.lo > 0 ? "good" : v.hi < 0 ? "bad" : "") : "";
-      var dtxt = v ? (v.diff >= 0 ? "+" : "−") + A.metFmt(pk, Math.abs(v.diff)) + " " : "—", rng = v ? h("small", { text: "[" + A.metFmt(pk, v.lo) + ", " + A.metFmt(pk, v.hi) + "]" }) : null;
+      var dtxt = v ? (v.diff >= 0 ? "+" : "−") + A.metFmt(pk, Math.abs(v.diff)) + " " : r.stripped ? "（旧记录，没存逐样本损失）" : "—", rng = v ? h("small", { text: "[" + A.metFmt(pk, v.lo) + ", " + A.metFmt(pk, v.hi) + "]" }) : null;
       var tag = r.src === "ai" ? "AI" : r.src === "mine" ? "我的" : r.src === "py" ? "Python" : "";
       var testCell = r.looked ? h("td", { class: "num", text: A.metFmt(pk, r.m.test[pk]) }) : h("td", null, h("button", { class: "btn small", type: "button", text: "🔒 揭晓", onclick: function () { A.reveal(A.last && A.last.runId === r.id ? A.last : { key: key }, r.id); } }));
       tb.appendChild(h("tr", { class: cur ? "cur" : "" }, h("td", { class: "num", text: String(rank + 1) }), h("td", null, r.name, tag ? h("span", { class: "tag", text: tag }) : null, paramsText(r.params) ? h("div", { class: "note", text: paramsText(r.params) }) : null),
         h("td", { class: "num", text: A.metFmt(pk, r.m.valid[pk]) }), h("td", { class: "num " + better }, dtxt, rng), h("td", { class: "num", text: v ? fmtP(adj[i]) : "—" }), testCell,
         h("td", { class: "num", text: A.secs(r.fitMs) }), h("td", { class: "num", text: r.size != null ? r.size.toLocaleString("en-US") : "—" }),
-        h("td", { class: "acts" }, r.code || r.src === "builtin" || r.src === "py" ? h("button", { class: "btn small", type: "button", text: "载入", title: "把这个算法和它的参数放回左栏", onclick: function () { loadRun(r); } }) : null, h("button", { class: "iconbtn", type: "button", "aria-label": "删掉这一行", text: "✕", onclick: function () { E.runs = E.runs.filter(function (x) { return x.id !== r.id; }); saveRuns(); A.renderViews(); } }))));
+        h("td", { class: "acts" }, r.code || r.src === "builtin" || r.src === "py" ? h("button", { class: "btn small", type: "button", text: "载入", title: "把这个算法和它的参数放回左栏", onclick: function () { loadRun(r); } }) : null, h("button", { class: "iconbtn", type: "button", "aria-label": "删掉这一行", text: "✕", onclick: function () { E.runs = E.runs.filter(function (x) { return x.id !== r.id; }); (E.gone = E.gone || []).push(r.id); saveRuns(); A.renderViews(); } }))));
     });
     c.body.appendChild(h("div", { class: "ml-lbwrap" }, tbl));
-    var N = runs.length, em = ST.expectedMaxNormal(N);
-    c.body.appendChild(h("p", { class: "ml-note" }, h("b", { text: "怎么读。" }), " “比基线”是在同一批验证样本上的配对比较（" + (E.kind === "classification" ? "准确率之差，检验用 McNemar" : E.kind === "forecast" ? "MSE 之差，检验用 Diebold–Mariano" : "MSE 之差，检验用配对自助法") + "）；p 值按 Holm 方法对这 " + N + " 行一起校正过。绿色：区间整个在 0 的好的一边。"));
+    var N = runs.length, em = ST.expectedMaxNormal(N), nPair = vs.filter(Boolean).map(function (x) { return x.n; })[0];
+    c.body.appendChild(h("p", { class: "ml-note" }, h("b", { text: "怎么读。" }), " “比基线好多少”是在同一批验证样本上的配对比较，正数表示比基线好（" + (E.kind === "classification" ? "准确率之差，检验用 McNemar" : E.kind === "forecast" ? "基线的 MSE 减去这个算法的 MSE，检验用 Diebold–Mariano" : "基线的 MSE 减去这个算法的 MSE，区间和 p 用正态近似") + "）；p 值按 Holm 方法对这 " + N + " 行一起校正过。绿色：区间整个在 0 的上方；红色：整个在下方。" + (E.nValid > MAXN && nPair ? "验证集有 " + E.nValid + " 个样本，配对检验只用了前 " + nPair + " 个，所以“比基线”的差和两列成绩之差可能略有出入。" : "")));
     if (N >= 2) c.body.appendChild(h("p", { class: "ml-note" }, h("b", { text: "挑出来的第一名偏乐观。" }), " 你在这个实验上试了 " + N + " 次。即使这 " + N + " 个算法其实一样好，验证集上最好的那一个平均也会比真实水平高出约 " + F(em, 2) + " 个标准误（独立的 N(0,1) 取最大值的期望；相关的候选会少一些）。所以最后要在测试集上确认，而且测试集只看一次。" + (E.looks ? "这个实验已经看过 " + E.looks + " 次测试集。" : "")));
-    c.body.appendChild(h("div", { class: "ml-row" }, h("span", { class: "sp" }), h("button", { class: "btn small", type: "button", text: "清空这个实验的记录", onclick: function () { if (confirmBox("清空这个实验的 " + N + " 条记录？")) A.clearExp(); } })));
+    c.body.appendChild(h("div", { class: "ml-row" }, h("span", { class: "sp" }), h("button", { class: "btn small", type: "button", text: "清空这个实验的记录", onclick: function () { if (confirmBox("清空这个实验的 " + N + " 条记录？（看过测试集的次数会留着。）")) A.clearExp(); } })));
   }
   function confirmBox(msg) { try { return window.confirm(msg); } catch (e) { return true; } }
   function fmtP(p) { return p == null || !(p === p) ? "—" : p < 0.001 ? "< 0.001" : F(p, 3); }
   function paramsText(p) { if (!p) return ""; var ks = Object.keys(p); if (!ks.length) return ""; return ks.slice(0, 5).map(function (k) { var v = p[k]; return k + "=" + (typeof v === "number" ? G(v) : String(v)); }).join("，") + (ks.length > 5 ? "…" : ""); }
+  /** 载入：算法还在而且代码没变，就选它；代码变了或者已经删了，用记录里存的代码和参数表另存一份 */
   function loadRun(r) {
     var list = A.algosFor(A.ds()), a = list.filter(function (x) { return x.id === r.algoId; })[0];
-    if (!a && r.code) { a = A.saveMine({ name: r.name, code: r.code, src: r.src === "ai" ? "ai" : "mine", params: [], api: A.apiOf(A.ds()) }); }
-    if (!a) { A.toast("这个算法已经不在列表里了。"); return; }
-    A.selectAlgo(a.id); var st = A.S.algo[A.ds().family + "/" + A.ds().kind]; st.params[a.id] = Object.assign({}, r.params || {}); A.persist(); A.renderAlgo(); A.toast("已载入：" + r.name);
+    if (r.code && (!a || A.hashStr(a.code || "") !== r.codeHash)) a = A.saveMine({ name: r.name + (a ? "（排行榜里的版本）" : ""), code: r.code, src: r.src === "ai" ? "ai" : "mine", lang: r.lang, params: r.spec || [], api: A.apiOf(A.ds()) });
+    if (!a) { A.toast(r.src === "py" ? "这是本机引擎里的算法：先连上引擎。" : "这个算法已经不在列表里了。"); return; }
+    var st = A.S.algo[A.ds().family + "/" + A.ds().kind] || (A.S.algo[A.ds().family + "/" + A.ds().kind] = { id: "", params: {} }); st.params[a.id] = Object.assign({}, r.params || {});
+    A.selectAlgo(a.id); A.persist(); A.toast("已载入：" + r.name);
   }
 
   /* ---------- 我的算法 ---------- */
-  /** 存一个算法（自己改的、AI 写的）。o: { name, summary, code, params, docs, src: "mine" | "ai", api, kinds, families, id? } */
+  /** 存一个算法（自己改的、AI 写的）。o: { name, summary, code, params, docs, src: "mine" | "ai", lang, api, kinds, families, id? }。参数表一律清洗过 */
   A.saveMine = function (o) {
     var d = A.ds(), id = o.id || (o.src === "ai" ? "ai-" : "my-") + Date.now().toString(36) + Math.floor(Math.random() * 1e4).toString(36);
-    var rec = { id: id, name: String(o.name || "我的算法").slice(0, 40), summary: o.summary || "", code: String(o.code || ""), params: o.params || [], docs: o.docs || "", src: o.src || "mine", lang: o.lang === "py" ? "py" : "js", api: o.api || A.apiOf(d), kinds: o.kinds || [d.kind], families: o.families || [d.family], group: "other", t: Date.now() };
+    var params = A.aiCleanParams ? A.aiCleanParams(o.params || [], 40) : o.params || [];
+    var rec = { id: id, name: String(o.name || "我的算法").slice(0, 40), summary: o.summary || "", code: String(o.code || ""), params: params, docs: o.docs || "", src: o.src || "mine", lang: o.lang === "py" ? "py" : "js", api: o.api || A.apiOf(d), kinds: o.kinds || [d.kind], families: o.families || [d.family], group: "other", t: Date.now() };
     var i = S.my.findIndex(function (x) { return x.id === id; }); if (i >= 0) S.my[i] = rec; else S.my.push(rec);
-    if (S.my.length > 60) S.my.splice(0, S.my.length - 60);
-    A.persist(); return rec;
+    // 最多 60 个：先丢最旧的 AI 写的，自己的算法尽量留着
+    while (S.my.length > 60) { var cand = S.my.filter(function (x) { return x.src === "ai" && x.id !== id; }); if (!cand.length) cand = S.my.filter(function (x) { return x.id !== id; }); cand.sort(function (x, y) { return (x.t || 0) - (y.t || 0); }); var drop = cand[0]; S.my = S.my.filter(function (x) { return x !== drop; }); }
+    if (!A.persist()) A.toast("浏览器的存储空间不够了：这个算法这一次没有存下来，刷新页面以后会丢。先复制一份代码。", 5000);
+    return rec;
   };
   A.deleteMine = function (id) { S.my = S.my.filter(function (x) { return x.id !== id; }); A.persist(); A.renderAlgo(); };
 
@@ -349,8 +401,8 @@
         if (kind.value === "forecast") k = "forecast";
         def = { id: "csv", family: k === "forecast" ? "timeseries" : "tabular", kind: k, name: "导入的数据：" + (file.files && file.files[0] ? file.files[0].name : "粘贴的表格"), summary: "你导入的 CSV（" + (data.n || data.T) + " 行）。要预测的列：" + tgt.value + "。", params: [], docs: "你自己导入的数据。数值列的缺失值在划分之后用训练集那一列的中位数补上（验证集、测试集的信息不会漏进训练）；类别列做独热编码，缺失算作单独的一类。", plot: k === "forecast" ? "series" : data.d === 2 ? "scatter2d" : "table" };
       } catch (e) { err.hidden = false; err.textContent = e.message; return; }
-      A.csv = { def: def, data: data, hash: A.hashStr(ta.value.slice(0, 200000)) };
-      try { if (ta.value.length < 1500000) localStorage.setItem("ql.ml.csv.v1", JSON.stringify({ text: ta.value, target: tgt.value, kind: kind.value, name: def.name })); } catch (e) {}
+      A.csv = { def: def, data: data, hash: A.hashStr(tgt.value + "\u0000" + kind.value + "\u0000" + ta.value) };
+      try { if (ta.value.length < 300000) localStorage.setItem("ql.ml.csv.v1", JSON.stringify({ text: ta.value, target: tgt.value, kind: kind.value, name: def.name })); else localStorage.removeItem("ql.ml.csv.v1"); } catch (e) {}
       var want = def.family === "timeseries" ? "ts" : def.kind === "classification" ? "tab-cls" : "tab-reg"; S.group = want; (S.ds[want] = S.ds[want] || { id: "csv", seed: 1, params: {} }).id = "csv";
       A.persist(); m.close(); A.renderLeft(); A.dataChanged(); A.toast("已导入：" + def.summary);
     } });
@@ -359,7 +411,7 @@
   };
   A.restoreCsv = function () {
     try { var o = JSON.parse(localStorage.getItem("ql.ml.csv.v1") || "null"); if (!o || !o.text) return; var t = QL.mlreg.parseCSV(o.text), data = QL.mlreg.fromCSV(t, { target: o.target, kind: o.kind }), k = o.kind === "forecast" ? "forecast" : data.classes ? "classification" : "regression";
-      A.csv = { def: { id: "csv", family: k === "forecast" ? "timeseries" : "tabular", kind: k, name: o.name || "导入的数据", summary: "你上次导入的 CSV。", params: [], docs: "你自己导入的数据。", plot: k === "forecast" ? "series" : data.d === 2 ? "scatter2d" : "table" }, data: data, hash: A.hashStr(o.text.slice(0, 200000)) };
+      A.csv = { def: { id: "csv", family: k === "forecast" ? "timeseries" : "tabular", kind: k, name: o.name || "导入的数据", summary: "你上次导入的 CSV。", params: [], docs: "你自己导入的数据。", plot: k === "forecast" ? "series" : data.d === 2 ? "scatter2d" : "table" }, data: data, hash: A.hashStr(o.target + "\u0000" + o.kind + "\u0000" + o.text) };
     } catch (e) {}
   };
 

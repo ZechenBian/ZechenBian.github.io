@@ -65,7 +65,7 @@ var QLMLRunner = (function () {
       }
       cancelFn = function () { finish({ cancelled: true, message: "已取消" }); };
       arm();
-      try { wire(QLSandbox.spawn(built.src), false); }
+      try { wire(QLSandbox.spawn(built.src, { bootMs: 15000 }), false); }   // 页面忙的时候（比如动画在跑）隔离环境启动得慢一些
       catch (e) { finish({ message: String(e && e.message || e), nostart: true }); }
     });
     promise.catch(function () {});

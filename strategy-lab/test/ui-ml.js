@@ -132,6 +132,20 @@ function staticServer() {
     const lbText = await page.locator("table.ml-lb").innerText();
     ok(/McNemar|Holm/.test(await page.locator(".ml-note").first().innerText()) && /揭晓/.test(lbText), "排行榜说明了用什么检验；新的一行测试集还遮着");
 
+    /* ---------- 改参数：界面上改的值要真的用上 ---------- */
+    section("改参数");
+    await page.evaluate(() => MLA.setView("charts"));
+    const pick = await page.evaluate(() => {
+      function num(spec, vals) { var q = (spec || []).filter(function (x) { return (x.type === "num" || x.type === "int") && x.max > x.min; })[0]; if (!q) return null; var v = +vals[q.key], t = q.type === "int" ? Math.round(q.min + (q.max - q.min) * 0.37) : +(q.min + (q.max - q.min) * 0.37).toFixed(3); if (t === v) t = q.type === "int" ? Math.min(q.max, v + 1) : +(q.min + (q.max - q.min) * 0.41).toFixed(3); return { key: q.key, to: t }; }
+      return { ds: num(MLA.ds().params, MLA.dsParams()), al: num(MLA.algo().params, MLA.algoParams()) };
+    });
+    ok(pick.ds && pick.al, "当前的数据集和算法都有数值参数", JSON.stringify(pick));
+    await page.fill("#dp-" + pick.ds.key, String(pick.ds.to)); await page.dispatchEvent("#dp-" + pick.ds.key, "change"); await page.waitForTimeout(150);
+    await page.fill("#ap-" + pick.al.key, String(pick.al.to)); await page.dispatchEvent("#ap-" + pick.al.key, "change"); await page.waitForTimeout(150);
+    const used = await page.evaluate(async (pick) => { MLA.renderViews(); MLA.renderSummary(); var stale = MLA.stale(); await MLA.run({ quiet: true }); return { stale: stale, ds: MLA.last.dsSpec.params[pick.ds.key], al: MLA.last.params[pick.al.key], saved: JSON.parse(localStorage.getItem("ql.ml.v1")) }; }, pick);
+    ok(used.stale === true, "改了参数以后，上一次的结果标成过期");
+    ok(Math.abs(used.ds - pick.ds.to) < 1e-9 && Math.abs(used.al - pick.al.to) < 1e-9, "运行用的是界面上改过的数据集参数和算法参数", JSON.stringify({ ds: used.ds, al: used.al, want: pick }));
+
     /* ---------- 每个任务、每个数据集 ---------- */
     section("五类任务，每个数据集跑一次默认的算法");
     await page.evaluate(() => { MLA.S.budget = 3; MLA.persist(); });

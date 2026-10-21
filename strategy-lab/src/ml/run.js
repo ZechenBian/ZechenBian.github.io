@@ -153,7 +153,19 @@ function trimInternals(x) {
   var budget = { left: 400000 };
   function arr(a) { if (!a || typeof a.length !== "number") return a; var n = Math.min(a.length, budget.left); budget.left -= n; var o = new Float32Array(n); for (var i = 0; i < n; i++) o[i] = +a[i]; return o; }
   var out = {};
-  if (Array.isArray(x.layers)) out.layers = x.layers.slice(0, 12).map(function (l) { return { name: String(l.name || ""), rows: l.rows | 0, cols: l.cols | 0, data: arr(l.data) }; });
+  // 权重矩阵：大的先按块平均到最多 128 × 128（"模型内部"画的热力图本来也只有 64 × 64 格）；形状和数据对不上的丢掉
+  function layer(l) {
+    var R = l.rows | 0, Cc = l.cols | 0, D = l.data; if (!D || typeof D.length !== "number" || R < 1 || Cc < 1 || D.length < R * Cc) return null;
+    var name = String(l.name || "");
+    if (R * Cc > 16384) {
+      var sR = Math.ceil(R / 128), sC = Math.ceil(Cc / 128), nr = Math.ceil(R / sR), nc = Math.ceil(Cc / sC), o = new Float32Array(nr * nc), cnt = new Float32Array(nr * nc);
+      for (var i = 0; i < R; i++) for (var j = 0; j < Cc; j++) { var q = Math.floor(i / sR) * nc + Math.floor(j / sC); o[q] += +D[i * Cc + j]; cnt[q]++; }
+      for (var t = 0; t < o.length; t++) o[t] /= cnt[t] || 1;
+      return { name: name + "（" + R + " × " + Cc + "，按 " + sR + " × " + sC + " 的块平均）", rows: nr, cols: nc, data: o };
+    }
+    var a = arr(D); return a.length === R * Cc ? { name: name, rows: R, cols: Cc, data: a } : null;
+  }
+  if (Array.isArray(x.layers)) out.layers = x.layers.slice(0, 12).map(layer).filter(Boolean);
   if (x.embedding && x.embedding.data) out.embedding = { rows: x.embedding.rows | 0, cols: x.embedding.cols | 0, data: arr(x.embedding.data), labels: Array.isArray(x.embedding.labels) ? x.embedding.labels.slice(0, 2000).map(String) : null };
   if (Array.isArray(x.activations)) out.activations = x.activations.slice(0, 8).map(function (a) { return { name: String(a.name || ""), data: arr(a.data) }; });
   if (x.tree && Array.isArray(x.tree.nodes)) out.tree = { nodes: x.tree.nodes.slice(0, 2000).map(function (nd) { return { f: nd.f | 0, thr: +nd.thr, left: nd.left | 0, right: nd.right | 0, value: Array.isArray(nd.value) ? nd.value.slice(0, 50).map(Number) : +nd.value, n: nd.n | 0 }; }) };
@@ -223,13 +235,15 @@ R.preview = function (def, data, sp, p) {
     return out;
   }
   var cls = def.kind === "classification";
+  // 预览只画训练集和验证集里的样本：测试集（连同答案）在揭晓之前不出现在页面上
+  var seen = sp ? Int32Array.from(Array.prototype.slice.call(sp.train).concat(Array.prototype.slice.call(sp.valid))).sort() : range(data.n), nSeen = seen.length;
   if (data.d === 2 && !data.shape) {
     var idx = sp ? sp.train : range(data.n), m = Math.min(idx.length, 900), pts = new Float32Array(m * 3);
     for (var i = 0; i < m; i++) { var r = idx[Math.floor(i * idx.length / m)]; pts[3 * i] = data.X[r * 2]; pts[3 * i + 1] = data.X[r * 2 + 1]; pts[3 * i + 2] = data.y[r]; }
     out.scatter = { pts: pts, cls: cls, k: cls ? data.classes.length : 0 };
   } else if (data.d === 1) {
-    var mm = Math.min(data.n, 900), p1 = new Float32Array(mm * 2);
-    for (i = 0; i < mm; i++) { var r1 = Math.floor(i * data.n / mm); p1[2 * i] = data.X[r1]; p1[2 * i + 1] = data.y[r1]; }
+    var mm = Math.min(nSeen, 900), p1 = new Float32Array(mm * 2);
+    for (i = 0; i < mm; i++) { var r1 = seen[Math.floor(i * nSeen / mm)]; p1[2 * i] = data.X[r1]; p1[2 * i + 1] = data.y[r1]; }
     out.xy = { pts: p1, truth: null };
     // 一维回归：数据集给了理论最优（真函数）时，在 200 个点上算出来画成虚线
     if (def.kind === "regression" && isFn(def.oracle)) {
@@ -243,13 +257,14 @@ R.preview = function (def, data, sp, p) {
       } catch (e) { out.xy.truth = null; }
     }
   } else if (data.shape) {
-    var nImg = Math.min(32, data.n), d = data.d, imgs = new Float32Array(nImg * d), labs = new Int32Array(nImg), pick = [];
-    var step = Math.max(1, Math.floor(data.n / nImg));
-    for (i = 0; i < nImg; i++) pick.push((i * step + (i * 7919) % step) % data.n);
+    var nImg = Math.min(32, nSeen), d = data.d, imgs = new Float32Array(nImg * d), labs = new Int32Array(nImg), pick = [];
+    var step = Math.max(1, Math.floor(nSeen / nImg));
+    for (i = 0; i < nImg; i++) pick.push(seen[(i * step + (i * 7919) % step) % nSeen]);
     pick.forEach(function (r2, q) { for (var j = 0; j < d; j++) imgs[q * d + j] = data.X[r2 * d + j]; labs[q] = data.y[r2]; });
     out.images = { shape: data.shape, data: imgs, labels: labs, n: nImg };
   }
   if (data.classes) { var cnt = new Int32Array(data.classes.length); for (i = 0; i < data.n; i++) cnt[data.y[i]]++; out.classCounts = Array.from(cnt); }
+  out.splitFixed = !!data.splitIdx;
   out.n = data.n; out.d = data.d; out.classes = data.classes || null; out.featureNames = data.featureNames || null; out.tokens = data.tokens || null; out.shape = data.shape || null;
   if (data.meta) { try { out.meta = JSON.parse(JSON.stringify(data.meta, function (k, v) { return v && typeof v === "object" && typeof v.length === "number" && !Array.isArray(v) ? (v.length > 50000 ? undefined : Array.from(v)) : v; })); } catch (e) { out.meta = null; } }
   return out;
@@ -491,6 +506,7 @@ QL.jobs["ml-score"] = function (m) {
     if (g.kind === "fn1d" && G1 && G1.kind === "fn1d") return { step: +g.step, kind: "fn1d", data: { xs: Float32Array.from(G1.X), ys: Float32Array.from(cleanPred("regression", g.values, 200, 0, "predict（画曲线时）")) } };
     return R.wrapGridSnap(def, D.data, P.k, g.step, g.values);
   }).concat(o.snaps || []);
+  o.internals = trimInternals(o.internals);
   var res = R.scoreSupervised(P, o); res.ms = o.ms; return res;
 };
 /** 出错时从调用栈里找出线程源码的行号（页面再换算成算法代码自己的行号）：附在消息末尾，格式是 "\u0000L行号" */
