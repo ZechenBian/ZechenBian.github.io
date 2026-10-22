@@ -818,5 +818,227 @@ class StaticTest(unittest.TestCase):
             self.assertIn("ctx.time_left()", src, name)
 
 
+
+class McpTest(unittest.TestCase):
+    """python -m mllab_engine --mcp：给 Claude 桌面版用的本地 MCP 服务器（标准输入 / 输出，一行一条 JSON-RPC 消息）。
+    真的开一个引擎进程，按桌面版的做法握手、列工具、调工具；数据服务器在本机，用 MLLAB_ALLOW_PRIVATE_FETCH=1 放行"""
+
+    @classmethod
+    def setUpClass(cls):
+        import http.server as hs
+        import subprocess
+        import threading as th
+        rng = np.random.default_rng(11)
+        cls.big = ("a,b,c\n" + "".join("%.6f,%.6f,%d\n" % (rng.normal(), rng.normal(), rng.integers(0, 9)) for _ in range(90000))).encode("utf-8")
+
+        class H(hs.BaseHTTPRequestHandler):
+            def log_message(self, *a):
+                pass
+
+            def do_GET(self):
+                body = {"/big.csv": cls.big, "/small.csv": b"x,y\n1,2\n3,4\n"}.get(self.path)
+                if body is None:
+                    self.send_response(404); self.end_headers(); return
+                self.send_response(200); self.send_header("Content-Type", "text/csv"); self.send_header("Content-Length", str(len(body))); self.end_headers(); self.wfile.write(body)
+
+        cls.data = hs.ThreadingHTTPServer(("127.0.0.1", 0), H)
+        cls.dport = cls.data.server_address[1]
+        th.Thread(target=cls.data.serve_forever, daemon=True).start()
+        env = dict(os.environ, MLLAB_ALLOW_PRIVATE_FETCH="1", PYTHONPATH=ROOT)
+        cls.proc = subprocess.Popen([sys.executable, "-m", "mllab_engine", "--mcp"], cwd=tempfile.gettempdir(), env=env,
+                                    stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        cls.lines, cls.bad, cls.got, cls.cv = [], [], {}, th.Condition()
+        cls.err = []
+
+        def reader():
+            for raw in iter(cls.proc.stdout.readline, b""):
+                cls.lines.append(raw)
+                try:
+                    msg = json.loads(raw.decode("utf-8"))
+                except ValueError:
+                    cls.bad.append(raw)
+                    continue
+                with cls.cv:
+                    cls.got[msg.get("id")] = msg
+                    cls.cv.notify_all()
+        th.Thread(target=reader, daemon=True).start()
+        th.Thread(target=lambda: cls.err.extend(iter(cls.proc.stderr.readline, b"")), daemon=True).start()
+        cls.nid = 0
+
+    @classmethod
+    def tearDownClass(cls):
+        try:
+            cls.proc.stdin.close()
+            cls.proc.wait(10)
+        finally:
+            if cls.proc.poll() is None:
+                cls.proc.kill()
+            cls.data.shutdown()
+
+    def rpc(self, method, params=None, timeout=60):
+        type(self).nid += 1
+        mid = self.nid
+        msg = {"jsonrpc": "2.0", "id": mid, "method": method}
+        if params is not None:
+            msg["params"] = params
+        self.proc.stdin.write((json.dumps(msg) + "\n").encode("utf-8"))
+        self.proc.stdin.flush()
+        t0 = time.time()
+        with self.cv:
+            while mid not in self.got:
+                left = timeout - (time.time() - t0)
+                self.assertGreater(left, 0, "没有回答：%s" % method)
+                self.cv.wait(left)
+            return self.got.pop(mid)
+
+    def call(self, name, args=None, timeout=60):
+        r = self.rpc("tools/call", {"name": name, "arguments": args or {}}, timeout)
+        self.assertIn("result", r, r)
+        text = r["result"]["content"][0]["text"]
+        if r["result"].get("isError"):
+            raise AssertionError("工具报错：" + text)
+        return json.loads(text)
+
+    def call_error(self, name, args=None):
+        r = self.rpc("tools/call", {"name": name, "arguments": args or {}})
+        self.assertTrue(r["result"]["isError"], r)
+        return r["result"]["content"][0]["text"]
+
+    def test_1_handshake_and_tools(self):
+        r = self.rpc("server/discover", {})
+        self.assertEqual(r["error"]["code"], -32601)            # 老一代的服务器：新客户端据此退回 initialize
+        r = self.rpc("initialize", {"protocolVersion": "2025-06-18", "capabilities": {}, "clientInfo": {"name": "test", "version": "0"}})
+        res = r["result"]
+        self.assertEqual(res["protocolVersion"], "2025-06-18")
+        self.assertEqual(res["serverInfo"]["name"], "mllab-engine")
+        self.assertIn("tools", res["capabilities"])
+        self.assertEqual(self.rpc("initialize", {"protocolVersion": "1999-01-01"})["result"]["protocolVersion"], "2025-11-25")
+        self.proc.stdin.write(b'{"jsonrpc":"2.0","method":"notifications/initialized"}\n'); self.proc.stdin.flush()
+        self.assertEqual(self.rpc("ping")["result"], {})
+        tools = self.rpc("tools/list")["result"]["tools"]
+        names = [t["name"] for t in tools]
+        self.assertEqual(names, ["info", "examples", "fetch_url", "read_blob", "run_upload", "run_start", "run_events", "run_cancel"])
+        ro = {t["name"]: t["annotations"]["readOnlyHint"] for t in tools}
+        self.assertFalse(ro["run_start"])                         # 执行代码：桌面版每次都会问你
+        self.assertTrue(ro["fetch_url"] and ro["run_events"] and ro["info"])
+        for t in tools:
+            self.assertEqual(t["inputSchema"]["type"], "object", t["name"])
+        self.assertEqual(self.rpc("tools/call", {"name": "nope", "arguments": {}})["error"]["code"], -32602)
+        self.assertEqual(self.rpc("no/such/method")["error"]["code"], -32601)
+        info = self.call("info")
+        self.assertEqual((info["mode"], info["version"]), ("mcp", __version__))
+        ex = {e["id"] for e in self.call("examples")["examples"]}
+        self.assertIn("ridge_numpy", ex)
+
+    def test_2_fetch_in_chunks(self):
+        self.assertIn("http://", self.call_error("fetch_url", {"url": "ftp://example.org/x.csv"}))
+        self.assertIn("HTTP 404", self.call_error("fetch_url", {"url": "http://127.0.0.1:%d/missing.csv" % self.dport}))
+        small = self.call("fetch_url", {"url": "http://127.0.0.1:%d/small.csv" % self.dport})
+        self.assertEqual((small["packed"], small["chunks"], base64_dec(small["data"])), (None, 1, b"x,y\n1,2\n3,4\n"))
+        r = self.call("fetch_url", {"url": "http://127.0.0.1:%d/big.csv" % self.dport})
+        self.assertEqual((r["packed"], r["bytes"]), ("gzip", len(self.big)))
+        self.assertGreater(r["chunks"], 1)                        # 压缩以后还是要分几块读
+        parts = [base64_dec(r["data"])] + [base64_dec(self.call("read_blob", {"id": r["id"], "index": i})["data"]) for i in range(1, r["chunks"])]
+        import gzip
+        self.assertEqual(gzip.decompress(b"".join(parts)), self.big)
+        self.assertIn("index", self.call_error("read_blob", {"id": r["id"], "index": r["chunks"]}))
+        self.assertIn("不在引擎里", self.call_error("read_blob", {"id": "nope", "index": 0}))
+
+    def test_3_run_with_upload_and_clean_stdout(self):
+        rng = np.random.default_rng(5)
+        X = rng.normal(size=(200, 2))
+        y = X @ np.array([2.0, -1.0]) + 0.5
+        code = example("ridge_numpy.py") + "\nprint('训练中，这一行不能弄脏 MCP 的标准输出')\nimport sys\nsys.__stdout__.write('直接写 1 号描述符也不行\\n')\n"
+        job, (tr, va, te) = supervised_job(code, X, y, "regression", params={"lam": 0.01})
+        text = json.dumps(job)
+        n = 3
+        step = len(text) // n + 1
+        up = None
+        for i in range(n):
+            r = self.call("run_upload", {"upload": up, "text": text[i * step:(i + 1) * step]})
+            up = r["upload"]
+        self.assertEqual(r["received"], len(text.encode("utf-8")))
+        rid = self.call("run_start", {"upload": up})["id"]
+        self.assertIn("没有这次上传", self.call_error("run_start", {"upload": up}))   # 交过一次就清掉
+        evs, frm, part, buf = [], 0, 0, ""
+        for _ in range(200):
+            r = self.call("run_events", {"id": rid, "from": frm, "part": part, "waitMs": 5000})
+            for e in r["events"]:
+                if "parts" in e:
+                    buf += e["text"]
+                    if e["part"] + 1 < e["parts"]:
+                        continue
+                    e = dict(e, text=buf)
+                    buf = ""
+                evs.append((e["name"], codec.loads(e["text"])))
+            frm, part = r["next"], r["part"]
+            if r["finished"]:
+                break
+        names = [n for n, _ in evs]
+        self.assertEqual(names[0], "ready")
+        self.assertEqual(names[-1], "done", evs[-1])
+        self.assertTrue(any(n == "log" and "训练中" in json.dumps(d, ensure_ascii=False) for n, d in evs))
+        got = np.asarray(evs[-1][1]["result"]["pred"]["test"])
+        self.assertEqual(got.shape, (len(te),))
+        np.testing.assert_allclose(got, y[te], atol=0.1)
+        self.assertEqual(self.bad, [], "标准输出里混进了不是 MCP 消息的东西")
+        self.assertTrue(any("直接写 1 号描述符" in l.decode("utf-8", "replace") for l in self.err))
+
+    def test_4_cancel(self):
+        rng = np.random.default_rng(6)
+        X = rng.normal(size=(60, 2)); y = X[:, 0]
+        code = "import time\ndef fit(data, p, lib, ctx):\n    while True:\n        time.sleep(0.05)\ndef predict(m, X):\n    return X[:, 0]\n"
+        job, _ = supervised_job(code, X, y, "regression", budget=60000)
+        rid = self.call("run_start", {"job": job})["id"]
+        frm = 0
+        for _ in range(100):                                      # 等它真的开始
+            r = self.call("run_events", {"id": rid, "from": frm, "waitMs": 2000})
+            frm = r["next"]
+            if any(e["name"] == "ready" for e in r["events"]) or r["state"] == "running":
+                break
+        self.assertTrue(self.call("run_cancel", {"id": rid})["ok"])
+        for _ in range(100):
+            r = self.call("run_events", {"id": rid, "from": frm, "waitMs": 2000})
+            frm = r["next"]
+            if r["finished"]:
+                break
+        self.assertTrue(r["finished"])
+        self.assertEqual(r["state"], "cancelled")
+
+    def test_5_long_event_is_split(self):
+        from mllab_engine import mcp as M
+        from mllab_engine.server import Run
+        run = Run("r1", "supervised", "regression", 1000)
+        long = json.dumps({"x": "甲" * (M.EVENT_BUDGET * 2 + 10)}, ensure_ascii=False)
+        run.push("progress", {"phase": "fit"})
+        run.push("done", long, final_state="done")
+        fake = types.SimpleNamespace(get_run=lambda rid: run if rid == "r1" else None, closing=False, say=lambda *a: None, close=lambda: None)
+        srv = M.McpServer(out=types.SimpleNamespace(write=lambda b: None, flush=lambda: None), engine=fake)
+        r1 = srv.t_run_events({"id": "r1", "waitMs": 0}, 1)
+        self.assertEqual([e["name"] for e in r1["events"]], ["progress"])
+        self.assertEqual((r1["next"], r1["part"], r1["finished"]), (1, 0, False))
+        pieces, frm, part = [], r1["next"], 0
+        while True:
+            r = srv.t_run_events({"id": "r1", "from": frm, "part": part, "waitMs": 0}, 1)
+            pieces += r["events"]
+            frm, part = r["next"], r["part"]
+            if r["finished"]:
+                break
+        self.assertEqual([p["part"] for p in pieces], [0, 1, 2])
+        self.assertEqual("".join(p["text"] for p in pieces), long)
+        self.assertTrue(all(len(p["text"]) <= M.EVENT_BUDGET for p in pieces))
+
+    def test_6_claude_config(self):
+        from mllab_engine import mcp as M
+        cfg = M.claude_config()["mcpServers"]["mllab-engine"]
+        self.assertEqual(cfg["args"], ["-m", "mllab_engine", "--mcp"])
+        self.assertEqual(cfg["command"], sys.executable)
+        self.assertEqual(cfg["env"]["PYTHONPATH"], ROOT)
+
+
+def base64_dec(s):
+    import base64
+    return base64.b64decode(s)
+
 if __name__ == "__main__":
     unittest.main()

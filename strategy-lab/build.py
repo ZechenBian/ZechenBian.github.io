@@ -214,7 +214,10 @@ if "ml/main.js" in ML_JS:
 
     # 在 Claude 里打开的版本（dist/ml-lab.html）：发布成 Claude 里的 Artifact，声明 sample 能力，AI 就是打开页面的人自己的 Claude
     # （window.claude.use("sample")，不用密钥，用的是自己账号的额度）。和 dist/strategy-lab.html 一样只是页面的内容，Artifact 会套上
-    # 自己的文档骨架。回到策略实验室的链接改成网站的绝对地址。那里页面不能自己联网：从网上取数据、本机引擎会说明并指向网站版。
+    # 自己的文档骨架。回到策略实验室的链接改成网站的绝对地址。那里页面不能自己联网：另外声明 mcp 能力，经 Claude 桌面版调用
+    # host:mllab-engine（python -m mllab_engine --mcp）和 host:claude_browser（桌面版自带的浏览器），见 src/ml/engine.js、web.js。
+    # 发布时的 capabilities：{"sample": {}, "mcp": {"servers": [{"server": "host:mllab-engine", "tools": [info, examples, fetch_url, read_blob,
+    # run_upload, run_start, run_events, run_cancel]}, {"server": "host:claude_browser", "tools": [preview_start, navigate, get_page_text]}]}}
     ml_body = rd("src/ml/body.html"); ml_body_claude = ml_body.replace('href="../"', 'href="%s" target="_blank" rel="noopener"' % SITE)
     assert ml_body_claude != ml_body, "回到策略实验室的链接变了：改一下这里"
     ml_claude = "\n".join([

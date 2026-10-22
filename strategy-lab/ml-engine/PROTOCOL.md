@@ -321,3 +321,27 @@ def update(model, y_new)                   # 可选
   照抄第一期 JavaScript 的写法也行：`timeLeft()`（毫秒）、`budgetMs`。时间序列里 `snapshot` 什么也不做。
 * `predict` 的第三个参数若名叫 `n`（照抄 JS 的 `predict(model, X, n)`），引擎会把行数传进去。
 * `print` 的输出变成 `log` 事件，也照样打印在引擎的终端里。
+
+## 11. MCP 模式
+
+给在 Claude 里打开的页面用（那里页面不能自己联网）：`python -m mllab_engine --mcp` 由 Claude 桌面版作为本地 MCP 服务器启动，
+页面经 Artifact 的 `mcp` 能力调用 `host:mllab-engine` 的工具。传输是 stdio：一行一条 JSON-RPC 2.0 消息，标准输出只写 MCP 消息。
+实现的是带 `initialize` 握手的那一代协议（`2024-11-05` 到 `2025-11-25`，回答对方要的版本，不认识就答 `2025-11-25`）；
+`server/discover` 回答 `-32601`，按 2026-07-28 的规范新客户端会退回 `initialize`。另外认 `ping`、`tools/list`、`tools/call`、`notifications/cancelled`。
+
+工具的结果都是一段文字（`content[0].text`），内容是 JSON；出错时 `isError: true`，文字是一句中文说明。请求和事件与 HTTP 模式相同，只是因为
+每次调用的输入输出有大小限制，大的东西分块：
+
+| 工具 | 输入 | 回答 | 只读 |
+|---|---|---|---|
+| `info` | — | 同 `GET /api/info`，另有 `"mode": "mcp"` | 是 |
+| `examples` | — | 同 `GET /api/examples` | 是 |
+| `fetch_url` | `{url}` | `{id, url, status, contentType, bytes, size, packed, chunks, index: 0, data}`：`data` 是第一块的 base64（每块 384 KiB）；文字文件引擎会先 gzip（`packed: "gzip"`），已经是 gzip、zip 的不动 | 是 |
+| `read_blob` | `{id, index}` | `{id, index, chunks, data}`；引擎只留最近 4 份 | 是 |
+| `run_upload` | `{upload?, text}` | `{upload, received}`：把 `POST /api/run` 的请求体（JSON 文字）分块交给引擎，只存在内存里 | 是 |
+| `run_start` | `{job}` 或 `{upload}` | `{id}`：同 `POST /api/run`；忙的时候报"正在运行另一个任务" | **否**（执行代码，桌面版每次都会问） |
+| `run_events` | `{id, from?, part?, waitMs?}` | `{events: [{i, name, text, part?, parts?}], next, part, finished, state}`：从第 `from` 条起，没有新事件最多等 `waitMs`（≤ 20000）毫秒；`text` 是那条事件的 JSON 文字；一条超过 480 K 字符时分几次带回（`part` / `parts`），下一次用回答里的 `next`、`part` | 是 |
+| `run_cancel` | `{id}` | `{ok, state}` | 否 |
+
+页面这一侧（src/ml/engine.js）：请求体不超过 30 万字符时直接 `run_start({job})`，否则先 `run_upload` 分块；事件一轮一轮地取，拼好分块的那一条再处理，
+和 HTTP 的事件流用同一段代码。`python -m mllab_engine --claude-config` 打印要加进 Claude 桌面版 `claude_desktop_config.json` 的那一段。

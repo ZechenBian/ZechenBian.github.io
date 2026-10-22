@@ -425,7 +425,7 @@
   function ensureOpen() { A.openAI(true); if (!sample) { A.toast(WEB ? "还没有接入 AI：先在右栏点“接入 AI…”" : "这里不能调用 AI。", 3600); return false; } if (busy) { A.toast(who() + " 还在忙上一件事。"); return false; } return true; }
   A.aiDiagnose = function () { if (!ensureOpen()) return; if (!A.last) { A.toast("先运行一次。"); return; } setMode("diag"); send("诊断这次运行：" + A.last.algo.name + " · " + A.last.def.name, { mode: "diag" }); };
   A.aiImprove = function (extra) { if (!ensureOpen()) return; setMode("improve"); send("自动改进 " + (roundsSel ? roundsSel.value : 3) + " 轮" + (typeof extra === "string" && extra ? "（按诊断的建议）" : ""), { mode: "improve", extra: typeof extra === "string" ? extra : "" }); };
-  A.aiFix = function (err) { var e = err || A.lastError; if (!e) return; if (e.algo && e.algo.lang === "py") { A.toast("AI 现在只写 JavaScript 的算法。Python 的出错信息（含完整的调用栈）在本机引擎的终端里。", 4600); return; } if (!ensureOpen()) return; if (e.algo) A.selectAlgo(e.algo.id); setMode("write"); send("修复这段代码的错误：" + String(e.message).slice(0, 200), { fix: String(e.message).slice(0, 1200) + (e.line ? "（第 " + e.line + " 行：" + lineOf(e.algo && e.algo.code, e.line) + "）" : "") }); };
+  A.aiFix = function (err) { var e = err || A.lastError; if (!e) return; if (e.algo && e.algo.lang === "py") { A.toast("AI 现在只写 JavaScript 的算法。Python 的出错信息（含完整的调用栈）在本机引擎的" + (A.engineMode && A.engineMode() === "mcp" ? "日志里（Claude 桌面版的 mcp-server-mllab-engine.log）。" : "终端里。"), 4600); return; } if (!ensureOpen()) return; if (e.algo) A.selectAlgo(e.algo.id); setMode("write"); send("修复这段代码的错误：" + String(e.message).slice(0, 200), { fix: String(e.message).slice(0, 1200) + (e.line ? "（第 " + e.line + " 行：" + lineOf(e.algo && e.algo.code, e.line) + "）" : "") }); };
 
   /* ---------- 例子 ---------- */
   function examples(m) {
