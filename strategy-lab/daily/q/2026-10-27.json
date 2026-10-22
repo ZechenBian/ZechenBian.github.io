@@ -1,0 +1,182 @@
+{
+  "v": 1,
+  "day": "2026-10-27",
+  "id": "pond-harvest",
+  "title": {
+    "zh": "池塘里每季捞多少",
+    "en": "How much to take from the pond"
+  },
+  "summary": {
+    "zh": "捞多了明年没鱼，捞少了白白浪费。池塘能养多少、鱼长得多快，都得从存量的变化里看出来。",
+    "en": "Take too much and there is nothing next season; take too little and growth goes to waste. How many fish the pond can hold and how fast they grow, you must read from the stock itself."
+  },
+  "about": {
+    "zh": [
+      "你承包了一个池塘，一共 40 季。每季开捕前你看到池塘里的存量 X（吨），定这一季捞多少。捞完以后剩下的鱼繁殖：剩 Y 吨，下一季开捕前的存量是 Y + r × Y × (1 − Y / K) × ε。",
+      "",
+      "K 是池塘的容量，r 是增长率，你都不知道：每一局各换一个，K 在 50 到 150 之间均匀地抽，r 在 0.2 到 0.6 之间均匀地抽，一局之内不变。ε 是每季的运气：e 的 (0.3 × z − 0.045) 次方，z 是标准正态数，所以 ε 平均是 1，每季独立。开局的存量是 K 乘上 0.4 到 0.8 之间均匀抽的一个数。",
+      "",
+      "**你的规则看到的**：`s.see` 是这一季开捕前的存量 X（吨）。以前各季的存量和捞过的量，要自己记在 `st` 里。",
+      "",
+      "**你的规则报的数**：这一季捞多少吨。最多捞 X 的八成，报多了按八成算；负数或者不是数算 0。",
+      "",
+      "**计分**：40 季捞到的吨数加起来。第 40 季之后池塘里剩多少都不算分。"
+    ],
+    "en": [
+      "You have the lease on a pond for 40 seasons. Before each season's catch you see the stock X (tons) in the pond and decide how much to take. What is left breeds: if Y tons remain, the stock before the next season is Y + r × Y × (1 − Y / K) × ε.",
+      "",
+      "K is the pond's capacity and r the growth rate, and you know neither: every episode draws new ones, K uniformly between 50 and 150 and r uniformly between 0.2 and 0.6, fixed within an episode. ε is the season's luck: e to the power (0.3 × z − 0.045) with z a standard normal number, so ε averages 1, independently each season. The opening stock is K times a number drawn uniformly between 0.4 and 0.8.",
+      "",
+      "**What your rule sees**: `s.see` is the stock X (tons) before this season's catch. Keep earlier stocks and catches in `st` yourself.",
+      "",
+      "**What your rule returns**: how many tons to take this season. At most eight tenths of X; more counts as eight tenths; a negative number or something that is not a number counts as 0.",
+      "",
+      "**Score**: the tons caught over the 40 seasons, added up. Whatever is left in the pond after season 40 does not count."
+    ]
+  },
+  "note": {
+    "zh": [
+      "剩 Y 吨的时候这一季的增长平均是 r × Y × (1 − Y / K)，在 Y = K / 2 时最大，是 r × K / 4：把存量维持在容量的一半附近、每季捞走长出来的那部分，是长久下来捞得最多的办法。可是 r 和 K 得从存量的变化里估出来，运气 ε 又把每一季的增长搅得挺乱；而且一局只有 40 季，最后几季已经不用再为以后留鱼。每季固定捞存量的一个比例 f 的话，f / (1 − f) 比 r 大的池塘会越捞越少：捞 25% 对 r 低于 1/3 的池塘就是这样。"
+    ],
+    "en": [
+      "With Y tons left, the season's growth averages r × Y × (1 − Y / K), which is largest at Y = K / 2, where it equals r × K / 4: keeping the stock near half the capacity and taking the growth each season is what yields the most in the long run. But r and K have to be estimated from how the stock changes, the luck ε makes every season's growth noisy, and an episode has only 40 seasons, so the last few need not leave fish for the future. Taking a fixed fraction f of the stock every season runs the pond down whenever f / (1 − f) exceeds r: taking 25% does that to every pond with r below 1/3."
+    ]
+  },
+  "T": 40,
+  "p": {
+    "klo": 50,
+    "khi": 150,
+    "rlo": 0.2,
+    "rhi": 0.6,
+    "sd": 0.3,
+    "cap": 0.8
+  },
+  "code": {
+    "zh": [
+      "// 发牌：抽容量 K、增长率 r、开局的存量，再把每一季的运气 ε 先定好，藏起来。",
+      "function deal(T, rng, p) {",
+      "  var K = rng.uniform(p.klo, p.khi), r = rng.uniform(p.rlo, p.rhi), eps = [];",
+      "  for (var t = 0; t < T; t++) eps.push(Math.exp(p.sd * rng.normal() - p.sd * p.sd / 2));",
+      "  return { K: K, r: r, eps: eps, X: K * rng.uniform(0.4, 0.8), cap: p.cap };",
+      "}",
+      "// 亮牌：这一季开捕前的存量。",
+      "function show(G, t) {",
+      "  return G.X;",
+      "}",
+      "// 判分：捞 c 吨（最多存量的 cap 倍，负数和不是数算 0），得 c 分；剩下的按 Y + r Y (1 − Y / K) ε 长到下一季。",
+      "function referee(G, t, a) {",
+      "  var c = a >= 0 ? Math.min(a, G.cap * G.X) : 0, Y = G.X - c;",
+      "  G.X = Math.max(0, Y + G.r * Y * (1 - Y / G.K) * G.eps[t]);",
+      "  return c;",
+      "}"
+    ],
+    "en": [
+      "// Deal: draw the capacity K, the growth rate r, the opening stock, and every season's luck ε. All hidden.",
+      "function deal(T, rng, p) {",
+      "  var K = rng.uniform(p.klo, p.khi), r = rng.uniform(p.rlo, p.rhi), eps = [];",
+      "  for (var t = 0; t < T; t++) eps.push(Math.exp(p.sd * rng.normal() - p.sd * p.sd / 2));",
+      "  return { K: K, r: r, eps: eps, X: K * rng.uniform(0.4, 0.8), cap: p.cap };",
+      "}",
+      "// Show: the stock before this season's catch.",
+      "function show(G, t) {",
+      "  return G.X;",
+      "}",
+      "// Referee: take c tons (at most cap times the stock; negatives and non-numbers count as 0) and score c; the rest grows to next season as Y + r Y (1 − Y / K) ε.",
+      "function referee(G, t, a) {",
+      "  var c = a >= 0 ? Math.min(a, G.cap * G.X) : 0, Y = G.X - c;",
+      "  G.X = Math.max(0, Y + G.r * Y * (1 - Y / G.K) * G.eps[t]);",
+      "  return c;",
+      "}"
+    ]
+  },
+  "sets": {
+    "pub": 10,
+    "fin": 10,
+    "K": 1500,
+    "seed": 20261027
+  },
+  "higher": true,
+  "digits": 1,
+  "refs": [
+    {
+      "id": "tenth",
+      "name": {
+        "zh": "每季捞一成",
+        "en": "Take a tenth every season"
+      },
+      "summary": {
+        "zh": "每季捞存量的 10%，什么也不学。拿来当基准。",
+        "en": "Takes 10% of the stock every season and learns nothing. The benchmark."
+      },
+      "p": {
+        "f": 0.1
+      },
+      "code": "function decide(s, p) {\n  return p.f * s.see;\n}"
+    },
+    {
+      "id": "last",
+      "name": {
+        "zh": "每季捞 15%，最后一季捞八成",
+        "en": "Take 15%, then eight tenths at the end"
+      },
+      "summary": {
+        "zh": "平时捞 15%，最后一季反正不用再留鱼，捞到上限。",
+        "en": "Takes 15% in ordinary seasons and the maximum in the last one, when nothing needs to be left."
+      },
+      "p": {
+        "f": 0.15
+      },
+      "code": "function decide(s, p) {\n  return s.t === s.T - 1 ? s.see : p.f * s.see;\n}"
+    },
+    {
+      "id": "growth",
+      "name": {
+        "zh": "只捞长出来的那部分",
+        "en": "Take only the growth"
+      },
+      "summary": {
+        "zh": "这一季的存量比上一季捞完剩下的多出多少，就捞多少，把存量稳在开局的水平；第一季捞 10%，最后一季捞到上限。",
+        "en": "Takes exactly what the stock grew since last season's catch, holding the stock at its opening level; 10% in the first season, the maximum in the last."
+      },
+      "p": {
+        "f": 0.1
+      },
+      "code": "function init(p) {\n  return { left: NaN };\n}\nfunction decide(s, p, st) {\n  var c = s.t === 0 ? p.f * s.see : Math.max(0, s.see - st.left);\n  if (s.t === s.T - 1) c = s.see;\n  st.left = s.see - Math.min(c, 0.8 * s.see);\n  return c;\n}"
+    }
+  ],
+  "starter": {
+    "p": {
+      "f": 0.1
+    },
+    "code": {
+      "zh": [
+        "// 起始代码：每季捞存量的 p.f。把它改成你的办法。",
+        "// s.see：这一季开捕前的存量（吨）。s.t 是第几季（从 0 起），s.T 是一共几季。报的数最多算到存量的八成。",
+        "// st 是你自己的记事本，一局之内一直在：这里替你记下了上一季捞完剩下的 st.left 和上一季的增长 st.grow（= 这一季的存量 − st.left），还没有用上。题目的参数在 s.g 里：K 在 s.g.klo 到 s.g.khi 之间，r 在 s.g.rlo 到 s.g.rhi 之间。",
+        "function init(p) {",
+        "  return { left: NaN, grow: NaN };",
+        "}",
+        "function decide(s, p, st) {",
+        "  st.grow = s.see - st.left;",
+        "  var c = p.f * s.see;",
+        "  st.left = s.see - c;",
+        "  return c;",
+        "}"
+      ],
+      "en": [
+        "// Starter code: takes p.f of the stock every season. Change it into your own method.",
+        "// s.see: the stock (tons) before this season's catch. s.t is the season (from 0), s.T the number of seasons. The catch is capped at eight tenths of the stock.",
+        "// st is your own notebook for the whole episode: it already records what was left after last season's catch, st.left, and last season's growth st.grow (= this season's stock - st.left), unused so far. The parameters are in s.g: K between s.g.klo and s.g.khi, r between s.g.rlo and s.g.rhi.",
+        "function init(p) {",
+        "  return { left: NaN, grow: NaN };",
+        "}",
+        "function decide(s, p, st) {",
+        "  st.grow = s.see - st.left;",
+        "  var c = p.f * s.see;",
+        "  st.left = s.see - c;",
+        "  return c;",
+        "}"
+      ]
+    }
+  }
+}

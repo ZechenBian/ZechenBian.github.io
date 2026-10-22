@@ -1,0 +1,199 @@
+{
+  "v": 1,
+  "day": "2026-10-26",
+  "id": "habit-hands",
+  "title": {
+    "zh": "猜拳：对手有套路",
+    "en": "Rock, paper, scissors against a creature of habit"
+  },
+  "summary": {
+    "zh": "对手是四种套路里的一种，你不知道是哪种。先认人，再占便宜；认得越快越好。",
+    "en": "Your opponent follows one of four habits, and you do not know which. Work out who you are facing, then exploit it; the sooner the better."
+  },
+  "about": {
+    "zh": [
+      "和一个对手猜拳 100 回合。报 1 是石头，2 是布，3 是剪刀：布包石头，剪刀剪布，石头砸剪刀。赢一回合得 1 分，输扣 1 分，平局 0 分。",
+      "",
+      "对手是四种人里的一种，每一局开始时等机会地抽一种，一局之内不变：",
+      "",
+      "- **偏心的**：心里有一手最爱出的（石头、布、剪刀各占三分之一的机会），每回合出它的概率是 w（每一局在 0.45 到 0.7 之间均匀地抽），另外两手各占剩下的一半。每回合独立。",
+      "- **克你上一手的**：出能赢你上一回合那一手的手。",
+      "- **跟你上一手的**：出你上一回合出的那一手。",
+      "- **轮着出的**：按固定的顺序轮，要么石头→布→剪刀→石头，要么石头→剪刀→布→石头（哪个方向每一局抽一次），每回合往下走一步。",
+      "",
+      "后三种人每回合都有 0.2 的概率走神，随机出一手（三手等可能）；第一回合没有上一手，也随机出。轮着出的人走神之后，下一回合从走神出的那一手接着轮。",
+      "",
+      "**你的规则看到的**：`s.see.opp` 是对手上一回合出的（1 石头，2 布，3 剪刀）；`s.see.res` 是上一回合的结果（1 赢，−1 输，0 平）。第一回合这两个都是 NaN。自己上一回合出的要自己记在 `st` 里。",
+      "",
+      "**你的规则报的数**：1 石头，2 布，3 剪刀。报别的，或者报的不是数，都算出石头。对手“克你上一手”“跟你上一手”看的是你实际出的那一手。",
+      "",
+      "**计分**：100 回合的得分加起来（赢 +1，输 −1，平 0）。"
+    ],
+    "en": [
+      "You play rock, paper, scissors against one opponent for 100 rounds. Return 1 for rock, 2 for paper, 3 for scissors: paper covers rock, scissors cut paper, rock breaks scissors. A win scores 1, a loss −1, a tie 0.",
+      "",
+      "The opponent is one of four kinds, drawn with equal probability at the start of every episode and fixed within it:",
+      "",
+      "- **Biased**: has a favourite hand (rock, paper or scissors with probability one third each) and plays it with probability w (drawn uniformly between 0.45 and 0.7 each episode); the other two hands share the rest equally. Rounds are independent.",
+      "- **Beats your last**: plays the hand that beats what you played in the previous round.",
+      "- **Copies your last**: plays what you played in the previous round.",
+      "- **Cycles**: steps through a fixed order, either rock→paper→scissors→rock or rock→scissors→paper→rock (the direction is drawn once per episode), one step every round.",
+      "",
+      "The last three kinds slip with probability 0.2 in every round and play a uniformly random hand instead; in the first round, having no previous hand to go on, they also play at random. After a slip, the cycling opponent continues the cycle from the hand it actually played.",
+      "",
+      "**What your rule sees**: `s.see.opp` is the opponent's hand in the previous round (1 rock, 2 paper, 3 scissors); `s.see.res` is the previous round's result (1 won, −1 lost, 0 tie). Both are NaN in the first round. Keep your own previous hand in `st`.",
+      "",
+      "**What your rule returns**: 1 rock, 2 paper, 3 scissors. Anything else, or something that is not a number, counts as rock. The opponents who react to your last hand react to the hand you actually played.",
+      "",
+      "**Score**: the sum over the 100 rounds (+1 per win, −1 per loss, 0 per tie)."
+    ]
+  },
+  "note": {
+    "zh": [
+      "对着偏心的人，数一数他出得最多的是哪一手就行；对着后三种，要看的是他这一手和你上一手、他上一手的关系。一条规则要同时顾着四种人：先用几个回合认出对手是哪一种，再用剩下的回合占便宜。认得越快、认错得越少越好，而对手走神的那 0.2 让这件事没有那么确定。认出了套路的话，对着后三种人大约 87% 的回合能赢（0.8 + 0.2 / 3），平均每回合净得 0.8 分。"
+    ],
+    "en": [
+      "Against the biased opponent it is enough to count which hand comes up most; against the other three, what matters is how their hand relates to your previous hand and to their own. One rule has to handle all four: spend a few rounds identifying the opponent, then exploit it for the rest. The faster and the more reliably you identify, the better, and the 0.2 chance of a slip keeps it from being certain. Once the habit is known, about 87% of the rounds against the last three kinds are wins (0.8 + 0.2 / 3), a net 0.8 points per round on average."
+    ]
+  },
+  "T": 100,
+  "p": {
+    "wlo": 0.45,
+    "whi": 0.7,
+    "slip": 0.2
+  },
+  "code": {
+    "zh": [
+      "// 发牌：抽对手是哪一种（0 偏心，1 克你上一手，2 跟你上一手，3 轮着出）、最爱的手、偏心的程度 w、轮的方向，再把每回合的随机手和走神的骰子先定好，藏起来。",
+      "function deal(T, rng, p) {",
+      "  var type = rng.int(4), fav = rng.int(3) + 1, w = rng.uniform(p.wlo, p.whi), dir = rng.u() < 0.5 ? 1 : 2, r = [], z = [];",
+      "  for (var t = 0; t < T; t++) { r.push(rng.int(3) + 1); z.push(rng.u()); }",
+      "  return { type: type, fav: fav, w: w, dir: dir, r: r, z: z, slip: p.slip, my: NaN, opp: NaN, res: NaN };",
+      "}",
+      "// 亮牌：对手上一回合出的手，上一回合的结果。",
+      "function show(G, t) {",
+      "  return { opp: G.opp, res: G.res };",
+      "}",
+      "// 判分：报 2 是布、3 是剪刀，其余都算石头。偏心的人按 w 出最爱的手，否则另外两手各一半；其余三种人先掷走神的骰子（第一回合一律随机），不走神就按套路出。x % 3 + 1 是能赢 x 的那一手。",
+      "function referee(G, t, a) {",
+      "  var my = a === 2 ? 2 : a === 3 ? 3 : 1, o;",
+      "  if (G.type === 0) o = G.z[t] < G.w ? G.fav : G.z[t] < (1 + G.w) / 2 ? G.fav % 3 + 1 : (G.fav + 1) % 3 + 1;",
+      "  else if (t === 0 || G.z[t] < G.slip) o = G.r[t];",
+      "  else if (G.type === 1) o = G.my % 3 + 1;",
+      "  else if (G.type === 2) o = G.my;",
+      "  else o = (G.opp + G.dir - 1) % 3 + 1;",
+      "  G.res = my === o ? 0 : o % 3 + 1 === my ? 1 : -1;",
+      "  G.my = my; G.opp = o;",
+      "  return G.res;",
+      "}"
+    ],
+    "en": [
+      "// Deal: draw the opponent's kind (0 biased, 1 beats your last, 2 copies your last, 3 cycles), its favourite hand, the bias w, the cycle direction, and every round's random hand and slip die. All hidden.",
+      "function deal(T, rng, p) {",
+      "  var type = rng.int(4), fav = rng.int(3) + 1, w = rng.uniform(p.wlo, p.whi), dir = rng.u() < 0.5 ? 1 : 2, r = [], z = [];",
+      "  for (var t = 0; t < T; t++) { r.push(rng.int(3) + 1); z.push(rng.u()); }",
+      "  return { type: type, fav: fav, w: w, dir: dir, r: r, z: z, slip: p.slip, my: NaN, opp: NaN, res: NaN };",
+      "}",
+      "// Show: the opponent's previous hand and the previous result.",
+      "function show(G, t) {",
+      "  return { opp: G.opp, res: G.res };",
+      "}",
+      "// Referee: 2 is paper, 3 is scissors, anything else rock. The biased kind plays its favourite with probability w, else one of the other two; the other kinds first roll the slip die (always random in round 0), then follow their habit. x % 3 + 1 is the hand that beats x.",
+      "function referee(G, t, a) {",
+      "  var my = a === 2 ? 2 : a === 3 ? 3 : 1, o;",
+      "  if (G.type === 0) o = G.z[t] < G.w ? G.fav : G.z[t] < (1 + G.w) / 2 ? G.fav % 3 + 1 : (G.fav + 1) % 3 + 1;",
+      "  else if (t === 0 || G.z[t] < G.slip) o = G.r[t];",
+      "  else if (G.type === 1) o = G.my % 3 + 1;",
+      "  else if (G.type === 2) o = G.my;",
+      "  else o = (G.opp + G.dir - 1) % 3 + 1;",
+      "  G.res = my === o ? 0 : o % 3 + 1 === my ? 1 : -1;",
+      "  G.my = my; G.opp = o;",
+      "  return G.res;",
+      "}"
+    ]
+  },
+  "sets": {
+    "pub": 10,
+    "fin": 10,
+    "K": 800,
+    "seed": 20261026
+  },
+  "higher": true,
+  "digits": 2,
+  "refs": [
+    {
+      "id": "rock",
+      "name": {
+        "zh": "一直出石头",
+        "en": "Always rock"
+      },
+      "summary": {
+        "zh": "什么也不看。对着克你上一手的人，八成以上的回合都输。拿来当基准。",
+        "en": "Looks at nothing. Against the opponent who beats your last hand it loses more than eight rounds in ten. The benchmark."
+      },
+      "p": {},
+      "code": "function decide(s, p) {\n  return 1;\n}"
+    },
+    {
+      "id": "counter",
+      "name": {
+        "zh": "克对手的上一手",
+        "en": "Beat the opponent's last hand"
+      },
+      "summary": {
+        "zh": "出能赢对手上一回合那一手的手；第一回合出石头。对着偏心的人管用，对着别的就不一定了。",
+        "en": "Plays the hand that beats the opponent's previous hand; rock in the first round. Works on the biased kind, not necessarily on the others."
+      },
+      "p": {},
+      "code": "function decide(s, p) {\n  return s.t === 0 ? 1 : s.see.opp % 3 + 1;\n}"
+    },
+    {
+      "id": "freq",
+      "name": {
+        "zh": "克对手出得最多的手",
+        "en": "Beat the opponent's most frequent hand"
+      },
+      "summary": {
+        "zh": "数着对手到现在各出了几次，出能赢他出得最多的那一手的手（一样多时取编号小的）。",
+        "en": "Counts the opponent's hands so far and plays what beats the most frequent one (ties go to the lowest number)."
+      },
+      "p": {},
+      "code": "function init(p) {\n  return { c: [0, 0, 0] };\n}\nfunction decide(s, p, st) {\n  if (s.t > 0) st.c[s.see.opp - 1]++;\n  var best = 0;\n  for (var i = 1; i < 3; i++) if (st.c[i] > st.c[best]) best = i;\n  return (best + 1) % 3 + 1;\n}"
+    }
+  ],
+  "starter": {
+    "p": {},
+    "code": {
+      "zh": [
+        "// 起始代码：克对手的上一手。把它改成你的办法。",
+        "// s.see.opp：对手上一回合出的（1 石头，2 布，3 剪刀）。s.see.res：上一回合的结果（1 赢，−1 输，0 平）。第一回合都是 NaN。",
+        "// st 是你自己的记事本，一局之内一直在：这里替你记着自己上一回合出的手 st.my 和对手上上回合出的手 st.opp2，还没有用上。x % 3 + 1 是能赢 x 的那一手。",
+        "function init(p) {",
+        "  return { my: NaN, opp1: NaN, opp2: NaN };",
+        "}",
+        "function decide(s, p, st) {",
+        "  var hand = s.t === 0 ? 1 : s.see.opp % 3 + 1;",
+        "  st.opp2 = st.opp1;",
+        "  st.opp1 = s.see.opp;",
+        "  st.my = hand;",
+        "  return hand;",
+        "}"
+      ],
+      "en": [
+        "// Starter code: beats the opponent's last hand. Change it into your own method.",
+        "// s.see.opp: the opponent's previous hand (1 rock, 2 paper, 3 scissors). s.see.res: the previous result (1 won, -1 lost, 0 tie). Both NaN in the first round.",
+        "// st is your own notebook for the whole episode: it already keeps your previous hand in st.my and the opponent's hand from two rounds ago in st.opp2, unused so far. x % 3 + 1 is the hand that beats x.",
+        "function init(p) {",
+        "  return { my: NaN, opp1: NaN, opp2: NaN };",
+        "}",
+        "function decide(s, p, st) {",
+        "  var hand = s.t === 0 ? 1 : s.see.opp % 3 + 1;",
+        "  st.opp2 = st.opp1;",
+        "  st.opp1 = s.see.opp;",
+        "  st.my = hand;",
+        "  return hand;",
+        "}"
+      ]
+    }
+  }
+}

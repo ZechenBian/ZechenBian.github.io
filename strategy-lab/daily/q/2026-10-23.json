@@ -1,0 +1,198 @@
+{
+  "v": 1,
+  "day": "2026-10-23",
+  "id": "two-sided-quotes",
+  "title": {
+    "zh": "两边挂单",
+    "en": "Quoting both sides"
+  },
+  "summary": {
+    "zh": "你是中间商，每回合报一个中间价，两边挂单。真值看不到，只有一个带噪声的行情价和自己的成交记录。",
+    "en": "You are the dealer: each round you quote a mid price and stand ready to buy and sell. The true value is hidden; all you get is a noisy reference price and your own fills."
+  },
+  "about": {
+    "zh": [
+      "你在一个小市场上做中间商，买卖同一种东西，一共 100 个回合。这件东西有一个“真值”，谁也看不到：开局是 100，每个回合末变动一次，变动是均值 0、标准差 0.5 的正态数。",
+      "",
+      "每个回合你报一个中间价 m，两边挂单：你的出价（你买入的价）是 m − 1，要价（你卖出的价）是 m + 1。接着来一位客人，是买家还是卖家各占一半的机会。客人心里有一个价，等于真值加上一个均值 0、标准差 1.5 的正态偏差。买家心里的价不低于你的要价，就按要价从你这儿买一件；卖家心里的价不高于你的出价，就按出价卖给你一件。一个回合最多成交一件。",
+      "",
+      "**你的规则看到的**：`s.see.ref` 是这一回合的行情价：真值加上一个均值 0、标准差 1 的正态噪声，每回合的噪声互相独立；`s.see.inv` 是你手里的存货：买进一件加 1，卖出一件减 1，可以是负数；`s.see.fill` 是上一回合成交了没有：1 是你买进了一件，−1 是你卖出了一件，0 是没成交，第一回合是 NaN。",
+      "",
+      "**你的规则报的数**：中间价 m。报的不是数，这一回合就不挂单（不会成交，存货的费用照付）。",
+      "",
+      "**计分**：成交按真值记账。卖出一件得 要价 − 真值，买进一件得 真值 − 出价：中间价正好等于真值时，每件正好赚 1；报偏了，偏向哪一边，哪一边就更容易成交，而那一边每件赚的不到 1，偏得超过 1 就是赔钱。另外每个回合末按当时的存货付费 0.005 × 存货²。一局的得分是 100 个回合加起来。"
+    ],
+    "en": [
+      "You are the dealer in a small market, buying and selling one kind of good for 100 rounds. The good has a true value nobody sees: it starts at 100 and moves once at the end of every round by a normal amount with mean 0 and standard deviation 0.5.",
+      "",
+      "Each round you quote a mid price m and stand on both sides: your bid (the price you buy at) is m − 1, your ask (the price you sell at) is m + 1. Then one customer arrives, a buyer or a seller with equal probability. The customer has a private price equal to the true value plus a normal deviation with mean 0 and standard deviation 1.5. A buyer whose private price is at least your ask buys one unit from you at the ask; a seller whose private price is at most your bid sells one unit to you at the bid. At most one unit trades per round.",
+      "",
+      "**What your rule sees**: `s.see.ref` is this round's reference price: the true value plus normal noise with mean 0 and standard deviation 1, independent from round to round; `s.see.inv` is your inventory: +1 for every unit bought, −1 for every unit sold, so it can be negative; `s.see.fill` says what happened last round: 1 if you bought a unit, −1 if you sold one, 0 if nothing traded, NaN in the first round.",
+      "",
+      "**What your rule returns**: the mid price m. If it is not a number, you post no quotes this round (nothing trades; the inventory fee is still charged).",
+      "",
+      "**Score**: trades are booked against the true value. Selling a unit earns ask − true value, buying a unit earns true value − bid: when your mid equals the true value exactly, every fill earns exactly 1; when your mid is off, the side it leans toward trades more easily, and each fill on that side earns less than 1, or loses money once the mid is off by more than 1. In addition, at the end of every round you pay 0.005 × inventory² for the inventory you hold. The score of an episode is the sum over the 100 rounds."
+    ]
+  },
+  "note": {
+    "zh": [
+      "行情价的噪声（标准差 1）比真值每回合的变动（标准差 0.5）大，所以把最近几个行情价合起来看比只看最新的一个准，合多少个合适取决于这两个数。再往上：成交本身也是消息，买家在你的要价上成交，说明他心里的价不低于要价；存货多了，把中间价往下挪一点，容易把存货卖出去，少付存货的费用。"
+    ],
+    "en": [
+      "The noise in the reference price (standard deviation 1) is larger than the move of the true value per round (standard deviation 0.5), so combining the last few reference prices beats using only the latest one; how many to combine depends on those two numbers. Beyond that, fills are information too: a buyer trading at your ask tells you a private price was at least that high. And when inventory piles up, lowering the mid a little makes it easier to sell it off and saves the inventory fee."
+    ]
+  },
+  "T": 100,
+  "p": {
+    "step": 0.5,
+    "noise": 1,
+    "taste": 1.5,
+    "half": 1,
+    "hold": 0.005
+  },
+  "code": {
+    "zh": [
+      "// 发牌：把真值的路径、每回合的行情价、来的是买家还是卖家、客人心里的偏差都先定好，藏起来。",
+      "function deal(T, rng, p) {",
+      "  var V = [100], ref = [], side = [], e = [];",
+      "  for (var t = 0; t < T; t++) {",
+      "    ref.push(V[t] + p.noise * rng.normal());",
+      "    side.push(rng.u() < 0.5 ? 1 : -1);",
+      "    e.push(p.taste * rng.normal());",
+      "    V.push(V[t] + p.step * rng.normal());",
+      "  }",
+      "  return { V: V, ref: ref, side: side, e: e, inv: 0, fill: NaN, half: p.half, hold: p.hold };",
+      "}",
+      "// 亮牌：这一回合的行情价、手里的存货、上一回合成交了没有。",
+      "function show(G, t) {",
+      "  return { ref: G.ref[t], inv: G.inv, fill: G.fill };",
+      "}",
+      "// 判分：出价 m − half，要价 m + half。买家（side 是 1）心里的价不低于要价就买一件，卖家（side 是 −1）心里的价不高于出价就卖一件。",
+      "// 成交按真值记账；报的不是数就不挂单。回合末按存货付 hold × 存货²。",
+      "function referee(G, t, a) {",
+      "  var v = G.V[t], fill = 0, gain = 0;",
+      "  if (a === a) {",
+      "    var w = v + G.e[t];",
+      "    if (G.side[t] > 0 && w >= a + G.half) { fill = -1; gain = a + G.half - v; }",
+      "    if (G.side[t] < 0 && w <= a - G.half) { fill = 1; gain = v - (a - G.half); }",
+      "  }",
+      "  G.inv += fill; G.fill = fill;",
+      "  return gain - G.hold * G.inv * G.inv;",
+      "}"
+    ],
+    "en": [
+      "// Deal: fix in advance the path of the true value, each round's reference price, whether a buyer or a seller comes, and the customer's private deviation. All hidden.",
+      "function deal(T, rng, p) {",
+      "  var V = [100], ref = [], side = [], e = [];",
+      "  for (var t = 0; t < T; t++) {",
+      "    ref.push(V[t] + p.noise * rng.normal());",
+      "    side.push(rng.u() < 0.5 ? 1 : -1);",
+      "    e.push(p.taste * rng.normal());",
+      "    V.push(V[t] + p.step * rng.normal());",
+      "  }",
+      "  return { V: V, ref: ref, side: side, e: e, inv: 0, fill: NaN, half: p.half, hold: p.hold };",
+      "}",
+      "// Show: this round's reference price, the inventory, and whether last round traded.",
+      "function show(G, t) {",
+      "  return { ref: G.ref[t], inv: G.inv, fill: G.fill };",
+      "}",
+      "// Referee: bid m − half, ask m + half. A buyer (side 1) buys one unit if the private price is at least the ask; a seller (side −1) sells one if it is at most the bid.",
+      "// Fills are booked against the true value; a non-number posts no quotes. At the end of the round the inventory fee hold × inventory² is charged.",
+      "function referee(G, t, a) {",
+      "  var v = G.V[t], fill = 0, gain = 0;",
+      "  if (a === a) {",
+      "    var w = v + G.e[t];",
+      "    if (G.side[t] > 0 && w >= a + G.half) { fill = -1; gain = a + G.half - v; }",
+      "    if (G.side[t] < 0 && w <= a - G.half) { fill = 1; gain = v - (a - G.half); }",
+      "  }",
+      "  G.inv += fill; G.fill = fill;",
+      "  return gain - G.hold * G.inv * G.inv;",
+      "}"
+    ]
+  },
+  "sets": {
+    "pub": 10,
+    "fin": 10,
+    "K": 600,
+    "seed": 20261023
+  },
+  "higher": true,
+  "digits": 2,
+  "refs": [
+    {
+      "id": "follow",
+      "name": {
+        "zh": "跟着行情报",
+        "en": "Quote the reference"
+      },
+      "summary": {
+        "zh": "中间价就报这一回合的行情价。拿来当基准。",
+        "en": "The mid is this round's reference price. The benchmark."
+      },
+      "p": {},
+      "code": "function decide(s, p) {\n  return s.see.ref;\n}"
+    },
+    {
+      "id": "avg3",
+      "name": {
+        "zh": "最近三个行情价的平均",
+        "en": "Average of the last three"
+      },
+      "summary": {
+        "zh": "把最近三个回合的行情价平均一下再报，噪声小一些，但跟真值的变动慢半拍。",
+        "en": "Quotes the average of the last three reference prices: less noise, but a little behind the moving true value."
+      },
+      "p": {
+        "n": 3
+      },
+      "code": "function init(p) {\n  return { h: [] };\n}\nfunction decide(s, p, st) {\n  st.h.push(s.see.ref);\n  if (st.h.length > p.n) st.h.shift();\n  var sum = 0;\n  for (var i = 0; i < st.h.length; i++) sum += st.h[i];\n  return sum / st.h.length;\n}"
+    },
+    {
+      "id": "lean",
+      "name": {
+        "zh": "平均之后再按存货偏一偏",
+        "en": "Average, then lean on inventory"
+      },
+      "summary": {
+        "zh": "上一条的平均价，再减去 0.3 × 存货：存货多了就报低一点好卖出去，存货是负的就报高一点好买回来。",
+        "en": "The same average, minus 0.3 × inventory: quote lower when long so the goods sell, higher when short so they come back."
+      },
+      "p": {
+        "n": 3,
+        "k": 0.3
+      },
+      "code": "function init(p) {\n  return { h: [] };\n}\nfunction decide(s, p, st) {\n  st.h.push(s.see.ref);\n  if (st.h.length > p.n) st.h.shift();\n  var sum = 0;\n  for (var i = 0; i < st.h.length; i++) sum += st.h[i];\n  return sum / st.h.length - p.k * s.see.inv;\n}"
+    }
+  ],
+  "starter": {
+    "p": {
+      "k": 0
+    },
+    "code": {
+      "zh": [
+        "// 起始代码：中间价报这一回合的行情价，再减去 p.k × 存货（p.k 是 0 时就是跟着行情报）。把它改成你的办法。",
+        "// s.see.ref：行情价（真值加噪声）。s.see.inv：存货。s.see.fill：上一回合成交了没有（1 买进，−1 卖出，0 没成交，第一回合 NaN）。",
+        "// st 是你自己的记事本，一局之内一直在：这里替你记下了上一回合报的中间价 st.m，还没有用上。题目的参数在 s.g 里：s.g.step、s.g.noise、s.g.taste、s.g.half、s.g.hold。",
+        "function init(p) {",
+        "  return { m: NaN };",
+        "}",
+        "function decide(s, p, st) {",
+        "  st.m = s.see.ref - p.k * s.see.inv;",
+        "  return st.m;",
+        "}"
+      ],
+      "en": [
+        "// Starter code: quote this round's reference price minus p.k × inventory (with p.k = 0 this is just the reference). Change it into your own method.",
+        "// s.see.ref: the reference price (true value plus noise). s.see.inv: inventory. s.see.fill: last round's fill (1 bought, -1 sold, 0 none, NaN in the first round).",
+        "// st is your own notebook for the whole episode: it already stores last round's mid in st.m, unused so far. The challenge's parameters are in s.g: s.g.step, s.g.noise, s.g.taste, s.g.half, s.g.hold.",
+        "function init(p) {",
+        "  return { m: NaN };",
+        "}",
+        "function decide(s, p, st) {",
+        "  st.m = s.see.ref - p.k * s.see.inv;",
+        "  return st.m;",
+        "}"
+      ]
+    }
+  }
+}
