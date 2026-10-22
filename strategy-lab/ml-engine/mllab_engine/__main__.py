@@ -1,6 +1,8 @@
 # Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
 # Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
-"""命令行入口：python -m mllab_engine [--port 8765] [--page 页面文件] [--no-browser]"""
+"""命令行入口：python -m mllab_engine [--port 8765] [--page 页面文件] [--no-browser]
+             python -m mllab_engine --mcp             （给 Claude 桌面版用：经标准输入 / 输出说 MCP，见 mcp.py）
+             python -m mllab_engine --claude-config   （打印要加进 Claude 桌面版设置的那一段）"""
 import argparse
 import sys
 import threading
@@ -42,8 +44,19 @@ def main(argv=None):
     ap.add_argument("--port", type=int, default=8765, help="端口（默认 8765；被占用时自动用下一个空闲的）")
     ap.add_argument("--page", metavar="PATH", help="页面文件（默认是仓库里的 strategy-lab/ml/index.html）")
     ap.add_argument("--no-browser", action="store_true", help="不自动打开浏览器（自己复制网址打开）")
+    ap.add_argument("--mcp", action="store_true", help="作为 Claude 桌面版的本地 MCP 服务器运行（不监听端口；由桌面版启动，不用自己运行）")
+    ap.add_argument("--claude-config", action="store_true", help="打印要加进 Claude 桌面版 claude_desktop_config.json 的那一段")
     ap.add_argument("--version", action="version", version="mllab-engine " + __version__)
     args = ap.parse_args(argv)
+    if args.claude_config:
+        import json
+        from .mcp import claude_config
+        print(json.dumps(claude_config(), ensure_ascii=False, indent=2))
+        return 0
+    if args.mcp:
+        from . import mcp
+        _stop_on_signals()
+        return mcp.main()
     if not (0 <= args.port <= 65535):
         ap.error("端口要在 0 到 65535 之间")
 

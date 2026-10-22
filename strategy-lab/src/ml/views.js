@@ -449,7 +449,7 @@
         A.webRefetch(o.web).then(function (r) {
           A.csvPending = false; opt.text = r.text;
           if (done(r.table) && !A.last && S.group === (o.kind === "forecast" ? "ts" : o.kind === "classification" ? "tab-cls" : "tab-reg") && S.ds[S.group] && S.ds[S.group].id === "csv") { A.renderLeft(); A.dataChanged(); }
-        }, function () { A.csvPending = false; });
+        }, function (e) { A.csvPending = false; A.toast("上次从网上取的数据（" + (o.name || "") + "）没能重新取到：" + String(e && e.message || e).slice(0, 160), 6000); });
       }
     } catch (e) {}
   };

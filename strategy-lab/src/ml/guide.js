@@ -114,7 +114,7 @@ $$\lvert\hat R_T(f)-R(f)\rvert\le\sqrt{\frac{\ln(2/\delta)}{2m}}.$$
 
 文件不大（原文不到 30 万字符）时，原文存在浏览器里，刷新以后还在；大文件只存地址，打开页面时重新去取一次。
 
-**在 Claude 里打开时。** Claude 不让页面自己联网，所以在 Claude 里打开的实验室取不到网上的数据，也连不上本机引擎；对话框顶上会说明，并给出网站版的地址。在那里可以用“导入 CSV”导入下载好的文件。
+**在 Claude 里打开时。** 页面自己不能联网（Claude 里所有 Artifact 都是这样），改请 Claude 桌面版替它取，每次都要你允许：接上了本机引擎（见“本机引擎”一页）就经引擎去取，和上面一样，最多 50 MB，压缩文件也行；没接引擎时用桌面版自带的浏览器——打开那个地址、读出页面上的文字，不用装东西，但只能取不压缩的 CSV、TSV、JSON 之类，最多约 200 万个字符（更长的只取前面那一段，并会说明）。这两条路都只在 Claude 桌面版里有；网页版的 Claude 里请用网站版，或者用“导入 CSV”导入下载好的文件。
 
 **泄露答案的列。** 网上的表经常带着由答案算出来的列：泰坦尼克号的表里有 alive（就是 survived 的文字版），出租车的表里有 total（车费加小费）。留着它们，模型会"好得难以置信"。预览里把它们去掉；现成的数据已经替你去掉了。
 `);
@@ -1627,7 +1627,7 @@ Python 不一样：本机引擎执行 Python 代码时没有沙箱，AI 写的 P
   /* ================================================================== *
    *  本机引擎
    * ================================================================== */
-  add("engine:how", "本机引擎", "本机引擎：在自己的电脑上跑 Python", "本机引擎 Python PyTorch numpy GPU MPS CUDA 安装 启动 令牌 token 127.0.0.1 安全 uv pip 端口 python -m mllab_engine", R`
+  add("engine:how", "本机引擎", "本机引擎：在自己的电脑上跑 Python", "本机引擎 Python PyTorch numpy GPU MPS CUDA 安装 启动 令牌 token 127.0.0.1 安全 uv pip 端口 python -m mllab_engine Claude 桌面版 MCP 本地 MCP 服务器 claude_desktop_config.json --mcp --claude-config", R`
 本机引擎（strategy-lab/ml-engine/）是一个在你自己电脑上运行的小程序，让这一页可以用 **Python**（numpy、PyTorch；有苹果芯片或 NVIDIA 的 GPU 时用 GPU）训练算法。页面照旧负责生成数据、划分、打分、画图、排行榜和 AI；引擎只负责执行 Python 代码、交回原始的预测值。
 
 ## 分工：为什么成绩可以和浏览器里的算法直接比
@@ -1673,6 +1673,18 @@ python -m mllab_engine
 
 停止：在运行引擎的终端里按 Ctrl+C。下次启动令牌会换，要用新打印的网址。
 
+## 在 Claude 里用引擎（经 Claude 桌面版）
+
+在 Claude 里打开的实验室不能自己联网，连不上 127.0.0.1 上的引擎。换一条路：把引擎作为**本地 MCP 服务器**加进 Claude 桌面版，桌面版启动时用 ⟦python -m mllab_engine --mcp⟧ 把它拉起来，经标准输入 / 输出和它说话（不监听任何端口，也就不需要令牌：只有桌面版能和它说话）。页面再请桌面版调用它的工具。
+
+1. 照上面装好引擎，然后在装好的那个环境里运行 ⟦python -m mllab_engine --claude-config⟧：它打印要加进设置的那一段，Python 的路径已经填好。
+2. 在电脑屏幕顶上的菜单栏里点 Claude → Settings…，打开 Developer 一栏，点 Edit Config，把那一段并进 claude_desktop_config.json（文件里已经有 ⟦mcpServers⟧ 的话，只加 ⟦mllab-engine⟧ 那一项）。这个文件在 Mac 上是 ⟦~/Library/Application Support/Claude/claude_desktop_config.json⟧，Windows 上是 ⟦%APPDATA%\Claude\claude_desktop_config.json⟧。
+3. 完全退出 Claude 桌面版再打开，在桌面版里打开实验室，点顶栏的"本机引擎"→"连接本机引擎"，在弹出的对话框里选允许。
+
+之后和从引擎打开的页面一样：算法列表里多出"Python（本机引擎）"一组，"从网上取数据"也经引擎去取。两点不同：**每次运行算法之前桌面版都会问你允不允许**（运行要执行代码）；工具的输入输出有大小限制，所以页面把大的请求分块交、把长的结果分块取，比从引擎打开的页面稍慢一些。允许过以后，再打开这一页会自动连上。只在 Claude 桌面版里能用：网页版的 Claude、手机上没有本地 MCP 服务器。
+
+连不上的时候看引擎的日志：Mac 上在 ⟦~/Library/Logs/Claude/mcp-server-mllab-engine.log⟧，Windows 上在 ⟦%APPDATA%\Claude\logs⟧。Claude 在对话里也看得到这些工具；它要调用时同样会先问你。
+
 ## 写 Python 算法
 
 和 JavaScript 的接口几乎一样（详见 ml-engine/README.md）：
@@ -1691,7 +1703,7 @@ python -m mllab_engine
 
 引擎为了不被别人利用：只监听 127.0.0.1（别的电脑连不上）；每次启动生成随机令牌，所有接口都要带上它，令牌只注入到网址里带着它的那一页；只接受主机名 127.0.0.1:端口 和 localhost:端口（防 DNS 重绑定）；带了来源（Origin）的请求必须来自引擎自己的页面；不发任何跨域许可，所以你浏览的别的网站既调不动引擎，也读不到它的回应。不要把带令牌的网址发给别人；担心泄露就重启引擎。
 
-在别处打开的这一页（网站上、本地文件）连不上引擎，只用浏览器里的线程：全部内置算法照常可用。
+在别处打开的这一页（网站上、本地文件）连不上引擎，只用浏览器里的线程：全部内置算法照常可用。在 Claude 里打开时经 Claude 桌面版连接，见上面。
 `);
 
   /* ================================================================== *

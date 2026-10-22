@@ -9,7 +9,8 @@
  * 连着本机引擎就请引擎去取（POST /api/fetch，只取公网地址）。取来的文件可以是 CSV、TSV、JSON、JSON Lines，也可以是 .gz 或 .zip 压缩的。
  * 取到以后先预览，确认要预测的列和任务类型再导入；导入后和导入 CSV 一样用，数据集标成"从网上取的数据"并记下地址。
  * 接的 AI 是 Claude 时（独立网页里），它在服务商那边先上网搜索（web_search），再给地址；别家只能凭记忆给。
- * 在 Claude 里打开页面时，Claude 不让页面自己联网：这里取不到网上的数据，对话框会说清楚，并指向网站版。 */
+ * 在 Claude 里打开页面时，页面不能自己联网（Artifact 的安全规则），改请 Claude 桌面版替它取：接上本机引擎（本地 MCP 服务器）就经引擎取，
+ * 没接上就用桌面版自带的浏览器（host:claude_browser：打开那个地址、读出页面上的文字；只能取不压缩的文本文件）。每次都要你允许。 */
 var QL_MLWEBCAT = [
   // 时间序列（GitHub 上 datasets 组织的公开数据包，大多是 ODC-PDDL 公有领域；数据一直在更新）
   { id: "sp500", name: "标普 500 月度（1871 年起，Shiller）", url: "https://raw.githubusercontent.com/datasets/s-and-p-500/main/data/data.csv", kind: "forecast", target: "SP500", time: "Date", desc: "标普 500 指数的月度值，另有股息、盈利、CPI、长期利率、PE10 等列（2023 年 6 月以后只更新了指数本身）。", source: "Robert Shiller / FRED，经 github.com/datasets/s-and-p-500 整理", license: "ODC-PDDL-1.0", real: true, keys: "股票 指数 美股 sp500 s&p shiller 月线" },
@@ -67,12 +68,67 @@ if (typeof MLA !== "undefined") (function (A) {
   /** raw.githubusercontent.com/{owner}/{repo}/{branch}/{path} → cdn.jsdelivr.net/gh/{owner}/{repo}@{branch}/{path} */
   function mirror(url) { var m = /^https:\/\/raw\.githubusercontent\.com\/([^/]+)\/([^/]+)\/([^/]+)\/(.+)$/.exec(url); return m ? "https://cdn.jsdelivr.net/gh/" + m[1] + "/" + m[2] + "@" + m[3] + "/" + m[4] : null; }
   async function viaEngine(url) {
-    var r = await A.engineApi("POST", "/api/fetch", { url: url });
-    return { bytes: r.data, url: r.url || url, contentType: r.contentType || "" };
+    var r = await A.engineFetch(url);
+    return { bytes: r.packed === "gzip" ? await inflate(r.bytes, "gzip") : r.bytes, url: r.url || url, contentType: r.contentType || "" };
+  }
+  /* 在 Claude 里、没接本机引擎时：请 Claude 桌面版自带的浏览器打开这个地址，读出页面上的文字（get_page_text）。
+     它的回答是"Title: …\nURL: …\nSource element: …\n---\n正文"，太长时末尾有"[truncated to N chars]"。纯文本文件的标题是空的；有标题的是网页 */
+  var BRN = "host:claude_browser", BRMAX = 2000000, brTab = null, brUrl = "";
+  function pageText(t) {
+    var s = String(t || ""), m = /^Title:[ \t]*(.*)\r?\nURL:[ \t]*(.*)\r?\n(?:Source element:.*\r?\n)?---\r?\n/.exec(s);
+    var o = { title: m ? m[1].trim() : "", url: m ? m[2].trim() : "", body: m ? s.slice(m[0].length) : s, truncated: false };
+    var tc = o.body.lastIndexOf("\n\nTab Context:"); if (tc >= 0) o.body = o.body.slice(0, tc);
+    var tr = /\s*\[truncated to \d+ chars\]\s*$/.exec(o.body); if (tr) { o.truncated = true; o.body = o.body.slice(0, tr.index); }
+    return o;
+  }
+  A.webPageText = pageText;
+  function wait(ms, sig) { return new Promise(function (ok, no) { var t = setTimeout(ok, ms); if (sig) sig.addEventListener("abort", function () { clearTimeout(t); no(new Error("已停止。")); }, { once: true }); }); }
+  var BRERR = {
+    server_not_connected: "Claude 桌面版的浏览器连不上：要在 Claude 桌面版里打开这一页（网页版的 Claude、手机上没有这个浏览器）。",
+    not_in_manifest: "你没有允许这个页面使用 Claude 桌面版的浏览器（或者在这个页面的权限里关掉了它）。",
+    approval_required: "要你允许这个页面使用 Claude 桌面版的浏览器，但没有得到允许。", cancelled: "你没有允许这一次。",
+    blocked_by_policy: "你所在组织的设置不允许这个页面使用 Claude 桌面版的浏览器。", not_granted: "当前的打开方式下用不了 Claude 桌面版的浏览器。", capability_disabled: "当前的打开方式下用不了 Claude 桌面版的浏览器。"
+  };
+  function brErr(e) { return e && e.code === "tool_error" ? (A.mcpText(e.result) || e.message || "浏览器报错。") : e && BRERR[e.code] ? BRERR[e.code] : e && e.code ? "浏览器出错了（" + e.code + "）。" : String(e && e.message || e); }
+  async function viaBrowser(url, sig) {
+    if (/\.(gz|zip|bz2|xz|7z|xlsx?|parquet|feather)(\?|#|$)/i.test(url)) throw new Error("压缩文件、Excel 之类经浏览器取不了（浏览器会把它当成下载）：要接上本机引擎。");
+    var before = brUrl, r0;
+    try {
+      if (brTab) { try { await A.mcpCall(BRN, "navigate", { url: url, tabId: brTab }); } catch (e) { if (e && e.code === "tool_error") brTab = null; else throw e; } }
+      if (!brTab) {
+        r0 = await A.mcpCall(BRN, "preview_start", { url: url });
+        var m = /tabId\s+([A-Za-z0-9_:-]+)/.exec(A.mcpText(r0));
+        if (!m) throw new Error("Claude 桌面版的浏览器没有说新开的标签页是哪个。");
+        brTab = m[1]; before = "";
+      }
+      var last = null;
+      for (var k = 0; k < 8; k++) {
+        await wait(k === 0 ? 500 : 900, sig);
+        var p = pageText(A.mcpText(await A.mcpCall(BRN, "get_page_text", { tabId: brTab, max_chars: BRMAX })));
+        if (!p.body.trim() || (p.url === before && p.url !== url)) continue;     // 还在加载，或者还停在上一页（下载类的地址不会换页）
+        if (last && last.body.length === p.body.length) { last = p; break; }
+        last = p; if (p.truncated) break;
+      }
+    } catch (e) { if (sig && sig.aborted) throw e; throw new Error(brErr(e)); }
+    if (!last) throw new Error("浏览器没有打开这个文件（可能被当成了下载，或者打不开）。");
+    brUrl = last.url;
+    if (last.title) throw new Error("取到的是网页（" + last.title.slice(0, 40) + "），不是数据文件：要找“下载”的那个地址（通常以 .csv、.json 结尾）。");
+    var body = last.body.replace(/^Pretty[- ]?print\s*\n/i, "");
+    if (last.truncated) { var nl = body.lastIndexOf("\n"); if (nl > 0) body = body.slice(0, nl); }
+    return { bytes: new TextEncoder().encode(body), url: last.url || url, contentType: "", truncated: last.truncated };
   }
   /** 依次试几种办法；log(文字, 好坏) 记下每一步 */
   async function getBytes(url, log, sig) {
     var errs = [];
+    if (A.aiHost) {                    // 在 Claude 里：页面自己不能联网，只能请 Claude 桌面版去取
+      if (A.engineCanFetch && A.engineCanFetch()) {
+        try { log("请本机引擎去取（经 Claude 桌面版）…"); var e1 = await viaEngine(url); e1.via = "engine"; log("✓ 本机引擎取到了（" + size(e1.bytes.length) + "）", "good"); return e1; }
+        catch (e) { if (sig && sig.aborted) throw e; if (/HTTP (404|410)/.test(e.message || "")) throw new Error("没有这个文件（" + e.message + "）"); errs.push("本机引擎：" + e.message); log("✕ 本机引擎：" + e.message, "bad"); }
+      } else errs.push("本机引擎没有连上（点顶栏的“本机引擎”看怎么连）");
+      try { log("请 Claude 桌面版的浏览器去取 …"); var b1 = await viaBrowser(url, sig); b1.via = "browser"; log("✓ 浏览器取到了（" + size(b1.bytes.length) + "）", "good"); return b1; }
+      catch (e) { if (sig && sig.aborted) throw e; errs.push("浏览器：" + e.message); log("✕ 浏览器：" + e.message, "bad"); }
+      var eh = new Error(errs.join("；")); eh.all = errs; throw eh;
+    }
     try { log("直接取 " + hostOf(url) + " …"); var r = await direct(url, sig); r.via = "direct"; log("✓ 取到了（" + size(r.bytes.length) + "）", "good"); return r; }
     catch (e) { if (sig && sig.aborted) throw e; if (e.http === 404 || e.http === 410) throw new Error("没有这个文件（网站回答 HTTP " + e.http + "）。"); var cors = !e.http; errs.push(cors ? "浏览器读不到（多半是这个网站不允许网页直接读，也可能是网络不通）" : e.message); log("✕ " + errs[errs.length - 1], "bad"); }
     var mu = mirror(url);
@@ -80,7 +136,7 @@ if (typeof MLA !== "undefined") (function (A) {
     if (A.engineCanFetch && A.engineCanFetch()) {
       try { log("请本机引擎去取 …"); var r3 = await viaEngine(url); r3.via = "engine"; log("✓ 本机引擎取到了（" + size(r3.bytes.length) + "）", "good"); return r3; }
       catch (e) { if (sig && sig.aborted) throw e; errs.push("本机引擎：" + e.message); log("✕ 本机引擎：" + e.message, "bad"); }
-    } else errs.push(A.aiHost ? "在 Claude 里打开时页面不能联网，也连不上本机引擎（请用网站版 " + SITE + "）" : A.engineReady && A.engineReady() ? "本机引擎的版本太旧，不能替页面取数据" : "没有连上本机引擎（连上以后，浏览器读不到的网站可以请它去取）");
+    } else errs.push(A.engineReady && A.engineReady() ? "本机引擎的版本太旧，不能替页面取数据" : "没有连上本机引擎（连上以后，浏览器读不到的网站可以请它去取）");
     var err = new Error(errs.join("；")); err.all = errs; throw err;
   }
   function size(n) { return n < 1024 ? n + " 字节" : n < 2 ** 20 ? (n / 1024).toFixed(0) + " KB" : (n / 2 ** 20).toFixed(1) + " MB"; }
@@ -202,6 +258,7 @@ if (typeof MLA !== "undefined") (function (A) {
   };
   /** 打开页面时重新去取（上次从网上取的文件太大、没有存原文） */
   A.webRefetch = async function (web) {
+    if (A.aiHost && A.engineSettled) await A.engineSettled();        // 在 Claude 里：先等本机引擎（允许过的话）连上
     var r = await getBytes(web.url, function () {});
     var d = await bytesToText(r.bytes, web.plan || {}), T = A.webTable(d.text, web.plan || {});
     return { table: T.table, text: d.text };
@@ -217,6 +274,7 @@ if (typeof MLA !== "undefined") (function (A) {
       "# 要求\n" + [
         "- 给 1 到 4 个候选，按把握从大到小排。必须是文件本身的地址（CSV、TSV、JSON、JSON Lines，或者它们的 .gz / .zip），不是网页；不要需要登录、API 密钥或付费的。",
         search ? "- 你可以用网络搜索（web_search 工具），最多 " + SEARCHES + " 次。先搜索，找到数据文件本身的下载地址（直链）；只给在搜索结果里见到过、或者你确信真实存在的地址，不要编造。搜索结果里的网页本身不算，要的是网页上“下载”的那个文件地址。" : "- 只给你确信真实存在的地址，不确定就少给几个，不要编造。",
+        A.aiHost ? (A.engineCanFetch && A.engineCanFetch() ? "- 页面经使用者电脑上的本机引擎去取，不受跨域限制，也可以是 .gz / .zip。" : "- 页面经使用者电脑上的浏览器去取：只能是不压缩的文本文件（CSV、TSV、JSON、JSON Lines），最好不超过 2 MB；不要 .gz / .zip。needsEngine 一律写 false。") :
         "- 浏览器只能直接读允许跨域的网站。优先用：raw.githubusercontent.com（GitHub 上公开的数据仓库，比如 github.com/datasets/*、mwaskom/seaborn-data、owid/* 等）、cdn.jsdelivr.net/gh/…、huggingface.co/datasets/<名字>/resolve/main/<文件>。别的网站只有在使用者连着本机引擎时才取得到，这种候选把 needsEngine 设成 true。",
         "- 一个文件最多 30 MB；超过 5 万行时实验室会自动抽样（时间序列留最近的）。",
         "- 指定 target（要预测的那一列，名字和文件里的表头一字不差）、kind、time（时间序列的日期列；没有就不写）、drop（要丢掉的列，特别是会泄露答案的列，比如和答案重复或由答案算出来的列）、filter（只留某一类的行，例如 {\"Country\": \"China\"}，值要和文件里的写法一字不差）、jsonPath（JSON 里记录数组的路径，例如 data.items）、zipEntry（zip 里要用的文件名）。",
@@ -247,11 +305,10 @@ if (typeof MLA !== "undefined") (function (A) {
     var cat = h("div", { class: "ml-web-cat" }), cands = h("div", { class: "ml-web-cands" }), logBox = h("ol", { class: "ml-web-log", "aria-live": "polite" }), prev = h("div", { class: "ml-web-prev" });
     var aiNote = h("div", { class: "note" });
     function log(t, cls) { logBox.appendChild(h("li", { class: cls || "", text: t })); }
-    function setBusy(b) { busy = b; [aiBtn, urlBtn].forEach(function (x) { x.disabled = b || (x === aiBtn && (A.aiHost || !(A.aiReady && A.aiReady()))); }); stopBtn.hidden = !b; }
+    function setBusy(b) { busy = b; [aiBtn, urlBtn].forEach(function (x) { x.disabled = b || (x === aiBtn && !(A.aiReady && A.aiReady())); }); stopBtn.hidden = !b; }
     var stopBtn = h("button", { class: "btn small", type: "button", text: "停止", hidden: true, onclick: function () { if (ctl) ctl.abort(); if (aiCall) aiCall.cancel(); } }), aiCall = null;
     var search = !!(A.aiCanSearch && A.aiCanSearch());
-    if (A.aiHost) { aiBtn.disabled = true; aiNote.textContent = "在 Claude 里打开时用不了：页面取不到网上的文件。"; }
-    else if (!(A.aiReady && A.aiReady())) { aiBtn.disabled = true; aiNote.textContent = "还没有接入 AI：可以直接填网址，或者从下面现成的里挑。要用描述找，先在右栏接入 AI。"; }
+    if (!(A.aiReady && A.aiReady())) { aiBtn.disabled = true; aiNote.textContent = "还没有接入 AI：可以直接填网址，或者从下面现成的里挑。要用描述找，先在右栏接入 AI。"; }
     else if (search) aiNote.textContent = A.aiWho() + " 会先上网搜索（最多 " + SEARCHES + " 次，搜索按次另外计费），再给几个数据文件的地址；页面逐个去取，取不到就换下一个。";
     else aiNote.textContent = A.aiWho() + " 只能凭它知道的给地址（不会上网搜；接的是 Claude 时才会先搜索）；给的地址页面会逐个去取，取不到就换下一个。";
     function paintCat() {
@@ -277,6 +334,7 @@ if (typeof MLA !== "undefined") (function (A) {
             var r = await getBytes(p.url, function (t, c) { log("  " + t, c); }, ctl.signal);
             var d = await bytesToText(r.bytes, p); d.notes.forEach(function (n) { log("  " + n); });
             var T = A.webTable(d.text, p);
+            if (r.truncated) { var tw = "浏览器只读到了前 " + (BRMAX / 10000) + " 万个字符：文件可能不全（最后不完整的一行已经去掉）。要完整的大文件，接上本机引擎。"; T.warnings.unshift(tw); log("  " + tw, "bad"); }
             log("  ✓ 读出 " + T.table.rows.length + " 行、" + T.table.header.length + " 列（" + T.format.toUpperCase() + "）", "good");
             preview(p, r, d.text, T); return;
           } catch (e) {
@@ -291,7 +349,7 @@ if (typeof MLA !== "undefined") (function (A) {
     }
     function ask() {
       var text = desc.value.trim(); if (!text) { desc.focus(); return; }
-      if (busy || A.aiHost || !(A.aiReady && A.aiReady())) return;
+      if (busy || !(A.aiReady && A.aiReady())) return;
       round++; setBusy(true); clear(cands); if (round === 1) clear(logBox); log((round > 1 ? "第 " + round + " 轮：" : "") + "请 " + A.aiWho() + (search ? " 上网搜索、找数据 …" : " 找数据 …"));
       aiCall = A.aiAsk(prompt(text, kind0, round > 1 ? failed : null, search), "default", null, search ? { webSearch: SEARCHES, onSearch: function (x) {
         if (x.query) log("  " + A.aiWho() + " 搜索：" + x.query); else if (x.error) log("  这次搜索没成功（" + x.error + "）", "bad"); else if (x.results != null) log("  搜到 " + x.results + " 条结果");
@@ -330,7 +388,7 @@ if (typeof MLA !== "undefined") (function (A) {
       var err = h("div", { class: "warn err", hidden: true });
       var name = p.name || hostOf(p.url);
       prev.appendChild(h("h3", { class: "ml-web-h", text: "预览：" + name }));
-      prev.appendChild(h("p", { class: "note", text: t.rows.length + " 行 × " + H.length + " 列 · 来自 " + hostOf(r.url) + (r.via === "engine" ? "（本机引擎取的）" : r.via === "mirror" ? "（jsDelivr 镜像）" : "") + (p.source ? " · 出处：" + p.source : "") + (p.license ? " · 许可：" + p.license : "") }));
+      prev.appendChild(h("p", { class: "note", text: t.rows.length + " 行 × " + H.length + " 列 · 来自 " + hostOf(r.url) + (r.via === "engine" ? "（本机引擎取的）" : r.via === "browser" ? "（Claude 桌面版的浏览器取的）" : r.via === "mirror" ? "（jsDelivr 镜像）" : "") + (p.source ? " · 出处：" + p.source : "") + (p.license ? " · 许可：" + p.license : "") }));
       T.warnings.forEach(function (w) { prev.appendChild(h("div", { class: "warn", text: w })); });
       prev.appendChild(h("div", { class: "ml-lbwrap" }, tbl));
       prev.appendChild(h("div", { class: "fields" }, h("div", { class: "field" }, h("label", { text: "要预测的列" }), h("span"), tgt), h("div", { class: "field" }, h("label", { text: "任务" }), h("span"), kindSel), timeRow));
@@ -350,10 +408,11 @@ if (typeof MLA !== "undefined") (function (A) {
 
     paintCat();
     var body = [
-      A.aiHost ? h("div", { class: "warn", id: "webHost" }, "你是在 Claude 里打开的这一页：Claude 不让页面自己联网，所以这里取不到网上的数据（本机引擎也连不上）。要从网上取数据，请在浏览器里打开网站版 ", h("a", { href: SITE, target: "_blank", rel: "noopener", text: SITE }), "；也可以先把文件下载下来，再用“导入 CSV”。") : null,
+      !A.aiHost ? null : A.engineCanFetch && A.engineCanFetch() ? h("div", { class: "note", id: "webHost", text: "在 Claude 里：页面自己不能联网，网上的数据由本机引擎去取（经 Claude 桌面版，最多 50 MB，压缩文件也行）。" }) :
+        h("div", { class: "warn", id: "webHost" }, "你是在 Claude 里打开的这一页：页面自己不能联网，要请 Claude 桌面版替它取。没接本机引擎时用桌面版自带的浏览器：不用装东西，但只能取不压缩的 CSV、JSON 之类，最多约 200 万个字符，第一次会问你允不允许。大文件、压缩文件要接上本机引擎（点顶栏的“本机引擎”看怎么连）。都只在 Claude 桌面版里能用；也可以用网站版 ", h("a", { href: SITE, target: "_blank", rel: "noopener", text: SITE }), "。"),
       h("p", { class: "note", text: "取来的数据只在这台电脑的浏览器里处理，不会上传到别处。取的时候不带你的 Cookie 或登录信息。取到以后先预览，确认了再导入；导入的数据集会标成“从网上取的数据”并记下地址。" }),
       h("div", { class: "ml-web-sec" }, h("h3", { text: "用描述找" }), desc, h("div", { class: "ml-row" }, aiBtn, stopBtn, h("span", { class: "sp" })), aiNote),
-      h("div", { class: "ml-web-sec" }, h("h3", { text: "或者直接填数据文件的网址" }), h("div", { class: "ml-row" }, url, urlBtn), h("div", { class: "note", text: "CSV、TSV、JSON、JSON Lines，或者它们的 .gz / .zip；最多 30 MB。" + (A.engineCanFetch && A.engineCanFetch() ? "已连上本机引擎：浏览器读不到的网站会请引擎去取。" : "浏览器读不到的网站（跨域限制），连上本机引擎以后可以请它去取。") })),
+      h("div", { class: "ml-web-sec" }, h("h3", { text: "或者直接填数据文件的网址" }), h("div", { class: "ml-row" }, url, urlBtn), h("div", { class: "note", text: A.aiHost ? "CSV、TSV、JSON、JSON Lines（接上本机引擎时也可以是它们的 .gz / .zip，最多 50 MB）。" : "CSV、TSV、JSON、JSON Lines，或者它们的 .gz / .zip；最多 30 MB。" + (A.engineCanFetch && A.engineCanFetch() ? "已连上本机引擎：浏览器读不到的网站会请引擎去取。" : "浏览器读不到的网站（跨域限制），连上本机引擎以后可以请它去取。") })),
       cands, logBox, prev,
       h("details", { class: "more ml-web-sec", open: true }, h("summary", { text: "现成的（地址核实过，都是真实数据）" }), q, cat)
     ];

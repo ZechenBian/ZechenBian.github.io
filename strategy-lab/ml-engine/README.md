@@ -129,6 +129,41 @@ PyTorch 2.4.0 · 计算设备：苹果芯片 GPU（MPS）
 在运行引擎的那个终端窗口里按 **Ctrl+C**（按住 control 键再按 C）。关掉浏览器标签页不会停止引擎；关掉终端窗口会。
 引擎停了以后页面还能照常用，只是只能跑 JavaScript 的算法。下次启动会换一个新的令牌，所以要用新打印出来的网址打开。
 
+### 4½. 在 Claude 里用：作为 Claude 桌面版的本地 MCP 服务器
+
+在 Claude 里打开的机器学习实验室（发布成 Claude 里的 Artifact 的那一份）不能自己联网，连不上上面那个 127.0.0.1 上的引擎。
+换一条路：把引擎加进 **Claude 桌面版**的设置，作为"本地 MCP 服务器"。桌面版启动时用 `python -m mllab_engine --mcp` 把它拉起来，
+经标准输入 / 输出说 MCP（不监听任何端口，也就不需要令牌：只有桌面版能和它说话）；页面请桌面版调用它的工具，每次运行算法之前桌面版都会问你。
+
+1. 照上面装好引擎（uv 或 pip 都行）。在装好的那个环境里运行
+
+   ```bash
+   python -m mllab_engine --claude-config
+   ```
+
+   它打印要加进设置的那一段，`command` 是你现在用的这个 Python（装着 numpy、PyTorch 的那个），`PYTHONPATH` 指向这个目录：
+
+   ```json
+   {
+     "mcpServers": {
+       "mllab-engine": {
+         "command": "/你的路径/strategy-lab/ml-engine/.venv/bin/python",
+         "args": ["-m", "mllab_engine", "--mcp"],
+         "env": { "PYTHONPATH": "/你的路径/strategy-lab/ml-engine" }
+       }
+     }
+   }
+   ```
+
+2. 在电脑屏幕顶上的菜单栏里点 **Claude → Settings…**，打开 **Developer** 一栏，点 **Edit Config**，把这一段并进 `claude_desktop_config.json`
+   （文件里已经有 `mcpServers` 的话，只把 `mllab-engine` 那一项加进去）。这个文件在 Mac 上是
+   `~/Library/Application Support/Claude/claude_desktop_config.json`，Windows 上是 `%APPDATA%\Claude\claude_desktop_config.json`。
+3. **完全退出** Claude 桌面版再打开。在桌面版里打开实验室，点顶栏的"本机引擎"→"连接本机引擎"，在弹出的对话框里选允许。
+
+连上以后：算法列表里多出"Python（本机引擎）"一组，"从网上取数据"也经引擎去取（只取公网地址，最多 50 MB）。允许过以后再打开页面会自动连上。
+连不上的时候看日志：Mac 上 `~/Library/Logs/Claude/mcp-server-mllab-engine.log`，Windows 上 `%APPDATA%\Claude\logs`。
+引擎的工具在 Claude 的对话里也看得到；Claude 要调用时同样会先问你。协议见 [PROTOCOL.md](PROTOCOL.md#11-mcp-模式)。
+
 ---
 
 ## 5. 安全须知（请读一遍）
@@ -151,6 +186,8 @@ PyTorch 2.4.0 · 计算设备：苹果芯片 GPU（MPS）
 * 页面"从网上取数据"时，有的网站不允许网页直接读（浏览器的跨域限制），这时页面会请引擎去取（`POST /api/fetch`）。
   引擎只取公网上的地址：127.0.0.1、局域网（10.x、192.168.x……）、云服务器的元数据地址一律拒绝，每次重定向都重新检查；
   不带 Cookie 或任何登录信息；最多 50 MB。取来的原始文件交回页面，在页面里解析。
+* MCP 模式（`--mcp`，给 Claude 桌面版用）不监听任何端口，只经启动它的那个程序的标准输入 / 输出说话；运行代码（`run_start`）标成"会改变东西"的工具，
+  桌面版每次都会先问你。标准输出只写 MCP 消息：用户代码的 `print`、库的警告、子进程的输出都改到标准错误（桌面版记在日志里）。
 
 ---
 
