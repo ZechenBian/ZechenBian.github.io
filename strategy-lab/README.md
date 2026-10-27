@@ -14,6 +14,8 @@ A place to run quantitative-strategy experiments in the browser: pick a game, a 
 
 **▶ 机器学习实验室（中文）/ Machine Learning Lab (in Chinese):** https://zechenbian.github.io/strategy-lab/ml/
 
+**▶ 数据分析案例（中文）/ Data analysis case studies (in Chinese):** https://zechenbian.github.io/strategy-lab/cases/
+
 页面右上角的按钮在中文和英文之间切换，切换后当前的玩法、世界、规则和参数都还在。The button at the top right switches between Chinese and English and keeps the current game, world, rule and parameters.
 
 ---
@@ -107,6 +109,21 @@ A place to run quantitative-strategy experiments in the browser: pick a game, a 
 
 全部在浏览器里本地运行，算法在隔离的后台线程里训练，别人写的代码（包括 AI 写的）碰不到页面和网络。设计文档在 [src/ml/DESIGN.md](src/ml/DESIGN.md)。
 
+### 数据分析案例
+
+[cases/](cases/) 是另一张单独的页面（中文）：几个完整的数据分析例子，每个都按同样的八步走一遍——定义问题、数据从哪来、清洗与探索、baseline、特征、模型、验证、局限与迭代。每一步的数字、表格和图都是打开页面时在浏览器里现算的，改控件会重算。
+
+| 案例 | 数据 | 讲的事 |
+|---|---|---|
+| 共享单车：下一小时会有多少人租车 | 真实：华盛顿特区 Capital Bikeshare 2011–2012 年逐小时的租车量和天气（UCI） | 缺的小时不是 0（三段长的缺失对上了暴风雪和两次飓风）；增长让历史平均失效；计数数据用 Poisson 回归、过度离散；`registered + casual = cnt` 的泄漏；随机切分与按时间切分 |
+| 车桩：没车的时候，需求去哪了 | 模拟：一个站点的取车、还车按 Poisson 过程到达，没车时取不到，知道真实需求 | 观测到的成交是删失的需求；直接平均和“扔掉缺车的小时”都偏低；用有车的时间做 Poisson 的暴露量来修正，以及它在什么时候还会偏；不知道真相时怎么检验修正；早上补几辆车（成本不对称时的分位数决策） |
+| 房价：从一张成交表到一个可信的模型 | 真实：艾奥瓦州埃姆斯市 2006–2010 年的 2930 笔住宅成交（De Cock 2011） | 为什么取对数；非市场交易与 5 套超大的房子；NA 的两种意思；“控制面积后卧室数的系数为负”；方差膨胀因子；异方差与稳健标准误；复制数据制造的虚假显著；随机、按时间、按街区三种切法 |
+| 标普 500：价格好预测，收益难预测 | 真实：Robert Shiller 整理的 1871 年以来的月度数据 | 价格水平的 $R^2$ 没有意义；原文件把缺失写成 0；月均价制造约 0.25 的假自相关（Working 1960，模拟与推导）；重叠的长期收益让 t 值虚高（Newey–West）；样本外 $R^2$；一百个噪声信号里挑出“显著”的 |
+
+每个案例的开头写着它对应的面试题，结尾是面试官会追问的问题和回答。“在机器学习实验室里继续”把案例整理好的那张表交给机器学习实验室（同一个网站，数据只存在这台电脑的浏览器里），那边打开时直接选中它，可以换各种算法；也可以下载成 CSV。
+
+页面打开之后不再联网（界面字体除外），不要账号。案例是数据文件（`src/cases/case-*.js`）：每一步是一个往页面里写文字、表格、图和控件的函数，算的部分（`compute`）不碰页面，测试直接调用。三份真实数据为了嵌进页面重新编码过，数值不变，来源与许可见 [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)。
+
 ### 数字是在你的电脑上现算的
 
 - **对照表**（每条内置规则 × 每个世界或场景，共 796 格）不写在页面里：第一次打开时用后台线程在本机算，算出一格显示一格，结果存在浏览器里，下次直接读。
@@ -152,10 +169,12 @@ strategy-lab/
 ├── en/index.html 构建出来的独立网页，英文
 ├── teen/index.html 构建出来的青少年版（中文）
 ├── ml/index.html 构建出来的机器学习实验室（中文）
+├── cases/index.html 构建出来的数据分析案例（中文）
 ├── build.py      把 src/ 拼成一个文件
 ├── src/          引擎、内置规则、界面、手册的文字（只有一份，中文）；大厅的几样东西也在这里（hub.js 读写 GitHub，mq.js 是实时房间的中继，sandbox.js 是隔离环境）
 ├── src/teen/     青少年版：七个小游戏、两组课、它自己的界面和样式
 ├── src/ml/       机器学习实验室：数据集、算法、自动求导、统计检验、运行器、界面、手册、动画（设计见 src/ml/DESIGN.md）
+├── src/cases/    数据分析案例：三份真实数据、一个车桩模拟器、回归与 Poisson 回归等数值工具、四个案例、界面
 ├── ml-engine/    机器学习实验室的本机 Python 引擎（可选）
 ├── i18n/         英文版：译文表和生成工具
 ├── data/         示例行情
@@ -165,14 +184,14 @@ strategy-lab/
 
 ```sh
 npm install                      # 取 KaTeX 的发行文件；英文版的生成工具要用 acorn，测试要用 Playwright
-python3 build.py                 # 生成 index.html、en/index.html、teen/index.html 和 ml/index.html（以及 dist/ 下在 Claude 里发布用的那一份）
+python3 build.py                 # 生成 index.html、en/index.html、teen/index.html、ml/index.html 和 cases/index.html（以及 dist/ 下在 Claude 里发布用的那一份）
 npx playwright install chromium  # 只有跑界面测试才需要
 sh test/run-all.sh               # 全部测试，要半个多小时
 ```
 
 **英文版是怎么来的。** 源码只有一份，是中文的。构建时 [i18n/i18n.js](i18n/i18n.js) 把源码里每一段给人看的中文（界面上的字、手册、规则的说明、规则代码里的注释、发给 AI 的提示词，一共六千多段）换成 [i18n/en/](i18n/en/) 里的译文，代码本身一个字不动，所以两种语言跑的是同一套计算：同样的设定下结果逐位相同，现算的缓存也是共用的。译文入库时逐段自动核对：公式、现算的数字标记、代码必须和原文一致，占位符不能多也不能少。改了源码里的中文而没有补译文，构建会失败并指出是哪一段。细节见 [i18n/README.md](i18n/README.md)。
 
-测试分两部分：Node 里对引擎和手册里每个数字的核对（约 2600 项），无头浏览器里的界面检查（约 1450 项）。AI 接口的测试用的是本机的一个假服务商，大厅的测试把 GitHub 和 drand 换成本机的假数据、把中继换成本机的假中继，都不会向外发请求。每日一题的结算程序在测试里是直接调用的：私钥是测试自己造的，容器换成子进程，所以容器那一层只在 GitHub Actions 上实际运行时才用得上。青少年版的测试（`node test/teen.test.js`、`node test/ui-teen.js`）把讲解里写的每个数拿精确计算去对，把七个游戏按最简单的办法亲手打一遍、核对得分和对应的基准规则一模一样，并核对页面打开之后没有任何对外的请求。别人写的代码那一部分是真测：测试里放了会联网、会改内置对象、会去动别人成绩的规则和裁判，核对它们一样也办不到。英文版的测试（`node test/ui-en.js`，大厅的那几样在 `node test/ui-en-lobby.js`）把页面的每一处走一遍：每个世界、每套玩法、每条规则、每张图、手册的每一页，页面上不能出现汉字；并核对两种语言算出来的数相同。机器学习实验室的测试：Node 里的统计检验、自动求导（逐个运算做梯度检查）、38 个数据集（理论最优、贝叶斯最优与独立计算对照）、24 个算法（在每类声称适用的数据上跑通并达到质量下限）、动画背后的数值和手册里引用的每个数，约 1700 项；`node test/ui-ml.js` 在无头浏览器里把每个数据集跑一遍，走一遍各视图、代码编辑、导入 CSV、手册和 AI 面板的四种用法（本机的假服务商）；`node test/ui-ml-engine.js` 起一个真的本机引擎，用 numpy 写的示例算法跑通，并核对没有令牌、别的来源都调不了它；引擎自己的单元测试是 `cd ml-engine && python3 -m unittest`。单独跑一个：`node test/obs.test.js`、`node test/ui-standalone.js`。
+测试分两部分：Node 里对引擎和手册里每个数字的核对（约 2800 项），无头浏览器里的界面检查（约 1500 项）。AI 接口的测试用的是本机的一个假服务商，大厅的测试把 GitHub 和 drand 换成本机的假数据、把中继换成本机的假中继，都不会向外发请求。每日一题的结算程序在测试里是直接调用的：私钥是测试自己造的，容器换成子进程，所以容器那一层只在 GitHub Actions 上实际运行时才用得上。青少年版的测试（`node test/teen.test.js`、`node test/ui-teen.js`）把讲解里写的每个数拿精确计算去对，把七个游戏按最简单的办法亲手打一遍、核对得分和对应的基准规则一模一样，并核对页面打开之后没有任何对外的请求。量子玩法的测试（`node test/quantum.test.js`）核对模拟器本身、十关谜题的参考解都拿三星、电路算出的数和 Bell、Grover、量子芝诺的公式一致、三套玩法模拟出来的数和理论值一致，以及手册里引用的每个数；`node test/ui-quantum.js` 在无头浏览器里点格子把几关做出来，再把设定带回玩法。别人写的代码那一部分是真测：测试里放了会联网、会改内置对象、会去动别人成绩的规则和裁判，核对它们一样也办不到。英文版的测试（`node test/ui-en.js`，大厅的那几样在 `node test/ui-en-lobby.js`）把页面的每一处走一遍：每个世界、每套玩法、每条规则、每张图、手册的每一页，页面上不能出现汉字；并核对两种语言算出来的数相同。机器学习实验室的测试：Node 里的统计检验、自动求导（逐个运算做梯度检查）、38 个数据集（理论最优、贝叶斯最优与独立计算对照）、24 个算法（在每类声称适用的数据上跑通并达到质量下限）、动画背后的数值和手册里引用的每个数，约 1700 项；`node test/ui-ml.js` 在无头浏览器里把每个数据集跑一遍，走一遍各视图、代码编辑、导入 CSV、手册和 AI 面板的四种用法（本机的假服务商）；`node test/ui-ml-engine.js` 起一个真的本机引擎，用 numpy 写的示例算法跑通，并核对没有令牌、别的来源都调不了它；引擎自己的单元测试是 `cd ml-engine && python3 -m unittest`。数据分析案例的测试：`node test/cases.test.js` 核对三份数据解码后和原文件一致（例如共享单车两年合计 3,292,679 次）、数值工具对得上闭式解和模拟、每个案例的关键数字和一份独立的 numpy 计算一致，以及正文里每一句“谁比谁大、符号是什么”在当前数据上成立；`node test/ui-cases.js` 在无头浏览器里把四个案例的每一步渲染出来，点控件、换种子、手机宽度、把数据交给机器学习实验室。单独跑一个：`node test/obs.test.js`、`node test/ui-standalone.js`。
 
 引擎和规则是纯 JavaScript，没有运行时依赖。页面内联了 [KaTeX](https://katex.org) 来排公式（MIT 许可，见 [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)）；界面字体从 Google Fonts 加载，连不上时用系统字体。
 
@@ -267,6 +286,21 @@ It runs on the lab's engine (referee, rules and sandbox are the same code) but l
 
 Everything runs locally in the browser; algorithms train in an isolated background thread, and code written by others (including an AI) cannot reach the page or the network. The design document is [src/ml/DESIGN.md](src/ml/DESIGN.md).
 
+### Data analysis case studies
+
+[cases/](cases/) is another separate page (in Chinese): a few complete data-analysis examples, each taken through the same eight steps — define the problem, where the data come from, cleaning and exploration, baseline, features, model, validation, limitations and next steps. Every number, table and chart is computed in the browser when the page opens and recomputed when you change a control.
+
+| Case | Data | What it covers |
+|---|---|---|
+| Bike share: how many rentals next hour | Real: hourly rentals and weather of Capital Bikeshare, Washington DC, 2011–2012 (UCI) | Missing hours are not zeros (the three long gaps coincide with a snowstorm and two hurricanes); growth breaks historical averages; counts call for Poisson regression, with overdispersion; the leak `registered + casual = cnt`; random versus time-ordered splits |
+| A dock with no bikes: where did the demand go | Simulated: pickups and returns at one station arrive as Poisson processes, nobody can take a bike from an empty dock, and the true demand is known | Observed pickups are censored demand; the plain average and "drop the hours with a stockout" are both biased low; using the minutes with bikes as the Poisson exposure corrects it, and when that still fails; how to check a correction without the truth; how many bikes to stock in the morning (a quantile decision under asymmetric costs) |
+| House prices: from a sales table to a model you can trust | Real: 2,930 home sales in Ames, Iowa, 2006–2010 (De Cock 2011) | Why log prices; non-market sales and the five very large houses; the two meanings of NA; "the bedrooms coefficient turns negative once area is controlled"; variance inflation factors; heteroskedasticity and robust standard errors; the false significance created by duplicated rows; random, time-ordered and leave-one-neighborhood-out splits |
+| S&P 500: prices are easy to predict, returns are not | Real: Robert Shiller's monthly data since 1871 | Why $R^2$ on price levels means nothing; missing values written as 0 in the source file; the spurious 0.25 autocorrelation created by monthly average prices (Working 1960, simulated and derived); overlapping long-horizon returns inflate t-statistics (Newey–West); out-of-sample $R^2$; picking a "significant" signal out of one hundred noise series |
+
+Each case opens with the interview question it corresponds to and ends with the follow-up questions an interviewer would ask, with answers. "在机器学习实验室里继续" (continue in the Machine Learning Lab) hands the table the case prepared to the Machine Learning Lab (same site; the data stays in this browser), which selects it on opening so that you can try other algorithms; the table can also be downloaded as CSV.
+
+Once loaded the page makes no network requests (apart from interface fonts) and needs no account. Cases are data (`src/cases/case-*.js`): each step is a function that writes text, tables, charts and controls into the page, and the computational part (`compute`) does not touch the page, so the tests call it directly. The three real datasets were re-encoded to be embedded, with the numbers unchanged; sources and licences are in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
+
 ### The numbers are computed on your machine
 
 - The **comparison table** (every built-in rule × every world or scenario, 796 cells) is not shipped with the page. It is computed locally by background threads the first time you open it, cell by cell, and cached in the browser.
@@ -308,14 +342,14 @@ The page was first built to run inside Claude; opened there, the panel uses Clau
 
 ```sh
 npm install                      # fetches the KaTeX distribution files; the English build uses acorn and the tests use Playwright
-python3 build.py                 # writes index.html, en/index.html, teen/index.html and ml/index.html (and the build for publishing inside Claude, under dist/)
+python3 build.py                 # writes index.html, en/index.html, teen/index.html, ml/index.html and cases/index.html (and the build for publishing inside Claude, under dist/)
 npx playwright install chromium  # only needed for the browser tests
 sh test/run-all.sh               # the whole suite, a little over half an hour
 ```
 
 **How the English edition is made.** There is one source tree, written in Chinese. At build time [i18n/i18n.js](i18n/i18n.js) replaces every piece of user-visible Chinese in the source (interface text, the handbook, the notes on each rule, the comments in rule code, the prompts sent to the AI: a little over six thousand units) with its translation from [i18n/en/](i18n/en/) and leaves the code itself untouched. Both languages therefore run the same computation: the same settings give identical results, and the cache of live-computed numbers is shared. Every translation is checked automatically when it is imported: formulas, live-number tokens and code must match the original, and no placeholder may be added or lost. If a Chinese string changes and no translation is supplied, the build fails and names the string. Details are in [i18n/README.md](i18n/README.md).
 
-The tests come in two parts: checks in Node of the engine and of every number quoted in the handbook (about 2,600), and browser checks in headless Chromium (about 1,450). The AI-interface tests talk to a mock provider on localhost; the lobby tests replace GitHub and drand with local fixtures and the relays with a local broker; nothing is sent outside. The daily challenge's settlement program is called directly by the tests, with a key pair the tests generate and a child process in place of the container, so the container layer itself is only exercised when the workflow really runs on GitHub Actions. The teen edition's tests (`node test/teen.test.js`, `node test/ui-teen.js`) recompute every number quoted in its explanations, play each of the seven games by hand with the simplest policy and check that the score equals the corresponding reference rule's exactly, and check that the page makes no external request once loaded. The handling of other people's code is tested for real: the tests include rules and referees that try to reach the network, patch built-ins and tamper with other players' results, and check that none of it works. The English-edition test (`node test/ui-en.js`, with the lobby features in `node test/ui-en-lobby.js`) walks through every world, game, rule, chart and handbook page, requires that no Chinese appears anywhere on the page, and checks that the two languages compute the same numbers. The Machine Learning Lab has its own tests: in Node, the statistical tests, the autograd library (a gradient check for every operation), the 38 datasets (optima and Bayes-optimal values against independent computations), the 24 algorithms (each runs on every kind of data it claims and meets a quality floor), the numerics behind the animations and every number quoted in its handbook, about 1,700 checks; `node test/ui-ml.js` runs every dataset in headless Chromium and walks through the views, the code editor, CSV import, the handbook and the four AI modes (against a local mock provider); `node test/ui-ml-engine.js` starts a real local engine, runs the numpy example algorithms through it, and checks that requests without the token or from another origin are refused; the engine has its own unit tests (`cd ml-engine && python3 -m unittest`). To run one file: `node test/obs.test.js`, `node test/ui-standalone.js`.
+The tests come in two parts: checks in Node of the engine and of every number quoted in the handbook (about 2,800), and browser checks in headless Chromium (about 1,500). The AI-interface tests talk to a mock provider on localhost; the lobby tests replace GitHub and drand with local fixtures and the relays with a local broker; nothing is sent outside. The daily challenge's settlement program is called directly by the tests, with a key pair the tests generate and a child process in place of the container, so the container layer itself is only exercised when the workflow really runs on GitHub Actions. The teen edition's tests (`node test/teen.test.js`, `node test/ui-teen.js`) recompute every number quoted in its explanations, play each of the seven games by hand with the simplest policy and check that the score equals the corresponding reference rule's exactly, and check that the page makes no external request once loaded. The quantum tests (`node test/quantum.test.js`) check the simulator itself, that each puzzle's reference solution earns three stars, that the circuits agree with the Bell, Grover and quantum-Zeno formulas, that the three games' simulations agree with their theory, and every number quoted in the handbook; `node test/ui-quantum.js` solves several levels by clicking cells in headless Chromium and takes the settings back to the games. The handling of other people's code is tested for real: the tests include rules and referees that try to reach the network, patch built-ins and tamper with other players' results, and check that none of it works. The English-edition test (`node test/ui-en.js`, with the lobby features in `node test/ui-en-lobby.js`) walks through every world, game, rule, chart and handbook page, requires that no Chinese appears anywhere on the page, and checks that the two languages compute the same numbers. The Machine Learning Lab has its own tests: in Node, the statistical tests, the autograd library (a gradient check for every operation), the 38 datasets (optima and Bayes-optimal values against independent computations), the 24 algorithms (each runs on every kind of data it claims and meets a quality floor), the numerics behind the animations and every number quoted in its handbook, about 1,700 checks; `node test/ui-ml.js` runs every dataset in headless Chromium and walks through the views, the code editor, CSV import, the handbook and the four AI modes (against a local mock provider); `node test/ui-ml-engine.js` starts a real local engine, runs the numpy example algorithms through it, and checks that requests without the token or from another origin are refused; the engine has its own unit tests (`cd ml-engine && python3 -m unittest`). The data analysis case studies have their own tests: `node test/cases.test.js` checks that the three datasets decode to the original files (for example the bike data's two-year total of 3,292,679 rentals), that the numerical tools match closed forms and simulations, that each case's key numbers agree with an independent numpy computation, and that every qualitative statement in the text (which is larger, which sign) holds on the current data; `node test/ui-cases.js` renders every step of the four cases in headless Chromium, operates the controls, changes the seed, checks phone width and hands data to the Machine Learning Lab. To run one file: `node test/obs.test.js`, `node test/ui-standalone.js`.
 
 The engine and the rules are plain JavaScript with no runtime dependencies. The page inlines [KaTeX](https://katex.org) for typesetting (MIT licence, see [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)); interface fonts load from Google Fonts and fall back to system fonts when unreachable.
 

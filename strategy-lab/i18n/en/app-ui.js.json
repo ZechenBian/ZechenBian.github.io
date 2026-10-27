@@ -231,6 +231,8 @@
 {"zh":"手册 说明 帮助 help guide 文档 怎么用","en":"handbook notes help guide docs manual how to use"},
 {"zh":"打开机器学习实验室（另一张页面，中文）","en":"Open the Machine Learning Lab (a separate page, in Chinese)"},
 {"zh":"机器学习 实验室 ml machine learning 训练 模型 神经网络 算法 数据集","en":"machine learning lab ml training models neural networks algorithms datasets"},
+{"zh":"打开数据分析案例（另一张页面，中文）","en":"Open the data analysis case studies (a separate page, in Chinese)"},
+{"zh":"数据分析 案例 面试 case study 房价 共享单车 车桩 回归 poisson 删失 样本外","en":"data analysis case studies interview case study house prices bike share dock regression poisson censoring out of sample"},
 {"zh":"亲手玩一局（§0§）","en":"Play it yourself (§0§)"},
 {"zh":"play human 亲手 自己 玩 手动 打一局","en":"play human yourself by hand manual interactive try an episode"},
 {"zh":"reset 重置 默认","en":"reset default restore"},

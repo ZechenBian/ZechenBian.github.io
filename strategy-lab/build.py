@@ -218,7 +218,7 @@ if "ml/main.js" in ML_JS:
     # host:mllab-engine（python -m mllab_engine --mcp）和 host:claude_browser（桌面版自带的浏览器），见 src/ml/engine.js、web.js。
     # 发布时的 capabilities：{"sample": {}, "mcp": {"servers": [{"server": "host:mllab-engine", "tools": [info, examples, fetch_url, read_blob,
     # run_upload, run_start, run_events, run_cancel]}, {"server": "host:claude_browser", "tools": [preview_start, navigate, get_page_text]}]}}
-    ml_body = rd("src/ml/body.html"); ml_body_claude = ml_body.replace('href="../"', 'href="%s" target="_blank" rel="noopener"' % SITE)
+    ml_body = rd("src/ml/body.html"); ml_body_claude = ml_body.replace('href="../"', 'href="%s" target="_blank" rel="noopener"' % SITE).replace('href="../cases/"', 'href="%scases/" target="_blank" rel="noopener"' % SITE)
     assert ml_body_claude != ml_body, "回到策略实验室的链接变了：改一下这里"
     ml_claude = "\n".join([
         "<title>机器学习实验室</title>",
@@ -236,6 +236,41 @@ if "ml/main.js" in ML_JS:
     open(os.path.join(ROOT, "dist/ml-preview.html"), "w", encoding="utf8").write(
         '<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>' + RESET + '</style></head><body>' + ml_claude + '</body></html>')
 
-print("built: %.0f KB (js %.0f KB, katex css %.0f KB); index.html %.0f KB%s; teen/index.html %.0f KB%s" % (len(page.encode()) / 1024, len(js.encode()) / 1024, len(katex_css().encode()) / 1024, len(zh_page.encode()) / 1024,
+# 数据分析案例（cases/index.html）：另一张独立的页面，中文，不进英文版的翻译流程。源码在 src/cases/：
+# 八步框架下的几个完整案例（真实数据与模拟数据），每一步的数字都在浏览器里现算；共用策略实验室的内核（随机数）、图表和公式渲染
+CASES_JS = ["core.js", "charts.js", "md.js", "cases/stats.js", "cases/data-bike.js", "cases/data-ames.js", "cases/data-spx.js", "cases/sim-dock.js",
+            "cases/case-bike.js", "cases/case-dock.js", "cases/case-ames.js", "cases/case-spx.js", "cases/app.js"]
+cases_page = ""
+if all(os.path.exists(os.path.join(ROOT, "src", f)) for f in CASES_JS):
+    cases_js = "/* %s\n   Not open source. %s */\n" % (COPY, LICENSE_URL) + "\n".join("/* ===== %s ===== */\n%s" % (f, src(f)) for f in CASES_JS)
+    assert "</script" not in cases_js.lower(), "内联脚本里不能出现 </script"
+    CASES_ICON = ICON.replace("%232a78d6", "%23c2570c")
+    cases_page = "\n".join([
+        "<!doctype html>",
+        "<!--\n  %s\n  Not open source: no copying, modification, redistribution, commercial use or AI/ML training without written permission.\n  非开源：未经书面许可，不得复制、修改、再分发、商用或用于 AI/机器学习训练。\n  License: %s\n  Third-party code bundled in this page (KaTeX, MIT License) and three third-party datasets keep their own licenses: see THIRD-PARTY-NOTICES.md.\n-->" % (COPY, LICENSE_URL),
+        '<html lang="zh-CN">', "<head>", '<meta charset="utf-8">', '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">',
+        '<meta name="author" content="Zechen Bian">', '<meta name="copyright" content="© 2026 Zechen Bian. All rights reserved.">', '<meta name="robots" content="noai, noimageai">',
+        '<link rel="license" href="%s">' % LICENSE_URL,
+        "<title>数据分析案例 · 策略实验室</title>",
+        '<meta name="description" content="完整的数据分析例子：共享单车需求、车桩的删失与补车决策、房价、标普 500 的收益能不能预测。每个案例按八步走一遍（定义问题、数据、探索、baseline、特征、模型、验证、局限），数字都在你的浏览器里现算。">',
+        '<link rel="icon" href="%s">' % CASES_ICON,
+        '<link rel="preconnect" href="https://fonts.googleapis.com">',
+        '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>',
+        '<link rel="stylesheet" href="%s" media="print" onload="this.media=\'all\'">' % FONTS,
+        "<style>" + RESET + "</style>",
+        "<style>\n" + src("styles.css") + "\n</style>",
+        "<style>\n" + src("cases/styles.css") + "\n</style>",
+        "<style>\n/* KaTeX %s 的样式，字体内联。KaTeX: MIT License, (c) Khan Academy and other contributors; 字体: SIL Open Font License 1.1。全文见 THIRD-PARTY-NOTICES.md */\n%s\n</style>" % (KATEX_VER, katex_css()),
+        "</head>", "<body>",
+        '<noscript><p style="padding:24px">这个页面要开着 JavaScript 才能用。</p></noscript>',
+        rd("src/cases/body.html"),
+        "<script>\n/* KaTeX %s — MIT License, (c) Khan Academy and other contributors. https://github.com/KaTeX/KaTeX */\n%s\n</script>" % (KATEX_VER, katex_js),
+        "<script>\n" + cases_js + "\n</script>",
+        "</body>", "</html>", ""])
+    os.makedirs(os.path.join(ROOT, "cases"), exist_ok=True)
+    open(os.path.join(ROOT, "cases/index.html"), "w", encoding="utf8").write(cases_page)
+
+print("built: %.0f KB (js %.0f KB, katex css %.0f KB); index.html %.0f KB%s; teen/index.html %.0f KB%s%s" % (len(page.encode()) / 1024, len(js.encode()) / 1024, len(katex_css().encode()) / 1024, len(zh_page.encode()) / 1024,
       "; en/index.html %.0f KB" % (len(en_page.encode()) / 1024) if en_page else "; 没有 i18n/en，只生成了中文页", len(teen_page.encode()) / 1024,
-      "; ml/index.html %.0f KB" % (len(ml_page.encode()) / 1024) if ml_page else ""))
+      "; ml/index.html %.0f KB" % (len(ml_page.encode()) / 1024) if ml_page else "",
+      "; cases/index.html %.0f KB" % (len(cases_page.encode()) / 1024) if cases_page else ""))
