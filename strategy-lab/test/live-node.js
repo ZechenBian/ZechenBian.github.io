@@ -10,7 +10,7 @@ const builtins = STRATS.filter(s => !s.src);
 function series(id) { const o = samples.find(s => s.id === id); return o ? { v: Float64Array.from(o.v), K: o.K } : null; }
 function sig() {
   const h = crypto.createHash("sha1");
-  ["ml.js", "games.js", "obs-games.js", "live.js", "core.js", "strategies.js", "models.js", "game-strats.js", "obs-strats.js"].forEach(f => h.update(fs.readFileSync(path.join(SRC, f))));
+  ["ml.js", "games.js", "obs-games.js", "q-games.js", "live.js", "core.js", "strategies.js", "models.js", "game-strats.js", "obs-strats.js", "q-strats.js"].forEach(f => h.update(fs.readFileSync(path.join(SRC, f))));
   h.update(fs.readFileSync(path.join(__dirname, "../data/samples.json")));
   return h.digest("hex").slice(0, 16);
 }

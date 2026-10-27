@@ -4,7 +4,7 @@
 // 现算的数由 test/live-node.js 按页面同样的办法算（按源码内容缓存）；这里另外用不同的种子直接跑引擎，核对理论值不是只在一个种子上成立。
 const path = require("path"), fs = require("fs");
 const { QL, STRATS, compile, world, ok, near, section, done } = require("./harness.js");
-global.QL_GUIDE = require("../src/guide.js"); require("../src/guide-games.js"); require("../src/guide-worlds.js"); require("../src/guide-obs.js");
+global.QL_GUIDE = require("../src/guide.js"); require("../src/guide-games.js"); require("../src/guide-worlds.js"); require("../src/guide-obs.js"); require("../src/guide-quantum.js");
 const G = global.QL_GUIDE, LN = require("./live-node.js"), LV = QL.live, LIB = QL.gameLib;
 const OS = STRATS.filter(s => QL.OBS.includes(s.game));
 const f = (x, d = 4) => (typeof x === "number" && x === x ? x.toFixed(d) : String(x));
@@ -22,7 +22,7 @@ const within = (x, target, se, k, slack, name) => ok(Math.abs(x - target) <= k *
 
 section("登记：四套观测玩法，和十套玩法并列");
 {
-  ok(QL.OBS.join() === "o_meas,o_pred,o_det,o_stop" && QL.ALL_GAMES.join() === QL.GAMES.concat(QL.OBS).join() && QL.GAMES.length === 10, "十套玩法不变，另有四套观测玩法");
+  ok(QL.OBS.join() === "o_meas,o_pred,o_det,o_stop" && QL.ALL_GAMES.join() === QL.GAMES.concat(QL.OBS, QL.QUANTUM || []).join() && QL.GAMES.length === 10, "十套玩法不变，另有四套观测玩法（和三套量子玩法）");
   ok(QL.OBS.every((k, i) => QL.WORLDS[k].no === 11 + i && QL.WORLDS[k].game === true && QL.WORLDS[k].group === QL.OBS_GROUP), "编号 11 到 14，单独成组");
   ok(QL.WORLD_GROUPS[0] === QL.GAME_GROUP && QL.WORLD_GROUPS[1] === QL.OBS_GROUP, "世界的分组里，观测玩法紧跟在十套玩法后面");
   ok(Object.keys(QL.WORLDS).filter(k => QL.WORLDS[k].game).sort().join() === QL.ALL_GAMES.slice().sort().join(), "所有标成玩法的世界都在总表里");
@@ -165,9 +165,9 @@ section("活数字：正文里引用的每一个都登记了，都算得出来")
 section("自检清单：每一条都通过");
 {
   const C = G.checks;
-  ok(C.length === 65 && new Set(C.map(c => c.id)).size === C.length && C.every(c => typeof c.say === "string" && c.say.length > 6 && Array.isArray(c.need) && c.need.length && typeof c.test === "function"), "六十五条，每条有一句话、要用的数、判定办法", String(C.length));
+  ok(C.length === 78 && new Set(C.map(c => c.id)).size === C.length && C.every(c => typeof c.say === "string" && c.say.length > 6 && Array.isArray(c.need) && c.need.length && typeof c.test === "function"), "七十八条，每条有一句话、要用的数、判定办法", String(C.length));
   ok(C.every(c => c.need.every(id => G.live[id])), "要用的数都登记了", C.filter(c => !c.need.every(id => G.live[id])).map(c => c.say).join("; "));
-  const groups = [...new Set(C.map(c => c.group))]; ok(groups.length === 6 && groups[0] === "价格世界的对照表" && groups[1] === "十套玩法" && groups.slice(2).join() === QL.OBS.map(k => QL.WORLDS[k].name).join(), "分六组：价格世界的对照表、十套玩法、四套观测玩法各一组", groups.join(" | "));
+  const groups = [...new Set(C.map(c => c.group))]; ok(groups.length === 9 && groups[0] === "价格世界的对照表" && groups[1] === "十套玩法" && groups.slice(2).join() === QL.OBS.concat(QL.QUANTUM).map(k => QL.WORLDS[k].name).join(), "分九组：价格世界的对照表、十套玩法、四套观测玩法和三套量子玩法各一组", groups.join(" | "));
   ok(C.filter(c => c.group === groups[0]).length === 9 && C.filter(c => c.group === groups[1]).length === 15 && QL.GAMES.every((k, i) => C.some(c => c.group === groups[1] && c.say.indexOf("①②③④⑤⑥⑦⑧⑨⑩".charAt(i)) === 0)), "价格世界 9 条；十套玩法 15 条，每一套至少一条");
   ok(G.checkStrats.join() === STRATS.filter(x => !x.game && !x.src).map(x => x.id).join(), "核对「整列」时用的规则单子就是全部内置的价格规则", G.checkStrats.join());
   { const pk = Object.keys(G.live).filter(id => G.live[id].pcell || G.live[id].pbench), bad = pk.filter(id => { const sp = G.live[id]; return sp.pcell ? !(LV.PW.some(w => w.key === sp.pcell[1]) && G.checkStrats.includes(sp.pcell[0]) && LV.PRICE_COLS.includes(sp.pcell[2])) : !(LV.PW.some(w => w.key === sp.pbench[0]) && sp.pbench[1] >= 0 && sp.pbench[1] < 4); }); ok(pk.length > 60 && bad.length === 0, "登记的价格格子都指向存在的规则、世界和列", bad.slice(0, 5).join(" ")); }

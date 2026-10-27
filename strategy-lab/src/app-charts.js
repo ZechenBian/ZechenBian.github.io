@@ -154,7 +154,8 @@
 
   CH.retdist = {
     name: "单步收益分布", about: "这个世界每一步收益的直方图，对照同均值、同方差的正态分布。", keys: "return distribution 收益 分布 厚尾 正态 偏度 峰度",
-    when: function (w) { return !w.game || !!w.obs; }, gname: function (w) { return w.pricePath ? "" : (w.rName || w.obs.name) + "的分布"; },      // 画的是每一步的那个量：有的玩法里它是观测本身，有的是相邻观测之差（rName）
+    // 量子玩法里每回合公布的只是 0 和 1（或者什么也没有），画不出有意义的分布
+    when: function (w) { return !w.game || (!!w.obs && !w.quantum); }, gname: function (w) { return w.pricePath ? "" : (w.rName || w.obs.name) + "的分布"; },      // 画的是每一步的那个量：有的玩法里它是观测本身，有的是相邻观测之差（rName）
     controls: function (o, re) { return [toggle("纵轴取对数（看尾部）", !!o.log, function (v) { o.log = v; re(); })]; },
     spec: function (o) {
       var ws = A.worldStats; if (!ws) return "还没有生成路径";

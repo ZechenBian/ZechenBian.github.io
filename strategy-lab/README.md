@@ -26,9 +26,9 @@ A place to run quantitative-strategy experiments in the browser: pick a game, a 
 
 | 层 | 是什么 | 有哪些 |
 |---|---|---|
-| 玩法 | 题目的类型：每一步看到什么、能做什么、怎么结算、怎么计分 | “交易一个资产”（每一步定仓位）；十套回合制玩法：接单与冷却、秘书问题、偏硬币下注、翻倍或出局、多臂老虎机、报童问题、赢家诅咒、自营考核、A 股交易制度、大单拆分执行；四套观测玩法：测量参数、预测、变点检测、停在最高点 |
-| 世界 | 数据服从的分布或过程 | 几何布朗运动、均值回复、跳跃扩散、Heston、GARCH、牛熊切换、AR(1)、分数布朗运动、Logistic 映射、洛伦兹系统、带噪谐振子、自带的旧行情、Bootstrap；各套玩法还有自己能换的世界（报价的分布、噪声的类型……） |
-| 规则 | 你的做法：每一步看到信息之后给出一个动作 | 85 条内置规则，每条写明假设、目标、最优性结论、什么时候失效、可以检验的预测；代码可以直接改、另存 |
+| 玩法 | 题目的类型：每一步看到什么、能做什么、怎么结算、怎么计分 | “交易一个资产”（每一步定仓位）；十套回合制玩法：接单与冷却、秘书问题、偏硬币下注、翻倍或出局、多臂老虎机、报童问题、赢家诅咒、自营考核、A 股交易制度、大单拆分执行；四套观测玩法：测量参数、预测、变点检测、停在最高点；三套量子玩法：Bell 游戏、量子搜索、炸弹检测 |
+| 世界 | 数据服从的分布或过程 | 几何布朗运动、均值回复、跳跃扩散、Heston、GARCH、牛熊切换、AR(1)、分数布朗运动、Logistic 映射、洛伦兹系统、带噪谐振子、自带的旧行情、Bootstrap；各套玩法还有自己能换的世界（报价的分布、噪声的类型、光子从哪里来……） |
+| 规则 | 你的做法：每一步看到信息之后给出一个动作 | 100 条内置规则，每条写明假设、目标、最优性结论、什么时候失效、可以检验的预测；代码可以直接改、另存 |
 
 把玩法和世界分开，是为了看“假设错了会怎样”：一条规则在一个世界里可证最优，换一个世界可以输给朴素的做法。
 
@@ -51,9 +51,21 @@ A place to run quantitative-strategy experiments in the browser: pick a game, a 
 - 多打几局，页面会给出你和先拿来比的那条参照规则（理论上最好的那条；没有现成最优解时取长期平均最高的）在同样几局上的平均差和它的标准误。差距不到 2 倍标准误，就还分不出是打法好还是运气好。
 - 成绩只存在这台设备的浏览器里。同一个种子下第 k 局永远是同一局，所以规则在你打过的那几局上的成绩随时可以重算。
 
+### 量子玩法与电路谜题
+
+三套量子玩法里，量子力学只在裁判手里：规则看不到量子态，只能通过裁判给的几种动作去碰它（测一个光子、让量子计算机再转一步、送光子走一圈），测量的结果由裁判按量子力学的概率去抽。每一套都带一条“经典的做法最多能做到多好”的定理，看量子的做法能越过多少。
+
+| 玩法 | 题目 | 经典的做法 | 量子的做法 |
+|---|---|---|---|
+| ⑮ Bell 游戏 | 两人不能通气，各收到一个比特、各答一个比特，两人都收到 1 时要答得不同（CHSH） | 胜率不超过 75%（Bell–CHSH 不等式） | 共享纠缠光子、按标准角度测，85.36%（Tsirelson 界）。纠缠的可见度、局部隐变量源、一局多少回合都能调 |
+| ⑯ 量子搜索 | N 个盒子里找奖品，每次查询决定再转一步还是现在测（Grover） | 不重复地查，平均 (N+1)/(M+1) 次 | 约 0.69√(N/M) 次。奖品数不知道、每步会退相干时各有各的做法 |
+| ⑰ 炸弹检测 | 挑出真炸弹，又不能把它引爆（Elitzur–Vaidman） | 要知道就得碰，碰了就炸 | 量子芝诺效应：分的步数越多，越接近 100% 完好地确认；光路会丢光子时，用倒推选步数 |
+
+大厅里的**量子电路谜题**是十关、一个人玩的谜题：相对相位、换基、纠缠、三次异或、Deutsch 算法、不碰炸弹、四选一、超密编码、隐形传态、打破 75%。点格子放门，看振幅和 Bloch 球怎么变，点“检验”把每一种情形跑一遍，按做得多好给一到三星。它和三套量子玩法用的是同一个模拟器：“不碰炸弹”“四选一”“打破 75%”这三关做完，可以把电路里的设定（炸弹的个数、拨好的四个角度）直接带到对应的玩法里，让规则跑几千局；反过来，三套玩法在“玩法”一栏里有“电路谜题”按钮，回到对应的那一关。进度存在这台设备的浏览器里；地址里写 `#quantum`（或 `#quantum=bomb` 这样带上关卡）直接打开。
+
 ### 大厅：和别人一起玩
 
-右上角的“大厅”里有七样东西。页面仍然没有自己的服务器：要给别人看的东西，是这个仓库里公开的 Issue；实时房间走公共的 MQTT 中继；每日一题的题目是这个仓库里的文件，交上来的规则是加密的，截止之后由这个仓库的 GitHub Actions 解开、算分，结算用的随机数取自公共的随机信标 drand。
+右上角的“大厅”里有八样东西（量子电路谜题见上一节）。页面仍然没有自己的服务器：要给别人看的东西，是这个仓库里公开的 Issue；实时房间走公共的 MQTT 中继；每日一题的题目是这个仓库里的文件，交上来的规则是加密的，截止之后由这个仓库的 GitHub Actions 解开、算分，结算用的随机数取自公共的随机信标 drand。
 
 | | 做什么 | 凭什么可信 |
 |---|---|---|
@@ -64,6 +76,7 @@ A place to run quantitative-strategy experiments in the browser: pick a game, a 
 | 十项全能 | 一条规则走遍十个世界，每个世界里和买入持有比长期增长率，按最差的一项计分；每周一换种子 | 榜上的每条规则都在你的浏览器里现跑一遍 |
 | 规则同场 | 几条规则在同一个市场里互相当对手：共同价值拍卖（第一价格 / 第二价格），或者一起做市 | 自带的规则有闭式的理论值可以对照 |
 | 世界工坊 | 自己造世界（一段生成价格的代码）和玩法（一个发牌、亮牌、判分的裁判），造好了贴出来，别人载入之后拿自己的规则来试 | |
+| 量子电路谜题 | 十关，一个人玩，见上一节 | |
 
 - **贴东西要一个 GitHub 账号。** 点“贴到 GitHub”，页面把内容填进一条新 Issue，你在 GitHub 上点提交。帖子是公开的，署你的用户名；想撤回，把那条 Issue 关掉。只是看榜不需要账号（GitHub 对不登录的访问限每小时 60 次，超了会让你过一会儿再刷新）。
 - **别人写的代码一律在隔离环境里运行。** 具体是一个不带同源权限的沙盒页面里的后台线程，内容安全策略禁掉所有网络请求：它读不到这张页面、你的存档和密钥，也发不出任何东西。从榜上、工坊里载入的规则和世界，拿到实验室里用时同样如此。
@@ -96,9 +109,9 @@ A place to run quantitative-strategy experiments in the browser: pick a game, a 
 
 ### 数字是在你的电脑上现算的
 
-- **对照表**（每条内置规则 × 每个世界或场景，共 701 格）不写在页面里：第一次打开时用后台线程在本机算，算出一格显示一格，结果存在浏览器里，下次直接读。
+- **对照表**（每条内置规则 × 每个世界或场景，共 796 格）不写在页面里：第一次打开时用后台线程在本机算，算出一格显示一格，结果存在浏览器里，下次直接读。
 - 手册正文里带下划线的数字同样是现算的。
-- 手册的**“自检”**一页列出 65 条可以用计算判对错的话（某个公式给出的数和模拟出来的对不对得上，某条规则在某个世界里是不是显著更好），在本机逐条算、逐条判。
+- 手册的**“自检”**一页列出 78 条可以用计算判对错的话（某个公式给出的数和模拟出来的对不对得上，某条规则在某个世界里是不是显著更好），在本机逐条算、逐条判。
 - 同一个随机种子永远得到同一批路径，所以任何结果都可以复现。
 
 ### 右栏的 AI 助手
@@ -173,9 +186,9 @@ The left column lists them top to bottom.
 
 | Layer | What it is | What is included |
 |---|---|---|
-| Game | The type of problem: what you see at each step, what you may do, how it is settled and scored | "Trade one asset" (choose a position at every step); ten turn-based games: accept-and-cooldown, the secretary problem, betting on a biased coin, bold play, multi-armed bandits, the newsvendor, the winner's curse, a prop-firm evaluation, A-share trading rules, optimal execution; four observation games: measure a parameter, forecast, detect a change, stop at the maximum |
-| World | The distribution or process the data follow | Geometric Brownian motion, mean reversion, jump diffusion, Heston, GARCH, regime switching, AR(1), fractional Brownian motion, the logistic map, the Lorenz system, a noisy oscillator, bundled historical prices, bootstrap; each game also has worlds of its own (the distribution of offers, the type of noise, and so on) |
-| Rule | Your policy: an action at each step given what you have seen | 85 built-in rules, each with its assumptions, objective, optimality result, failure modes and a testable prediction; the code can be edited and saved as your own |
+| Game | The type of problem: what you see at each step, what you may do, how it is settled and scored | "Trade one asset" (choose a position at every step); ten turn-based games: accept-and-cooldown, the secretary problem, betting on a biased coin, bold play, multi-armed bandits, the newsvendor, the winner's curse, a prop-firm evaluation, A-share trading rules, optimal execution; four observation games: measure a parameter, forecast, detect a change, stop at the maximum; three quantum games: the Bell game, quantum search, bomb testing |
+| World | The distribution or process the data follow | Geometric Brownian motion, mean reversion, jump diffusion, Heston, GARCH, regime switching, AR(1), fractional Brownian motion, the logistic map, the Lorenz system, a noisy oscillator, bundled historical prices, bootstrap; each game also has worlds of its own (the distribution of offers, the type of noise, where the photons come from, and so on) |
+| Rule | Your policy: an action at each step given what you have seen | 100 built-in rules, each with its assumptions, objective, optimality result, failure modes and a testable prediction; the code can be edited and saved as your own |
 
 Games and worlds are separate so that you can see what happens when an assumption fails: a rule that is provably optimal in one world can lose to a naive one in another.
 
@@ -198,9 +211,21 @@ Four games (accept-and-cooldown, the secretary problem, betting on a biased coin
 - After several episodes the page reports the average difference between you and the reference rule you are compared with first (the theoretically best one, or the one with the highest long-run average where no optimum is known) on the same episodes, with its standard error. Under two standard errors, skill and luck cannot yet be told apart.
 - Results are kept only in this device's browser. Under a given seed, episode k is always the same episode, so the rules' results on the episodes you played can be recomputed at any time.
 
+### Quantum games and circuit puzzles
+
+In the three quantum games, quantum mechanics lives only in the referee's hands: a rule cannot see the quantum state and can touch it only through the few actions the referee offers (measure a photon, rotate the quantum computer one more step, send a photon around a loop), and the referee draws measurement results with the probabilities quantum mechanics gives. Each game comes with a theorem on how well a classical method can do at best, and shows how far a quantum method gets past it.
+
+| Game | The problem | Classical | Quantum |
+|---|---|---|---|
+| ⑮ Bell game | Two players who cannot communicate each receive a bit and answer a bit; when both receive 1 the answers must differ (CHSH) | Win rate at most 75% (the Bell–CHSH inequality) | Shared entangled photons measured at the standard angles: 85.36% (the Tsirelson bound). The visibility of the entanglement, a local hidden-variable source and the number of rounds can all be changed |
+| ⑯ Quantum search | Find a prize among N boxes, deciding at each query whether to rotate one more step or measure now (Grover) | Checking without repeats: (N+1)/(M+1) queries on average | About 0.69√(N/M) queries. An unknown number of prizes and decoherence at every step each call for their own method |
+| ⑰ Bomb testing | Pick out the live bombs without setting them off (Elitzur–Vaidman) | To know, you have to touch it, and touching it sets it off | The quantum Zeno effect: the more steps, the closer to 100% confirmed intact; when the loop loses photons, the number of steps is chosen by backward induction |
+
+The **quantum circuit puzzles** in the lobby are ten solo levels: relative phase, change of basis, entanglement, three XORs, Deutsch's algorithm, the untouched bomb, four-way search, superdense coding, teleportation and beating 75%. Click cells to place gates, watch the amplitudes and the Bloch sphere change, and click "Check" to run every case and earn one to three stars depending on how well you did. The puzzles use the same simulator as the three quantum games: after the levels "The untouched bomb", "One out of four" and "Beat 75%", the circuit's settings (the number of bombs, the four angles you dialled in) can be taken straight to the matching game and run by a rule over thousands of episodes, and the other way round, each of the three games has a "Circuit puzzle" button in the "Game" section that goes back to the matching level. Progress is kept in this device's browser; `#quantum` in the address (or `#quantum=bomb` with a level) opens the puzzles directly.
+
 ### The lobby: playing with other people
 
-"Lobby" at the top right holds seven things. The page still has no server of its own: anything meant for other people is a public issue in this repository, live rooms go through public MQTT relays, the daily challenges are files in this repository, entries to them are encrypted and are opened and scored after the deadline by this repository's GitHub Actions, and the random number used to settle them comes from the public randomness beacon drand.
+"Lobby" at the top right holds eight things (the quantum circuit puzzles are described above). The page still has no server of its own: anything meant for other people is a public issue in this repository, live rooms go through public MQTT relays, the daily challenges are files in this repository, entries to them are encrypted and are opened and scored after the deadline by this repository's GitHub Actions, and the random number used to settle them comes from the public randomness beacon drand.
 
 | | What it does | Why it can be trusted |
 |---|---|---|
@@ -211,6 +236,7 @@ Four games (accept-and-cooldown, the secretary problem, betting on a biased coin
 | Decathlon | One rule goes through ten worlds and is compared with buy and hold by long-run growth rate in each; the worst event is the score; the seed changes every Monday | Every rule on the board is rerun in your browser |
 | Rule arena | Several rules in one market as each other's opponents: a common-value auction (first or second price), or competitive market making | The built-in rules have closed-form benchmarks to compare against |
 | World workshop | Build worlds (code that generates prices) and games (a referee that deals, shows and scores), post them, and let others bring their own rules | |
+| Quantum circuit puzzles | Ten levels, played solo; see above | |
 
 - **Posting needs a GitHub account.** Click "Post to GitHub": the page fills in a new issue and you submit it on GitHub. The post is public and carries your username; close the issue to take it back. Just viewing the boards needs no account (GitHub allows 60 requests per hour without signing in; beyond that you are asked to refresh later).
 - **Code written by other people always runs in an isolated environment**: a worker inside a sandboxed page without same-origin rights, under a content security policy that blocks every network request. It cannot read this page, your saved data or your keys, and cannot send anything out. The same holds when a rule or world loaded from a board or the workshop is used in the lab.
@@ -243,9 +269,9 @@ Everything runs locally in the browser; algorithms train in an isolated backgrou
 
 ### The numbers are computed on your machine
 
-- The **comparison table** (every built-in rule × every world or scenario, 701 cells) is not shipped with the page. It is computed locally by background threads the first time you open it, cell by cell, and cached in the browser.
+- The **comparison table** (every built-in rule × every world or scenario, 796 cells) is not shipped with the page. It is computed locally by background threads the first time you open it, cell by cell, and cached in the browser.
 - Underlined numbers in the handbook text are computed the same way.
-- The handbook's **self-check** page lists 65 statements that a computation can decide (does a simulated number match its formula; is one rule significantly better than another in a given world) and checks them one by one on your machine.
+- The handbook's **self-check** page lists 78 statements that a computation can decide (does a simulated number match its formula; is one rule significantly better than another in a given world) and checks them one by one on your machine.
 - The same random seed always gives the same paths, so every result can be reproduced.
 
 ### The AI assistant

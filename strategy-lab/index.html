@@ -808,6 +808,130 @@ html[lang="en"] .tour-title { letter-spacing: 0; }
 .tour-chip { position: fixed; z-index: 55; left: calc(14px + env(safe-area-inset-left, 0px)); bottom: calc(14px + env(safe-area-inset-bottom, 0px)); display: flex; align-items: center; gap: 4px; background: var(--surface); border: 1px solid var(--accent); border-radius: 999px; padding: 4px 6px 4px 4px; box-shadow: var(--shadow); }
 .tour-chip .btn { border-radius: 999px; }
 
+/* ---------- 量子电路谜题（src/app-quantum.js） ----------
+   左边是十关的目录，右边是电路板、量子态和检验。颜色全部取自页面的主题：白天和夜间都跟着走。 */
+.modal-box.qcm-box { width: min(1180px, 100%); }
+.qc { --qc-wire: var(--muted); --qc-gate: var(--surface); --qc-oracle: var(--surface-2); --qc-good: var(--good-ink); --qc-bad: var(--warn-ink); display: grid; gap: 14px; min-width: 0; }
+.qc .mono, .qc .k, .qc .p, .qc .a { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.qc-top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px 16px; flex-wrap: wrap; }
+.qc-lead { margin: 0; font-size: 13px; line-height: 1.6; color: var(--ink2); max-width: 78ch; }
+.qc-tally { font: 12.5px var(--font-mono); color: var(--ink2); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.qc-tally b { color: var(--accent-ink); font-weight: 600; }
+.qc-shell { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 20px; min-width: 0; }
+.qc-levels { display: flex; flex-direction: column; gap: 2px; align-self: start; position: sticky; top: 0; }
+.qc-lv { display: grid; grid-template-columns: 2.1em minmax(0, 1fr) auto; align-items: baseline; gap: 6px; text-align: left; background: none; border: 0; border-radius: 6px; padding: 6px 9px; cursor: pointer; color: var(--ink2); font: inherit; }
+.qc-lv:hover { background: var(--surface-2); color: var(--ink); }
+.qc-lv[aria-current="true"] { background: var(--accent-wash); color: var(--ink); box-shadow: inset 2px 0 0 var(--accent); }
+.qc-lv .num { font: 12px var(--font-mono); }
+.qc-lv .name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.qc-lv .st { font-size: 11px; letter-spacing: 1px; color: var(--accent); }
+.qc-lv .st .off, .qc-stars .off { color: var(--line); }
+.qc-main { min-width: 0; display: grid; gap: 16px; align-content: start; }
+.qc-brief { display: grid; gap: 6px; max-width: 72ch; }
+.qc-tag { font: 12px var(--font-mono); color: var(--accent-ink); letter-spacing: 0.04em; }
+.qc-title { margin: 0; font: 700 22px/1.25 var(--font-display); letter-spacing: 0.03em; }
+html[lang="en"] .qc-title { letter-spacing: 0; }
+.qc-goal { margin: 2px 0 0; font-size: 14px; line-height: 1.7; }
+.qc-hints { display: flex; flex-wrap: wrap; gap: 6px 16px; }
+.qc-hint { font-size: 12.5px; color: var(--ink2); max-width: 100%; }
+.qc-hint summary { cursor: pointer; color: var(--ink); text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 3px; }
+.qc-hint[open] { flex-basis: 100%; }
+.qc-hint p { margin: 4px 0 0; line-height: 1.6; }
+.qc-bench, .qc-card { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; display: grid; gap: 10px; min-width: 0; align-content: start; }
+.qc-palette { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.qc-tool { display: inline-flex; align-items: center; gap: 7px; padding: 4px 10px 4px 5px; border-radius: 6px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; font: inherit; font-size: 12.5px; }
+.qc-tool:hover { border-color: var(--c-axis); }
+.qc-tool .g { font: 600 12px var(--font-mono); min-width: 32px; height: 26px; display: inline-flex; align-items: center; justify-content: center; gap: 1px; border: 1.5px solid var(--ink); border-radius: 5px; padding: 0 4px; line-height: 1; }
+.qc-tool .g sub { font-size: 8.5px; font-weight: 400; align-self: flex-end; margin-bottom: 3px; }
+.qc-tool[aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-wash); }
+.qc-tool[aria-pressed="true"] .g { border-color: var(--accent); color: var(--accent-ink); }
+.qc-spacer { flex: 1; }
+.qc-tooldesc { font-size: 12.5px; color: var(--ink2); min-height: 1.5em; }
+.qc-tooldesc b { color: var(--ink); font-weight: 600; }
+.qc-board-wrap { overflow-x: auto; border-radius: 6px; border: 1px solid var(--line); background-color: var(--bg); background-image: radial-gradient(circle, color-mix(in srgb, var(--muted) 40%, transparent) 1px, transparent 1.4px); background-size: 13px 13px; }
+.qc-board { display: block; }
+.qc-board text { font-family: var(--font-mono); fill: var(--ink); }
+.qc-board .qc-wname, .qc .qc-wname { fill: var(--ink2); font-family: var(--font-mono); }
+.qc-cell { fill: transparent; cursor: pointer; }
+.qc-cell:hover, .qc-cell:focus-visible { fill: var(--accent-wash); outline: none; }
+.qc-step { cursor: pointer; }
+.qc-step text { font-size: 11px; fill: var(--ink2); }
+.qc-step rect { fill: transparent; }
+.qc-step:hover rect { fill: var(--surface-2); }
+.qc-step.on rect { fill: var(--accent); }
+.qc-step.on text { fill: var(--on-accent); font-weight: 600; }
+.qc-status { font-size: 12.5px; color: var(--ink2); min-height: 1.5em; }
+.qc-status.warn, .qc .qc-warn { color: var(--qc-bad); }
+.qc-howto { font-size: 12px; color: var(--muted); }
+.qc-lower { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.qc-card h4 { margin: 0; font-size: 12.5px; font-weight: 700; letter-spacing: 0.06em; color: var(--ink2); display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; align-items: baseline; }
+.qc-card h4 .aside { font-weight: 400; letter-spacing: 0; }
+.qc-card .note { margin: 0; line-height: 1.6; }
+.qc .linkbtn { background: none; border: 0; padding: 0; color: var(--accent-ink); cursor: pointer; font: inherit; text-decoration: underline; text-underline-offset: 3px; }
+.qc-seg { display: flex; flex-wrap: wrap; gap: 5px; }
+.qc-seg button { border: 1px solid var(--line); background: transparent; color: var(--ink); border-radius: 999px; padding: 2px 10px; font: 12px var(--font-mono); cursor: pointer; }
+.qc-seg button[aria-pressed="true"] { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+.qc-amps { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; gap: 4px 10px; align-items: center; }
+.qc-amps .k { font-size: 13px; }
+.qc-amps .bar { height: 11px; background: var(--surface-2); border-radius: 3px; overflow: hidden; }
+.qc-amps .bar i { display: block; height: 100%; border-radius: 3px; }
+.qc-amps .p { font-size: 12px; text-align: right; }
+.qc-amps .a { font-size: 11.5px; color: var(--ink2); text-align: right; white-space: nowrap; }
+.qc-amps .dim { opacity: 0.35; }
+.qc-legend { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 11.5px; color: var(--ink2); align-items: center; }
+.qc-legend span { display: inline-flex; align-items: center; gap: 5px; font-family: var(--font-mono); }
+.qc-legend i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+.qc-blochs { display: flex; flex-wrap: wrap; gap: 8px 16px; }
+.qc-bloch { display: flex; flex-direction: column; align-items: center; font: 11.5px var(--font-mono); color: var(--ink2); font-variant-numeric: tabular-nums; }
+.qc-bloch svg text { font-family: var(--font-mono); fill: var(--ink2); font-size: 10px; }
+.qc-headline { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.qc-headline strong { font: 700 17px var(--font-display); }
+.qc-headline .pass { color: var(--qc-good); }
+.qc-headline .fail { color: var(--qc-bad); }
+.qc-stars { color: var(--accent); letter-spacing: 3px; font-size: 15px; }
+.qc-rows { display: grid; gap: 3px; font-size: 12.5px; }
+.qc-row { display: grid; grid-template-columns: 1.2em minmax(0, 1fr) auto; gap: 8px; align-items: baseline; padding: 3px 0; border-bottom: 1px dashed var(--line); }
+.qc-row .v { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.qc-row .ic.ok { color: var(--qc-good); }
+.qc-row .ic.no { color: var(--qc-bad); }
+.qc-row .ic.na { color: var(--muted); }
+.qc-explain { border-left: 2px solid var(--accent); padding: 2px 0 2px 12px; font-size: 12.5px; line-height: 1.7; }
+.qc-explain b { display: block; font-size: 11.5px; letter-spacing: 0.06em; color: var(--accent-ink); margin-bottom: 2px; }
+.qc-meta { font: 12px var(--font-mono); color: var(--ink2); }
+.qc-chsh { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr); grid-template-areas: "cl qu" "vd qu"; gap: 16px; align-items: start; }
+.qc-chsh > .a-cl { grid-area: cl; }
+.qc-chsh > .a-qu { grid-area: qu; }
+.qc-chsh > .a-vd { grid-area: vd; }
+.qc-pick { display: grid; grid-template-columns: auto auto auto; gap: 8px 12px; align-items: center; font-size: 12.5px; justify-content: start; }
+.qc-pick .who { color: var(--ink2); }
+.qc-wins { border-collapse: collapse; font: 12.5px var(--font-mono); font-variant-numeric: tabular-nums; }
+.qc-wins th, .qc-wins td { border: 1px solid var(--line); padding: 3px 9px; text-align: center; }
+.qc-wins th { font-weight: 400; color: var(--ink2); }
+.qc-wins td.ok { color: var(--qc-good); }
+.qc-wins td.no { color: var(--qc-bad); }
+.qc-sliders { display: grid; grid-template-columns: auto minmax(0, 1fr) 4.2em; gap: 6px 10px; align-items: center; font-size: 12.5px; }
+.qc-sliders label { white-space: nowrap; }
+.qc-sliders output { font-family: var(--font-mono); text-align: right; }
+.qc-sliders input[type=range] { width: 100%; accent-color: var(--accent); }
+.qc-gauge { position: relative; height: 34px; margin-top: 18px; }
+.qc-gauge .track { position: absolute; left: 0; right: 0; top: 10px; height: 10px; border-radius: 5px; background: var(--surface-2); }
+.qc-gauge .fill { position: absolute; left: 0; top: 10px; height: 10px; border-radius: 5px; background: var(--accent); }
+.qc-gauge .mk { position: absolute; top: -12px; bottom: 0; border-left: 1.5px solid var(--ink2); }
+.qc-gauge .mk.ts { border-left-color: var(--accent); border-left-style: dashed; }
+.qc-big { font: 600 24px var(--font-mono); font-variant-numeric: tabular-nums; }
+.qc-duo { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+.qc-col { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+@media (max-width: 860px) {
+  .qc-shell { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .qc-levels { position: static; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+  .qc-lv { grid-template-columns: minmax(0, 1fr); text-align: center; justify-items: center; padding: 5px 2px; gap: 0; background: var(--surface); border: 1px solid var(--line); }
+  .qc-lv[aria-current="true"] { box-shadow: inset 0 -2px 0 var(--accent); }
+  .qc-lv .name { display: none; }
+  .qc-lower, .qc-chsh { grid-template-columns: minmax(0, 1fr); }
+  .qc-chsh { grid-template-areas: "cl" "qu" "vd"; }
+}
+@media (prefers-reduced-motion: no-preference) { .qc-amps .bar i, .qc-gauge .fill { transition: width 0.25s ease; } }
+
 </style>
 <style>
 /* KaTeX 0.16.47 的样式，字体内联。KaTeX: MIT License, (c) Khan Academy and other contributors; 字体: SIL Open Font License 1.1。全文见 THIRD-PARTY-NOTICES.md */
@@ -1388,17 +1512,19 @@ function runGame(B, strat, p, set, opt, model) {
   var grid = opt.fan ? QL.timeGrid(T, 220) : null, G = grid ? grid.length : 0, gpos = null, EQ = null;
   if (grid) { gpos = new Int32Array(T + 1).fill(-1); for (i = 0; i < G; i++) gpos[grid[i]] = i; EQ = new Float32Array(N * G); }
   var det = opt.detail != null ? { n: opt.detail, x: new Float32Array(T).fill(NaN), a: new Float32Array(T).fill(NaN), w: new Float32Array(T + 1), m: new Int8Array(T) } : null;
-  var C = QL.makeView(), V = C.view, VL = B.VL || L, sc = QL.makeScratch(T), bad = 0, sum = 0, sumsq = 0, ruined = 0, cur = 0, st = null, srng = null;
+  var C = QL.makeView(), V = C.view, VL = B.VL || L, sc = QL.makeScratch(T), bad = 0, sum = 0, sumsq = 0, ruined = 0, cur = 0, st = null, st2 = null, srng = null;
   var oL = 0, prev = 0, peak = 0, mdd = 0, psum = 0, rec = false, hk = Object.keys(B.H || {}), asRet = w.act === "position";
   V.rf = 0; V.g = Object.freeze(w.consts ? w.consts(gp, T) : {}); V.x = NaN; V.last = NaN; V.lastA = NaN; V.left = NaN; V.locked = 0;
   V.rnd = function () { return srng.u(); };
   V.rnorm = function () { return srng.normal(); };
   V.rbeta = function (a, b) { var x = srng.gamma(a), y = srng.gamma(b); return x / (x + y); };
   var E = { T: T, p: gp, g: V.g, V: V, acct: C.acct, r: null, lv: null, h: {}, aux: new Float64Array(naux), score: 0, wt: NaN, turn: 0, expo: 0, dead: false, n: 0, tmp: {} };
-  /** 问规则要这一回合的动作。无效的返回值（非数、NaN）记一次，并交给裁判当作"什么都不做" */
-  E.ask = function (t) {
+  /** 问规则要这一回合的动作。无效的返回值（非数、NaN）记一次，并交给裁判当作"什么都不做"。
+   *  slot = 1：一局里的第二个玩家（Bell 游戏里的 Bob）。他用的是自己的一份 st（同样由 init 造出来），和第一个玩家的那份互不相通 */
+  E.ask = function (t, slot) {
     C.at(t); var price = VL[oL + t]; V.price = price; V.logp = Math.log(price);   // 规则看到的是 VL（没有另备时就是 L）
-    var a = decide(V, p, st, model);
+    if (slot && st2 === null) { st2 = init ? init(p, model) : {}; if (st2 == null) st2 = {}; }
+    var a = decide(V, p, slot ? st2 : st, model);
     if (typeof a !== "number" || a !== a) { bad++; return NaN; }
     return a;
   };
@@ -1423,7 +1549,7 @@ function runGame(B, strat, p, set, opt, model) {
     E.n = n; E.r = R.subarray(n * T, (n + 1) * T); E.lv = L.subarray(oL, oL + T + 1);
     for (i = 0; i < hk.length; i++) { var Hh = B.H[hk[i]], len = Hh.length / N; E.h[hk[i]] = Hh.subarray(n * len, (n + 1) * len); }
     srng = new RNG(B.seed, (B.n0 | 0) + n, -1000 - B.bid);     // 规则自己要用的随机数（s.rnd() 等）：与对局的随机数不是同一条流
-    st = init ? init(p, model) : {}; if (st == null) st = {};
+    st = init ? init(p, model) : {}; if (st == null) st = {}; st2 = null;
     V.x = NaN; V.last = NaN; V.lastA = NaN; V.left = NaN; V.locked = 0; C.acct(1, 0);
     E.score = 0; E.wt = NaN; E.turn = 0; E.expo = 0; E.dead = false; E.aux.fill(0);
     rec = !!det && det.n === n;
@@ -3752,6 +3878,663 @@ QL.ALL_GAMES = QL.GAMES.concat(QL.OBS);
 }
 if (typeof module !== "undefined" && module.exports) module.exports = QL_OBS_INSTALL;
 
+/* ===== q-games.js ===== */
+/* 策略实验室 · 三套量子玩法（Bell 游戏、量子搜索、炸弹检测），以及它们和"量子电路"面板共用的态矢量模拟器。
+ * 与十套玩法、四套观测玩法共用同一个裁判框架（games.js）：gen(c) 生成一局的全部随机数，play(E) 一回合一回合地问规则要动作。
+ * 量子力学只在裁判手里：规则看不到量子态本身，只能通过裁判给的那几个动作（测量、再转一步、让光子走一圈）去碰它，
+ * 和实验物理学家面对一台仪器时一样。三套玩法各自有一个"经典的做法能做到多好"的理论上限，以及量子的做法能把它推到哪里。
+ * 同一份代码在主线程（只用元数据和理论值）和后台线程（真正去跑）里各执行一遍，所以必须自包含。 */
+function QL_QUANTUM_INSTALL(QL) {
+"use strict";
+var WORLDS = QL.WORLDS, num = QL.num, sel = QL.sel, LIB = QL.gameLib, GROUP = "量子玩法";
+QL.WORLD_GROUPS.splice(2, 0, GROUP);
+QL.QUANTUM_GROUP = GROUP;
+function clamp(x, lo, hi) { return x < lo ? lo : x > hi ? hi : x; }
+var RAD = Math.PI / 180;
+var memo = {};
+function once(tag, key, f) { var m = memo[tag]; if (!m || m.key !== key) m = memo[tag] = { key: key, val: f() }; return m.val; }
+
+/* ================================================================== *
+ *  一、态矢量模拟器（"量子电路"面板也用它）
+ *  复数写成 [实部, 虚部]；n 个比特的态是长度 2^n 的复数数组，第 0 个比特是最高位：基矢的标签是 |q0 q1 q2⟩。
+ * ================================================================== */
+var SQ = Math.SQRT1_2;
+function C(re, im) { return [re, im || 0]; }
+function cmul(a, b) { return [a[0] * b[0] - a[1] * b[1], a[0] * b[1] + a[1] * b[0]]; }
+function cadd(a, b) { return [a[0] + b[0], a[1] + b[1]]; }
+function conj(a) { return [a[0], -a[1]]; }
+function abs2(a) { return a[0] * a[0] + a[1] * a[1]; }
+function expi(t) { return [Math.cos(t), Math.sin(t)]; }
+/** 绕 y 轴转 t（弧度）：|0⟩ → cos(t/2)|0⟩ + sin(t/2)|1⟩ */
+function ry(t) { var c = Math.cos(t / 2), s = Math.sin(t / 2); return [[C(c), C(-s)], [C(s), C(c)]]; }
+var MAT = {
+  I: [[C(1), C(0)], [C(0), C(1)]],
+  H: [[C(SQ), C(SQ)], [C(SQ), C(-SQ)]],
+  X: [[C(0), C(1)], [C(1), C(0)]],
+  Y: [[C(0), C(0, -1)], [C(0, 1), C(0)]],
+  Z: [[C(1), C(0)], [C(0), C(-1)]],
+  S: [[C(1), C(0)], [C(0), C(0, 1)]],
+  T: [[C(1), C(0)], [C(0), C(SQ, SQ)]],
+  R4: ry(Math.PI / 4),
+  R8: ry(Math.PI / 8)
+};
+function maskOf(n, q) { return 1 << (n - 1 - q); }
+function bitOf(i, n, q) { return (i >> (n - 1 - q)) & 1; }
+function zeros(n) { var s = []; for (var i = 0; i < (1 << n); i++) s.push(C(0)); return s; }
+function basis(n, k) { var s = zeros(n); s[k] = C(1); return s; }
+function kron(a, b) { var o = [], i, j; for (i = 0; i < a.length; i++) for (j = 0; j < b.length; j++) o.push(cmul(a[i], b[j])); return o; }
+function clone(s) { return s.map(function (a) { return [a[0], a[1]]; }); }
+var BELL = [C(SQ), C(0), C(0), C(SQ)];   // |Φ⁺⟩ = (|00⟩ + |11⟩)/√2
+/** 在第 q 个比特上作用 2×2 矩阵 M（原地） */
+function applySingle(st, n, q, M) {
+  var m = maskOf(n, q);
+  for (var i = 0; i < st.length; i++) {
+    if (i & m) continue;
+    var j = i | m, a = st[i], b = st[j];
+    st[i] = cadd(cmul(M[0][0], a), cmul(M[0][1], b));
+    st[j] = cadd(cmul(M[1][0], a), cmul(M[1][1], b));
+  }
+}
+/** 受控门：控制位 c 为 1 时在目标位 t 上作用 M */
+function applyCtrl(st, n, c, t, M) {
+  var mc = maskOf(n, c), mt = maskOf(n, t);
+  for (var i = 0; i < st.length; i++) {
+    if (!(i & mc) || (i & mt)) continue;
+    var j = i | mt, a = st[i], b = st[j];
+    st[i] = cadd(cmul(M[0][0], a), cmul(M[0][1], b));
+    st[j] = cadd(cmul(M[1][0], a), cmul(M[1][1], b));
+  }
+}
+function applyCZ(st, n, a, b) {
+  var ma = maskOf(n, a), mb = maskOf(n, b);
+  for (var i = 0; i < st.length; i++) if ((i & ma) && (i & mb)) st[i] = [-st[i][0], -st[i][1]];
+}
+/** 把第 q 个比特投影到 v（不归一化：剩下的范数平方就是这个结果出现的概率） */
+function project(st, n, q, v) {
+  var m = maskOf(n, q);
+  for (var i = 0; i < st.length; i++) if (((i & m) ? 1 : 0) !== v) st[i] = C(0);
+}
+/** 第 q 个比特的约化密度矩阵 */
+function reduced(st, n, q) {
+  var m = maskOf(n, q), r = [[C(0), C(0)], [C(0), C(0)]];
+  for (var i = 0; i < st.length; i++) {
+    if (i & m) continue;
+    var j = i | m;
+    r[0][0] = cadd(r[0][0], cmul(st[i], conj(st[i])));
+    r[0][1] = cadd(r[0][1], cmul(st[i], conj(st[j])));
+    r[1][0] = cadd(r[1][0], cmul(st[j], conj(st[i])));
+    r[1][1] = cadd(r[1][1], cmul(st[j], conj(st[j])));
+  }
+  return r;
+}
+/** 第 q 个比特的 Bloch 向量（按迹归一化）。纠缠起来的比特，向量缩进球里；最大纠缠时缩到球心 */
+function bloch(st, n, q) {
+  var r = reduced(st, n, q), tr = r[0][0][0] + r[1][1][0];
+  if (tr < 1e-12) return { x: 0, y: 0, z: 0, tr: 0 };
+  return { x: 2 * r[0][1][0] / tr, y: -2 * r[0][1][1] / tr, z: (r[0][0][0] - r[1][1][0]) / tr, tr: tr };
+}
+QL.qsim = { C: C, mul: cmul, add: cadd, conj: conj, abs2: abs2, expi: expi, ry: ry, MAT: MAT, SQ: SQ, BELL: BELL,
+  maskOf: maskOf, bitOf: bitOf, zeros: zeros, basis: basis, kron: kron, clone: clone,
+  applySingle: applySingle, applyCtrl: applyCtrl, applyCZ: applyCZ, project: project, reduced: reduced, bloch: bloch };
+
+/* ================================================================== *
+ *  ⑮ Bell 游戏（CHSH）
+ * ================================================================== */
+/** 两个偏振片的方向相差 d 度时，两边结果相同的概率。
+ *  纠缠源（可见度 v）：(1 + v·cos 2d)/2。局部隐变量源：1 − 2|d|/180（|d| 折到 0° 到 90° 之间）。 */
+function bellSame(src, v, d) {
+  if (src === "lhv") { var r = ((d % 180) + 180) % 180; if (r > 90) r = 180 - r; return 1 - 2 * r / 180; }
+  return (1 + v * Math.cos(2 * d * RAD)) / 2;
+}
+/** 四个角度（度）的测量方案：Alice 收到 x 用 A[x]，Bob 收到 y 用 B[y]，各自报测量结果。四种输入等可能时赢的概率 */
+function bellWin(src, v, a0, a1, b0, b1) {
+  var A = [a0, a1], B = [b0, b1], s = 0, x, y;
+  for (x = 0; x < 2; x++) for (y = 0; y < 2; y++) { var ps = bellSame(src, v, A[x] - B[y]); s += (x & y) ? 1 - ps : ps; }
+  return s / 4;
+}
+/** 只有一个角度 φ 的标准方案：Alice 用 0 或 2φ，Bob 用 φ 或 −φ */
+function bellPhi(src, v, phi) { return bellWin(src, v, 0, 2 * phi, phi, -phi); }
+function bellTheory(p) {
+  var src = p.src === "lhv" ? "lhv" : "q", v = clamp(+p.v, 0, 1), ts = 0.5 + v * Math.SQRT2 / 4;
+  return { src: src, v: v, ts: ts, best: src === "lhv" ? 0.75 : Math.max(0.75, ts), vcrit: SQ };
+}
+QL.bellSame = bellSame; QL.bellWin = bellWin; QL.bellPhi = bellPhi; QL.bellTheory = bellTheory;
+
+LIB.bell_zero = {
+  head: "两人都答 0：不管收到什么。它是这套玩法的基准。",
+  decide: function decide(s, p) {
+    return 0;                                   // 只有 x = y = 1 的那一种输入会输：赢 3/4
+  }
+};
+LIB.bell_rand = {
+  head: "各自随便答：每回合抛一枚自己的硬币。",
+  decide: function decide(s, p) {
+    return s.rnd() < 0.5 ? 0 : 1;               // s.rnd() 是自己的随机数，对方看不到
+  }
+};
+LIB.bell_table = {
+  head: "经典的答法表：Alice 收到 0 答 a0、收到 1 答 a1；Bob 收到 0 答 b0、收到 1 答 b1。",
+  decide: function decide(s, p) {
+    if (s.role === "A") return s.x === 0 ? p.a0 : p.a1;   // s.role 是 "A"（Alice）或 "B"（Bob），s.x 是自己收到的那个比特
+    return s.x === 0 ? p.b0 : p.b1;
+  }
+};
+LIB.bell_shared = {
+  head: "共用随机数挑答法：每回合按两人共有的随机数，以 w 的概率一起用\"都答 0\"，否则一起用\"照收到的比特答\"。",
+  decide: function decide(s, p) {
+    if (s.shared < p.w) return 0;               // s.shared：这一回合两人共有的随机数（事先约好的一本随机数表）
+    return s.x;                                 // 另一张答法表：收到什么就答什么（只在 x = y = 0 时赢）
+  }
+};
+LIB.bell_phi = {
+  head: "测量纠缠光子（一个角度 φ）：Alice 收到 0 沿 0° 测、收到 1 沿 2φ 测；Bob 收到 0 沿 φ 测、收到 1 沿 −φ 测。两人都报测到的结果。",
+  decide: function decide(s, p) {
+    var deg = s.role === "A" ? (s.x === 0 ? 0 : 2 * p.phi) : (s.x === 0 ? p.phi : -p.phi);
+    return s.measure(deg);                      // 把偏振片转到 deg 度，测自己手里的那个光子：通过 = 0，被挡住 = 1
+  }
+};
+LIB.bell_q = {
+  head: "测量纠缠光子（四个角度）：Alice 收到 0、1 分别沿 α0、α1 测，Bob 收到 0、1 分别沿 β0、β1 测。两人都报测到的结果。",
+  decide: function decide(s, p) {
+    if (s.role === "A") return s.measure(s.x === 0 ? p.a0 : p.a1);
+    return s.measure(s.x === 0 ? p.b0 : p.b1);
+  }
+};
+
+WORLDS.q_bell = {
+  ideas: ['Alice 和 Bob 每回合用 s.shared 把两个人的偏振片一起转一个随机的角度：胜率会变吗', '只在收到 1 的时候测量，收到 0 的时候直接答 0', '先用经典答法表，再只把 Bob 换成测量'],
+  mk: { 2: "输掉的回合" },
+  name: "⑮ Bell 游戏", short: "Bell 游戏", group: GROUP, game: true, quantum: true, no: 15, unit: "回合",
+  blurb: "裁判每回合各给 Alice 和 Bob 一个随机比特，两人不能通气，各答一个比特：两人都收到 1 时要答得不同，其余时候要答得相同。什么都不带，最多赢 75%；各拿一个纠缠光子，能赢到 85%。",
+  params: [
+    num("T", "一局多少回合", 200, 10, 2000, 10, { hint: "一局就是一次实验：回合越多，一次实验越能分辨 75% 和 85%" }),
+    sel("src", "光子从哪里来", "q", [["q", "纠缠光子对"], ["lhv", "局部隐变量源"]], { descs: { q: "每回合一对处在 |Φ⁺⟩ = (|HH⟩ + |VV⟩)/√2 的光子，Alice 和 Bob 各拿一个。可以加白噪声：可见度 v < 1 时，有 1 − v 的概率这一对光子是完全随机的。", lhv: "Bell 自己写下的那种经典模型：每对光子出厂时带着同一个隐藏的偏振方向 λ（在 0° 到 180° 之间均匀），测量结果由偏振片的角度和 λ 决定，哪一边的结果都不受另一边的角度影响。" } }),
+    num("v", "纠缠的可见度 v", 1, 0, 1, 0.01, { show: function (p) { return p.src !== "lhv"; }, hint: "1 = 理想的纠缠；低于 1/√2 ≈ 0.707 时，任何测量角度都赢不过 75%" })
+  ],
+  defaults: { N: 2000, T: 200, K: 1 },
+  Tof: function (p) { return clamp(p.T | 0, 1, 20000); },
+  hidden: function (p, T) { return { x: T, y: T, sh: T, u: 2 * T, lam: T }; },
+  consts: function (p, T) { return { T: T, src: p.src === "lhv" ? "lhv" : "q", v: clamp(+p.v, 0, 1) }; },
+  score: function () { return { name: "胜率", kind: "prob", digits: 1 }; },
+  track: { name: "累计赢的回合" }, obs: { name: "这一回合要答得不同吗（x 与 y 都是 1）", draw: "bars" }, action: { name: "两人答得不同（a ⊕ b）", kind: "flag" },
+  aux: [{ name: "CHSH 值 S（经典 ≤ 2，量子 ≤ 2√2）", digits: 3 }, { name: "Bob 答 1 的比例：Alice 收到 1 时减收到 0 时", digits: 3 }, { name: "单看这一局就能断定超过了 75% 的比例（高出 3 个标准误）", kind: "prob", digits: 1 }],
+  defStrat: "bell_phi",
+  gen: function (c) {
+    var T = c.T, g = c.rng, h = c.h, t;
+    for (t = 0; t < T; t++) {
+      var x = g.u() < 0.5 ? 1 : 0, y = g.u() < 0.5 ? 1 : 0;
+      h.x[t] = x; h.y[t] = y; h.sh[t] = g.u(); h.u[2 * t] = g.u(); h.u[2 * t + 1] = g.u(); h.lam[t] = 180 * g.u();
+      c.r[t] = x & y;                           // 一回合结束后才公布：这一回合是不是"要答得不同"的那一种
+      c.lv[t] = 0;                              // 行动之前两人共同看得到的东西：没有
+    }
+    c.lv[T] = 0;
+  },
+  play: function (E) {
+    var T = E.T, V = E.V, g = E.g, hx = E.h.x, hy = E.h.y, sh = E.h.sh, hu = E.h.u, lam = E.h.lam, lhv = g.src === "lhv", v = g.v;
+    var t, a, b, x, y, wins = 0, n = [0, 0, 0, 0], same = [0, 0, 0, 0], b1 = [0, 0], nx = [0, 0];
+    var done = [false, false], out = [0, 0], first = -1, firstDeg = 0, firstOut = 0;
+    function meas(role, deg) {
+      if (done[role]) return out[role];         // 一回合只能测一次：再测，还是同一个结果
+      deg = +deg; if (!(deg === deg) || !isFinite(deg)) deg = 0;
+      var o;
+      if (lhv) o = Math.cos(2 * (deg - lam[t]) * RAD) >= 0 ? 0 : 1;   // 结果由偏振片的角度和这对光子自带的 λ 决定
+      else if (first < 0) { o = hu[2 * t] < 0.5 ? 0 : 1; first = role; firstDeg = deg; firstOut = o; }   // 先测的一方：一半一半
+      else o = hu[2 * t + 1] < (1 + v * Math.cos(2 * (firstDeg - deg) * RAD)) / 2 ? firstOut : 1 - firstOut;   // 后测的一方：按两个角度之差
+      done[role] = true; out[role] = o;
+      return o;
+    }
+    function measA(deg) { return meas(0, deg); }
+    function measB(deg) { return meas(1, deg); }
+    V.last = NaN;
+    for (t = 0; t < T; t++) {
+      x = hx[t]; y = hy[t]; done[0] = done[1] = false; first = -1; V.shared = sh[t];
+      V.role = "A"; V.x = x; V.measure = measA; a = E.ask(t, 0) >= 0.5 ? 1 : 0;
+      V.role = "B"; V.x = y; V.measure = measB; b = E.ask(t, 1) >= 0.5 ? 1 : 0;
+      var k = 2 * x + y, win = (a ^ b) === (x & y) ? 1 : 0;
+      wins += win; n[k]++; if (a === b) same[k]++; nx[x]++; b1[x] += b;
+      V.last = win;
+      E.dx(t, x & y); E.put(t, a ^ b, wins, win ? 0 : 2);
+    }
+    var S = 0, ok = true;
+    for (k = 0; k < 4; k++) { if (!n[k]) { ok = false; break; } var e = (2 * same[k] - n[k]) / n[k]; S += k === 3 ? -e : e; }
+    E.score = wins / T; E.aux[0] = ok ? S : NaN; E.aux[1] = nx[0] && nx[1] ? b1[1] / nx[1] - b1[0] / nx[0] : NaN; E.aux[2] = wins > 0.75 * T + 3 * Math.sqrt(0.1875 * T) ? 1 : 0;   // 按经典上限 3/4 时的标准差 √(3/16·T) 算
+  },
+  theory: function (p) {
+    var th = bellTheory(p), marks = [{ id: "cl", name: "不用纠缠的任何做法的上限（Bell–CHSH 不等式）", value: 0.75, kind: "theory" }];
+    if (th.src === "lhv") marks.push({ id: "best", name: "局部隐变量源下的最好成绩：和不用纠缠一样", value: 0.75, kind: "optimum" });
+    else if (th.ts > 0.75) marks.push({ id: "best", name: "量子力学允许的最好成绩：1/2 + v·√2/4（v = 1 时是 Tsirelson 界 cos²22.5°）", value: th.ts, kind: "optimum" });
+    else marks.push({ id: "best", name: "可见度不到 1/√2：最好的仍是不用纠缠的 75%（测量最多 " + (th.ts * 100).toFixed(1) + "%）", value: 0.75, kind: "optimum" });
+    return {
+      src: th.src, v: th.v, ts: th.ts, best: th.best, marks: marks,
+      curves: {
+        "bell_phi.phi": { f: function (phi) { return bellPhi(th.src, th.v, phi); }, name: th.src === "lhv" ? "理论：隐变量源上的胜率" : "理论胜率 1/2 + v·(3cos2φ − cos6φ)/8" },
+        "bell_shared.w": { f: function (w) { return w >= 0 && w <= 1 ? 0.25 + w / 2 : NaN; }, name: "理论：两张答法表按 w 混合，1/4 + w/2" }
+      }
+    };
+  },
+  refs: function (p) {
+    return [
+      { id: "zero", name: "都答 0", lib: "bell_zero", p: {}, bench: true },
+      { id: "rand", name: "各自随便答", lib: "bell_rand", p: {} },
+      { id: "same", name: "纠缠光子，但都沿 0° 测", lib: "bell_phi", p: { phi: 0 } },
+      { id: "opt", name: "纠缠光子，标准角度（0°/45° 对 22.5°/−22.5°）", lib: "bell_phi", p: { phi: 22.5 } }
+    ];
+  },
+  scenes: [
+    { name: "理想纠缠", p: { src: "q", v: 1 } }, { name: "可见度 0.9", p: { src: "q", v: 0.9 } }, { name: "可见度 0.7", p: { src: "q", v: 0.7 } },
+    { name: "局部隐变量源", p: { src: "lhv" } }, { name: "一局 50 回合", p: { T: 50 } }, { name: "一局 1000 回合", p: { T: 1000 } }
+  ],
+  api: [
+    "同一段代码给两个人用：每回合裁判先问 Alice、再问 Bob。s.role 是 \"A\" 或 \"B\"；s.x 是这个人自己收到的比特（0 或 1），对方的那一个他看不到。",
+    "动作：返回这个人的答案，0 或 1（≥ 0.5 算 1）。两人的答案 a、b 满足 a ⊕ b = x ∧ y 就赢：只有两人都收到 1 时要答得不同。",
+    "s.measure(deg)  把偏振片转到 deg 度（角度制），测自己手里的那个光子：通过返回 0，被挡住返回 1。每回合每人只能测一次，再调用返回同一个结果。",
+    "s.shared       这一回合两人共有的一个 (0,1) 随机数（事先约好的随机数表）；s.rnd() 是自己的随机数",
+    "s.last         上一回合赢了没有（1 = 赢，0 = 输，第一回合是 NaN）；s.ret(k) 是 k+1 回合之前那一回合是否\"要答得不同\"",
+    "st             Alice 和 Bob 各有自己的一份 st（init 各调用一次），互不相通。代码顶层的变量是两人共用的：拿它传话就是作弊，胜率可以超过量子力学的上限 85.36%，那正是传了话的证据。",
+    "s.g.src  s.g.v  s.g.T   光子从哪来（\"q\" 纠缠，\"lhv\" 局部隐变量）、可见度、一局多少回合"
+  ].join("\n")
+};
+
+/* ================================================================== *
+ *  ⑯ 量子搜索（Grover）
+ * ================================================================== */
+/** N 个盒子里有 M 个奖品时，从均匀叠加态出发、转 k 步（每步一次查询）再测量，测到奖品的概率。
+ *  每一步有 eps 的概率退相干（整个寄存器变成完全混合态，之后再转也没用，测量就是随便猜） */
+function grovP(N, M, k, eps) {
+  if (M <= 0) return 0;
+  if (M >= N) return 1;
+  var th = Math.asin(Math.sqrt(M / N)), s = Math.sin((2 * k + 1) * th), keep = eps > 0 ? Math.pow(1 - eps, k) : 1;
+  return keep * s * s + (1 - keep) * M / N;
+}
+/** 固定"转 k 步就测、落空就从头再来"，查询预算是 T 时，用掉的查询次数的期望（没找到的局按 T 算） */
+function grovCost(N, M, k, eps, T) {
+  var p = grovP(N, M, k, eps), L = k + 1, m = Math.floor(T / L);
+  if (!(p > 0) || m < 1) return T;
+  var q = 1 - p, qm = Math.pow(q, m);
+  return L * (1 - qm * (1 + m * p)) / p + T * qm;
+}
+/** 经典的最好做法：不放回地一个一个查。用掉的查询次数 min(X, T) 的期望，X 是第一个奖品在随机次序里的位置 */
+function sweepCost(N, M, T) {
+  if (M <= 0) return T;
+  var tail = 1, s = 0, j;
+  for (j = 0; j < T; j++) { s += tail; if (j >= N - M) break; tail *= (N - M - j) / (N - j); if (tail < 1e-15) break; }
+  return s;
+}
+/** 一组世界参数里每一局的奖品数：知道时就是 M；不知道时在 1 到 M 之间均匀 */
+function searchMs(p) { var M = clamp(p.M | 0, 1, 1 << 20); if (p.mk === "unknown") { var a = []; for (var i = 1; i <= M; i++) a.push(i); return a; } return [M]; }
+function searchN(p) { return Math.pow(2, clamp(p.n | 0, 1, 24)); }
+/** "转 k 步、落空重来"这一族里期望查询最少的 k（不计预算）。M 不知道时照它是 1 来算 */
+function grovBestK(N, M, eps) {
+  var th = Math.asin(Math.sqrt(Math.min(1, M / N))), hi = Math.ceil(Math.PI / (4 * th)) + 2, best = 0, bv = Infinity;
+  for (var k = 0; k <= hi; k++) { var v = (k + 1) / grovP(N, M, k, eps); if (v < bv - 1e-12) { bv = v; best = k; } }
+  return best;
+}
+function grovFullK(N, M) { return Math.floor(Math.PI / (4 * Math.asin(Math.sqrt(Math.min(1, M / N))))); }
+function searchTheory(p) {
+  return once("search", JSON.stringify([p.n, p.M, p.mk, p.eps, p.T]), function () {
+    var N = searchN(p), Ms = searchMs(p), eps = clamp(+p.eps, 0, 1), T = clamp(p.T | 0, 1, 1e7), avg = function (f) { var s = 0; Ms.forEach(function (m) { s += f(m); }); return s / Ms.length; };
+    var known = p.mk !== "unknown", Mk = known ? Ms[0] : 1;
+    var kBest = grovBestK(N, Mk, eps), kFull = grovFullK(N, Mk);
+    return {
+      N: N, Ms: Ms, known: known, kBest: kBest, kFull: kFull,
+      guess: avg(function (m) { return grovCost(N, m, 0, eps, T); }),
+      sweep: avg(function (m) { return sweepCost(N, m, T); }),
+      best: avg(function (m) { return grovCost(N, m, kBest, eps, T); }),
+      full: avg(function (m) { return grovCost(N, m, kFull, eps, T); }),
+      fixed: function (k) { return avg(function (m) { return grovCost(N, m, k, eps, T); }); },
+      pFull: avg(function (m) { return grovP(N, m, kFull, eps); })
+    };
+  });
+}
+QL.grovP = grovP; QL.grovCost = grovCost; QL.sweepCost = sweepCost; QL.grovBestK = grovBestK; QL.grovFullK = grovFullK; QL.searchTheory = searchTheory;
+
+LIB.srch_guess = {
+  head: "每次都直接测：不转，测出来的就是随便猜的一个盒子。它是这套玩法的基准。",
+  decide: function decide(s, p) {
+    return 0;                                   // 0 = 测量并核对；1 = 再转一步
+  }
+};
+LIB.srch_fixed = {
+  head: "固定转 k 步再测：落空了就从头再来，还是转 k 步。",
+  decide: function decide(s, p) {
+    return s.k < p.k ? 1 : 0;                   // s.k：上次测量之后已经转了几步
+  }
+};
+LIB.srch_full = {
+  head: "转到成功率最高再测（Grover）：转 ⌊π/(4θ)⌋ 步，sin θ = √(M/N)。不知道有几个奖品时，当作只有一个。",
+  decide: function decide(s, p, st) {
+    if (st.k === undefined) {
+      var M = s.g.M === s.g.M ? s.g.M : 1;      // s.g.M 是 NaN：不知道有几个奖品，就当作 1 个
+      st.k = Math.floor(Math.PI / (4 * Math.asin(Math.sqrt(Math.min(1, M / s.g.N)))));
+    }
+    return s.k < st.k ? 1 : 0;
+  }
+};
+LIB.srch_best = {
+  head: "按期望查询次数最少来转：在\"转 k 步、落空重来\"里挑 (k + 1)/P(测中) 最小的 k。比转到成功率最高要早停。",
+  decide: function decide(s, p, st) {
+    if (st.k === undefined) {
+      var N = s.g.N, M = s.g.M === s.g.M ? s.g.M : 1, eps = s.g.eps, th = Math.asin(Math.sqrt(Math.min(1, M / N))), best = 0, bv = Infinity;
+      for (var k = 0; k <= Math.ceil(Math.PI / (4 * th)) + 2; k++) {
+        var keep = Math.pow(1 - eps, k), sn = Math.sin((2 * k + 1) * th);
+        var pk = keep * sn * sn + (1 - keep) * M / N;   // 转 k 步再测，测中的概率（算上退相干）
+        if ((k + 1) / pk < bv - 1e-12) { bv = (k + 1) / pk; best = k; }   // 每一轮花 k + 1 次查询，平均要 1/pk 轮
+      }
+      st.k = best;
+    }
+    return s.k < st.k ? 1 : 0;
+  }
+};
+LIB.srch_bbht = {
+  head: "不知道有几个奖品（Boyer–Brassard–Høyer–Tapp）：每一轮从 0 到 m − 1 里随机挑转几步，落空就把 m 放大 λ 倍，直到 √N 为止。",
+  init: function init(p) {
+    return { m: 1, j: -1 };                     // j = −1：这一轮转几步还没定
+  },
+  decide: function decide(s, p, st) {
+    if (st.j < 0) st.j = Math.floor(s.rnd() * st.m);
+    if (s.k < st.j) return 1;
+    st.j = -1; st.m = Math.min(p.lam * st.m, Math.sqrt(s.g.N));   // 这一轮测完：下一轮的范围放大
+    return 0;
+  }
+};
+
+WORLDS.q_search = {
+  ideas: ['先按只有一个奖品转，落空一次就把转的步数减半', '不知道有几个奖品：先用几轮经典的随便猜估计 M，再按估出来的 M 转', '退相干的世界里：每轮只转到 √N 的一半就测'],
+  mk: { 1: "测量并核对", 2: "退相干了", 3: "已经找到" },
+  name: "⑯ 量子搜索", short: "量子搜索", group: GROUP, game: true, quantum: true, no: 16, unit: "次查询",
+  blurb: "N 个盒子里藏着奖品，问一次黑盒算一次查询。每次查询，要么让量子计算机再转一步，要么测量、并用这次查询核对测出来的那个盒子。找到奖品为止，比谁用的查询少。",
+  params: [
+    num("n", "量子比特数 n（盒子数 N = 2ⁿ）", 10, 2, 20, 1, { hint: "n = 10 时 N = 1024；n = 20 时超过一百万" }),
+    num("T", "查询预算", 4096, 16, 50000, 16, { hint: "用完还没找到，这一局按预算记" }),
+    sel("mk", "奖品有几个", "known", [["known", "正好 M 个，你知道 M"], ["unknown", "1 到 M 个之间，你不知道"]], { descs: { known: "每一局都正好藏着 M 个奖品，位置随机，规则读得到 M。", unknown: "每一局的奖品数在 1 到 M 之间均匀地抽，规则读不到它（s.g.M 是 NaN，s.g.Mmax 是 M）。" } }),
+    num("M", "奖品数 M（或上限）", 1, 1, 256, 1),
+    num("eps", "每转一步退相干的概率", 0, 0, 0.2, 0.001, { hint: "退相干之后整个寄存器变成完全混合态：再转也没用，测量就是随便猜" })
+  ],
+  defaults: { N: 500, T: 4096, K: 1 },
+  Tof: function (p) { return clamp(p.T | 0, 1, 1e6); },
+  hidden: function (p, T) { return { u: T, M: 1 }; },
+  consts: function (p, T) { var N = searchN(p), M = clamp(p.M | 0, 1, N); return { T: T, n: clamp(p.n | 0, 1, 24), N: N, M: p.mk === "unknown" ? NaN : M, Mmax: M, eps: clamp(+p.eps, 0, 1) }; },
+  score: function () { return { name: "找到奖品用掉的查询次数", digits: 1, lower: true }; },
+  track: { name: "已经用掉的查询" }, obs: { name: "此刻测量能测中的概率（只有裁判知道）" }, action: { name: "再转一步", kind: "flag" },
+  aux: [{ name: "预算内没找到的比例", kind: "prob", digits: 1 }, { name: "平均测量了几次", digits: 2 }, { name: "这一局的奖品数", digits: 2 }],
+  defStrat: "srch_best",
+  ranges: function (p) { var th = searchTheory(p); return { "srch_fixed.k": [0, Math.max(10, Math.ceil(2.5 * th.kFull)), th.kBest] }; },
+  gen: function (c) {
+    var T = c.T, g = c.rng, N = searchN(c.p), Mx = clamp(c.p.M | 0, 1, N), t;
+    c.h.M[0] = c.p.mk === "unknown" ? 1 + g.int(Mx) : Mx;
+    for (t = 0; t < T; t++) { c.h.u[t] = g.u(); c.r[t] = 0; c.lv[t] = 0; }
+    c.lv[T] = 0;
+  },
+  play: function (E) {
+    var T = E.T, V = E.V, g = E.g, N = g.N, M = E.h.M[0], u = E.h.u, eps = g.eps, th = Math.asin(Math.sqrt(Math.min(1, M / N)));
+    var k = 0, dec = false, fails = 0, meas = 0, t, a, found = -1;
+    V.k = 0; V.fails = 0; V.last = NaN;
+    for (t = 0; t < T; t++) {
+      var sn = Math.sin((2 * k + 1) * th), pNow = dec ? M / N : sn * sn;
+      V.k = k; V.fails = fails;
+      E.dx(t, pNow);
+      a = E.ask(t);
+      if (a !== a) { E.put(t, NaN, t + 1, 0); continue; }   // 无效的返回值：这一次查询白白浪费
+      if (a >= 0.5) {                                        // 再转一步：一次查询
+        k++;
+        var m = 0;
+        if (!dec && eps > 0 && u[t] < eps) { dec = true; m = 2; } else if (dec) m = 2;
+        V.last = NaN; E.put(t, 1, t + 1, m);
+      } else {                                               // 测量，并用一次查询核对测出来的盒子
+        meas++;
+        if (u[t] < pNow) { found = t; V.last = 1; E.put(t, 0, t + 1, 1); break; }
+        fails++; k = 0; dec = false; V.last = 0;             // 落空：重新准备均匀叠加态，从头再来
+        E.put(t, 0, t + 1, 1);
+      }
+    }
+    if (found >= 0) E.fill(found + 1, found + 1, 3);
+    var used = found >= 0 ? found + 1 : T;
+    E.score = -used; E.aux[0] = found >= 0 ? 0 : 1; E.aux[1] = meas; E.aux[2] = M;
+  },
+  theory: function (p) {
+    var th = searchTheory(p), marks = [
+      { id: "guess", name: "每次都直接测（公式）", value: -th.guess },
+      { id: "sweep", name: "经典的最好做法：不放回地一个一个查（公式）", value: -th.sweep, kind: "theory" }
+    ];
+    if (th.known) {
+      marks.push({ id: "full", name: "转 " + th.kFull + " 步再测（转到成功率最高，公式）", value: -th.full });
+      marks.push({ id: "best", name: "转 " + th.kBest + " 步再测（这一族里期望查询最少，公式）", value: -th.best, kind: "optimum" });
+    }
+    return {
+      N: th.N, kBest: th.kBest, kFull: th.kFull, known: th.known, guess: th.guess, sweep: th.sweep, best: th.best, full: th.full, pFull: th.pFull, marks: marks,
+      curves: { "srch_fixed.k": { f: function (k) { k = Math.round(k); return k >= 0 ? -th.fixed(k) : NaN; }, name: "理论：转 k 步、落空重来" } }
+    };
+  },
+  refs: function (p) {
+    var th = searchTheory(p), L = [
+      { id: "guess", name: "每次都直接测", lib: "srch_guess", p: {}, bench: true },
+      { id: "full", name: "转到成功率最高再测（Grover）", lib: "srch_full", p: {} },
+      { id: "best", name: "按期望查询最少来转", lib: "srch_best", p: {} },
+      { id: "bbht", name: "不知道有几个：随机步数、逐轮放大（λ = 1.2）", lib: "srch_bbht", p: { lam: 1.2 } }
+    ];
+    return L;
+  },
+  scenes: [
+    { name: "1024 个盒子，1 个奖品", p: { n: 10, M: 1, mk: "known", eps: 0 } }, { name: "4 个奖品，知道", p: { M: 4 } }, { name: "1 到 16 个，不知道", p: { mk: "unknown", M: 16 } },
+    { name: "每步 1% 退相干", p: { eps: 0.01 } }, { name: "每步 5% 退相干", p: { eps: 0.05 } }, { name: "只有 16 个盒子", p: { n: 4, T: 256 } }, { name: "2²⁰ 个盒子", p: { n: 20, T: 6000 } }
+  ],
+  api: [
+    "动作：返回 1 = 再转一步（一次 Grover 迭代，花一次查询）；返回 0 = 测量，并花一次查询核对测出来的那个盒子。测中了这一局结束；落空了，寄存器重新准备成均匀叠加态，从头再来。",
+    "s.k          上次测量之后已经转了几步（测量之后归零）",
+    "s.fails      已经落空了几次；s.last 是上一次测量的结果（1 = 测中，0 = 落空，没测过是 NaN）",
+    "s.g.N  s.g.n  盒子数 N = 2ⁿ、量子比特数 n；s.g.T 是查询预算",
+    "s.g.M        奖品数（不知道时是 NaN）；s.g.Mmax 是它的上限；s.g.eps 是每转一步退相干的概率",
+    "s.rnd()      (0,1) 上的均匀随机数。量子态本身规则看不到：它在裁判手里，只能通过转和测去碰。"
+  ].join("\n")
+};
+
+/* ================================================================== *
+ *  ⑰ 炸弹检测（Elitzur–Vaidman，量子芝诺效应）
+ * ================================================================== */
+/** 每颗炸弹：先转 N 次、每次 90°/N，每次之后让光子走一圈；走完测量，水平偏振判真、竖直判哑；光子半路丢了就换一个从头来。
+ *  按回合精确地倒推出这种做法的期望得分（转一次、测一次、判一次各占一个回合，预算 T 个回合） */
+function zenoScore(N, q, eps, c, T) {
+  N = Math.max(1, N | 0);
+  var s2 = Math.pow(Math.sin(Math.PI / (2 * N)), 2);
+  /* 换一个新光子、还剩 r 步时的期望得分 f(r)。第 j 圈（j = 1…N）在第 j 步：光子先以 ε 的概率丢掉（之后从 f(r − j) 重来），
+   * 没丢的话真炸弹以 sin²(π/2N) 的概率炸掉；走完 N 圈之后测量（第 N + 1 步）、判定（第 N + 2 步），都判对。
+   * 记 a 为"一圈下来光子还在、也没炸"的概率，W(r) = Σ_{j ≤ min(N, r)} a^{j−1} f(r − j)，则
+   *   f(r) = ε·W(r) − c(1 − ε)s²·(1 − a^{min(N, r)})/(1 − a) + [r ≥ N + 2]·a^N，W(r + 1) = f(r) + a·(W(r) − [r ≥ N]·a^{N−1} f(r − N))。
+   * 每个 r 只要常数次运算：整个倒推是 O(T)。 */
+  function run(a, boom) {
+    var f = new Float64Array(T + 1), W = 0, aN = Math.pow(a, N), aN1 = Math.pow(a, N - 1), r;
+    for (r = 1; r <= T; r++) {
+      if (r > 1) W = f[r - 1] + a * (W - (r - 1 >= N ? aN1 * f[r - 1 - N] : 0));
+      var m = Math.min(N, r), G = a < 1 ? (1 - Math.pow(a, m)) / (1 - a) : m;
+      f[r] = eps * W - boom * G + (r >= N + 2 ? aN : 0);
+    }
+    return f[T];
+  }
+  var live = run((1 - eps) * (1 - s2), c * (1 - eps) * s2), dud = run(1 - eps, 0);
+  return { score: q * live + (1 - q) * dud, live: live, dud: dud };
+}
+/** 真炸弹在一个光子上的结局：完好地走完 N 圈的概率、半路被炸的概率（不计预算、没有损耗时就是 cos^{2N}(π/2N) 和其余） */
+function zenoOnce(N, eps) {
+  var s2 = Math.pow(Math.sin(Math.PI / (2 * N)), 2), stay = (1 - eps) * (1 - s2), ok = Math.pow(stay, N), boom = 0, alive = 1;
+  for (var j = 0; j < N; j++) { boom += alive * (1 - eps) * s2; alive *= stay; }
+  return { ok: ok, boom: boom, lost: 1 - ok - boom };
+}
+function bombTheory(p) {
+  return once("bomb", JSON.stringify([p.q, p.eps, p.c, p.T]), function () {
+    var q = clamp(+p.q, 0, 1), eps = clamp(+p.eps, 0, 0.999), c = Math.max(0, +p.c), T = clamp(p.T | 0, 1, 1e5), best = 1, bv = -Infinity, cur = [], N;
+    for (N = 1; N <= Math.min(400, T - 2); N++) { var v = zenoScore(N, q, eps, c, T).score; cur[N] = v; if (v > bv + 1e-12) { bv = v; best = N; } }
+    // 直接看一眼：转 90° 走一圈。真炸弹一定炸（除非光子先丢了），哑弹测出竖直、判对
+    var look = zenoScore(1, q, eps, c, T).score;
+    return { q: q, eps: eps, c: c, T: T, nBest: best, best: bv, curve: cur, look: look, guess: Math.abs(2 * q - 1), two: cur[2] };
+  });
+}
+QL.zenoScore = zenoScore; QL.zenoOnce = zenoOnce; QL.bombTheory = bombTheory;
+
+LIB.bomb_look = {
+  head: "直接看一眼：光子转到竖直偏振、整个送进炸弹那一路，再测。经典的检查方法。它是这套玩法的基准。",
+  decide: function decide(s, p) {
+    if (s.last === s.last) return s.last === 1 ? -2 : -1;   // 测过了：竖直（1）判哑弹，水平（0）判真炸弹
+    if (s.n === 0) return 90;                   // 新的光子：转 90°，走一圈
+    return 0;                                   // 走完了：测量
+  }
+};
+LIB.bomb_guess = {
+  head: "不测，直接猜：真炸弹的比例过半就判真，否则判哑。",
+  decide: function decide(s, p) {
+    return s.g.q >= 0.5 ? -1 : -2;              // −1 = 判真炸弹，−2 = 判哑弹
+  }
+};
+LIB.bomb_zeno = {
+  head: "量子芝诺：每次只转 90°/N，走一圈，重复 N 次再测。水平偏振判真，竖直判哑；光子半路丢了就换一个从头来。",
+  decide: function decide(s, p) {
+    if (s.last === s.last) return s.last === 1 ? -2 : -1;
+    if (s.n < p.N) return 90 / p.N;             // s.n：这个光子已经走了几圈（换光子时归零）
+    return 0;
+  }
+};
+LIB.bomb_best = {
+  head: "按损耗和预算选步数：开局之前倒推出每一种 N 的期望得分，取最好的 N，再按量子芝诺的做法测。",
+  fit: function fit(D, p, ml, rng) {
+    // 只用到细则里的常数（D.g：每颗几步、真炸弹的比例、丢光子的概率、炸一颗扣几分），不看数据。N 从 1 试到 min(400, T − 2)
+    var g = D.g, T = g.T, best = 1, bv = -Infinity, N;
+    // 换一个新光子、还剩 r 步时的期望得分 f(r)：a 是一圈下来光子还在、也没炸的概率，boom 是每圈炸掉的扣分
+    function score(N, a, boom) {
+      var f = new Float64Array(T + 1), W = 0, aN = Math.pow(a, N), aN1 = Math.pow(a, N - 1);
+      for (var r = 1; r <= T; r++) {
+        if (r > 1) W = f[r - 1] + a * (W - (r - 1 >= N ? aN1 * f[r - 1 - N] : 0));   // W(r) = Σ a^(j−1)·f(r − j)：丢了光子从头来
+        var m = Math.min(N, r), G = a < 1 ? (1 - Math.pow(a, m)) / (1 - a) : m;
+        f[r] = g.eps * W - boom * G + (r >= N + 2 ? aN : 0);  // 走完 N 圈、测量、判定：都判对，得 1 分
+      }
+      return f[T];
+    }
+    for (N = 1; N <= Math.min(400, T - 2); N++) {
+      var s2 = Math.pow(Math.sin(Math.PI / (2 * N)), 2);
+      var v = g.q * score(N, (1 - g.eps) * (1 - s2), g.c * (1 - g.eps) * s2) + (1 - g.q) * score(N, 1 - g.eps, 0);
+      if (v > bv + 1e-12) { bv = v; best = N; }
+    }
+    return { N: best, note: "倒推的结果：N = " + best + " 最好，期望每颗得 " + bv.toFixed(3) + " 分。" };
+  },
+  decide: function decide(s, p, st, model) {
+    if (s.last === s.last) return s.last === 1 ? -2 : -1;
+    if (s.n < model.N) return 90 / model.N;
+    return 0;
+  }
+};
+
+WORLDS.q_bomb = {
+  ideas: ['先转小角度试几圈，光子丢得多就把步数减少', '走完 N 圈测出水平之后，再换一个光子复核一次', '真炸弹很少时，干脆直接看一眼'],
+  mk: { 1: "测量", 2: "光子丢了", 3: "这一局已经结束" },
+  name: "⑰ 炸弹检测", short: "炸弹检测", group: GROUP, game: true, quantum: true, no: 17, unit: "步",
+  blurb: "一批炸弹真假混杂，真炸弹只要被一个光子碰到就会炸。不碰它，能不能知道它是真的？每一步把光子的偏振转一个角度、让它走一圈，竖直偏振的那一部分会去炸弹那一路。转得越小越安全，可光路会丢光子，步数也有限。",
+  params: [
+    num("T", "每颗炸弹最多用几步", 300, 10, 3000, 10, { hint: "转一次走一圈、测量一次、做出判定，各占一步" }),
+    num("c", "炸掉一颗扣几分", 1, 0, 10, 0.5, { hint: "判对 +1，判错 −1，炸了扣这么多，没判 0 分" }),
+    num("q", "真炸弹的比例", 0.5, 0, 1, 0.01),
+    num("eps", "光子每走一圈丢失的概率", 0.01, 0, 0.2, 0.001, { hint: "0 = 完美的光路；丢了的光子不会碰到炸弹，但这一圈白走" })
+  ],
+  defaults: { N: 2000, T: 300, K: 1 },
+  Tof: function (p) { return clamp(p.T | 0, 3, 1e5); },
+  hidden: function (p, T) { return { live: 1, u: 2 * T }; },
+  consts: function (p, T) { return { T: T, q: clamp(+p.q, 0, 1), eps: clamp(+p.eps, 0, 0.999), c: Math.max(0, +p.c) }; },
+  score: function () { return { name: "平均每颗的得分", digits: 3 }; },
+  track: { name: "这一颗定下来的得分" }, obs: { name: "光子到炸弹之前的偏振角（只有裁判知道，度）" }, action: { name: "这一步的动作（度；0 测量，−1 判真，−2 判哑）", kind: "level" },
+  aux: [{ name: "炸掉的比例", kind: "prob", digits: 1 }, { name: "判错的比例", kind: "prob", digits: 1 }, { name: "真炸弹里完好地确认出来的比例", kind: "prob", digits: 1, cond: true }, { name: "平均用了几步", digits: 1 }],
+  defStrat: "bomb_best",
+  ranges: function (p) { var th = bombTheory(p); return { "bomb_zeno.N": [1, Math.max(20, Math.min(400, Math.ceil(2.5 * th.nBest))), th.nBest] }; },
+  gen: function (c) {
+    var T = c.T, g = c.rng, t;
+    c.h.live[0] = g.u() < clamp(+c.p.q, 0, 1) ? 1 : 0;
+    for (t = 0; t < T; t++) { c.h.u[2 * t] = g.u(); c.h.u[2 * t + 1] = g.u(); c.r[t] = 0; c.lv[t] = 0; }
+    c.lv[T] = 0;
+  },
+  play: function (E) {
+    var T = E.T, V = E.V, g = E.g, live = E.h.live[0] === 1, u = E.h.u, eps = g.eps;
+    var psi = 0, turned = 0, n = 0, photons = 1, t, a, sc = 0, end = -1, boom = 0, wrong = 0, ok = NaN;
+    V.n = 0; V.turned = 0; V.photons = 1; V.lost = 0; V.last = NaN;
+    for (t = 0; t < T; t++) {
+      V.n = n; V.turned = turned; V.photons = photons;
+      a = E.ask(t);
+      if (a === -1 || a === -2) {                                     // 判定：这一局结束
+        var sayLive = a === -1, right = sayLive === live;
+        sc = right ? 1 : -1; wrong = right ? 0 : 1; if (live) ok = sayLive ? 1 : 0;
+        E.dx(t, psi); E.put(t, a, sc, 0); end = t; break;
+      }
+      if (a === 0) {                                                  // 测量偏振：竖直的概率是 sin²ψ。这个光子用掉了，下一步换新的
+        var vert = u[2 * t] < Math.pow(Math.sin(psi * RAD), 2) ? 1 : 0;
+        E.dx(t, psi); V.last = vert; V.lost = 0;
+        psi = 0; turned = 0; n = 0; photons++;
+        E.put(t, 0, 0, 1); continue;
+      }
+      if (!(a > 0) || !isFinite(a)) { E.dx(t, psi); V.lost = 0; E.put(t, NaN, 0, 0); continue; }   // 无效的动作：这一步什么也没发生
+      var d = a % 180;
+      psi = (psi + d) % 180; turned = (turned + d) % 180; n++;
+      E.dx(t, psi);
+      if (u[2 * t] < eps) {                                           // 光子在光路里丢了：没有碰到炸弹，换一个新的从头来
+        V.lost = 1; psi = 0; turned = 0; n = 0; photons++;
+        E.put(t, a, 0, 2); continue;
+      }
+      V.lost = 0;
+      if (live) {
+        if (u[2 * t + 1] < Math.pow(Math.sin(psi * RAD), 2)) { sc = -g.c; boom = 1; if (live) ok = 0; E.put(t, a, sc, 3); end = t; break; }   // 竖直的那一部分进了炸弹那一路：炸了
+        psi = 0;                                                      // 没炸：光子一定走的是另一路，偏振塌回水平
+      }
+      E.put(t, a, 0, 0);
+    }
+    if (end >= 0) E.fill(end + 1, sc, 3);
+    else if (live) ok = 0;
+    E.score = sc; E.aux[0] = boom; E.aux[1] = wrong; E.aux[2] = live ? ok : NaN; E.aux[3] = end >= 0 ? end + 1 : T;
+  },
+  theory: function (p) {
+    var th = bombTheory(p), marks = [
+      { id: "look", name: "直接看一眼（公式）", value: th.look },
+      { id: "guess", name: "不测，猜比例大的一边（公式）", value: th.guess },
+      { id: "best", name: "量子芝诺，N = " + th.nBest + "（各种 N 里最好，倒推）", value: th.best, kind: "optimum" },
+      { id: "all", name: "每颗都判对、一颗不炸", value: 1, kind: "bound" }
+    ];
+    return {
+      nBest: th.nBest, best: th.best, look: th.look, guess: th.guess, two: th.two, marks: marks,
+      curves: { "bomb_zeno.N": { f: function (N) { N = Math.round(N); return N >= 1 && N <= 400 && N <= th.T - 2 ? th.curve[N] : NaN; }, name: "理论（按回合倒推）" } }
+    };
+  },
+  refs: function (p) {
+    var th = bombTheory(p);
+    return [
+      { id: "look", name: "直接看一眼", lib: "bomb_look", p: {}, bench: true },
+      { id: "guess", name: "不测，直接猜", lib: "bomb_guess", p: {} },
+      { id: "two", name: "两步（每步 45°）", lib: "bomb_zeno", p: { N: 2 } },
+      { id: "z10", name: "量子芝诺，N = 10", lib: "bomb_zeno", p: { N: 10 } },
+      { id: "best", name: "量子芝诺，按损耗选 N（N = " + th.nBest + "）", lib: "bomb_best", p: {} }
+    ];
+  },
+  scenes: [
+    { name: "完美的光路", p: { eps: 0 } }, { name: "每圈丢 1%", p: { eps: 0.01 } }, { name: "每圈丢 5%", p: { eps: 0.05 } },
+    { name: "真炸弹只占 10%", p: { q: 0.1 } }, { name: "炸一颗扣 10 分", p: { c: 10 } }, { name: "每颗只给 30 步", p: { T: 30 } }
+  ],
+  api: [
+    "动作：返回一个正数 a = 把光子的偏振再转 a 度，然后让它走一圈：竖直偏振的那一部分去炸弹那一路，水平的那一部分走另一路，最后汇合。",
+    "返回 0 = 测量光子的偏振（水平 → s.last = 0，竖直 → s.last = 1）。这个光子用掉了，下一步换一个新的，从水平偏振开始。",
+    "返回 −1 = 判定\"是真炸弹\"，返回 −2 = 判定\"是哑弹\"，这一局结束：判对 +1，判错 −1。炸了扣 s.g.c 分，步数用完还没判是 0 分。其他的数什么也不做，白白用掉一步。",
+    "真炸弹：光子竖直偏振的那一部分走进炸弹那一路就会炸，概率是 sin²(此刻的偏振角)；没炸的话，光子一定走的是另一路，偏振塌回水平。哑弹：什么也不发生。",
+    "s.n          这个光子已经走了几圈；s.turned 是它累计转过的角度（度，按 180° 取余）；换光子时都归零",
+    "s.lost       上一步光子是不是在光路里丢了（1 = 丢了，已经换了一个新的）；s.photons 是到现在用了几个光子",
+    "s.last       上一次测量的结果（0 水平，1 竖直，没测过是 NaN）",
+    "s.g.q  s.g.eps  s.g.c  s.g.T   真炸弹的比例、每圈丢光子的概率、炸一颗扣几分、每颗最多几步"
+  ].join("\n")
+};
+
+/* ---------- 每套玩法里哪些参数说的是"世界" ---------- */
+var WLAYER = {
+  q_bell: { wsel: "src", wkeys: ["src", "v"] },
+  q_search: { wsel: "mk", wkeys: ["mk", "M", "eps"] },
+  q_bomb: { wkeys: ["q", "eps"], wname: "真假混杂的炸弹，会丢光子的光路", wdesc: "每颗炸弹是真是假各自独立地抽，真的概率是 q。光子在光路里每走一圈，有 ε 的概率被吸收掉；被吸收的光子碰不到炸弹。" }
+};
+Object.keys(WLAYER).forEach(function (k) { var o = WLAYER[k]; Object.keys(o).forEach(function (q) { WORLDS[k][q] = o[q]; }); });
+
+QL.QUANTUM = ["q_bell", "q_search", "q_bomb"];
+QL.ALL_GAMES = (QL.ALL_GAMES || QL.GAMES.concat(QL.OBS || [])).concat(QL.QUANTUM);
+}
+if (typeof module !== "undefined" && module.exports) module.exports = QL_QUANTUM_INSTALL;
+
 /* ===== live.js ===== */
 /* 策略实验室 · 现算
  * 对照表和手册里引用的数字不再事先写好，而是在用户自己的电脑上算出来。这里是与界面无关的那一半：
@@ -5121,6 +5904,7 @@ QL.ml = {}; // 模型库在下面的 QL_ML 里补上
 if (typeof QL_ML_INSTALL === "function") QL_ML_INSTALL(QL);
 if (typeof QL_GAMES_INSTALL === "function") QL_GAMES_INSTALL(QL);   // 十套玩法
 if (typeof QL_OBS_INSTALL === "function") QL_OBS_INSTALL(QL);       // 四套观测玩法（要排在十套之后：它们共用同一个裁判）
+if (typeof QL_QUANTUM_INSTALL === "function") QL_QUANTUM_INSTALL(QL); // 三套量子玩法（同一个裁判，排在观测玩法之后）
 if (typeof QL_LIVE_INSTALL === "function") QL_LIVE_INSTALL(QL);     // 现算：对照表的清单和一格怎么算
 
 self.QL = QL;
@@ -6654,6 +7438,503 @@ $$m_2^{(s)}(y)=\mathbb{E}\Bigl[\Delta^2+2\Delta\,m_1^{(s-1)}\bigl((y-\Delta)^+\b
   return L;
 }
 if (typeof module !== "undefined" && module.exports) module.exports = QL_OBS_STRATS;
+
+/* ===== q-strats.js ===== */
+/* 三套量子玩法各自的内置规则：名字、参数表和说明。
+ * 代码不在这里写第二遍：直接取 q-games.js 里 LIB 的函数源码（裁判做"对照"用的也是那一份）。 */
+function QL_Q_STRATS(QL) {
+  var R = String.raw, LIB = QL.gameLib, L = [];
+  function n(key, label, def, min, max, step, extra) { var o = { key: key, label: label, def: def, min: min, max: max, step: step, type: "num" }; if (extra) for (var k in extra) o[k] = extra[k]; return o; }
+  function dedent(src) {
+    var lines = src.split("\n"), min = Infinity, i;
+    for (i = 1; i < lines.length; i++) { if (!lines[i].trim()) continue; var m = /^ */.exec(lines[i])[0].length; if (m < min) min = m; }
+    if (min === Infinity) min = 0;
+    return [lines[0]].concat(lines.slice(1).map(function (l) { return l.slice(Math.min(min, /^ */.exec(l)[0].length)); })).join("\n");
+  }
+  function codeOf(id) { var S = LIB[id], parts = []; ["fit", "init", "decide"].forEach(function (k) { if (S[k]) parts.push(dedent(S[k].toString())); }); return "// " + S.head + "\n" + parts.join("\n\n"); }
+  function add(game, id, name, summary, params, explain) {
+    var o = { id: id, lib: id, game: game, name: name, group: QL.WORLDS[game].short, summary: summary, params: params || [], code: codeOf(id), explain: explain };
+    if (LIB[id].fit) o.fitKeys = [];
+    L.push(o);
+  }
+  var BIT = { hint: "0 或 1" };
+
+  /* ---------- ⑮ Bell 游戏 ---------- */
+  add("q_bell", "bell_zero", "都答 0", "不管收到什么，两人都答 0。这套玩法的基准，也是不用纠缠时最好的做法。", [], {
+    tier: "proven",
+    assume: R`两人只能用经典的资源：各自的随机数、事先约好的随机数表；光子要么不用，要么来自局部隐变量源。四种输入 $(x,y)$ 等可能。`,
+    objective: R`胜率 $P(a\oplus b=x\wedge y)$。`,
+    optimal: R`**定理（Clauser–Horne–Shimony–Holt 1969，写成游戏的形式）。** 不用纠缠的任何做法，胜率都不超过 $3/4$。"都答 0"只在 $x=y=1$ 时输，胜率正好是 $3/4$，所以在这一类做法里它是最优的。
+
+**证明。** 先看确定的做法：Alice 收到 $x$ 答 $a_x$，Bob 收到 $y$ 答 $b_y$。四个获胜条件是
+$$a_0\oplus b_0=0,\quad a_0\oplus b_1=0,\quad a_1\oplus b_0=0,\quad a_1\oplus b_1=1.$$
+把四个式子的左边异或起来，每个变量出现两次，结果是 $0$；右边异或起来是 $1$。所以四个条件不可能同时成立，最多成立三个，胜率最多 $3/4$。带随机性的做法（各自的随机数、共用的随机数表、局部隐变量）都可以看成"先随机挑一个确定的做法、再照着做"：胜率是若干个确定做法的胜率的加权平均，也不超过 $3/4$。
+
+用相关系数写：记 $E_{xy}=P(a=b)-P(a\ne b)$，$S=E_{00}+E_{01}+E_{10}-E_{11}$，则胜率 $=\tfrac12+S/8$，上面的结论就是 Bell–CHSH 不等式 $|S|\le2$。`,
+    fails: R`两人各拿一个纠缠光子、沿合适的角度测量时，胜率能到 $\cos^2 22.5^\circ\approx85.36\%$，它就不是最优的了。`,
+    test: R`在任何世界里得分都是 $0.75$ 附近，CHSH 值 $S$ 正好是 2（它不受随机数的影响：只在 $x=y=1$ 时输，$E_{11}=1$，其余三个相关系数都是 1）。`
+  });
+  add("q_bell", "bell_rand", "各自随便答", "每回合各抛一枚自己的硬币。", [], {
+    tier: "heuristic",
+    assume: R`不需要任何假设。`,
+    objective: R`没有优化目标：它量的是"完全不配合"的胜率。`,
+    optimal: R`不是最优。两人的答案互相独立、各自一半一半，$a\oplus b$ 也是一半一半，不管要求是什么，每回合赢的概率都是 $1/2$，CHSH 值是 0。`,
+    fails: R`它没有用到任何信息。`,
+    test: R`得分在 $0.5$ 附近，CHSH 值在 0 附近。`
+  });
+  add("q_bell", "bell_table", "经典答法表", "Alice 收到 0 答 a0、收到 1 答 a1；Bob 收到 0 答 b0、收到 1 答 b1。",
+    [n("a0", "Alice 收到 0 时答", 0, 0, 1, 1, BIT), n("a1", "Alice 收到 1 时答", 0, 0, 1, 1, BIT), n("b0", "Bob 收到 0 时答", 0, 0, 1, 1, BIT), n("b1", "Bob 收到 1 时答", 0, 0, 1, 1, BIT)], {
+    tier: "family",
+    assume: R`两人只用经典的资源，而且不用随机数：答案完全由收到的比特决定。`,
+    objective: R`胜率：赢的回合数占全部回合的比例。`,
+    optimal: R`一共 $2^4=16$ 张表。四个获胜条件左边的异或恒为 $0$、右边的异或是 $1$，所以每张表违反的条件个数是奇数：要么只违反一个（胜率 $3/4$），要么违反三个（胜率 $1/4$）。两类各 8 张。只改表里的一格，会同时改变两个条件，违反的个数在 1 和 3 之间跳，胜率在 $3/4$ 和 $1/4$ 之间跳。`,
+    fails: R`表再怎么挑也到不了 $3/4$ 以上：这正是 Bell–CHSH 不等式。`,
+    test: R`默认的表（全是 0）赢 $0.75$。把 $a_0$ 改成 1，掉到 $0.25$；再把 $b_0$、$b_1$ 也改成 1，又回到 $0.75$。`
+  });
+  add("q_bell", "bell_shared", "共用随机数挑答法", "两人按共有的随机数，以概率 w 一起用\"都答 0\"，否则一起用\"收到什么答什么\"。",
+    [n("w", "用\"都答 0\"的概率 w", 1, 0, 1, 0.05, { hint: "w = 1 就是\"都答 0\"；w = 0 是\"收到什么答什么\"" })], {
+    tier: "family",
+    assume: R`两人事先约好一本随机数表（每回合一个两人都知道的随机数），不用纠缠。`,
+    objective: R`胜率：赢的回合数占全部回合的比例。`,
+    optimal: R`"都答 0"胜率 $3/4$，"收到什么答什么"（$a=x$，$b=y$）只在 $x=y=0$ 时赢，胜率 $1/4$。按共有的随机数以 $w$ 和 $1-w$ 的概率在两者之间挑，胜率就是两者的加权平均
+$$\frac34\,w+\frac14\,(1-w)=\frac14+\frac w2,$$
+是 $w$ 的一次函数，最大值在端点 $w=1$。这就是"共用随机数帮不上忙"的道理：它只能把几种确定的做法混起来，混出来的胜率不会超过其中最好的那一种。`,
+    fails: R`它说明的是一个上限，自己并不追求赢得多。`,
+    test: R`对 $w$ 做参数扫描：得分是一条从 $0.25$ 升到 $0.75$ 的直线，与图上的理论线重合。`
+  });
+  add("q_bell", "bell_phi", "纠缠光子 · 一个角度 φ", "Alice 收到 0 沿 0° 测、收到 1 沿 2φ 测；Bob 收到 0 沿 φ 测、收到 1 沿 −φ 测，都报测量结果。",
+    [n("phi", "角度 φ（度）", 22.5, -45, 45, 0.5, { hint: "φ = 22.5° 时胜率最高" })], {
+    tier: "proven",
+    assume: R`每回合一对光子处在 $|\Phi^+\rangle=(|HH\rangle+|VV\rangle)/\sqrt2$，可见度为 $v$（有 $1-v$ 的概率这一对是完全随机的）。测量用偏振片：转到角度 $\theta$，光子通过记 0，被挡住记 1。`,
+    objective: R`胜率：赢的回合数占全部回合的比例。`,
+    optimal: R`**两边结果相同的概率。** 偏振片的角度相差 $d$ 时，$P(a=b)=\tfrac12\bigl(1+v\cos2d\bigr)$，每一边单看都是一半一半。代入四种输入（角度差分别是 $-\varphi,\ \varphi,\ \varphi,\ 3\varphi$，最后一种要答得不同），
+$$P(\text{赢})=\frac12+\frac v8\bigl(3\cos2\varphi-\cos6\varphi\bigr).$$
+对 $\varphi$ 求导得 $\sin6\varphi=\sin2\varphi$，在 $(0^\circ,45^\circ)$ 内的解是 $\varphi=22.5^\circ$，此时胜率是 $\tfrac12+v\sqrt2/4$，$v=1$ 时就是 $\cos^2 22.5^\circ=(2+\sqrt2)/4\approx0.8536$。
+
+**定理（Tsirelson 1980）。** 不管用什么量子态、什么测量，胜率都不超过 $(2+\sqrt2)/4$，即 $|S|\le2\sqrt2$。所以 $v=1$、$\varphi=22.5^\circ$ 时这条规则在一切量子做法里是最优的。
+
+*证明梗概。* 把两人的测量写成取值 $\pm1$ 的可观测量 $A_x$、$B_y$（$A_x^2=B_y^2=I$），令 $\mathcal C=A_0\otimes(B_0+B_1)+A_1\otimes(B_0-B_1)$，则 $S=\langle\mathcal C\rangle$。直接展开得 $\mathcal C^2=4I-[A_0,A_1]\otimes[B_0,B_1]$，而每个对易子的范数不超过 2，所以 $\|\mathcal C^2\|\le8$，$|S|\le\|\mathcal C\|\le2\sqrt2$。
+
+**可见度。** 可见度为 $v$ 的混合态上，最大的 $S$ 是 $2\sqrt2\,v$（Horodecki 1995 的判据），胜率是 $\tfrac12+v\sqrt2/4$。$v\le1/\sqrt2\approx0.707$ 时它不超过 $3/4$：这样的光子对能做的事，经典的随机数都能做到。
+
+**换成局部隐变量源。** 结果相同的概率变成 $1-2|d|/180^\circ$（$|d|\le90^\circ$），角度差是直线关系而不是余弦。代入得：$0\le\varphi\le30^\circ$ 时胜率恒等于 $3/4$，再大就往下掉。这是 Bell 定理的一个具体例子：不管怎么挑角度，局部隐变量都赢不过 $3/4$。`,
+    fails: R`可见度低于 $1/\sqrt2$，或者光子来自局部隐变量源，它就赢不过"都答 0"。真实的实验里还有探测效率：光子没被探测到的那些回合如果被扔掉不算，经典的模型也能伪造出超过 $3/4$ 的结果（"探测漏洞"），这里没有模拟。`,
+    test: R`对 $\varphi$ 从 $0^\circ$ 扫到 $45^\circ$：得分曲线与理论曲线重合，峰在 $22.5^\circ$、高度 $0.854$。换到局部隐变量源，曲线在 $0^\circ$ 到 $30^\circ$ 之间平躺在 $0.75$。可见度 0.7 时，峰值约 $0.747$，低于 $0.75$。`
+  });
+  add("q_bell", "bell_q", "纠缠光子 · 四个角度", "Alice 收到 0、1 分别沿 α0、α1 测，Bob 收到 0、1 分别沿 β0、β1 测，都报测量结果。",
+    [n("a0", "α0：Alice 收到 0（度）", 0, -180, 180, 0.5), n("a1", "α1：Alice 收到 1（度）", 45, -180, 180, 0.5), n("b0", "β0：Bob 收到 0（度）", 22.5, -180, 180, 0.5), n("b1", "β1：Bob 收到 1（度）", -22.5, -180, 180, 0.5)], {
+    tier: "family",
+    assume: R`与"一个角度 φ"相同：光子对处在可见度为 $v$ 的 $|\Phi^+\rangle$，测量用偏振片。`,
+    objective: R`胜率：赢的回合数占全部回合的比例。`,
+    optimal: R`四种输入的胜率加起来：
+$$P(\text{赢})=\frac12+\frac v8\Bigl(\cos2(\alpha_0-\beta_0)+\cos2(\alpha_0-\beta_1)+\cos2(\alpha_1-\beta_0)-\cos2(\alpha_1-\beta_1)\Bigr).$$
+括号里的最大值是 $2\sqrt2$（Tsirelson 界），在默认的 $0^\circ,45^\circ$ 对 $22.5^\circ,-22.5^\circ$ 取到。把四个角度一起转同一个角度，胜率不变：$|\Phi^+\rangle$ 在两个光子同时转过同一个角度时不变，只有角度差起作用。`,
+    fails: R`同"一个角度 φ"。另外，四个角度都一样时括号里是 $1+1+1-1=2$，正好是经典的上限：有了纠缠，还得测对方向才有用。`,
+    test: R`默认角度下得分约 $0.854$；四个角度都加上 $30^\circ$，同一批对局上逐回合的结果都不变；把 $\beta_1$ 改成 $+22.5^\circ$（Bob 不管收到什么都沿同一个方向测），掉到 $0.677$，比经典的 $0.75$ 还低。`
+  });
+
+  /* ---------- ⑯ 量子搜索 ---------- */
+  add("q_search", "srch_guess", "每次都直接测", "不转，测出来的就是随便猜的一个盒子。这套玩法的基准。", [], {
+    tier: "heuristic",
+    assume: R`不需要任何假设。`,
+    objective: R`没有优化目标：它是"有量子计算机却不用"的成绩。`,
+    optimal: R`不是最优。均匀叠加态直接测量，得到的是一个均匀随机的盒子，测中的概率是 $M/N$，每一轮花一次查询。用掉的查询次数服从几何分布，期望是 $N/M$（预算是 $T$ 时是 $\bigl(1-(1-M/N)^T\bigr)N/M$）。这比经典的最好做法还差一点：经典地不放回地一个一个查，期望是 $(N+1)/(M+1)$，因为查过的盒子不会再查第二次。`,
+    fails: R`$N$ 大的时候查询次数和 $N$ 成正比，很快就撞上预算。`,
+    test: R`$N=1024$、一个奖品：得分在 1000 附近（预算 4096 下的公式值是 1005）；对照表里"不放回地一个一个查"约 512。`
+  });
+  add("q_search", "srch_fixed", "固定转 k 步再测", "转 k 步再测，落空了就从头再来，还是转 k 步。", [n("k", "转几步再测 k", 18, 0, 400, 1, { hint: "N = 1024、一个奖品时，期望查询最少的是 k = 18" })], {
+    tier: "family",
+    assume: R`奖品数 $M$ 和盒子数 $N$ 不变；没有退相干时，每转一步就是一次标准的 Grover 迭代。`,
+    objective: R`找到奖品所用查询次数的期望。`,
+    optimal: R`**定理（Grover 1996；几何的说法见 Boyer–Brassard–Høyer–Tapp 1998）。** 记 $\sin\theta=\sqrt{M/N}$。从均匀叠加态出发转 $k$ 步，测中的概率是
+$$p_k=\sin^2\bigl((2k+1)\theta\bigr).$$
+
+*证明。* 记 $|\alpha\rangle$ 为所有没奖品的盒子的均匀叠加，$|\beta\rangle$ 为所有有奖品的盒子的均匀叠加。均匀叠加态 $|s\rangle=\cos\theta\,|\alpha\rangle+\sin\theta\,|\beta\rangle$。一步 Grover 迭代 = 先用黑盒把有奖品的分量变号（关于 $|\alpha\rangle$ 的反射），再做关于 $|s\rangle$ 的反射 $2|s\rangle\langle s|-I$。两条直线夹角为 $\theta$，两次反射合成一次转动，转过 $2\theta$。整个过程始终在 $|\alpha\rangle$、$|\beta\rangle$ 张成的平面里，$k$ 步之后与 $|\alpha\rangle$ 的夹角是 $(2k+1)\theta$，测到奖品的概率就是这个角的正弦的平方。
+
+每一轮花 $k+1$ 次查询（$k$ 次转动加一次核对），轮数是几何分布，所以期望是 $(k+1)/p_k$。它不是 $k$ 的单调函数：转太多会"转过头"，$p_k$ 又掉回去。有退相干时，$p_k=(1-\varepsilon)^k\sin^2((2k+1)\theta)+\bigl(1-(1-\varepsilon)^k\bigr)M/N$。`,
+    fails: R`$k$ 取得太大，比如是最好的值的两倍，$p_k$ 接近 0，查询次数会大得离谱。最好的 $k$ 依赖于 $M$ 和退相干的程度。`,
+    test: R`对 $k$ 从 0 扫到 60：得分曲线与理论曲线重合，最低点在 $k=18$（约 22.7 次），$k=25$ 时约 26。$k=50$ 时转了将近整整一圈，测中的概率只有万分之二，几乎每一局都用完 4096 次的预算；$k=60$ 时又转回来一部分，约 171 次。`
+  });
+  add("q_search", "srch_full", "转到成功率最高再测", "Grover 的原始做法：转 ⌊π/(4θ)⌋ 步，sin θ = √(M/N)。不知道有几个奖品时当作只有一个。", [], {
+    tier: "bound",
+    assume: R`知道奖品数 $M$。不知道时这条规则当作 $M=1$。`,
+    objective: R`让一轮测量就测中的概率尽量大。`,
+    optimal: R`转 $k=\lfloor\pi/(4\theta)\rfloor$ 步时，$(2k+1)\theta$ 落在 $\pi/2-\theta$ 和 $\pi/2+\theta$ 之间，所以测中的概率至少是 $\cos^2\theta=1-M/N$。查询次数约 $\tfrac\pi4\sqrt{N/M}$，与经典的 $N/M$ 相比是平方的加速。
+
+**下界。** 任何量子算法要以较大的概率找到奖品，查询次数至少是 $\Omega(\sqrt{N/M})$（Bennett–Bernstein–Brassard–Vazirani 1997）。查询次数固定、要求测中的概率最大时，Grover 的做法是严格最优的（Zalka 1999）。
+
+但这套玩法比的是**期望的查询次数**：转到成功率最高再测并不是最省的，见"按期望查询最少来转"。`,
+    fails: R`不知道有几个奖品时它最危险：真实的 $M$ 比 1 大，它照着 $M=1$ 转，转过了头。$N=1024$、实际有 4 个奖品时，转 25 步之后的角度是 $51\theta\approx3.19$ 弧度，几乎转回了起点，测中的概率不到千分之二。`,
+    test: R`知道 $M$ 时得分是 $k+1$（几乎每次一轮就中）：$N=1024$、一个奖品时是 26。场景选"1 到 16 个，不知道"：它的查询次数比随便猜还多。`
+  });
+  add("q_search", "srch_best", "按期望查询最少来转", "在\"转 k 步、落空重来\"里挑 (k + 1)/P(测中) 最小的 k：比转到成功率最高要早停。", [], {
+    tier: "family",
+    assume: R`知道奖品数 $M$ 和每步退相干的概率 $\varepsilon$（不知道 $M$ 时当作 1）。`,
+    objective: R`在"每一轮都转同样的 $k$ 步、落空就从头再来"这一族做法里，让期望的查询次数最小。`,
+    optimal: R`直接对 $k$ 求 $(k+1)/p_k$ 的最小值。$N$ 大、没有退相干时，记 $x=(2k+1)\theta$，目标约等于 $\dfrac{x}{2\theta\sin^2x}$，最小值在 $\tan x=2x$，即 $x\approx1.1656$ 处，此时测中的概率约 $0.845$，期望查询次数约 $0.690\sqrt{N/M}$；转到成功率最高再测是 $\tfrac\pi4\sqrt{N/M}\approx0.785\sqrt{N/M}$。少转一些、偶尔落空再来，平均下来反而更省。$N=1024$、一个奖品时，$k=18$，期望约 22.7 次，转到最高（25 步）是 26 次。
+
+有退相干时，转得越多，前面积攒的振幅越可能被打掉，最好的 $k$ 跟着变小：每步 5% 时 $k=12$。`,
+    fails: R`它要事先知道 $M$ 和 $\varepsilon$。$M$ 不知道时，它照 $M=1$ 选 $k$，和"转到成功率最高"一样会转过头。`,
+    test: R`默认设定下它比"转到成功率最高再测"少用约 3 次查询（同一批对局上的配对差显著）；换到"每步 5% 退相干"，它领先得更多。`
+  });
+  add("q_search", "srch_bbht", "不知道有几个：随机步数、逐轮放大", "每一轮从 0 到 m − 1 里随机挑转几步，落空就把 m 放大 λ 倍，直到 √N 为止（Boyer–Brassard–Høyer–Tapp）。",
+    [n("lam", "放大倍数 λ", 1.2, 1.01, 1.33, 0.01, { hint: "原论文的证明要求 1 < λ < 4/3" })], {
+    tier: "bound",
+    assume: R`不知道奖品数 $M$（只知道 $1\le M\le N$）。`,
+    objective: R`期望的查询次数。`,
+    optimal: R`**定理（Boyer、Brassard、Høyer、Tapp 1998）。** 这条规则找到奖品所需查询次数的期望是 $O(\sqrt{N/M})$，不需要知道 $M$。
+
+*想法。* 不知道 $M$，就不知道该转几步。如果转的步数 $j$ 在 $0$ 到 $m-1$ 之间均匀随机，测中的概率的平均是
+$$\frac1m\sum_{j=0}^{m-1}\sin^2\bigl((2j+1)\theta\bigr)=\frac12-\frac{\sin(4m\theta)}{4m\sin(2\theta)},$$
+一旦 $m\ge1/\sin(2\theta)$，它就不小于 $1/4$：随机化把"转过头"的风险平均掉了。$m$ 从 1 开始按 $\lambda$ 倍放大，用不了几轮就进入这个区间；之前那些轮花的查询是一个等比数列，总和与最后一轮同阶。`,
+    fails: R`$M$ 知道的时候它不如照 $M$ 选好的固定步数：$N=1024$、一个奖品时约 50 次，比最好的固定步数多一倍。`,
+    test: R`场景选"1 到 16 个，不知道"：它的查询次数在 20 多次，而"转到成功率最高"（当作 1 个）要几百次，随便猜约 215 次。`
+  });
+
+  /* ---------- ⑰ 炸弹检测 ---------- */
+  add("q_bomb", "bomb_look", "直接看一眼", "把光子转成竖直偏振、整个送进炸弹那一路，再测。经典的检查方法。这套玩法的基准。", [], {
+    tier: "heuristic",
+    assume: R`不需要任何假设。`,
+    objective: R`没有优化目标：它是经典的检查方法，用来对照。`,
+    optimal: R`不是最优。光子整个走进炸弹那一路：真炸弹一定炸（光子在半路丢掉的除外，那时换一个再来），哑弹测出竖直偏振、判对。所以期望得分是 $(1-q)-cq$（步数够用时），默认设定下是 0。
+
+经典地看，这已经是能做的全部了：要知道炸弹的触发器灵不灵，就得有东西去碰它，碰了真炸弹就炸。除了它，经典的做法只剩下"不测，直接猜"。`,
+    fails: R`真炸弹越多、炸一颗扣得越多，它越吃亏。`,
+    test: R`在完美的光路上，"炸掉的比例"正好等于真炸弹的比例，"判错的比例"是 0。`
+  });
+  add("q_bomb", "bomb_guess", "不测，直接猜", "真炸弹的比例过半就判真，否则判哑。", [], {
+    tier: "heuristic",
+    assume: R`知道真炸弹的比例 $q$。`,
+    objective: R`不做任何测量时的期望得分。`,
+    optimal: R`判真的期望得分是 $q-(1-q)=2q-1$，判哑是 $1-2q$，挑大的那个，得 $|2q-1|$。真炸弹只占 10% 时是 0.8，比经典的检查还好；一半一半时是 0。`,
+    fails: R`真假各半时它等于瞎蒙。`,
+    test: R`得分等于 $|2q-1|$：默认 0，"真炸弹只占 10%"时 0.8。`
+  });
+  add("q_bomb", "bomb_zeno", "量子芝诺：分 N 步转", "每次只转 90°/N，走一圈，重复 N 次再测；水平偏振判真，竖直判哑。光子半路丢了就换一个从头来。",
+    [n("N", "分几步转到 90°（N）", 10, 1, 400, 1, { hint: "N = 1 就是直接看一眼；N = 2 是每步 45°" })], {
+    tier: "family",
+    assume: R`光路是理想的，只是每走一圈有 $\varepsilon$ 的概率丢掉光子（丢掉的光子不碰炸弹）。真炸弹对光子的作用是一次投影测量：竖直偏振的那一部分进了炸弹那一路就炸，否则光子塌回水平偏振。`,
+    objective: R`每颗炸弹的期望得分（判对 $+1$，判错 $-1$，炸了 $-c$）。`,
+    optimal: R`**哑弹：** 什么也不发生，$N$ 次转动累加成 $90^\circ$，光子必是竖直，判哑弹，判对。
+
+**真炸弹：** 每一圈之前光子都是水平的（新的光子，或者上一圈没炸、塌回了水平），转过 $90^\circ/N$ 之后走进炸弹那一路的概率是 $\sin^2(90^\circ/N)$。没炸的话又回到水平。$N$ 圈都没炸，测出水平，判真炸弹，而且它完好无损。没有损耗时
+$$P(\text{完好地确认})=\cos^{2N}\!\Bigl(\frac{\pi}{2N}\Bigr)\ \ge\ 1-N\sin^2\frac{\pi}{2N}\ \ge\ 1-\frac{\pi^2}{4N}\ \longrightarrow\ 1\qquad(N\to\infty).$$
+炸弹每一次"看"都把光子拉回水平，光子的偏振始终转不起来：这就是量子芝诺效应。$N=2$（每步 $45^\circ$）时是 $1/4$，与 Elitzur 和 Vaidman 1993 年的干涉仪方案的 25% 相同。
+
+**有损耗时。** 光子每多走一圈就多一份丢失的风险，一个光子完整走完 $N$ 圈的概率是 $(1-\varepsilon)^N\cos^{2N}(\pi/2N)$（真炸弹）或 $(1-\varepsilon)^N$（哑弹）。丢了要换光子重来，每颗炸弹的步数又有限：$N$ 太大，来不及在预算内走完；$N$ 太小，炸得多。最好的 $N$ 由这两头决定，见"按损耗选步数"。`,
+    fails: R`光路有损耗、步数有限时，$N$ 不能无限地加。真实的实验还有偏振转得不准、干涉不完美等问题，那时测出水平也不一定是真炸弹，需要多测几次复核；这里没有模拟。`,
+    test: R`在完美的光路上对 $N$ 做扫描：得分随 $N$ 单调上升，$N=2$ 时是 $0.25$，$N=10$ 时约 $0.78$；每圈丢 1% 时，曲线在 $N=64$ 到顶（约 $0.945$）后往下走，$N=150$ 时只剩约 $0.53$。`
+  });
+  add("q_bomb", "bomb_best", "量子芝诺：按损耗选步数", "开局之前按回合倒推出每一种 N 的期望得分，取最好的 N，再按量子芝诺的做法测。", [], {
+    tier: "family",
+    assume: R`知道真炸弹的比例 $q$、每圈丢光子的概率 $\varepsilon$、炸一颗扣的分 $c$ 和每颗的步数上限 $T$；做法限定在"分 $N$ 步等量地转、丢了就换光子从头来"这一族。`,
+    objective: R`在这一族里让每颗炸弹的期望得分最大。`,
+    optimal: R`**倒推。** 记 $f(r)$ 为换一个新光子、还剩 $r$ 步时的期望得分，$a$ 为"一圈下来光子还在、也没炸"的概率（真炸弹 $a=(1-\varepsilon)\cos^2(\pi/2N)$，哑弹 $a=1-\varepsilon$），则
+$$f(r)=\varepsilon\sum_{j=1}^{\min(N,r)}a^{j-1}f(r-j)\;-\;c\,(1-\varepsilon)\sin^2\!\frac{\pi}{2N}\sum_{j=1}^{\min(N,r)}a^{j-1}\;+\;\mathbf 1\{r\ge N+2\}\,a^N .$$
+第一项是光子在第 $j$ 圈丢了、从头再来；第二项是在第 $j$ 圈炸了（哑弹这一项是 0）；第三项是走完 $N$ 圈、测量、判定都赶在步数用完之前。第一项的和可以随 $r$ 递推（每多一步，旧的和乘上 $a$，加进新的一项、去掉最旧的一项），所以每个 $N$ 只要 $O(T)$ 次运算，把 $N$ 从 1 试到 $\min(400,T-2)$ 一共 $O(T\cdot400)$。
+
+默认设定（每圈丢 1%，每颗 300 步）下最好的是 $N=64$，期望每颗约 $0.945$ 分；完美的光路上 $N$ 越大越好，只受步数的限制。`,
+    fails: R`它只在"等量地转"这一族里挑，不保证这一族本身是最优的；它也要事先知道各个参数。`,
+    test: R`它的得分与对照表里"量子芝诺，N = 10"相比显著更高，与结果栏里理论最优的那一行吻合。把每圈的损耗调到 5%，它挑的 $N$ 变成 28。`
+  });
+  return L;
+}
+if (typeof module !== "undefined" && module.exports) module.exports = QL_Q_STRATS;
+
+/* ===== q-circuit.js ===== */
+/* 策略实验室 · 量子电路谜题（十关）：关卡、门、判定。界面在 app-quantum.js。
+ * 态矢量的计算用 q-games.js 里的 QL.qsim：和三套量子玩法是同一份模拟器。
+ * 第六关（炸弹）、第七关（四选一）、第十关（打破 75%）各对应一套量子玩法：在这里搭出来的电路是一次，到了那边由规则跑几千次。
+ * 只在主线程里用（以及测试），不进后台线程。 */
+function QL_QCIRCUIT_INSTALL(QL) {
+"use strict";
+var Q = QL.qsim, C = Q.C, SQ = Q.SQ, MAT = Q.MAT, BELL = Q.BELL, abs2 = Q.abs2, cmul = Q.mul, cadd = Q.add, conj = Q.conj;
+
+/* ---------- 门 ---------- */
+var GATES = {
+  H: { label: "H", arity: 1, name: "Hadamard", desc: "|0⟩ → |+⟩，|1⟩ → |−⟩。在 Z 基和 X 基之间换基。" },
+  X: { label: "X", arity: 1, name: "比特翻转", desc: "|0⟩ ↔ |1⟩。" },
+  Y: { label: "Y", arity: 1, name: "Pauli-Y", desc: "Y = iXZ。" },
+  Z: { label: "Z", arity: 1, name: "相位翻转", desc: "|1⟩ 乘上 −1，|0⟩ 不变。" },
+  S: { label: "S", arity: 1, name: "S 门", desc: "|1⟩ 乘上 i。" },
+  T: { label: "T", arity: 1, name: "T 门", desc: "|1⟩ 乘上 e^{iπ/4}。" },
+  R4: { label: "R", sub: "π/4", arity: 1, name: "Ry(π/4)", desc: "绕 y 轴转 π/4：|0⟩ → cos(π/8)|0⟩ + sin(π/8)|1⟩。" },
+  R8: { label: "R", sub: "π/8", arity: 1, name: "Ry(π/8)", desc: "绕 y 轴转 π/8：|0⟩ → cos(π/16)|0⟩ + sin(π/16)|1⟩。" },
+  CNOT: { label: "CNOT", arity: 2, name: "受控非", desc: "控制位为 1 时翻转目标位。先点控制位，再点同一列的目标位。" },
+  CZ: { label: "CZ", arity: 2, name: "受控 Z", desc: "两个比特都为 1 时乘上 −1，两个比特的地位对称。先点一个比特，再点同一列的另一个。" },
+  M: { label: "M", arity: 1, name: "测量", desc: "在计算基下测量。测量之后这根线只携带经典的结果，只能当控制位。" },
+  BOMB: { label: "B", arity: 1, name: "炸弹", desc: "光子在这一刻经过上面那一路的炸弹。真炸弹：|1⟩ 分量引爆；哑弹：什么也不发生。" }
+};
+
+function ket(n, i) { var s = i.toString(2); while (s.length < n) s = "0" + s; return "|" + s + "⟩"; }
+function basisScenarios(n) { var out = []; for (var k = 0; k < (1 << n); k++) out.push({ label: "输入 " + ket(n, k), init: Q.basis(n, k) }); return out; }
+var TELEPORT_INPUTS = [
+  { label: "|0⟩", psi: [C(1), C(0)] },
+  { label: "|1⟩", psi: [C(0), C(1)] },
+  { label: "|+⟩", psi: [C(SQ), C(SQ)] },
+  { label: "|−⟩", psi: [C(SQ), C(-SQ)] },
+  { label: "|+i⟩", psi: [C(SQ), C(0, SQ)] },
+  { label: "一般态", psi: [C(Math.cos(0.6)), cmul(Q.expi(1.1), C(Math.sin(0.6)))] }
+];
+function deutschOracle(f) {
+  return function (st, n) {
+    var out = Q.zeros(n), i;
+    for (i = 0; i < st.length; i++) { var x = Q.bitOf(i, n, 0), j = f(x) ? (i ^ Q.maskOf(n, 1)) : i; out[j] = st[i]; }
+    for (i = 0; i < st.length; i++) st[i] = out[i];
+  };
+}
+function groverOracle(w) { return function (st) { st[w] = [-st[w][0], -st[w][1]]; }; }
+function messageOracle(mats) { return function (st, n) { mats.forEach(function (M) { Q.applySingle(st, n, 0, M); }); }; }
+
+/** 隐形传态这一关的约束：测量过的比特只能当控制位；跨越 Alice 和 Bob 的门只能由 Alice 已经测量过的比特控制 */
+function teleportValidate(ops) {
+  var sorted = ops.slice().sort(function (a, b) { return a.col - b.col; }), measured = {}, i, k;
+  for (i = 0; i < sorted.length; i++) {
+    var o = sorted[i];
+    for (k = 0; k < o.q.length; k++) {
+      var w = o.q[k];
+      if (measured[w] !== undefined && measured[w] < o.col) {
+        var asControl = (o.g === "CNOT" && o.q[0] === w) || o.g === "CZ";
+        if (!asControl) return "测量过的比特只携带经典的结果，只能当控制位。";
+      }
+    }
+    if (o.g === "M") {
+      if (measured[o.q[0]] !== undefined) return "这根线已经测量过了。";
+      measured[o.q[0]] = o.col;
+    }
+    if (o.q.length === 2) {
+      var bob = o.q.indexOf(2);
+      if (bob !== -1) {
+        var alice = o.q[1 - bob];
+        if (!(measured[alice] !== undefined && measured[alice] < o.col)) return "Alice 和 Bob 相距很远。跨越两边的门只能由 Alice 已经测量过的比特控制。";
+        if (o.g === "CNOT" && o.q[0] === 2) return "控制位必须是 Alice 测得的经典结果，Bob 的比特只能当目标。";
+      }
+    }
+  }
+  return null;
+}
+
+/* ---------- 十关 ----------
+ * type：state 制备一个态；unitary 拼出一个算子（对每个输入都成立）；oracle 黑盒算法；teleport 隐形传态；bomb 炸弹；chsh 打破 75%。
+ * ref：参考解用了几个门（不超过它三星，多两个以内两星）。game：对应的量子玩法。 */
+var LEVELS = [
+  {
+    id: "minus", n: 1, cols: 4, gates: ["X", "Z", "H"], type: "state", ref: 2, initLabels: ["|0⟩"],
+    target: [C(SQ), C(-SQ)], targetLabel: "|−⟩",
+    tag: "单比特 · 相对相位", title: "负号在哪里",
+    goal: "把 |0⟩ 变成 |−⟩ = (|0⟩ − |1⟩)/√2。",
+    hints: ["|+⟩ 和 |−⟩ 在计算基下测出 0 和 1 的概率都是一半，二者只差一个相对相位。", "H 把 |0⟩ 送到 |+⟩，把 |1⟩ 送到 |−⟩。Z 把 |+⟩ 送到 |−⟩。"],
+    explain: "两条两个门的路：先 X 再 H，或者先 H 再 Z。判定只看保真度 F = |⟨−|ψ⟩|²，所以整体相位不可观测：−|−⟩ 与 |−⟩ 是同一个物理态。相对相位却可以观测：|+⟩ 和 |−⟩ 在计算基下的统计完全一样，再加一个 H 就能百分之百地区分。"
+  },
+  {
+    id: "hzh", n: 1, cols: 5, gates: ["H", "Z"], type: "unitary", ref: 3, initLabels: ["输入"],
+    target: [[C(0), C(1)], [C(1), C(0)]], targetLabel: "X",
+    tag: "单比特 · 换基", title: "换个基看 X",
+    goal: "只用 H 和 Z，拼出一个与 X 门完全相同的操作。它必须对每个输入都成立，最多相差一个整体相位。",
+    hints: ["Z 在 {|+⟩, |−⟩} 基下做的事，正是 X 在 {|0⟩, |1⟩} 基下做的事。"],
+    explain: "HZH = X。H 是 Z 基和 X 基之间的换基矩阵（而且 H = H⁻¹），所以用 H 共轭一个门，就是在另一组基里看它。同理 HXH = Z。判定计算的是 |Tr(X†U)|/2，它等于 1 当且仅当 U 与 X 只差一个整体相位。"
+  },
+  {
+    id: "bell", n: 2, cols: 4, gates: ["H", "X", "Z", "CNOT"], type: "state", ref: 2, initLabels: ["|0⟩", "|0⟩"],
+    target: [C(SQ), C(0), C(0), C(SQ)], targetLabel: "|Φ⁺⟩",
+    tag: "两比特 · 纠缠", title: "纠缠",
+    goal: "从 |00⟩ 制备 Bell 态 |Φ⁺⟩ = (|00⟩ + |11⟩)/√2。",
+    hints: ["先让上面的比特进入叠加态，再用它去控制下面的比特。"],
+    explain: "H 之后两个比特仍是乘积态 |+⟩|0⟩；CNOT 之后就无法写成两个单比特态的乘积了。点电路上方的步骤号，对比 CNOT 前后的 Bloch 球：每个比特的 Bloch 向量从球面缩到了球心，单个比特的约化态变成了最大混合态 I/2，信息全部存在于两者的关联之中。⑮ Bell 游戏里分给 Alice 和 Bob 的，就是这样一对光子。",
+    game: "q_bell"
+  },
+  {
+    id: "swap", n: 2, cols: 5, gates: ["CNOT"], type: "unitary", ref: 3, initLabels: ["输入", "输入"],
+    target: [[C(1), C(0), C(0), C(0)], [C(0), C(0), C(1), C(0)], [C(0), C(1), C(0), C(0)], [C(0), C(0), C(0), C(1)]], targetLabel: "SWAP",
+    tag: "两比特 · 算子恒等式", title: "三次异或",
+    goal: "只用 CNOT 交换两个比特。必须对所有输入都成立，包括叠加态。",
+    hints: ["经典程序里，a ^= b; b ^= a; a ^= b 可以不用临时变量交换两个数。"],
+    explain: "方向交替的三个 CNOT 正是那个异或的技巧。门是线性的，所以在四个基矢上都对，就在一切叠加态上都对；判定检查的是整个 4×4 矩阵，包括各列之间的相对相位。"
+  },
+  {
+    id: "deutsch", n: 2, cols: 5, gates: ["H", "X", "Z"], type: "oracle", ref: 4, initLabels: ["|0⟩", "|0⟩"],
+    locked: [{ g: "ORACLE", col: 2, q: [0, 1], label: "U", sub: "f" }], measure: [0],
+    cases: [
+      { label: "f(x) = 0", kind: "常数", f: function () { return 0; }, expect: [0] },
+      { label: "f(x) = 1", kind: "常数", f: function () { return 1; }, expect: [0] },
+      { label: "f(x) = x", kind: "平衡", f: function (x) { return x; }, expect: [1] },
+      { label: "f(x) = 1 − x", kind: "平衡", f: function (x) { return 1 - x; }, expect: [1] }
+    ],
+    tag: "黑盒算法 · 相位回踢", title: "只问一次",
+    goal: "黑盒 U_f 计算一个未知的函数 f: {0, 1} → {0, 1}，作用为 |x⟩|y⟩ ↦ |x⟩|y ⊕ f(x)⟩。它固定在第 3 列，只能用这一次。判断 f 是常数还是平衡的：常数时上面的比特测出 0，平衡时测出 1。四种 f 都必须判对。",
+    hints: ["如果下面的比特处在 |−⟩，那么 y ⊕ f(x) 的效果等于给 |x⟩ 乘上相位 (−1)^f(x)。这叫相位回踢。", "让上面的比特以 |+⟩ 进入黑盒。"],
+    explain: "经典的做法必须查询两次。量子的做法：|0⟩|1⟩ 经 H⊗H 变成 |+⟩|−⟩，黑盒之后上面的比特是 ±|+⟩（常数）或 ±|−⟩（平衡），再一个 H 就把两类完全分开。这是 Deutsch 1985 年的算法；Deutsch–Jozsa、Simon 和 Shor 的算法都沿用了同一个结构：叠加、查询、干涉。"
+  },
+  {
+    id: "bomb", n: 1, cols: 16, gates: ["H", "R4", "R8", "BOMB"], type: "bomb", initLabels: ["|0⟩"],
+    tag: "测量 · 量子芝诺效应", title: "不碰炸弹",
+    goal: "这个比特表示光子走哪一路：|0⟩ 是下面那一路，|1⟩ 是上面那一路。上面那一路可能有一颗单个光子就能引爆的真炸弹，也可能是哑弹。炸弹门 B 表示光子在这一刻经过上面那一路。设计一个实验，让某个测量结果只可能在真炸弹时出现，并且尽量不引爆它。确认是真炸弹且没有爆炸的概率达到 25% 通关，50% 两星，70% 三星。",
+    hints: ["H 就是分束器，H·B·H 就是一台 Mach–Zehnder 干涉仪。", "想拿三星：每次只转一点点，每转一次就让炸弹\"看\"一次。哑弹时这些小的转动累积成一次完整的翻转；真炸弹时，每一次\"看\"都把光子拉回 |0⟩。"],
+    explain: "这是 Elitzur 和 Vaidman 1993 年的无相互作用测量。干涉仪版本只有 25%。用 N 次 Ry(π/N)、每次之后放一个炸弹：哑弹时 N 次转动合成 Ry(π)，光子必然到 |1⟩；真炸弹时每次存活的概率是 cos²(π/2N)，总的存活概率约为 1 − π²/(4N)，N 越大越接近 1。这就是量子芝诺效应。Kwiat 等人 1995 年用光子做出了这个实验。⑰ 炸弹检测把它变成了一套玩法：光路会丢光子、步数有限，N 不能无限地加。",
+    game: "q_bomb"
+  },
+  {
+    id: "grover", n: 2, cols: 7, gates: ["H", "X", "Z", "CNOT", "CZ"], type: "oracle", ref: 9, initLabels: ["|0⟩", "|0⟩"],
+    locked: [{ g: "ORACLE", col: 1, q: [0, 1], label: "O", sub: "w" }], measure: [0, 1],
+    cases: [0, 1, 2, 3].map(function (w) { return { label: "w = " + (w >> 1) + (w & 1), w: w, expect: [w >> 1, w & 1] }; }),
+    tag: "黑盒算法 · 振幅放大", title: "四选一",
+    goal: "黑盒 O 把四个基态中某一个未知的 |w⟩ 乘上 −1，其余不变。它固定在第 2 列，只能用这一次。让两个比特的测量结果百分之百等于 w，四种 w 都必须对。",
+    hints: ["查询之前先做均匀叠加 |s⟩ = H⊗H|00⟩。查询之后，你需要关于 |s⟩ 的反射 2|s⟩⟨s| − I。", "用 H⊗H 夹住它，问题变成关于 |00⟩ 的反射 2|00⟩⟨00| − I = diag(1, −1, −1, −1)。试试 Z⊗Z 和 CZ 的乘积。"],
+    explain: "经典的做法平均要查询 2.25 次，最坏 3 次。Grover 迭代每次把态在 |w⟩ 与其正交补张成的平面里转过 2θ，其中 sin θ = 1/√N。N = 4 时 θ = 30°，起点在 30°，一次迭代正好转到 90°，所以成功的概率恰好是 1。一般的 N 需要约 (π/4)√N 次，这是平方的加速，而且已经被证明是最优的。⑯ 量子搜索里 N 可以大到一百万：那时转几步再测、转过了头怎么办，就是要规则来决定的事了。",
+    game: "q_search"
+  },
+  {
+    id: "dense", n: 2, cols: 4, gates: ["H", "X", "Z", "CNOT", "CZ"], type: "oracle", ref: 2, initLabels: ["Φ⁺", "Φ⁺"], bellInit: true,
+    locked: [{ g: "ORACLE", col: 0, q: [0], label: "E", sub: "" }], measure: [0, 1],
+    cases: [
+      { label: "消息 00", mats: [], expect: [0, 0] },
+      { label: "消息 01", mats: [MAT.X], expect: [0, 1] },
+      { label: "消息 10", mats: [MAT.Z], expect: [1, 0] },
+      { label: "消息 11", mats: [MAT.X, MAT.Z], expect: [1, 1] }
+    ],
+    tag: "通信 · 超密编码", title: "一个粒子两个比特",
+    goal: "Alice 和 Bob 事先共享 |Φ⁺⟩，上面的比特归 Alice，下面的归 Bob。Alice 用编码门 E 把两位经典比特 b₁b₂ 写进她的粒子（00 → I，01 → X，10 → Z，11 → 先 X 后 Z），再把这一个粒子寄给 Bob。现在两个粒子都在 Bob 手里。设计解码电路，让测量结果（上，下）等于 b₁b₂，四种消息都要对。",
+    hints: ["Alice 的四种操作把 |Φ⁺⟩ 变成四个互相正交的 Bell 态。", "把制备 Bell 态的电路倒过来跑。"],
+    explain: "只寄出一个量子比特，却传了两个经典比特，这是 Bennett 和 Wiesner 1992 年提出的超密编码。代价是事先共享的纠缠。没有纠缠时，Holevo 界保证一个量子比特最多只能携带一个经典比特。"
+  },
+  {
+    id: "teleport", n: 3, cols: 6, gates: ["H", "X", "Z", "CNOT", "CZ", "M"], type: "teleport", ref: 6, initLabels: ["|ψ⟩", "Φ⁺", "Φ⁺"],
+    validate: teleportValidate,
+    tag: "通信 · 隐形传态", title: "隐形传态",
+    goal: "最上面的比特是一个未知的态 |ψ⟩，下面两个比特共享 |Φ⁺⟩：中间的归 Alice，最下面的归 Bob。把 |ψ⟩ 传到 Bob 的比特上。规定：Alice 和 Bob 相距很远，跨越两边的门只能由 Alice 已经测量过的比特控制，相当于打电话告诉 Bob 测量结果；测量过的比特只能当控制位。检验时会用 6 个不同的 |ψ⟩。",
+    hints: ["先在 Alice 一侧做 Bell 基测量：CNOT，再对最上面的比特做 H，然后测量这两个比特。", "四种测量结果对应 Bob 手里的四种状态，它们与 |ψ⟩ 只差 I、X、Z 或 ZX。用测量结果控制修正门。"],
+    explain: "Bennett 等人 1993 年提出。没有超光速：在收到两位经典比特之前，Bob 的比特是最大混合态 I/2，你可以在 Bloch 球上看到它停在球心。|ψ⟩ 在 Alice 那里被测量破坏了，所以也不违反不可克隆定理。这里用延迟测量原理来模拟：测量之后只当控制位的比特，等价于把测量挪到最后。"
+  },
+  {
+    id: "chsh", n: 2, type: "chsh",
+    tag: "非定域性 · Bell 不等式", title: "打破 75%",
+    goal: "裁判随机给 Alice 一个比特 x、给 Bob 一个比特 y。两人不能交流，各自回答一个比特 a、b。获胜条件是 a ⊕ b = x ∧ y：只有 x = y = 1 时两人要答得不同，其余三种情况要答得相同。先用经典的答法试试最多能赢多少，再让两人共享 |Φ⁺⟩，各自根据收到的比特选择测量的角度。胜率超过 75% 通关，达到 82% 两星，达到量子力学允许的上限三星。",
+    hints: ["共享 |Φ⁺⟩ 时，如果 Alice 沿角度 α、Bob 沿角度 β 测量，两人结果相同的概率是 cos²(α − β)。", "你希望三种 (x, y) 的角度差都小，剩下那一种的角度差大。四个角度差的绝对值相等时最好。"],
+    explain: "任何经典的做法，包括事先共享随机数，胜率都不超过 75%，这就是 CHSH 形式的 Bell 不等式。量子的最优胜率是 cos²(π/8) ≈ 85.36%，即 Tsirelson 界，对应 CHSH 值 2√2。一组最优的角度：α₀ = 0，α₁ = π/4，β₀ = π/8，β₁ = −π/8。Aspect、Clauser 和 Zeilinger 因为这类实验获得了 2022 年的诺贝尔物理学奖。这里算的是概率；把这组角度交给 ⑮ Bell 游戏里的规则，就能看到一次几百回合的实验里，胜率会在 85% 上下怎样起伏。",
+    game: "q_bell"
+  }
+];
+var BYID = {};
+LEVELS.forEach(function (L, i) {
+  BYID[L.id] = i;
+  L.locked = L.locked || [];
+  if (L.type === "state") L.scenarios = [{ label: "从 " + ket(L.n, 0) + " 开始", init: Q.basis(L.n, 0) }];
+  else if (L.type === "unitary") L.scenarios = basisScenarios(L.n);
+  else if (L.type === "oracle") {
+    var init = L.bellInit ? BELL : Q.basis(L.n, 0);
+    L.scenarios = L.cases.map(function (cs) {
+      var fn = L.id === "deutsch" ? deutschOracle(cs.f) : L.id === "grover" ? groverOracle(cs.w) : messageOracle(cs.mats);
+      return { label: cs.label + (cs.kind ? "（" + cs.kind + "）" : ""), init: init, oracle: fn, expect: cs.expect };
+    });
+  } else if (L.type === "teleport") L.scenarios = TELEPORT_INPUTS.map(function (t) { return { label: "|ψ⟩ = " + t.label, init: Q.kron(t.psi, BELL), psi: t.psi }; });
+  else if (L.type === "bomb") L.scenarios = [{ label: "真炸弹", init: Q.basis(1, 0), bombLive: true }, { label: "哑弹", init: Q.basis(1, 0), bombLive: false }];
+  else L.scenarios = [];
+});
+
+/* ---------- 跑一遍电路 ---------- */
+function allOps(L, ops) { return L.locked.concat(ops).slice().sort(function (a, b) { return a.col - b.col; }); }
+function applyOp(st, n, o, sc) {
+  if (o.g === "CNOT") Q.applyCtrl(st, n, o.q[0], o.q[1], MAT.X);
+  else if (o.g === "CZ") Q.applyCZ(st, n, o.q[0], o.q[1]);
+  else if (o.g === "M") return;                           // 延迟测量：测量过的线之后只当控制位，等价于把测量挪到最后
+  else if (o.g === "BOMB") { if (sc.bombLive) Q.project(st, n, o.q[0], 0); }
+  else if (o.g === "ORACLE") sc.oracle(st, n);
+  else Q.applySingle(st, n, o.q[0], MAT[o.g]);
+}
+/** 跑到第 uptoCol 列为止（不给就跑完）：返回态矢量 */
+function run(L, ops, sc, uptoCol) {
+  var st = Q.clone(sc.init), list = allOps(L, ops);
+  for (var i = 0; i < list.length; i++) { if (uptoCol != null && list[i].col > uptoCol) break; applyOp(st, L.n, list[i], sc); }
+  return st;
+}
+
+/* ---------- 判定 ---------- */
+function fmt(x, d) { d = d == null ? 4 : d; return (Math.abs(x) < 5e-5 ? 0 : x).toFixed(d); }
+function pct(x) { return (100 * x).toFixed(1) + "%"; }
+function gateStars(count, ref) { return count <= ref ? 3 : count <= ref + 2 ? 2 : 1; }
+function check(L, ops) {
+  var res = { pass: false, stars: 0, rows: [], note: "", count: ops.length }, i;
+  if (L.validate) { var err = L.validate(ops); if (err) { res.note = err; return res; } }
+  if (L.type === "state") {
+    var st = run(L, ops, L.scenarios[0]), ov = C(0);
+    for (i = 0; i < st.length; i++) ov = cadd(ov, cmul(conj(L.target[i]), st[i]));
+    var F = abs2(ov);
+    res.rows.push({ label: "保真度 F = |⟨" + L.targetLabel.slice(1, -1) + "|ψ⟩|²", value: fmt(F), ok: F >= 0.999 });
+    res.pass = F >= 0.999;
+  } else if (L.type === "unitary") {
+    var d = 1 << L.n, tr = C(0);
+    L.scenarios.forEach(function (sc, j) {
+      var col = run(L, ops, sc), o = C(0);
+      for (var r = 0; r < d; r++) o = cadd(o, cmul(conj(L.target[r][j]), col[r]));
+      tr = cadd(tr, o);
+      res.rows.push({ label: sc.label + " 的输出与 " + L.targetLabel + " 一致", value: fmt(abs2(o)), ok: abs2(o) >= 0.999 });
+    });
+    var overlap = Math.sqrt(abs2(tr)) / d;
+    res.rows.push({ label: "整体 |Tr(" + L.targetLabel + "†U)| / " + d + "（含各列的相对相位）", value: fmt(overlap), ok: overlap >= 0.999 });
+    res.pass = overlap >= 0.999;
+  } else if (L.type === "oracle") {
+    var all = true;
+    L.scenarios.forEach(function (sc) {
+      var st2 = run(L, ops, sc), p = 0;
+      for (var k = 0; k < st2.length; k++) if (L.measure.every(function (w, m) { return Q.bitOf(k, L.n, w) === sc.expect[m]; })) p += abs2(st2[k]);
+      var ok = p >= 0.99; all = all && ok;
+      res.rows.push({ label: sc.label + " → 测出 " + sc.expect.join(""), value: pct(p), ok: ok });
+    });
+    res.pass = all;
+  } else if (L.type === "teleport") {
+    var all2 = true;
+    L.scenarios.forEach(function (sc) {
+      var st3 = run(L, ops, sc), r = Q.reduced(st3, 3, 2), ps = sc.psi, Fq = C(0);
+      for (var a = 0; a < 2; a++) for (var b = 0; b < 2; b++) Fq = cadd(Fq, cmul(cmul(conj(ps[a]), r[a][b]), ps[b]));   // F = ⟨ψ|ρ|ψ⟩
+      var ok = Fq[0] >= 0.99; all2 = all2 && ok;
+      res.rows.push({ label: sc.label + "：Bob 手里的保真度", value: fmt(Fq[0]), ok: ok });
+    });
+    res.pass = all2;
+  } else if (L.type === "bomb") {
+    var bombs = ops.filter(function (o) { return o.g === "BOMB"; }).length, live = run(L, ops, L.scenarios[0]), dud = run(L, ops, L.scenarios[1]), detect = 0;
+    var survive = abs2(live[0]) + abs2(live[1]);
+    for (var o2 = 0; o2 < 2; o2++) if (abs2(dud[o2]) < 1e-9) detect += abs2(live[o2]);   // 哑弹不可能给出的那个结果：只在真炸弹时出现
+    res.metric = detect; res.bombs = bombs;
+    res.rows.push({ label: "真炸弹：爆炸", value: pct(1 - survive), ok: null });
+    res.rows.push({ label: "真炸弹：没爆炸，而且测量结果证明这是真炸弹", value: pct(detect), ok: detect >= 0.2499 });
+    res.rows.push({ label: "真炸弹：没爆炸，但结果无法区分", value: pct(Math.max(0, survive - detect)), ok: null });
+    if (bombs === 0) res.note = "电路里没有炸弹门，真炸弹和哑弹的行为完全一样，无从区分。";
+    res.pass = bombs > 0 && detect >= 0.2499;
+    res.stars = !res.pass ? 0 : detect >= 0.7 ? 3 : detect >= 0.5 ? 2 : 1;
+    return res;
+  }
+  if (res.pass) res.stars = gateStars(res.count, L.ref);
+  return res;
+}
+
+/* ---------- 第十关：Bell 游戏 ----------
+ * 角度以 π/16 为一格（偏振片的角度 = 格数 × 11.25°）。量子的那一边用态矢量直接算，和 ⑮ Bell 游戏里的公式应当一致。 */
+var UNIT = Math.PI / 16;
+function chshQuantum(k) {
+  var cells = [[0, 0], [0, 0]], joint = [[null, null], [null, null]], tot = 0, x, y;
+  for (x = 0; x < 2; x++) for (y = 0; y < 2; y++) {
+    var st = Q.clone(BELL);
+    Q.applySingle(st, 2, 0, Q.ry(-2 * k["a" + x] * UNIT));
+    Q.applySingle(st, 2, 1, Q.ry(-2 * k["b" + y] * UNIT));
+    var P = st.map(abs2), w = 0;
+    for (var a = 0; a < 2; a++) for (var b = 0; b < 2; b++) if ((a ^ b) === (x & y)) w += P[2 * a + b];
+    cells[x][y] = w; joint[x][y] = P; tot += w / 4;
+  }
+  return { tot: tot, cells: cells, joint: joint };
+}
+function chshClassical(t) {
+  var cells = [[0, 0], [0, 0]], tot = 0;
+  for (var x = 0; x < 2; x++) for (var y = 0; y < 2; y++) { var w = ((t["a" + x] ^ t["b" + y]) === (x & y)) ? 1 : 0; cells[x][y] = w; tot += w / 4; }
+  return { tot: tot, cells: cells };
+}
+function chshStars(p) { return p > 0.75 + 1e-9 ? (p >= 0.8535 ? 3 : p >= 0.82 ? 2 : 1) : 0; }
+/** 第十关拨好的四个角度，换成 ⑮ Bell 游戏里"四个角度"那条规则的参数（度） */
+function chshToDeg(k) { return { a0: k.a0 * 11.25, a1: k.a1 * 11.25, b0: k.b0 * 11.25, b1: k.b1 * 11.25 }; }
+
+QL.QCIRCUIT = { GATES: GATES, LEVELS: LEVELS, BYID: BYID, ket: ket, run: run, check: check, allOps: allOps, UNIT: UNIT, chshQuantum: chshQuantum, chshClassical: chshClassical, chshStars: chshStars, chshToDeg: chshToDeg, fmt: fmt, pct: pct, teleportValidate: teleportValidate };
+return QL.QCIRCUIT;
+}
+if (typeof module !== "undefined" && module.exports) module.exports = QL_QCIRCUIT_INSTALL;
 
 /* ===== human.js ===== */
 /* 策略实验室 · 亲手玩一局（引擎这一半）
@@ -8274,12 +9555,12 @@ var QLSandbox = (function () {
 var QLEngine = (function () {
   "use strict";
   // 策略代码里碰不到这些名字（后台线程本来也没有 DOM 和网络）
-  var SHADOW = "var self, globalThis, postMessage, onmessage, importScripts, fetch, XMLHttpRequest, WebSocket, close, navigator, indexedDB, caches, setTimeout, setInterval, QL_CORE, QL_ML_INSTALL, QL_GAMES_INSTALL, QL_OBS_INSTALL, QL_LIVE_INSTALL;";
+  var SHADOW = "var self, globalThis, postMessage, onmessage, importScripts, fetch, XMLHttpRequest, WebSocket, close, navigator, indexedDB, caches, setTimeout, setInterval, QL_CORE, QL_ML_INSTALL, QL_GAMES_INSTALL, QL_OBS_INSTALL, QL_QUANTUM_INSTALL, QL_LIVE_INSTALL;";
   var seq = 0;
   function lines(s) { var n = 0, i = -1; while ((i = s.indexOf("\n", i + 1)) >= 0) n++; return n; }
 
   function buildSource(stratCode, worldCode) {
-    var head = (typeof QL_ML_INSTALL === "function" ? QL_ML_INSTALL.toString() + "\n" : "") + (typeof QL_GAMES_INSTALL === "function" ? QL_GAMES_INSTALL.toString() + "\n" : "") + (typeof QL_OBS_INSTALL === "function" ? QL_OBS_INSTALL.toString() + "\n" : "") + (typeof QL_LIVE_INSTALL === "function" ? QL_LIVE_INSTALL.toString() + "\n" : "") + "var QL = (" + QL_CORE.toString() + ")(self);\n";
+    var head = (typeof QL_ML_INSTALL === "function" ? QL_ML_INSTALL.toString() + "\n" : "") + (typeof QL_GAMES_INSTALL === "function" ? QL_GAMES_INSTALL.toString() + "\n" : "") + (typeof QL_OBS_INSTALL === "function" ? QL_OBS_INSTALL.toString() + "\n" : "") + (typeof QL_QUANTUM_INSTALL === "function" ? QL_QUANTUM_INSTALL.toString() + "\n" : "") + (typeof QL_LIVE_INSTALL === "function" ? QL_LIVE_INSTALL.toString() + "\n" : "") + "var QL = (" + QL_CORE.toString() + ")(self);\n";
     var wPre = "var __W = (function () { \"use strict\"; " + SHADOW + "\n";
     var wPost = "\n;return { simulate: typeof simulate === \"function\" ? simulate : null };\n})();\n";
     var sPre = "var __S = (function () { \"use strict\"; " + SHADOW + "\n";
@@ -8374,7 +9655,7 @@ var QLEngine = (function () {
   /* ---------- 现算用的线程池 ----------
    * 对照表和手册里引用的数字是在这台电脑上现算的。池里的每个线程都装着全部内置规则，一条消息算一件事（见 live.js 的 LV.main）。 */
   function installs() {
-    return [typeof QL_ML_INSTALL === "function" ? QL_ML_INSTALL : null, typeof QL_GAMES_INSTALL === "function" ? QL_GAMES_INSTALL : null, typeof QL_OBS_INSTALL === "function" ? QL_OBS_INSTALL : null, typeof QL_LIVE_INSTALL === "function" ? QL_LIVE_INSTALL : null]
+    return [typeof QL_ML_INSTALL === "function" ? QL_ML_INSTALL : null, typeof QL_GAMES_INSTALL === "function" ? QL_GAMES_INSTALL : null, typeof QL_OBS_INSTALL === "function" ? QL_OBS_INSTALL : null, typeof QL_QUANTUM_INSTALL === "function" ? QL_QUANTUM_INSTALL : null, typeof QL_LIVE_INSTALL === "function" ? QL_LIVE_INSTALL : null]
       .filter(Boolean).map(function (f) { return f.toString(); }).join("\n") + "\n";
   }
   /** strats：全部内置规则。玩法自带的规则用裁判手里的那一份函数，价格世界的规则把代码编进线程里 */
@@ -8504,11 +9785,11 @@ QL.jobMain = function (scope, CODE) {
 var QLJobs = (function () {
   "use strict";
   // 编进线程的代码里碰不到这些名字。比 engine-client.js 的那一份多：别人的代码连"给自己发消息""再开一个线程"的门也不留
-  var SHADOW = "var self, globalThis, postMessage, onmessage, onerror, onmessageerror, addEventListener, removeEventListener, dispatchEvent, importScripts, fetch, XMLHttpRequest, WebSocket, EventSource, WebTransport, BroadcastChannel, MessageChannel, MessageEvent, Worker, SharedWorker, URL, Blob, FileReader, close, navigator, location, indexedDB, caches, crypto, setTimeout, setInterval, queueMicrotask, requestAnimationFrame, reportError, structuredClone, QL, __CODE, QL_CORE, QL_ML_INSTALL, QL_GAMES_INSTALL, QL_OBS_INSTALL, QL_LIVE_INSTALL, QL_JOBS_INSTALL, QL_DECA_INSTALL, QL_ARENA_INSTALL, QL_SHOP_INSTALL, QL_QUEST_INSTALL;";
+  var SHADOW = "var self, globalThis, postMessage, onmessage, onerror, onmessageerror, addEventListener, removeEventListener, dispatchEvent, importScripts, fetch, XMLHttpRequest, WebSocket, EventSource, WebTransport, BroadcastChannel, MessageChannel, MessageEvent, Worker, SharedWorker, URL, Blob, FileReader, close, navigator, location, indexedDB, caches, crypto, setTimeout, setInterval, queueMicrotask, requestAnimationFrame, reportError, structuredClone, QL, __CODE, QL_CORE, QL_ML_INSTALL, QL_GAMES_INSTALL, QL_OBS_INSTALL, QL_QUANTUM_INSTALL, QL_LIVE_INSTALL, QL_JOBS_INSTALL, QL_DECA_INSTALL, QL_ARENA_INSTALL, QL_SHOP_INSTALL, QL_QUEST_INSTALL;";
   var RET = "\n;return { init: typeof init === \"function\" ? init : null, decide: typeof decide === \"function\" ? decide : null, fit: typeof fit === \"function\" ? fit : null, simulate: typeof simulate === \"function\" ? simulate : null, deal: typeof deal === \"function\" ? deal : null, show: typeof show === \"function\" ? show : null, referee: typeof referee === \"function\" ? referee : null };\n})();";
   function lines(s) { var n = 0, i = -1; while ((i = s.indexOf("\n", i + 1)) >= 0) n++; return n; }
   function fns() {
-    var base = [typeof QL_ML_INSTALL === "function" ? QL_ML_INSTALL : null, typeof QL_GAMES_INSTALL === "function" ? QL_GAMES_INSTALL : null, typeof QL_OBS_INSTALL === "function" ? QL_OBS_INSTALL : null, typeof QL_LIVE_INSTALL === "function" ? QL_LIVE_INSTALL : null].filter(Boolean).map(function (f) { return f.toString(); }).join("\n");
+    var base = [typeof QL_ML_INSTALL === "function" ? QL_ML_INSTALL : null, typeof QL_GAMES_INSTALL === "function" ? QL_GAMES_INSTALL : null, typeof QL_OBS_INSTALL === "function" ? QL_OBS_INSTALL : null, typeof QL_QUANTUM_INSTALL === "function" ? QL_QUANTUM_INSTALL : null, typeof QL_LIVE_INSTALL === "function" ? QL_LIVE_INSTALL : null].filter(Boolean).map(function (f) { return f.toString(); }).join("\n");
     var extra = [QL_JOBS_INSTALL, typeof QL_DECA_INSTALL === "function" ? QL_DECA_INSTALL : null, typeof QL_ARENA_INSTALL === "function" ? QL_ARENA_INSTALL : null, typeof QL_SHOP_INSTALL === "function" ? QL_SHOP_INSTALL : null, typeof QL_QUEST_INSTALL === "function" ? QL_QUEST_INSTALL : null].filter(Boolean).map(function (f) { return "(" + f.toString() + ")(QL);"; }).join("\n");
     return base + "\nvar QL = (" + QL_CORE.toString() + ")(self);\n" + extra + "\nQL.harden();\nvar __CODE = {};\n";
   }
@@ -11349,6 +12630,320 @@ $z^*\approx1.1228$ 是 $4\Phi(z)-2z\varphi(z)-3=0$ 的根。证明的思路写�
     ["反正弦律", `随机游走取到最大值的时刻的分布：两端的概率最大，中间最小。最高点更可能出现在开头或结尾。`]);
 })(typeof QL_GUIDE !== "undefined" ? QL_GUIDE : require("./guide.js"));
 
+/* ===== guide-quantum.js ===== */
+/* 手册的内容（五）：三套量子玩法，以及"量子电路"面板的十关。
+ * 正文里模拟出来的数写成 ⟪名字⟫，在读者的电脑上现算（登记在 G.live 里）；按公式算得出来的数直接写，测试里逐个核对。
+ * 细则里的每一句都对着 q-games.js 里的裁判核对过：裁判怎么判，这里就怎么写。 */
+(function (G) {
+  "use strict";
+  var R = String.raw, g = G.games, LIVE = G.live = G.live || {}, CHK = G.checks = G.checks || [];
+  function n(x, d) { x = +x; if (!(x === x)) return "—"; var s = d == null ? String(+x.toPrecision(6)) : x.toFixed(d); return s.replace("-", "−"); }
+  function pct(x, d) { return n(x * 100, d == null ? 0 : d) + "%"; }
+
+  /* ================================================================== *
+   *  现算的数：登记
+   * ================================================================== */
+  function cell(id, game, scene, strat, fmt, neg) {
+    LIVE[id] = { cell: [game, scene, strat, 0], fmt: fmt, neg: !!neg }; LIVE[id + ".se"] = { cell: [game, scene, strat, 1], fmt: fmt };
+    LIVE[id + ".d"] = { cell: [game, scene, strat, 2], fmt: fmt }; LIVE[id + ".dse"] = { cell: [game, scene, strat, 3], fmt: fmt };
+  }
+  function aux(id, game, scene, strat, k, fmt) { LIVE[id] = { cell: [game, scene, strat, 4 + k], fmt: fmt }; }
+  function grid(prefix, game, scenes, rules, fmt, auxes, neg) {
+    Object.keys(scenes).forEach(function (k) {
+      rules.forEach(function (r) {
+        var id = prefix + "." + k + "." + r[0];
+        cell(id, game, scenes[k], r[1], fmt, neg);
+        (auxes || []).forEach(function (a, i) { aux(id + "." + a[0], game, scenes[k], r[1], i, a[1]); });
+      });
+    });
+  }
+  function chk(group, say, need, test) { CHK.push({ id: "c" + (CHK.length + 1), group: group, say: say, need: need, test: test }); }
+  function within(x, target, se, k, slack) { var ok = Math.abs(x - target) <= k * se + (slack || 0); return { ok: ok, note: "现算 " + n(x, 4) + " ± " + n(se, 4) + "，应为 " + n(target, 4) }; }
+  function less(a, b, what) { return { ok: a < b, note: n(a, 4) + " 应小于 " + n(b, 4) + (what ? "（" + what + "）" : "") }; }
+  function wd(QL, type, over) { return Object.assign(QL.worldDefaults(type), over || {}); }
+
+  var B_SC = { ideal: "理想纠缠", v9: "可见度 0.9", v7: "可见度 0.7", lhv: "局部隐变量源", t50: "一局 50 回合", t1000: "一局 1000 回合" };
+  grid("qb", "q_bell", B_SC, [["zero", "bell_zero"], ["rand", "bell_rand"], ["table", "bell_table"], ["shared", "bell_shared"], ["phi", "bell_phi"], ["q", "bell_q"]], "%1", [["S", 3], ["sig", 3], ["over", "%1"]]);
+  var S_SC = { d1: "1024 个盒子，1 个奖品", m4: "4 个奖品，知道", unk: "1 到 16 个，不知道", e1: "每步 1% 退相干", e5: "每步 5% 退相干", n4: "只有 16 个盒子", n20: "2²⁰ 个盒子" };
+  grid("qs", "q_search", S_SC, [["guess", "srch_guess"], ["fixed", "srch_fixed"], ["full", "srch_full"], ["best", "srch_best"], ["bbht", "srch_bbht"]], 1, [["miss", "%1"], ["meas", 2], ["M", 2]], true);
+  var M_SC = { ideal: "完美的光路", e1: "每圈丢 1%", e5: "每圈丢 5%", q1: "真炸弹只占 10%", c10: "炸一颗扣 10 分", t30: "每颗只给 30 步" };
+  grid("qm", "q_bomb", M_SC, [["look", "bomb_look"], ["guess", "bomb_guess"], ["zeno", "bomb_zeno"], ["best", "bomb_best"]], 3, [["boom", "%1"], ["wrong", "%1"], ["ok", "%1"], ["steps", 1]]);
+
+  var QB = "⑮ Bell 游戏", QS = "⑯ 量子搜索", QM = "⑰ 炸弹检测", TS = 0.8535533905932737;
+  chk(QB, "理想纠缠下，标准角度的实测胜率与 cos²22.5° ≈ 85.36% 相符", ["qb.ideal.phi", "qb.ideal.phi.se"], function (v) { return within(v("qb.ideal.phi"), TS, v("qb.ideal.phi.se"), 4); });
+  chk(QB, "都答 0 的实测胜率与 75% 相符", ["qb.ideal.zero", "qb.ideal.zero.se"], function (v) { return within(v("qb.ideal.zero"), 0.75, v("qb.ideal.zero.se"), 4); });
+  chk(QB, "可见度 0.9：实测胜率与 1/2 + 0.9·√2/4 相符", ["qb.v9.phi", "qb.v9.phi.se"], function (v) { return within(v("qb.v9.phi"), 0.5 + 0.9 * Math.SQRT2 / 4, v("qb.v9.phi.se"), 4); });
+  chk(QB, "可见度 0.7：标准角度赢不过都答 0", ["qb.v7.phi", "qb.v7.zero"], function (v) { return less(v("qb.v7.phi"), v("qb.v7.zero")); });
+  chk(QB, "局部隐变量源：标准角度的胜率与 75% 相符（不超过经典上限）", ["qb.lhv.phi", "qb.lhv.phi.se"], function (v) { return within(v("qb.lhv.phi"), 0.75, v("qb.lhv.phi.se"), 4); });
+  chk(QB, "不能传话：Bob 答 1 的比例与 Alice 收到什么无关（相差不到 0.01）", ["qb.ideal.phi.sig"], function (v) { var x = v("qb.ideal.phi.sig"); return { ok: Math.abs(x) < 0.01, note: "现算 " + n(x, 4) }; });
+  chk(QS, "知道奖品数：按期望最少来转的实测查询次数与公式相符", ["qs.d1.best", "qs.d1.best.se"], function (v) { return within(v("qs.d1.best"), 22.68, v("qs.d1.best.se"), 4, 0.01); });
+  chk(QS, "按期望最少来转，比转到成功率最高再测省（配对差显著）", ["qs.d1.best", "qs.d1.full"], function (v) { return less(v("qs.d1.best"), v("qs.d1.full")); });
+  chk(QS, "不知道有几个奖品：随机步数、逐轮放大比转到成功率最高（当作 1 个）省得多", ["qs.unk.bbht", "qs.unk.full"], function (v) { return less(4 * v("qs.unk.bbht"), v("qs.unk.full"), "前者的 4 倍还不到后者"); });
+  chk(QS, "每步 5% 退相干：最好的固定步数仍比随便猜省一个数量级", ["qs.e5.best", "qs.e5.guess"], function (v) { return less(10 * v("qs.e5.best"), v("qs.e5.guess"), "前者的 10 倍"); });
+  chk(QM, "每圈丢 1%：按损耗选步数的实测得分与倒推值相符", ["qm.e1.best", "qm.e1.best.se"], function (v) { return within(v("qm.e1.best"), 0.9451, v("qm.e1.best.se"), 4, 0.001); });
+  chk(QM, "完美的光路：直接看一眼炸掉的比例就是真炸弹的比例（约一半）", ["qm.ideal.look.boom"], function (v) { var x = v("qm.ideal.look.boom"); return { ok: x > 0.45 && x < 0.55, note: "现算 " + pct(x, 1) }; });
+  chk(QM, "量子芝诺的做法从不判错", ["qm.e1.best.wrong", "qm.e5.zeno.wrong"], function (v) { return { ok: v("qm.e1.best.wrong") === 0 && v("qm.e5.zeno.wrong") === 0, note: "现算 " + pct(v("qm.e1.best.wrong"), 1) + "、" + pct(v("qm.e5.zeno.wrong"), 1) }; });
+
+  /* ================================================================== *
+   *  ⑮ Bell 游戏
+   * ================================================================== */
+  g.q_bell = {
+    scene: R`1935 年，Einstein、Podolsky 和 Rosen 发表了一篇论文，说量子力学不完整：两个粒子分开之后，测其中一个，就能断定另一个的结果；既然不用碰它就能断定，它的结果在测之前一定已经写好了，只是量子力学没有把这一部分写进去。这种"事先写好、只是我们看不到"的东西，后来叫作局部隐变量。
+
+1964 年，John Bell 证明这件事可以用实验来判定：如果结果是事先写好的，某一类关联有一个上限，而量子力学预言的关联会超过它。
+
+把 Bell 的论证写成一个游戏最清楚。Alice 和 Bob 分在两间屋子里，不能说话、不能打电话。裁判每回合各给他们一张写着 0 或 1 的卡片，两人各写一个答案交上来：两张卡片都是 1 时，两人要写得不同，其余时候要写得相同。不管两人事先怎么商量，赢的概率都超不过 75%。可要是两人各拿着一对纠缠光子里的一个，按收到的卡片把偏振片转到某个角度、照测量结果答题，能赢到 85%。`,
+    rules: function (p, th) {
+      var T = p.T | 0, v = Math.min(1, Math.max(0, +p.v)), L = [
+        `一局 ${T} 回合。每回合裁判各自独立地抛两枚公平的硬币，给 Alice 一个比特 x，给 Bob 一个比特 y。`,
+        `两人不能通气：Alice 只知道 x，Bob 只知道 y。各自答一个比特 a、b。`,
+        `a ⊕ b = x ∧ y 就算赢：两人都收到 1 时要答得不同，其余三种情况要答得相同。`
+      ];
+      if (p.src === "lhv") L.push(`每回合开始前，一对光子分给两人。这一档的光子是经典的：每一对出厂时带着同一个隐藏的方向 λ，在 0° 到 180° 之间均匀地抽。偏振片转到 θ 时，θ 与 λ 相差（按 180° 取余）不到 45° 就通过，记 0，否则被挡住，记 1。哪一边的结果都只取决于自己的角度和 λ。`);
+      else L.push(`每回合开始前，一对光子分给两人，处在纠缠态 |Φ⁺⟩ = (|HH⟩ + |VV⟩)/√2${v < 1 ? "，可见度 " + n(v) + "：有 " + n(1 - v) + " 的概率这一对是完全随机的" : ""}。每人可以把自己的偏振片转到任意角度，测一次自己的光子：通过记 0，被挡住记 1。两个偏振片相差 d 度时，两边结果相同的概率是 (1 + ${v < 1 ? n(v) + "·" : ""}cos 2d)/2，每一边单看都是一半一半。`);
+      L.push(`光子可以不测；测的话每人每回合只能测一次。两人还有一本事先约好的随机数表（每回合一个两人都看得到的随机数），各自也有自己的随机数。`);
+      L.push(`你写的是两人共用的一段代码：每回合裁判先问 Alice、再问 Bob。两人各有一份自己的记事本（st），互相看不到。代码顶层的变量是两人共用的，往里写东西就等于传话，那是作弊。`);
+      L.push(`一回合结束后公布这一回合赢了没有、是不是"要答得不同"的那一种。你知道的：一局多少回合、光子从哪来、可见度，以及到上一回合为止的这些公布。你不知道的：对方这一回合收到了什么。`);
+      L.push(`得分 = 赢的回合数 ÷ ${T}，也就是这一次实验测得的胜率。全部对局取平均。基准是"都答 0"。另外记下每一局的 CHSH 值 S、一个"能不能传话"的检验，以及这一局单独看能不能断定胜率超过了 75%（高出 3 个标准误）。`);
+      return L;
+    },
+    see: R`- **理想纠缠。** 标准角度赢 ⟪qb.ideal.phi⟫，CHSH 值 ⟪qb.ideal.phi.S⟫（理论 $2\sqrt2\approx2.828$）；都答 0 赢 ⟪qb.ideal.zero⟫，$S$ 正好是 2。"Bob 答 1 的比例：Alice 收到 1 时减收到 0 时"是 ⟪qb.ideal.phi.sig⟫：纠缠给了更强的关联，却不能用来传话。
+- **可见度 0.9。** 标准角度赢 ⟪qb.v9.phi⟫（公式 $\tfrac12+0.9\cdot\sqrt2/4\approx0.818$），仍然明显超过 75%。
+- **可见度 0.7。** 标准角度只赢 ⟪qb.v7.phi⟫（公式约 0.747），比都答 0（⟪qb.v7.zero⟫）还低：可见度低于 $1/\sqrt2$，纠缠就不再有用。
+- **局部隐变量源。** 同样的角度只赢 ⟪qb.lhv.phi⟫，$S$ 是 ⟪qb.lhv.phi.S⟫。经典的模型模仿了"同一个方向测，结果总相同"，但关联随角度差是直线下降，凑不出余弦曲线的那一点弯曲。
+- **一次实验要多长。** 一局 50 回合时，标准角度只有 ⟪qb.t50.phi.over⟫ 的局能单独断定超过了 75%；200 回合时 ⟪qb.ideal.phi.over⟫；1000 回合时 ⟪qb.t1000.phi.over⟫。都答 0 在三种长度下都几乎为 0（⟪qb.ideal.zero.over⟫）。`,
+    known: R`**记号。** 输入 $x,y\in\{0,1\}$ 等可能，答案 $a,b\in\{0,1\}$。相关系数 $E_{xy}=P(a=b\mid x,y)-P(a\ne b\mid x,y)$，CHSH 值 $S=E_{00}+E_{01}+E_{10}-E_{11}$。逐项代入：
+$$P(\text{赢})=\frac14\sum_{x,y}P(a\oplus b=x\wedge y)=\frac12+\frac S8 .$$
+
+**定理 1（Bell–CHSH 不等式；Clauser、Horne、Shimony、Holt 1969）。** 一种做法若是局部的，即每人的答案只取决于自己的输入、自己的随机数和事先共有的随机数（局部隐变量就是这种共有的随机数），则 $|S|\le2$，胜率不超过 $3/4$。
+
+*证明。* 先看确定的做法 $a_x$、$b_y$。四个获胜条件 $a_0\oplus b_0=0$、$a_0\oplus b_1=0$、$a_1\oplus b_0=0$、$a_1\oplus b_1=1$ 的左边异或起来是 0、右边是 1，所以最多同时成立三个，胜率 $\le3/4$。带随机性的局部做法是确定做法的概率混合：先按共有的随机数挑一个确定的做法，各自的随机数也可以事先抽好、看成挑法的一部分。混合的胜率是加权平均，不超过 $3/4$。
+
+**定理 2（纠缠光子的胜率）。** 光子对处在 $|\Phi^+\rangle=(|HH\rangle+|VV\rangle)/\sqrt2$。Alice 的偏振片在 $\alpha$、Bob 的在 $\beta$ 时，$P(a=b)=\cos^2(\alpha-\beta)$，每一边单看都是一半一半。
+
+*证明。* 记 $|\theta\rangle=\cos\theta\,|H\rangle+\sin\theta\,|V\rangle$。对任意 $\theta$，$|\Phi^+\rangle=\bigl(|\theta\rangle|\theta\rangle+|\theta^\perp\rangle|\theta^\perp\rangle\bigr)/\sqrt2$（直接展开即可）。取 $\theta=\alpha$：Alice 以一半的概率通过（Bob 的光子随之处在 $|\alpha\rangle$），一半被挡住（Bob 的光子处在 $|\alpha^\perp\rangle$）。再由 Malus 定律，Bob 的结果与 Alice 相同的概率是 $|\langle\beta|\alpha\rangle|^2=\cos^2(\alpha-\beta)$。
+
+于是 $E_{xy}=\cos2(\alpha_x-\beta_y)$。取 $\alpha_0=0^\circ$、$\alpha_1=45^\circ$、$\beta_0=22.5^\circ$、$\beta_1=-22.5^\circ$，前三个角度差都是 $22.5^\circ$，最后一个是 $67.5^\circ$：$S=3\cos45^\circ-\cos135^\circ=2\sqrt2$，胜率 $\tfrac12+\tfrac{\sqrt2}4=\cos^2 22.5^\circ\approx0.8536$。加上白噪声（可见度 $v$），每个相关系数乘上 $v$：$S=2\sqrt2\,v$，$v>1/\sqrt2\approx0.707$ 时才超过 2。
+
+**定理 3（Tsirelson 1980）。** 不管用什么量子态、什么测量，$|S|\le2\sqrt2$，胜率不超过 $(2+\sqrt2)/4$。
+
+*证明梗概。* 两人的测量写成取值 $\pm1$ 的可观测量 $A_x$、$B_y$，$A_x^2=B_y^2=I$。令 $\mathcal C=A_0\otimes(B_0+B_1)+A_1\otimes(B_0-B_1)$，则 $S=\langle\psi|\mathcal C|\psi\rangle$。展开得 $\mathcal C^2=4I-[A_0,A_1]\otimes[B_0,B_1]$，每个对易子的范数至多为 2，所以 $\|\mathcal C\|^2\le8$。
+
+**不能用来传话（不可通信定理）。** 不管 Alice 把偏振片转到哪里、测还是不测，Bob 单看自己的结果永远是一半一半：Bob 手里那个光子的约化密度矩阵是 $I/2$，Alice 那一边的任何操作都改变不了它。纠缠给两人的是更强的关联，不是一边对另一边的影响。结果栏下面"Bob 答 1 的比例：Alice 收到 1 时减收到 0 时"量的就是这件事，它应当在 0 附近。
+
+**比量子还强的关联。** 只要求"不能传话"，胜率可以到 100%：设想一个盒子，两人各输入 $x$、$y$，各得到一个一半一半的比特，并且总满足 $a\oplus b=x\wedge y$（Popescu–Rohrlich 盒子，1994）。它不违反"不能传话"，可量子力学造不出它。自然界为什么停在 $85.36\%$，至今仍是量子力学基础里的研究题目。
+
+**一次实验要多长。** 胜率为 $p$ 的做法，一局 $T$ 回合，测得的胜率的标准差是 $\sqrt{p(1-p)/T}$。"都答 0"的胜率正好是 3/4，200 回合的一局里，它测得的胜率超过 75% 的概率是 47.3%：单看"超过了 75%"说明不了任何事。实验物理学家说"违反了 Bell 不等式"，要求高出若干个标准误。量子的做法期望高出 75% 五个标准误（按 $p=3/4$ 时的标准差算），一局要 $25\cdot\tfrac{3}{16}/(0.1036)^2\approx437$ 回合；结果栏下面那一项按 3 个标准误算，200 回合的一局里，标准角度做到这一点的概率约 68%。
+
+**真实实验里的漏洞。** 一是"局域性漏洞"：两边选角度和测量的时间要足够短、距离要足够远，使得光速来不及在两边之间传递任何信号。二是"探测漏洞"：没探测到光子的回合如果被扔掉，局部隐变量模型就能伪造出超过 2 的 $S$。2015 年的三个实验（Delft、维也纳、NIST）第一次同时堵住了这两个漏洞。这套玩法里两人不能通气是裁判保证的，光子也一个不丢。`,
+    tryit: [
+      `对照表里：都答 0 是 75%；标准角度约 85.4%；同样的纠缠光子都沿 0° 测，又回到 75%。有了纠缠，还得测对方向才有用。`,
+      `规则选"纠缠光子 · 一个角度 φ"，对 φ 做"参数扫描"（从 −45° 到 45°）：实验点落在理论曲线上，峰在 ±22.5°。`,
+      `把光子换成"局部隐变量源"，再扫一遍 φ：曲线在 0° 到 30° 之间是一条 75% 的水平线，之后往下掉。经典的模型能模仿纠缠的一部分，但够不到 75% 以上。`,
+      `把可见度从 1 慢慢往下调：低于 0.707 时，最好的测量也赢不过都答 0。`,
+      `规则选"共用随机数挑答法"，对 w 做参数扫描：是一条从 25% 到 75% 的直线。共用随机数只能把几种经典的答法混起来，混不出比最好的那一种更好的。`,
+      `把"一局多少回合"改成 50，再改成 1000，看"各局得分的分布"和"单看这一局就能断定超过了 75%"那一项：实验越长，越能把 85% 和 75% 分开。`,
+      `让 AI 写一条作弊的规则：在代码顶层放一个变量，让 Alice 把 x 留给 Bob。胜率可以到 100%，远远超过 85.36%：超过 Tsirelson 界本身就是传了话的证据。`
+    ],
+    origin: R`- **Einstein、Podolsky、Rosen（1935）。** 《Can quantum-mechanical description of physical reality be considered complete?》。
+- **Bell（1964）。** 《On the Einstein Podolsky Rosen paradox》：第一次证明局部隐变量与量子力学的预言不相容。
+- **Clauser、Horne、Shimony、Holt（1969）。** 把 Bell 的不等式改写成能在实验里检验的形式，就是这里的 $|S|\le2$。Freedman 和 Clauser 1972 年用原子级联发出的光子对第一次测到了违反；Aspect、Dalibard 和 Roger 1982 年在光子飞行途中切换偏振片的方向，堵住了"两边事先串通"的可能。
+- **Tsirelson（1980）。** 证明量子力学的上限是 $2\sqrt2$。**Popescu 和 Rohrlich（1994）** 指出"不能传话"本身允许更强的关联。
+- **"非定域游戏"** 这个说法来自 Cleve、Høyer、Toner 和 Watrous（2004），它把 Bell 不等式变成了理论计算机科学里的一类问题。
+- **2015 年，** Hensen 等人（Delft，相距 1.3 千米的两个电子自旋）、Giustina 等人（维也纳）和 Shalm 等人（NIST）分别完成了没有漏洞的 Bell 实验。**2022 年**的诺贝尔物理学奖授予 Aspect、Clauser 和 Zeilinger，表彰他们用纠缠光子做的实验确立了对 Bell 不等式的违反，并开创了量子信息科学。
+- **应用。** Ekert（1991）用 Bell 检验做量子密钥分发：只要测得的 $S$ 足够大，就能断定没有人在中间偷看，甚至不必信任设备本身（"与设备无关"的密码和随机数）。`
+  };
+
+  /* ================================================================== *
+   *  ⑯ 量子搜索
+   * ================================================================== */
+  g.q_search = {
+    scene: R`一本一百万个名字的电话簿，按名字排好了序，按名字找号码很快；反过来，给你一个号码，要找出它是谁的，就只能一个一个地翻，平均翻五十万次。没有任何结构可以利用的搜索，经典的计算机只能这样做。
+
+1996 年，Lov Grover 发现量子计算机可以快得多：大约 $\tfrac\pi4\sqrt N$ 次查询，一百万个名字不到八百次。它不是同时把所有名字看了一遍：一次测量只给出一个答案。它做的是每查询一次，就把正确答案的振幅往上推一点，推够了再测。
+
+推得不够，测中的概率不高；推过了头，概率又掉回去。这套玩法里，每一次查询你都要决定：再推一步，还是现在测。`,
+    rules: function (p, th) {
+      var N = Math.pow(2, Math.max(1, p.n | 0)), M = Math.max(1, p.M | 0), T = p.T | 0, eps = +p.eps, unk = p.mk === "unknown", L = [
+        `一共 ${N} 个盒子（${p.n | 0} 个量子比特，N = 2ⁿ）。${unk ? "每一局藏着的奖品数在 1 到 " + M + " 之间均匀地抽，你不知道是几个" : "每一局正好藏着 " + M + " 个奖品，你知道这个数"}，位置是随机的。`,
+        `你手里有一台量子计算机，寄存器开局处在所有盒子的均匀叠加态；还有一个黑盒：在量子计算机上，它把有奖品的那些盒子对应的分量变号。用一次黑盒，算一次查询。`,
+        `每一次查询你选一件事做：再转一步（一次 Grover 迭代：黑盒变号，再做一次关于均匀叠加态的反射）；或者测量寄存器、得到一个盒子的编号，并用这一次查询核对它里面有没有奖品。`,
+        `核对出奖品，这一局结束。落空了，寄存器重新准备成均匀叠加态（不花查询），从头再来。`
+      ];
+      if (eps > 0) L.push(`每转一步，有 ${n(eps)} 的概率退相干：整个寄存器变成完全混合态，之后再怎么转都没用，直到下一次测量；测量的结果就是一个随机的盒子。`);
+      else L.push(`这台量子计算机没有噪声：每一步都是精确的转动。`);
+      L.push(`你知道的：盒子数、${unk ? "奖品数的上限" : "奖品数"}、退相干的概率、上次测量之后转了几步、落空了几次。你不知道的：量子态本身${unk ? "，以及这一局到底有几个奖品" : ""}。`);
+      L.push(`成本 = 找到奖品时一共用掉的查询次数；预算 ${T} 次用完还没找到，按 ${T} 记。全部对局取平均，越低越好。基准是"每次都直接测"。`);
+      return L;
+    },
+    see: R`- **1024 个盒子，1 个奖品。** 每次直接测要 ⟪qs.d1.guess⟫ 次（公式约 1005，比经典地一个一个查的 512.5 还多，因为可能查到同一个盒子）；转到成功率最高再测 ⟪qs.d1.full⟫ 次；按期望最少来转 ⟪qs.d1.best⟫ 次（公式 22.68）。
+- **4 个奖品，知道。** 按期望最少来转 ⟪qs.m4.best⟫ 次。奖品多了四倍，次数少了一半：查询次数按 $\sqrt{N/M}$ 变。
+- **1 到 16 个，不知道。** 当作只有一个奖品去转，经常转过了头：⟪qs.unk.full⟫ 次，比随便猜（⟪qs.unk.guess⟫）还多。随机步数、逐轮放大只要 ⟪qs.unk.bbht⟫ 次。
+- **退相干。** 每步 1%：按期望最少来转 ⟪qs.e1.best⟫ 次；每步 5%：⟪qs.e5.best⟫ 次，而转到成功率最高要 ⟪qs.e5.full⟫ 次。噪声越大，越要早点测。
+- **2²⁰ 个盒子。** 每次直接测几乎都用完预算（⟪qs.n20.guess⟫），量子的做法约 ⟪qs.n20.best⟫ 次。`,
+    known: R`**记号。** $N$ 个盒子，其中 $M$ 个有奖品，$\sin\theta=\sqrt{M/N}$。$|\beta\rangle$ 是有奖品的盒子的均匀叠加，$|\alpha\rangle$ 是其余盒子的均匀叠加，均匀叠加态 $|s\rangle=\cos\theta\,|\alpha\rangle+\sin\theta\,|\beta\rangle$。
+
+**定理 1（Grover 1996）。** 一步 Grover 迭代 $G=(2|s\rangle\langle s|-I)\,O$，其中黑盒 $O$ 把有奖品的分量变号。从 $|s\rangle$ 出发转 $k$ 步，测到奖品的概率是
+$$p_k=\sin^2\bigl((2k+1)\theta\bigr).$$
+
+*证明。* $O$ 是关于 $|\alpha\rangle$ 所在直线的反射，$2|s\rangle\langle s|-I$ 是关于 $|s\rangle$ 所在直线的反射。在 $|\alpha\rangle$、$|\beta\rangle$ 张成的平面里，两条直线的夹角是 $\theta$，两次反射合成一次转过 $2\theta$ 的转动。出发点与 $|\alpha\rangle$ 的夹角是 $\theta$，转 $k$ 步之后是 $(2k+1)\theta$，测到奖品的概率就是 $\sin^2$ 这个角。
+
+**推论。** 转 $k=\lfloor\pi/(4\theta)\rfloor$ 步，测中的概率至少是 $1-M/N$，查询约 $\tfrac\pi4\sqrt{N/M}$ 次：比经典地一个一个查（平均 $(N+1)/(M+1)$ 次）快了一个平方。
+
+**经典的最好做法。** 每次查询只看得到一个盒子，最好的做法是不重复地查。盒子的次序是随机的，每个没奖品的盒子排在全部 $M$ 个奖品之前的概率是 $1/(M+1)$，所以第一个奖品前面平均有 $(N-M)/(M+1)$ 个空盒子，期望的查询次数是 $1+(N-M)/(M+1)=(N+1)/(M+1)$。
+
+**定理 2（下界；Bennett、Bernstein、Brassard、Vazirani 1997）。** 任何量子算法要以不小于常数的概率找到奖品，查询次数至少是 $\Omega(\sqrt{N/M})$。查询次数固定时，Grover 的做法测中的概率是最大的（Zalka 1999）。所以对没有结构的搜索，量子计算机的加速是平方的，不是指数的。
+
+**期望的查询次数。** "转 $k$ 步就测、落空就从头再来"，每轮花 $k+1$ 次查询，轮数服从几何分布，期望是 $(k+1)/p_k$。记 $x=(2k+1)\theta$，$\theta$ 小时它约为 $x/(2\theta\sin^2x)$，在 $\tan x=2x$（$x\approx1.1656$）处最小，约 $0.690\sqrt{N/M}$。这比转到成功率最高（约 $0.785\sqrt{N/M}$）还省：测中的概率从 $1$ 降到 $0.845$，少转的那些步比偶尔落空的代价大。$N=1024$、一个奖品时，最好的是 $k=18$，期望 22.68 次；转 25 步是 26.01 次。
+
+**定理 3（不知道奖品数；Boyer、Brassard、Høyer、Tapp 1998）。** 每一轮从 $0,\dots,m-1$ 里随机挑转几步，落空就把 $m$ 放大 $\lambda$ 倍（$1<\lambda<4/3$，上限 $\sqrt N$）。期望的查询次数是 $O(\sqrt{N/M})$。关键的一步是：转的步数在 $0$ 到 $m-1$ 之间均匀随机时，测中的概率的平均是 $\tfrac12-\dfrac{\sin(4m\theta)}{4m\sin2\theta}$，$m\ge1/\sin2\theta$ 时不小于 $1/4$。
+
+**退相干。** 每转一步有 $\varepsilon$ 的概率整个寄存器变成完全混合态，之后的转动作用在完全混合态上不改变它。转 $k$ 步之后测中的概率是
+$$(1-\varepsilon)^k\sin^2\bigl((2k+1)\theta\bigr)+\bigl(1-(1-\varepsilon)^k\bigr)\frac MN .$$
+最好的 $k$ 随 $\varepsilon$ 变小：$N=1024$ 时，$\varepsilon=1\%$ 是 17，$5\%$ 是 12，$20\%$ 是 4。这就是今天的量子计算机还用不上 Grover 算法的原因之一：没有纠错，噪声吃掉了平方的加速。
+
+**同一套办法的推广。** "把想要的那部分振幅一步步转大"叫振幅放大（Brassard、Høyer、Mosca、Tapp 2002）。把它反过来用，从转动的角度读出 $\theta$，就是振幅估计：估一个概率，误差按 $1/k$ 缩小，而经典的蒙特卡洛按 $1/\sqrt k$ 缩小。用量子计算机给期权定价的提案用的就是它。`,
+    tryit: [
+      `规则选"固定转 k 步再测"，对 k 做"参数扫描"（从 0 到 60）：实验点落在理论曲线上，最低点在 k = 18，不在成功率最高的 25。转到 50 步，又几乎转回了起点。`,
+      `打开"单局明细"：第一栏是此刻测量能测中的概率，只有裁判知道。它随着转动一步步爬升，测量（圆点）之后归零。`,
+      `把奖品数改成 4，再把"奖品有几个"换成"1 到 M 个之间，你不知道"：转到成功率最高的那条规则照一个奖品去转，常常转过了头；随机步数、逐轮放大不受影响。`,
+      `把退相干调到 5%，再调到 20%：最好的步数从 18 降到 12、再到 4。20% 时转到成功率最高的那条规则要用掉两千多次，比随便猜还差。`,
+      `把量子比特数调到 20（一百多万个盒子）、预算调到 6000：直接测几乎都找不到，最好的量子做法约 700 次。经典地一个一个查平均要五十多万次。`
+    ],
+    origin: R`- **Grover（1996）。** 《A fast quantum mechanical algorithm for database search》，STOC 1996；次年在《Physical Review Letters》上以《Quantum mechanics helps in searching for a needle in a haystack》为题发表。
+- **Bennett、Bernstein、Brassard、Vazirani（1997）。** 《Strengths and weaknesses of quantum computing》：证明了 $\Omega(\sqrt N)$ 的下界，也就是说，对没有结构的问题，量子计算机最多带来平方的加速。
+- **Boyer、Brassard、Høyer、Tapp（1998）。** 《Tight bounds on quantum searching》：给出了 $M$ 个奖品时的精确分析、不知道 $M$ 时的随机化算法，以及"期望查询次数最少"的那个常数 0.69。
+- **Zalka（1999）。** 《Grover's quantum searching algorithm is optimal》。
+- **Brassard、Høyer、Mosca、Tapp（2002）。** 《Quantum amplitude amplification and estimation》：振幅放大与振幅估计。
+- **现实。** 对称密码（比如 AES）的密钥搜索就是没有结构的搜索，Grover 的算法把它变成平方根那么多次：所以常见的建议是把密钥长度加倍。真要在量子计算机上跑起来，需要纠错之后的逻辑量子比特；今天带噪声的机器上，正如这套玩法里调大退相干时看到的，加速会被噪声吃掉。`
+  };
+
+  /* ================================================================== *
+   *  ⑰ 炸弹检测
+   * ================================================================== */
+  g.q_bomb = {
+    scene: R`一批炸弹，有的是真的，有的是哑弹。真炸弹的引信上装着一面极轻的镜子，只要一个光子打上去，镜子一动就会炸；哑弹的镜子卡死了，光子打上去什么也不会发生。你要挑出真炸弹，而且不能把它炸掉。
+
+经典地看这做不到：要知道镜子动不动，就得有东西去碰它，碰了真炸弹就炸。1993 年，Avshalom Elitzur 和 Lev Vaidman 发现量子力学允许"不碰它也知道它在"：让光子处在"走炸弹那一路"和"走另一路"的叠加里，炸弹在不在，会改变两路汇合时的干涉。他们的方案能不炸地确认四分之一的真炸弹。
+
+两年后，Kwiat、Zeilinger 等人指出，借助量子芝诺效应，这个比例可以任意接近 100%：把光子一点一点地往炸弹那一路转，每转一小步就让炸弹"看"一眼。炸弹每看一眼，都把光子拉回原处。`,
+    rules: function (p, th) {
+      var q = +p.q, eps = +p.eps, c = +p.c, T = p.T | 0, L = [
+        `每一局是一颗炸弹：有 ${pct(q)} 的概率是真的，否则是哑弹，各局互相独立。`,
+        `你有一套光路：光子先经过一个可以随意调角度的偏振旋转器，再到一个偏振分束器，水平偏振走下面那一路，竖直偏振走上面那一路，炸弹放在上面那一路；两路随后汇合，光子回到起点。这叫走一圈。`,
+        `每一步你选一件事：把光子的偏振再转 a 度（a > 0），然后让它走一圈；或者测量光子的偏振（水平还是竖直），这个光子就用掉了，下一步换一个新的、水平偏振的光子；或者宣布判定。`,
+        `真炸弹：走一圈时，光子竖直偏振的那一部分进了炸弹那一路的概率是 sin²（此刻的偏振角），进了就炸；没炸的话，光子一定走的是下面那一路，偏振塌回水平。哑弹：光子安然走完一圈，偏振不变。`,
+        eps > 0 ? `光路会丢光子：每走一圈有 ${n(eps)} 的概率被吸收（在碰到炸弹之前），你会知道它丢了。丢了的光子什么也没碰到，下一步换一个新的。` : `光路是完美的，不会丢光子。`,
+        `判"真"或判"哑"：判对 +1 分，判错 −1 分，这一局结束。炸了扣 ${n(c)} 分，也结束。每颗最多 ${T} 步（转一次走一圈、测一次、判一次各占一步），用完还没判，0 分。`,
+        `你知道的：真炸弹的比例、丢光子的概率、这个光子已经走了几圈、累计转了多少度、光子是不是刚丢了、上一次测量的结果。你不知道的：这颗是真是假，以及光子此刻真实的偏振。`,
+        `得分 = 全部炸弹的平均分。基准是"直接看一眼"。`
+      ];
+      return L;
+    },
+    see: R`- **完美的光路。** 直接看一眼得 ⟪qm.ideal.look⟫ 分：真炸弹全炸了（炸掉的比例 ⟪qm.ideal.look.boom⟫），哑弹全判对。分 10 步转得 ⟪qm.ideal.zeno⟫ 分。步数越多越好，最好的做法得 ⟪qm.ideal.best⟫ 分。
+- **每圈丢 1%（默认）。** 最好的步数是 64，得 ⟪qm.e1.best⟫ 分（倒推值 0.945）；真炸弹里完好地确认出来的比例是 ⟪qm.e1.best.ok⟫，平均每颗用 ⟪qm.e1.best.steps⟫ 步。
+- **每圈丢 5%。** 光子走不了那么多圈：最好的步数降到 28，得 ⟪qm.e5.best⟫ 分。
+- **真炸弹只占 10%。** 直接猜"哑弹"就有 0.8 分（⟪qm.q1.guess⟫）；量子的做法仍然更好，⟪qm.q1.best⟫ 分。
+- **炸一颗扣 10 分。** 直接看一眼是 ⟪qm.c10.look⟫ 分；最好的做法步数加到 78，⟪qm.c10.best⟫ 分。
+- **每颗只给 30 步。** 步数不够多分：最好的是 14 步，⟪qm.t30.best⟫ 分。`,
+    known: R`**记号。** 光子的偏振写成 $|\psi\rangle=\cos\psi\,|H\rangle+\sin\psi\,|V\rangle$，$\psi$ 是偏振角。偏振分束器让 $|H\rangle$ 走下面那一路、$|V\rangle$ 走上面（炸弹）那一路。
+
+**真炸弹是一次测量。** 光子走到分束器时处在 $\cos\psi\,|\text{下}\rangle+\sin\psi\,|\text{上}\rangle$。炸弹在上面那一路，它要么吸收光子（炸），要么没吸收：以 $\sin^2\psi$ 的概率炸；没炸的话，光子一定在下面那一路，偏振塌回 $|H\rangle$。哑弹不吸收任何东西，两路汇合后光子回到 $|\psi\rangle$。
+
+**定理（量子芝诺；Kwiat 等 1995）。** 每次转 $\pi/(2N)$，走一圈，重复 $N$ 次再测偏振。哑弹：转动累加成 $\pi/2$，光子必是竖直偏振。真炸弹：每一圈之前光子都是水平的，所以每一圈不炸的概率都是 $\cos^2(\pi/2N)$，$N$ 圈都不炸、测出水平的概率是
+$$\cos^{2N}\!\Bigl(\frac\pi{2N}\Bigr)\ \ge\ 1-N\sin^2\frac\pi{2N}\ \ge\ 1-\frac{\pi^2}{4N}.$$
+测出水平就一定是真炸弹，测出竖直就一定是哑弹：这个做法从不判错。真炸弹被炸的概率随 $N$ 趋于 0。$N=2$ 时是 $1/4$，$N=10$ 时完好地确认 $78.1\%$，$N=100$ 时 $97.6\%$。
+
+*为什么叫芝诺效应。* 没有炸弹时，偏振一小步一小步地转到竖直。有了炸弹，每一步之后它都"看"一眼光子在不在上面那一路：转过一小步 $\delta$ 之后，在上面的概率只有 $\sin^2\delta\approx\delta^2$，看完之后光子回到水平。一步只出一个 $\delta^2$ 的事，$N$ 步加起来是 $N\delta^2=\pi^2/(4N)\to0$：看得越勤，状态越转不动。这就是 Misra 和 Sudarshan（1977）说的量子芝诺效应。
+
+**Elitzur 和 Vaidman 的原始方案。** 一台 Mach–Zehnder 干涉仪：光子经第一个分束器一分为二，炸弹在其中一路，两路在第二个分束器汇合。干涉仪调到"没有炸弹时光子总从亮端出来"。有真炸弹时：一半炸了，四分之一从亮端出来（说不清），四分之一从暗端出来，暗端有光子就一定是真炸弹，而且没炸。说不清的那些再测一次，最后完好地确认的比例是 $\tfrac14/(\tfrac14+\tfrac12)=\tfrac13$。这里"两步，每步 45°"的做法也是 25% 完好地确认，不同的是它的第二步也经过炸弹，所以剩下的 75% 都炸了，没有"说不清"的那一档。
+
+**丢光子的时候。** 每走一圈有 $\varepsilon$ 的概率丢光子。一个光子完整走完 $N$ 圈的概率是 $\bigl((1-\varepsilon)\cos^2\tfrac\pi{2N}\bigr)^N$（真炸弹）或 $(1-\varepsilon)^N$（哑弹）；丢了就得换光子从头来。$N$ 太大，几乎每个光子都走不完；$N$ 太小，炸得多。
+
+- 不限步数时，丢光子只是多花时间。真炸弹最终完好地确认的概率是"一个光子完好走完"与"一个光子炸掉"之比的那个份额，它在 $N$ 适中时最大：$\varepsilon=1\%$ 时在 $N=160$，约 $96.3\%$。
+- 步数有限时，$N$ 还得留出几次重来的余地。默认的每颗 300 步下，最好的是 $N=64$。
+
+**倒推。** 记 $f(r)$ 为换一个新光子、还剩 $r$ 步时的期望得分，$a$ 为"一圈下来光子还在、也没炸"的概率，则
+$$f(r)=\varepsilon\sum_{j=1}^{\min(N,r)}a^{j-1}f(r-j)-c\,(1-\varepsilon)\sin^2\!\frac\pi{2N}\sum_{j=1}^{\min(N,r)}a^{j-1}+\mathbf 1\{r\ge N+2\}\,a^N ,$$
+三项分别是：在第 $j$ 圈丢了光子、从头再来；在第 $j$ 圈炸了；走完 $N$ 圈并在步数用完之前测量、判定。结果栏里"理论最优"那一行就是把 $N$ 从 1 试到 $\min(400,T-2)$ 取的最大值。`,
+    tryit: [
+      `规则选"量子芝诺：分 N 步转"，把光路设成完美的（每圈丢光子的概率调到 0），对 N 做参数扫描：得分一路上升，N = 2 时 0.25，N = 10 时约 0.78。`,
+      `把丢光子的概率调回 1%，再扫一遍 N：曲线在 64 到顶，之后往下走。看"平均用了几步"：N 大的时候，好多局都是在换光子、重来。`,
+      `打开"单局明细"看一颗真炸弹：第一栏是光子到炸弹之前真实的偏振角，只有裁判知道。它每一步只转出去一点点，就被炸弹拉回 0。换一颗哑弹看：同样的转动一路累加到 90°。`,
+      `把"炸一颗扣几分"调到 10：直接看一眼一下子变成很差的做法；最好的步数从 64 加到 78，宁可多冒丢光子、步数不够的风险，也要少炸。`,
+      `把真炸弹的比例调到 0.1：直接猜"哑弹"就有 0.8 分。量子的做法仍然更好，可是好得不多了：信息的价值取决于你本来知道多少。`
+    ],
+    origin: R`- **Renninger（1960）** 讨论过"负结果测量"：探测器没有响，本身也是一种测量结果，也会改变系统的状态。
+- **Elitzur 和 Vaidman（1993）。** 《Quantum mechanical interaction-free measurements》，提出用 Mach–Zehnder 干涉仪检验炸弹。
+- **Misra 和 Sudarshan（1977）。** 《The Zeno's paradox in quantum theory》：被频繁观测的系统不演化，名字取自芝诺的飞矢不动。
+- **Kwiat、Weinfurter、Herzog、Zeilinger、Kasevich（1995）。** 《Interaction-free measurement》：在实验里实现了 Elitzur–Vaidman 的方案，并提出用量子芝诺效应把效率推向 1。Kwiat 等人 1999 年的实验做到了 73%。
+- **应用。** 同样的想法后来用来给怕光的样品成像（"无相互作用成像"），以及"反事实"的量子通信和计算。`
+  };
+
+  /* ---------- 总览里的一行 ---------- */
+  G.gameIndex = G.gameIndex || {};
+  G.gameIndex.q_bell = ["答 0 还是答 1", "不能通气：经典上限 75%，纠缠能到 85%", "量子力学的基础 · 2022 年诺贝尔奖"];
+  G.gameIndex.q_search = ["再转一步还是现在测", "推得不够测不中，推过了头又掉回去", "量子算法"];
+  G.gameIndex.q_bomb = ["转多少度、什么时候测", "不碰它也能知道：量子芝诺效应", "量子光学实验"];
+
+  /* ---------- 各条内置规则的用处 ---------- */
+  var u = G.gstrats;
+  u.bell_zero = `基准，也是不用纠缠时最好的做法：它恰好碰到 Bell–CHSH 不等式的上限 75%。`;
+  u.bell_rand = `两人完全不配合时的胜率。用它看"什么都不做"是 50%，不是 0。`;
+  u.bell_table = `把经典的做法一张一张试过去：十六张答法表里，最好的也只有 75%。`;
+  u.bell_shared = `事先约好的随机数（或者局部隐变量）能做的事：把几种经典的答法混起来。用它看混出来的胜率是一条直线，到不了 75% 以上。`;
+  u.bell_phi = `Bell 实验里的标准测量方案。用它对角度做扫描，看量子的胜率怎么随角度变，以及在隐变量源上为什么变不出来。`;
+  u.bell_q = `四个角度都可以自己定。"量子电路"面板第十关里拨好的角度，可以直接交给它在几千回合上跑。`;
+  u.srch_guess = `有量子计算机却不用：每次都是随便猜一个盒子。它是基准。`;
+  u.srch_fixed = `只有一个参数的做法，专门用来做参数扫描：看转得太少和转过了头各是什么样子。`;
+  u.srch_full = `教科书上的 Grover 算法：转到测中的概率最高再测。知道有几个奖品时一轮就中；不知道时会转过头。`;
+  u.srch_best = `知道奖品数和噪声时，在"转 k 步、落空重来"里最省的那一种。它比教科书上的做法早停一些。`;
+  u.srch_bbht = `不知道有几个奖品时的标准做法：用随机的步数把"转过头"的风险平均掉。`;
+  u.bomb_look = `经典的检查方法：让光子直接去碰炸弹。真炸弹一个也剩不下。它是基准。`;
+  u.bomb_guess = `完全不测时能拿多少分。真假比例很悬殊时它并不差：用它量一量测量值多少钱。`;
+  u.bomb_zeno = `量子芝诺效应本身：步数 N 是唯一的参数。用它对 N 做扫描，看光路完美时与会丢光子时曲线的差别。`;
+  u.bomb_best = `把步数按损耗、预算和代价选好的量子芝诺。用它对照结果栏里的倒推值。`;
+
+  /* ---------- 算法的基础信息 ---------- */
+  var A = G.algo;
+  function a(id, kind, fit, step, mem, need) { A[id] = { kind: kind, fit: fit, step: step, mem: mem, need: need }; }
+  a("bell_zero", "常数", "不用", "O(1)", "O(1)", "什么都不用");
+  a("bell_rand", "随机", "不用", "O(1)", "O(1)", "自己的随机数");
+  a("bell_table", "查表", "不用", "O(1)", "O(1)：四个比特", "自己收到的比特");
+  a("bell_shared", "查表 + 共用随机数", "不用", "O(1)", "O(1)", "共用的随机数");
+  a("bell_phi", "量子测量", "不用", "O(1)：转偏振片、测一次", "O(1)", "一个纠缠光子");
+  a("bell_q", "量子测量", "不用", "O(1)", "O(1)：四个角度", "一个纠缠光子");
+  a("srch_guess", "常数", "不用", "O(1)", "O(1)", "什么都不用");
+  a("srch_fixed", "计数", "不用", "O(1)", "O(1)", "转了几步");
+  a("srch_full", "公式", "不用", "O(1)（第一步算一次）", "O(1)", "盒子数和奖品数");
+  a("srch_best", "枚举", "不用", "第一步 O(√(N/M))，之后 O(1)", "O(1)", "盒子数、奖品数、退相干的概率");
+  a("srch_bbht", "随机化", "不用", "O(1)", "O(1)：当前的范围 m", "盒子数");
+  a("bomb_look", "状态机", "不用", "O(1)", "O(1)", "什么都不用");
+  a("bomb_guess", "常数", "不用", "O(1)", "O(1)", "真炸弹的比例");
+  a("bomb_zeno", "状态机", "不用", "O(1)", "O(1)", "什么都不用");
+  a("bomb_best", "动态规划 + 状态机", "O(T·min(400, T))：每个 N 倒推一遍", "O(1)", "O(1)：选好的 N", "真炸弹的比例、丢光子的概率、代价和步数");
+
+  G.algoNotes.quantum = R`**怎么读这张表。** 量子玩法的规则大多只是一个计数器或一个状态机：每一步做什么，事先就定好了，难的部分在裁判手里（量子态怎么演化、测量的结果怎么抽）。两条要事先算一下的：按期望查询最少来转的那一条，第一次被问到时把 $k$ 从 0 试到大约 $\tfrac\pi4\sqrt{N/M}$；按损耗选步数的那一条，开局之前对每一个 $N$ 倒推一遍，每一遍只要 $O(T)$。`;
+
+  /* ---------- 名词 ---------- */
+  G.glossary.push("量子",
+    ["量子比特", `两个状态 |0⟩、|1⟩ 的叠加 α|0⟩ + β|1⟩，|α|² + |β|² = 1。测量时以 |α|² 的概率得到 0、以 |β|² 的概率得到 1，测完就停在那个结果上。`],
+    ["叠加 / 振幅", `量子态是几个基本状态按复数系数（振幅）的组合。测到某个状态的概率是它的振幅的模的平方。振幅可以相互抵消，概率不能：这是干涉的来源。`],
+    ["测量（量子）", `从量子态里取出一个经典的结果。结果是随机的，测量本身会改变状态：之后的状态就是测到的那一个。`],
+    ["偏振", `光的电场振动的方向。一个光子的偏振是一个量子比特：水平 |H⟩ 与竖直 |V⟩ 是一组基本状态，偏振片转到 θ 时，通过的概率是 cos²(θ − 偏振角)（Malus 定律）。`],
+    ["纠缠", `两个粒子的整体处在一个写不成"各自一个状态"的乘积的状态。分别测量时，两边的结果单看都是随机的，合起来看却有关联，关联强到经典的随机数做不到。`],
+    ["Bell 态", `两个量子比特的四个最大纠缠态，比如 |Φ⁺⟩ = (|00⟩ + |11⟩)/√2。对 |Φ⁺⟩ 来说，两边沿同一个方向测，结果总相同。`],
+    ["局部隐变量", `"量子测量的结果在测之前就写好了，只是我们看不到"这一类经典的解释。局部是说：一边的结果不受另一边怎么测的影响。`],
+    ["Bell 不等式 / CHSH", `局部隐变量（以及任何不用纠缠的经典做法）在两人各选两种测量时能产生的关联的上限 |S| ≤ 2。量子力学预言并在实验里测到它被违反。`],
+    ["Tsirelson 界", `量子力学允许的 CHSH 值的上限 2√2，对应 Bell 游戏的胜率 cos²22.5° ≈ 85.36%。`],
+    ["不可通信定理", `纠缠不能用来传递信息：一边的任何操作都改变不了另一边单看自己的结果时的统计。`],
+    ["可见度", `纠缠光子对里"真的纠缠"的那一部分所占的比例；其余部分是完全随机的噪声。可见度低于 1/√2 时，Bell 不等式就违反不了了。`],
+    ["Grover 迭代 / 振幅放大", `先用黑盒把想要的那部分的振幅变号，再做一次关于均匀叠加态的反射。两次反射合成一次转动，每次把想要的那部分的振幅往上转一点。`],
+    ["退相干", `量子态与环境发生了不受控制的相互作用，叠加和纠缠被破坏、变成经典的随机混合。它是量子计算机里最主要的噪声。`],
+    ["量子芝诺效应", `对一个正在缓慢演化的量子系统测量得足够频繁，它就几乎不再演化：每次测量都把它拉回原处。`],
+    ["无相互作用测量", `不让探测用的粒子真正碰到被测物体，就得知物体存不存在。Elitzur–Vaidman 的炸弹检测是最有名的例子。`]);
+})(typeof QL_GUIDE !== "undefined" ? QL_GUIDE : require("./guide.js"));
+
 /* ===== ai.js ===== */
 /* 独立网页里的 AI 接口：使用者自带 API 密钥，从浏览器直接调用所选的服务商。
  *
@@ -11792,6 +13387,7 @@ var App = (function () {
   var A = { QL: QL };
   if (typeof QL_GAME_STRATS === "function") QL_GAME_STRATS(QL).forEach(function (s) { QL_STRATS.push(s); });   // 十套玩法各自的内置规则
   if (typeof QL_OBS_STRATS === "function") QL_OBS_STRATS(QL).forEach(function (s) { QL_STRATS.push(s); });     // 四套观测玩法的内置规则
+  if (typeof QL_Q_STRATS === "function") QL_Q_STRATS(QL).forEach(function (s) { QL_STRATS.push(s); });         // 三套量子玩法的内置规则
 
   /* ---------- DOM 小工具 ---------- */
   function h(tag, attrs) {
@@ -12384,6 +13980,7 @@ var App = (function () {
   /* ---------- 世界 ---------- */
   /* 左栏最上面两块：先选玩法（做什么、怎么算分），再选世界（数据服从什么）。
    * 价格世界共用同一种玩法"交易一个资产"；十套玩法和四套观测玩法各自规定了能换哪些世界。 */
+  var QC_LEVEL = { q_bell: "chsh", q_search: "grover", q_bomb: "bomb" };   // 三套量子玩法各对应量子电路谜题里的哪一关
   A.TRADE = { name: "交易一个资产", blurb: "给你一条价格路径。每一步你决定持有多少仓位，净值跟着价格涨跌。和基准（一般是买入持有）在同一批路径上比，按三种口径衡量：长期增长率、夏普比率、带风险上限的期望收益。" };
   A.gameOf = function (type) { type = type || S.world.type; var x = QL.WORLDS[type]; return x && x.game ? type : "trade"; };
   /** 换玩法。回到"交易一个资产"时，世界回到上次在那里用的那一个 */
@@ -12396,12 +13993,13 @@ var App = (function () {
     gh.appendChild(h("h2", null, "玩法", h("small", { text: "做什么、怎么算分" }), h("span", { class: "sp" }), A.helpBtn("game:" + game, "这套玩法的细则、来历和已知结论")));
     var gsel = h("select", { id: "gameType", "aria-label": "玩法", onchange: function () { A.setGame(gsel.value); } });
     gsel.appendChild(h("optgroup", { label: "交易" }, h("option", { value: "trade", text: A.TRADE.name + "（定仓位）", selected: game === "trade" })));
-    [[QL.GAME_GROUP, QL.GAMES], [QL.OBS_GROUP, QL.OBS]].forEach(function (x) { gsel.appendChild(h("optgroup", { label: x[0] }, x[1].map(function (k) { return h("option", { value: k, text: QL.WORLDS[k].name, selected: k === game }); }))); });
+    [[QL.GAME_GROUP, QL.GAMES], [QL.OBS_GROUP, QL.OBS], [QL.QUANTUM_GROUP, QL.QUANTUM || []]].forEach(function (x) { if (!x[1].length) return;  gsel.appendChild(h("optgroup", { label: x[0] }, x[1].map(function (k) { return h("option", { value: k, text: QL.WORLDS[k].name, selected: k === game }); }))); });
     gh.appendChild(gsel);
     gh.appendChild(h("p", { class: "blurb", text: d.game ? d.blurb : A.TRADE.blurb }));
     gh.appendChild(h("div", { class: "row tight", style: { "margin-bottom": d.game ? "10px" : "0" } },
       A.humanOk && A.humanOk(game) ? h("button", { class: "btn small primary", type: "button", id: "btnHuman", text: "亲手玩一局", title: "你自己逐回合做决定，打完和各条参照规则在同一局上比", onclick: function () { A.openHuman(); } }) : null,
-      h("button", { class: "btn small", type: "button", id: "btnRules", text: "完整的细则与来历", onclick: function () { A.openGuide("game:" + game); } })));
+      h("button", { class: "btn small", type: "button", id: "btnRules", text: "完整的细则与来历", onclick: function () { A.openGuide("game:" + game); } }),
+      d.quantum && A.openQuantum ? h("button", { class: "btn small", type: "button", id: "btnQc", text: "电路谜题", title: "量子电路谜题里对应的那一关：先在电路上搭一遍，再回来让规则跑几千局", onclick: function () { A.openQuantum(QC_LEVEL[game]); } }) : null));
     if (d.game) {
       var gp = h("div", { class: "fields" }); gh.appendChild(gp);
       A.renderParams(gp, A.wschema().filter(function (q) { return !isW(q); }), vals, onIn, onCm, "w");
@@ -13221,7 +14819,8 @@ var App = (function () {
 
   CH.retdist = {
     name: "单步收益分布", about: "这个世界每一步收益的直方图，对照同均值、同方差的正态分布。", keys: "return distribution 收益 分布 厚尾 正态 偏度 峰度",
-    when: function (w) { return !w.game || !!w.obs; }, gname: function (w) { return w.pricePath ? "" : (w.rName || w.obs.name) + "的分布"; },      // 画的是每一步的那个量：有的玩法里它是观测本身，有的是相邻观测之差（rName）
+    // 量子玩法里每回合公布的只是 0 和 1（或者什么也没有），画不出有意义的分布
+    when: function (w) { return !w.game || (!!w.obs && !w.quantum); }, gname: function (w) { return w.pricePath ? "" : (w.rName || w.obs.name) + "的分布"; },      // 画的是每一步的那个量：有的玩法里它是观测本身，有的是相邻观测之差（rName）
     controls: function (o, re) { return [toggle("纵轴取对数（看尾部）", !!o.log, function (v) { o.log = v; re(); })]; },
     spec: function (o) {
       var ws = A.worldStats; if (!ws) return "还没有生成路径";
@@ -17090,6 +18689,488 @@ var App = (function () {
   });
 })(App);
 
+/* ===== app-quantum.js ===== */
+/* 应用主体：量子电路谜题（十关）。
+ * 关卡、门和判定在 q-circuit.js 里，态矢量用的是三套量子玩法同一份模拟器（QL.qsim）。这个文件只管界面：
+ * 左边是十关的目录，右边是电路板（点格子放门）、量子态（振幅和每个比特的 Bloch 球）和检验。
+ * 第六关、第七关、第十关做完之后，可以一键去对应的量子玩法：在这里搭出来的是一次实验，到了那边由规则跑几千次。
+ * 进度只记在这台设备的浏览器里：每一关的星数和最后摆的电路。 */
+(function (A) {
+  "use strict";
+  var h = A.h, clear = A.clear, QL = A.QL;
+  if (typeof QL_QCIRCUIT_INSTALL !== "function" || !QL.qsim) return;
+  var QC = QL.QCIRCUIT || QL_QCIRCUIT_INSTALL(QL), LV = QC.LEVELS, GATES = QC.GATES, Q = QL.qsim, NS = "http://www.w3.org/2000/svg";
+
+  /** SVG 元素：s(tag, attrs, 子元素…) */
+  function s(tag, attrs) {
+    var el = document.createElementNS(NS, tag), k, i;
+    if (attrs) for (k in attrs) { var v = attrs[k]; if (v == null || v === false) continue; if (k === "text") el.textContent = v; else el.setAttribute(k, v === true ? "" : v); }
+    for (i = 2; i < arguments.length; i++) (function add(c) { if (c == null || c === false) return; if (Array.isArray(c)) c.forEach(add); else el.appendChild(typeof c === "object" ? c : document.createTextNode(String(c))); })(arguments[i]);
+    return el;
+  }
+  function line(x1, y1, x2, y2, stroke, w, extra) { var o = { x1: x1, y1: y1, x2: x2, y2: y2, stroke: stroke, "stroke-width": w || 1.5 }; if (extra) for (var k in extra) o[k] = extra[k]; return s("line", o); }
+  function pad2(i) { return (i < 10 ? "0" : "") + i; }
+
+  /* ---------- 存档（只在这台设备的浏览器里） ---------- */
+  var KEY = "ql.qcircuit.v1", ZERO = { a0: 0, a1: 0, b0: 0, b1: 0 };
+  var save = { stars: LV.map(function () { return 0; }), circ: {}, chsh: null };
+  function int8(x) { x = Math.round(+x); return x === x ? Math.max(-8, Math.min(8, x)) : 0; }
+  function bitOf(x) { return +x === 1 ? 1 : 0; }
+  try {
+    var raw = localStorage.getItem(KEY);
+    if (raw) {
+      var d0 = JSON.parse(raw);
+      if (d0 && Array.isArray(d0.stars)) save.stars = LV.map(function (_, i) { return Math.max(0, Math.min(3, Math.round(+d0.stars[i]) || 0)); });
+      if (d0 && d0.circ && typeof d0.circ === "object") save.circ = d0.circ;
+      if (d0 && d0.chsh && typeof d0.chsh === "object") save.chsh = d0.chsh;
+    }
+  } catch (e) { /* 存不了就不存 */ }
+  function persist() { try { localStorage.setItem(KEY, JSON.stringify(save)); } catch (e) { /* 忽略 */ } }
+
+  /* ---------- 当前的局面 ---------- */
+  var ui = null, root = null, cur = 0, ops = [], tool = null, pending = null, viewCol = null, scen = 0, result = null, undoStack = [], status = { text: "", warn: false }, openHints = {};
+  var chsh = { cl: clone4(ZERO, bitOf), q: clone4(ZERO, int8), sample: null };
+  if (save.chsh) { chsh.cl = clone4(save.chsh.cl || ZERO, bitOf); chsh.q = clone4(save.chsh.q || ZERO, int8); }
+  function clone4(o, f) { return { a0: f(o.a0), a1: f(o.a1), b0: f(o.b0), b1: f(o.b1) }; }
+
+  var WIRE_NAMES = { deutsch: ["x", "y"], bomb: ["光子"], dense: ["Alice", "Bob"], teleport: ["Alice", "Alice", "Bob"] }, SUBS = ["₀", "₁", "₂"];
+  function wireName(L, q) { var nm = WIRE_NAMES[L.id]; return nm ? nm[q] : "q" + SUBS[q]; }
+  /** 存档里读回来的电路：只留下合法的门（这一关能用的、位置在板内、同一列里不重叠） */
+  function sanitize(L, arr) {
+    var out = [];
+    if (!Array.isArray(arr) || !L.gates) return out;
+    arr.forEach(function (o) {
+      if (!o || L.gates.indexOf(o.g) < 0 || !Array.isArray(o.q)) return;
+      if (!(o.col === (o.col | 0) && o.col >= 0 && o.col < L.cols)) return;
+      if (o.q.some(function (w) { return !(w === (w | 0) && w >= 0 && w < L.n); })) return;
+      if (GATES[o.g].arity !== o.q.length || (o.q.length === 2 && o.q[0] === o.q[1])) return;
+      var lo = Math.min.apply(null, o.q), hi = Math.max.apply(null, o.q);
+      var clash = L.locked.concat(out).some(function (p) { return p.col === o.col && Math.max(lo, Math.min.apply(null, p.q)) <= Math.min(hi, Math.max.apply(null, p.q)); });
+      if (!clash) out.push({ g: o.g, col: o.col, q: o.q.slice() });
+    });
+    return out;
+  }
+  function withLocks(L) { return L.locked.map(function (o) { return Object.assign({ locked: true }, o); }).concat(ops); }
+  function occupant(L, c, w) { var all = withLocks(L); for (var i = 0; i < all.length; i++) { var o = all[i]; if (o.col === c && w >= Math.min.apply(null, o.q) && w <= Math.max.apply(null, o.q)) return o; } return null; }
+
+  function loadLevel(i) {
+    cur = i; var L = LV[i];
+    ops = L.gates ? sanitize(L, save.circ[L.id]) : [];
+    tool = L.gates ? L.gates[0] : null;
+    pending = null; viewCol = null; scen = 0; result = null; undoStack = []; status = { text: "", warn: false };
+    render();
+    var sc = root && root.querySelector(".qc-main"); if (sc) sc.scrollTop = 0;
+    if (ui && ui.box) ui.box.scrollTop = 0;
+  }
+  function changed() { save.circ[LV[cur].id] = ops; persist(); result = null; }
+  function commit(next) { undoStack.push(ops); if (undoStack.length > 100) undoStack.shift(); ops = next; changed(); }
+  function undo() { if (!undoStack.length) return; ops = undoStack.pop(); pending = null; changed(); setStatus("已撤销。"); render(); }
+  function clearAll() { if (!ops.length) return; commit([]); pending = null; setStatus("电路已清空。可以点\"撤销\"恢复。"); render(); }
+  function setStatus(text, warn) { status = { text: text, warn: !!warn }; }
+
+  /* ---------- 在电路板上点 ---------- */
+  function clickCell(c, w) {
+    var L = LV[cur], occ = occupant(L, c, w), k;
+    if (pending) {
+      if (c === pending.col && w === pending.w) { pending = null; setStatus("已取消。"); render(); return; }
+      if (c !== pending.col) { pending = occ ? null : { col: c, w: w }; setStatus(""); render(); return; }
+      var lo = Math.min(pending.w, w), hi = Math.max(pending.w, w);
+      for (k = lo; k <= hi; k++) if (occupant(L, c, k)) { pending = null; setStatus("这一列在两根线之间已经有门了，换一列试试。", true); render(); return; }
+      var op = { g: tool, col: c, q: [pending.w, w] };
+      pending = null; tryAdd(L, op); return;
+    }
+    if (occ) {
+      if (occ.locked) { setStatus("黑盒固定在这里，不能移动或删除。", true); render(); return; }
+      var next = ops.filter(function (o) { return o !== occ; });
+      commit(next);
+      var err = L.validate ? L.validate(next) : null;
+      setStatus(err ? "已删除。注意：" + err : "已删除 " + GATES[occ.g].name + "。", !!err);
+      render(); return;
+    }
+    if (!tool) { setStatus("先在上面选一个门。", true); render(); return; }
+    if (GATES[tool].arity === 2) { pending = { col: c, w: w }; setStatus(""); render(); return; }
+    tryAdd(L, { g: tool, col: c, q: [w] });
+  }
+  function tryAdd(L, op) {
+    var next = ops.concat([op]);
+    if (L.validate) { var err = L.validate(next); if (err) { setStatus(err, true); render(); return; } }
+    commit(next); setStatus(""); render();
+  }
+  function doCheck() {
+    var L = LV[cur];
+    result = L.type === "chsh" ? chshResult() : QC.check(L, ops);
+    if (result.pass && result.stars > save.stars[cur]) { save.stars[cur] = result.stars; persist(); }
+    render();
+    var v = root && root.querySelector(".qc-verdict"); if (v && v.scrollIntoView) v.scrollIntoView({ block: "nearest" });
+  }
+
+  /* ---------- 小部件 ---------- */
+  function starsEl(n, cls) {
+    var out = h("span", { class: cls || "qc-stars", "aria-label": n + " 星" });
+    for (var k = 0; k < 3; k++) out.appendChild(k < n ? document.createTextNode("★") : h("span", { class: "off", text: "★" }));
+    return out;
+  }
+  function pct2(x) { return (100 * x).toFixed(2) + "%"; }
+  function fmtNum(x) { var v = Math.abs(x) < 5e-4 ? 0 : x; return v.toFixed(3).replace("-", "−"); }
+  function fmtAmp(a) {
+    var r = a[0], i = a[1];
+    if (Math.abs(i) < 5e-4) return fmtNum(r);
+    if (Math.abs(r) < 5e-4) return fmtNum(i) + "i";
+    return fmtNum(r) + (i < 0 ? " − " : " + ") + Math.abs(i).toFixed(3) + "i";
+  }
+  function phaseColor(ph) { var deg = ph * 180 / Math.PI, hue = ((210 + deg) % 360 + 360) % 360; return "hsl(" + hue.toFixed(0) + " 68% 50%)"; }
+  function gcd(a, b) { return b ? gcd(b, a % b) : a; }
+  function piFrac(k) {
+    if (k === 0) return "0";
+    var g = gcd(Math.abs(k), 16), num = Math.abs(k) / g, den = 16 / g;
+    return (k < 0 ? "−" : "") + (num === 1 ? "" : num) + "π" + (den === 1 ? "" : "/" + den);
+  }
+  function degOf(k) { var d = k * 11.25; return (d < 0 ? "−" : "") + String(+Math.abs(d).toFixed(2)) + "°"; }
+  function gateGlyph(g) { var G = GATES[g]; return h("span", { class: "g", "aria-hidden": "true" }, G.label, G.sub ? h("sub", { text: G.sub }) : null); }
+  function closeThen(fn) { return function () { if (ui) ui.close(); fn(); }; }
+
+  /* ---------- 题目 ---------- */
+  function brief(L) {
+    var hints = h("div", { class: "qc-hints" }, L.hints.map(function (t, k) {
+      var key = L.id + k, d = h("details", { class: "qc-hint", open: !!openHints[key] }, h("summary", { text: "提示 " + (k + 1) }), h("p", { text: t }));
+      d.addEventListener("toggle", function () { openHints[key] = d.open; });
+      return d;
+    }));
+    return h("section", { class: "qc-brief" },
+      h("div", { class: "qc-tag", text: pad2(cur + 1) + " / 10 · " + L.tag }),
+      h("h3", { class: "qc-title", text: L.title }),
+      h("p", { class: "qc-goal", text: L.goal }),
+      hints);
+  }
+
+  /* ---------- 电路板 ---------- */
+  function bench(L) {
+    var pal = h("div", { class: "qc-palette", role: "toolbar", "aria-label": "可用的门" },
+      L.gates.map(function (g) {
+        return h("button", { class: "qc-tool", type: "button", "aria-pressed": tool === g ? "true" : "false", title: GATES[g].desc, "data-fk": "tool-" + g, onclick: function () { tool = g; pending = null; setStatus(""); render(); } }, gateGlyph(g), GATES[g].name);
+      }),
+      h("span", { class: "qc-spacer" }),
+      h("button", { class: "btn small", type: "button", onclick: undo, disabled: !undoStack.length, "data-fk": "undo", text: "撤销" }),
+      h("button", { class: "btn small", type: "button", onclick: clearAll, disabled: !ops.length, "data-fk": "clear", text: "清空" }),
+      h("button", { class: "btn small primary", type: "button", onclick: doCheck, "data-fk": "check", id: "qcCheck", text: "检验" }));
+    var G = tool && GATES[tool];
+    var desc = h("div", { class: "qc-tooldesc" }, G ? [h("b", { text: G.name + "：" }), G.desc] : "");
+    var stText = status.text;
+    if (!stText && pending) stText = "现在点第 " + (pending.col + 1) + " 列的另一根线" + (tool === "CNOT" ? "作为目标位" : "") + "。再点一次同一格取消。";
+    var st = h("div", { class: "qc-status" + (status.warn ? " warn" : ""), role: "status", "aria-live": "polite", text: stText });
+    var how = h("div", { class: "qc-howto", text: "点空格放门；两比特门先点控制位，再点同一列的目标位；点已放的门删除它；点上方的步骤号查看那一步之后的状态。" });
+    return h("section", { class: "qc-bench", "aria-label": "电路" }, pal, desc, h("div", { class: "qc-board-wrap" }, boardSVG(L)), st, how);
+  }
+  function boardSVG(L) {
+    var n = L.n, cols = L.cols, cw = cols > 10 ? 46 : 56, rh = 60, lw = 74, top = 30, W = lw + cols * cw + 16, H = top + n * rh + 4, c, w;
+    var svg = s("svg", { class: "qc-board", width: W, height: H, viewBox: "0 0 " + W + " " + H, role: "group", "aria-label": "电路板" });
+    function cx(c) { return lw + c * cw + cw / 2; }
+    function wy(w) { return top + w * rh + rh / 2; }
+    var all = withLocks(L), measuredAt = {};
+    all.forEach(function (o) { if (o.g === "M") { var q = o.q[0]; if (measuredAt[q] == null || o.col < measuredAt[q]) measuredAt[q] = o.col; } });
+    for (c = 0; c < cols; c++) (function (c) {
+      var g = s("g", { class: "qc-step" + (viewCol === c ? " on" : ""), tabindex: 0, role: "button", "data-fk": "step-" + c, "aria-label": "查看第 " + (c + 1) + " 步之后的状态" },
+        s("rect", { x: cx(c) - 12, y: 5, width: 24, height: 19, rx: 4 }), s("text", { x: cx(c), y: 18.5, "text-anchor": "middle", text: String(c + 1) }));
+      var act = function () { viewCol = viewCol === c ? null : c; render(); };
+      g.addEventListener("click", act);
+      g.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); act(); } });
+      svg.appendChild(g);
+    })(c);
+    for (w = 0; w < n; w++) {
+      var y = wy(w), mc = measuredAt[w], xEnd = W - 8;
+      if (mc == null) svg.appendChild(line(lw - 6, y, xEnd, y, "var(--qc-wire)", 1.6));
+      else { var xm = cx(mc); svg.appendChild(line(lw - 6, y, xm, y, "var(--qc-wire)", 1.6)); svg.appendChild(line(xm, y - 2.2, xEnd, y - 2.2, "var(--qc-wire)", 1.1)); svg.appendChild(line(xm, y + 2.2, xEnd, y + 2.2, "var(--qc-wire)", 1.1)); }
+    }
+    for (w = 0; w < n; w++) {
+      var yy = wy(w), lab = L.initLabels[w];
+      svg.appendChild(s("text", { x: 6, y: yy - 12, "font-size": 10, class: "qc-wname", text: wireName(L, w) }));
+      var pairStart = lab === "Φ⁺" && L.initLabels[w + 1] === "Φ⁺", pairEnd = lab === "Φ⁺" && L.initLabels[w - 1] === "Φ⁺";
+      if (pairStart) {
+        var y2 = wy(w + 1), x0 = lw - 12;
+        svg.appendChild(s("path", { d: "M" + (x0 + 5) + " " + yy + " H" + x0 + " V" + y2 + " H" + (x0 + 5), fill: "none", stroke: "var(--ink2)", "stroke-width": 1.3 }));
+        svg.appendChild(s("text", { x: x0 - 5, y: (yy + y2) / 2 + 5, "text-anchor": "end", "font-size": 14, text: "Φ⁺" }));
+      } else if (!pairEnd) svg.appendChild(s("text", { x: lw - 10, y: yy + 5, "text-anchor": "end", "font-size": 14, text: lab }));
+    }
+    if (viewCol != null) { var xv = lw + (viewCol + 1) * cw; svg.appendChild(line(xv, top - 2, xv, H - 2, "var(--accent)", 1.5, { "stroke-dasharray": "4 3" })); }
+    for (c = 0; c < cols; c++) for (w = 0; w < n; w++) (function (c, w) {
+      var occ = occupant(L, c, w), label = "第 " + (c + 1) + " 列，" + wireName(L, w) + (occ ? "，" + (occ.locked ? "黑盒" : GATES[occ.g].name + "，按下删除") : "，空");
+      var r = s("rect", { class: "qc-cell", x: lw + c * cw + 2, y: top + w * rh + 3, width: cw - 4, height: rh - 6, rx: 7, tabindex: 0, role: "button", "aria-label": label, "data-fk": "cell-" + c + "-" + w });
+      r.addEventListener("click", function () { clickCell(c, w); });
+      r.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); clickCell(c, w); } });
+      svg.appendChild(r);
+    })(c, w);
+    all.forEach(function (o) { svg.appendChild(drawOp(o, cx, wy)); });
+    if (pending) {
+      svg.appendChild(s("rect", { x: cx(pending.col) - 21, y: wy(pending.w) - 21, width: 42, height: 42, rx: 9, fill: "none", stroke: "var(--accent)", "stroke-width": 2, "stroke-dasharray": "4 3", "pointer-events": "none" }));
+      svg.appendChild(s("circle", { cx: cx(pending.col), cy: wy(pending.w), r: 5.5, fill: "var(--accent)", "pointer-events": "none" }));
+    }
+    return svg;
+  }
+  function drawOp(o, cx, wy) {
+    var g = s("g", { "pointer-events": "none" }), x = cx(o.col), y, G;
+    function box(y, w, hh) { w = w || 38; hh = hh || 38; return s("rect", { x: x - w / 2, y: y - hh / 2, width: w, height: hh, rx: 6, fill: "var(--qc-gate)", stroke: "var(--ink)", "stroke-width": 1.5 }); }
+    if (o.g === "CNOT") {
+      var yc = wy(o.q[0]), yt = wy(o.q[1]);
+      g.appendChild(line(x, yc, x, yt, "var(--ink)", 1.8));
+      g.appendChild(s("circle", { cx: x, cy: yc, r: 5.5, fill: "var(--ink)" }));
+      g.appendChild(s("circle", { cx: x, cy: yt, r: 12, fill: "var(--qc-gate)", stroke: "var(--ink)", "stroke-width": 1.8 }));
+      g.appendChild(line(x - 12, yt, x + 12, yt, "var(--ink)", 1.8)); g.appendChild(line(x, yt - 12, x, yt + 12, "var(--ink)", 1.8));
+    } else if (o.g === "CZ") {
+      var y1 = wy(o.q[0]), y2 = wy(o.q[1]);
+      g.appendChild(line(x, y1, x, y2, "var(--ink)", 1.8));
+      g.appendChild(s("circle", { cx: x, cy: y1, r: 5.5, fill: "var(--ink)" })); g.appendChild(s("circle", { cx: x, cy: y2, r: 5.5, fill: "var(--ink)" }));
+    } else if (o.g === "M") {
+      y = wy(o.q[0]); g.appendChild(box(y, 38, 34));
+      g.appendChild(s("path", { d: "M" + (x - 12) + " " + (y + 8) + " A13 13 0 0 1 " + (x + 12) + " " + (y + 8), fill: "none", stroke: "var(--ink)", "stroke-width": 1.5 }));
+      g.appendChild(line(x, y + 9, x + 8, y - 8, "var(--ink)", 1.5));
+    } else if (o.g === "BOMB") {
+      y = wy(o.q[0]);
+      g.appendChild(s("circle", { cx: x - 2, cy: y + 4, r: 11, fill: "var(--ink)" }));
+      g.appendChild(s("rect", { x: x + 3, y: y - 11, width: 7, height: 6, rx: 1, fill: "var(--ink)", transform: "rotate(40 " + (x + 6.5) + " " + (y - 8) + ")" }));
+      g.appendChild(s("path", { d: "M" + (x + 8) + " " + (y - 12) + " q 4 -6 9 -4", fill: "none", stroke: "var(--ink2)", "stroke-width": 1.4 }));
+      g.appendChild(s("circle", { cx: x + 17, cy: y - 16, r: 3, fill: "var(--accent)" }));
+    } else if (o.g === "ORACLE") {
+      var lo = Math.min.apply(null, o.q), hi = Math.max.apply(null, o.q), ya = wy(lo) - 22, yb = wy(hi) + 22, ym = (ya + yb) / 2;
+      g.appendChild(s("rect", { x: x - 22, y: ya, width: 44, height: yb - ya, rx: 7, fill: "var(--qc-oracle)", stroke: "var(--ink)", "stroke-width": 1.5, "stroke-dasharray": "5 3" }));
+      g.appendChild(s("text", { x: x - (o.sub ? 3 : 0), y: ym + 6, "text-anchor": "middle", "font-size": 17, "font-weight": 600, text: o.label }));
+      if (o.sub) g.appendChild(s("text", { x: x + 7, y: ym + 11, "font-size": 10, text: o.sub }));
+      g.appendChild(s("rect", { x: x + 9, y: ya + 6, width: 9, height: 7, rx: 1.5, fill: "var(--ink2)" }));
+      g.appendChild(s("path", { d: "M" + (x + 10.8) + " " + (ya + 6) + " v-2 a2.7 2.7 0 0 1 5.4 0 v2", fill: "none", stroke: "var(--ink2)", "stroke-width": 1.2 }));
+    } else {
+      G = GATES[o.g]; y = wy(o.q[0]); g.appendChild(box(y));
+      if (G.sub) { g.appendChild(s("text", { x: x - 6, y: y + 4, "text-anchor": "middle", "font-size": 15, "font-weight": 600, text: G.label })); g.appendChild(s("text", { x: x + 6, y: y + 9, "text-anchor": "middle", "font-size": 8.5, text: G.sub })); }
+      else g.appendChild(s("text", { x: x, y: y + 5.5, "text-anchor": "middle", "font-size": 16, "font-weight": 600, text: G.label }));
+    }
+    return g;
+  }
+
+  /* ---------- 量子态 ---------- */
+  function blochFig(v, label) {
+    var S = 118, c = S / 2, R = 40;
+    function P(x, y, z) { return [c + R * (-0.5 * x + 0.86 * y), c - R * (-0.28 * x - 0.1 * y + 0.95 * z)]; }
+    var svg = s("svg", { width: S, height: S, viewBox: "0 0 " + S + " " + S, role: "img", "aria-label": label + " 的 Bloch 向量 (" + v.x.toFixed(2) + ", " + v.y.toFixed(2) + ", " + v.z.toFixed(2) + ")" });
+    svg.appendChild(s("circle", { cx: c, cy: c, r: R, fill: "none", stroke: "var(--line)", "stroke-width": 1.2 }));
+    var eq = [];
+    for (var k = 0; k <= 48; k++) { var t = k / 48 * 2 * Math.PI; eq.push(P(Math.cos(t), Math.sin(t), 0).map(function (u) { return u.toFixed(1); }).join(",")); }
+    svg.appendChild(s("polyline", { points: eq.join(" "), fill: "none", stroke: "var(--line)", "stroke-width": 1 }));
+    [[1, 0, 0, "x"], [0, 1, 0, "y"], [0, 0, 1, ""]].forEach(function (a) {
+      var p1 = P(-a[0], -a[1], -a[2]), p2 = P(a[0], a[1], a[2]);
+      svg.appendChild(line(p1[0], p1[1], p2[0], p2[1], "var(--line)", 1, { "stroke-dasharray": "2 3" }));
+      if (a[3]) { var pl = P(1.25 * a[0], 1.25 * a[1], 1.25 * a[2]); svg.appendChild(s("text", { x: pl[0], y: pl[1] + 3, "text-anchor": "middle", text: a[3] })); }
+    });
+    var pt = P(0, 0, 1), pb = P(0, 0, -1);
+    svg.appendChild(s("text", { x: pt[0], y: pt[1] - 5, "text-anchor": "middle", text: "|0⟩" })); svg.appendChild(s("text", { x: pb[0], y: pb[1] + 13, "text-anchor": "middle", text: "|1⟩" }));
+    var pv = P(v.x, v.y, v.z);
+    svg.appendChild(line(c, c, pv[0], pv[1], "var(--accent)", 2.2, { "stroke-linecap": "round" })); svg.appendChild(s("circle", { cx: pv[0], cy: pv[1], r: 3.6, fill: "var(--accent)" }));
+    var r = Math.sqrt(v.x * v.x + v.y * v.y + v.z * v.z), kind = v.tr === 0 ? "" : r > 0.995 ? "纯态" : r < 0.005 ? "最大混合" : "混合";
+    return h("div", { class: "qc-bloch" }, svg, h("span", { text: label }), h("span", { text: "|r| = " + r.toFixed(2) + " " + kind }));
+  }
+  function stateCard(L) {
+    var sc = L.scenarios[scen] || L.scenarios[0], st = QC.run(L, ops, sc, viewCol), n = L.n, total = 0;
+    var where = viewCol == null ? "最终态" : "第 " + (viewCol + 1) + " 步之后";
+    var head = h("h4", null, "状态", h("span", { class: "aside" }, where, viewCol != null ? [" · ", h("button", { class: "linkbtn", type: "button", "data-fk": "tofinal", onclick: function () { viewCol = null; render(); }, text: "看最终态" })] : null));
+    var tabs = L.scenarios.length > 1 ? h("div", { class: "qc-seg", role: "group", "aria-label": "选择情形" }, L.scenarios.map(function (x, k) { return h("button", { type: "button", "aria-pressed": k === scen ? "true" : "false", "data-fk": "scen-" + k, onclick: function () { scen = k; render(); }, text: x.label }); })) : null;
+    var grid = h("div", { class: "qc-amps" });
+    st.forEach(function (a, i) {
+      var p = Q.abs2(a), dim = p < 1e-9 ? " dim" : ""; total += p;
+      grid.appendChild(h("span", { class: "k" + dim, text: QC.ket(n, i) }));
+      grid.appendChild(h("span", { class: "bar" }, h("i", { style: { width: (100 * p).toFixed(2) + "%", background: phaseColor(Math.atan2(a[1], a[0])) } })));
+      grid.appendChild(h("span", { class: "p" + dim, text: QC.pct(p) }));
+      grid.appendChild(h("span", { class: "a" + dim, text: p < 1e-9 ? "0" : fmtAmp(a) }));
+    });
+    var legend = h("div", { class: "qc-legend" }, "条长 = 概率，颜色 = 振幅的相位：", [[0, "+1"], [Math.PI / 2, "+i"], [Math.PI, "−1"], [-Math.PI / 2, "−i"]].map(function (x) { return h("span", null, h("i", { style: { background: phaseColor(x[0]) } }), x[1]); }));
+    var bl = h("div", { class: "qc-blochs" }); for (var q = 0; q < n; q++) bl.appendChild(blochFig(Q.bloch(st, n, q), wireName(L, q)));
+    var notes = [];
+    if (sc.bombLive) notes.push("真炸弹的情形：各结果的概率加起来，就是光子还没引爆炸弹的概率，现在是 " + QC.pct(total) + "。");
+    if (L.gates && L.gates.indexOf("M") >= 0) notes.push("测量按延迟测量原理处理：这里显示的是测量之前的叠加态。测量过的比特之后只当控制位，所以结果与真的先测量完全相同。");
+    if (n > 1) notes.push("Bloch 球画的是单个比特的约化态。与别的比特纠缠时，向量会缩进球里。");
+    return h("section", { class: "qc-card", "aria-label": "量子态" }, head, tabs, grid, legend, bl, notes.map(function (t) { return h("p", { class: "note", text: t }); }));
+  }
+
+  /* ---------- 检验 ---------- */
+  /** 去对应的量子玩法：把这一关的设定带过去 */
+  function goGame(L) {
+    if (L.id === "bomb") {
+      var N = Math.max(1, ops.filter(function (o) { return o.g === "BOMB"; }).length);
+      A.applySetup({ world: "q_bomb", std: true, resetW: true, wp: { eps: 0 }, strat: "bomb_zeno", resetS: true, sp: { N: N }, note: "你的电路里有 " + N + " 颗炸弹：已经换成\"量子芝诺：分 N 步转\"，N = " + N + "，光路设成完美的。把丢光子的概率调上去试试。" });
+    } else if (L.id === "grover") {
+      A.applySetup({ world: "q_search", std: true, resetW: true, wp: { n: 2, M: 1, mk: "known", eps: 0, T: 16 }, strat: "srch_full", resetS: true, note: "四个盒子、一个奖品：转一步就测中。把量子比特数调大，看看要转几步。" });
+    } else if (L.id === "chsh") {
+      var sp = QC.chshToDeg(chsh.q);
+      A.applySetup({ world: "q_bell", std: true, resetW: true, strat: "bell_q", resetS: true, sp: sp, note: "你拨的四个角度（" + [sp.a0, sp.a1, sp.b0, sp.b1].map(function (x) { return (x < 0 ? "−" : "") + String(+Math.abs(x).toFixed(2)) + "°"; }).join("、") + "）已经交给\"纠缠光子 · 四个角度\"：一局 200 回合，跑 2000 局。" });
+    } else A.applySetup({ world: L.game, strat: QL.WORLDS[L.game].defStrat });
+  }
+  var GO_LABEL = { bomb: "去 ⑰ 炸弹检测：让规则一次测几千颗", grover: "去 ⑯ 量子搜索：盒子多到一百万个时怎么办", chsh: "把这组角度交给 ⑮ Bell 游戏里的规则", bell: "去 ⑮ Bell 游戏：两人各拿一个这样的光子" };
+  function verdictCard(L) {
+    var card = h("section", { class: "qc-card qc-verdict", "data-has": result ? "1" : "0" }, h("h4", { text: "检验" }));
+    if (!result) {
+      card.appendChild(h("p", { class: "note", text: L.type === "chsh" ? "调好四个角度之后点\"检验\"。" : "摆好电路之后点\"检验\"。判定会把\"状态\"里列出的每一种情形都跑一遍。" }));
+      if (L.ref) card.appendChild(h("div", { class: "qc-meta", text: "已用 " + ops.length + " 个门 · 参考解 " + L.ref + " 个门" }));
+      if (save.stars[cur]) card.appendChild(h("div", { class: "qc-meta" }, "最好成绩 ", starsEl(save.stars[cur])));
+      return card;
+    }
+    var r = result;
+    card.appendChild(h("div", { class: "qc-headline", "aria-live": "polite" }, h("strong", { class: r.pass ? "pass" : "fail", text: r.pass ? "通过" : "还没成功" }), r.pass ? starsEl(r.stars) : null));
+    if (r.note) card.appendChild(h("p", { class: "note qc-warn", text: r.note }));
+    if (r.rows.length) card.appendChild(h("div", { class: "qc-rows" }, r.rows.map(function (x) {
+      return h("div", { class: "qc-row" }, h("span", { class: "ic " + (x.ok === true ? "ok" : x.ok === false ? "no" : "na"), text: x.ok === true ? "✓" : x.ok === false ? "✗" : "·" }), h("span", { text: x.label }), h("span", { class: "v", text: x.value }));
+    })));
+    if (r.pass && L.ref) card.appendChild(h("div", { class: "qc-meta", text: r.count < L.ref ? "用了 " + r.count + " 个门，比参考解（" + L.ref + " 个）还少。" : "用了 " + r.count + " 个门 · 参考解 " + L.ref + " 个门" + (r.stars < 3 ? " · 再精简一些可以拿三星" : "") }));
+    if (r.pass && L.type === "bomb" && r.stars < 3) card.appendChild(h("div", { class: "qc-meta", text: "想拿三星，看看提示 2。" }));
+    if (r.pass && L.type === "chsh" && r.stars < 3) card.appendChild(h("div", { class: "qc-meta", text: "离量子力学的上限还有距离，看看提示 2。" }));
+    if (r.pass) {
+      card.appendChild(h("div", { class: "qc-explain" }, h("b", { text: "原理" }), L.explain));
+      var acts = h("div", { class: "row tight" });
+      if (L.game) acts.appendChild(h("button", { class: "btn small", type: "button", id: "qcGo", "data-fk": "go", onclick: closeThen(function () { goGame(L); }), text: GO_LABEL[L.id] || "去对应的玩法" }));
+      if (cur < LV.length - 1) acts.appendChild(h("button", { class: "btn small primary", type: "button", "data-fk": "next", onclick: function () { loadLevel(cur + 1); }, text: "下一关：" + LV[cur + 1].title }));
+      else card.appendChild(h("p", { class: "note", text: "十关全部完成。" }));
+      card.appendChild(acts);
+    }
+    return card;
+  }
+
+  /* ---------- 第十关 ---------- */
+  function persistChsh() { save.chsh = { cl: chsh.cl, q: chsh.q }; persist(); }
+  function winsTable(cells, f, cls) {
+    return h("table", { class: "qc-wins" },
+      h("thead", null, h("tr", null, h("th", { text: "x \\ y" }), h("th", { text: "y = 0" }), h("th", { text: "y = 1" }))),
+      h("tbody", null, [0, 1].map(function (x) { return h("tr", null, h("th", { text: "x = " + x }), [0, 1].map(function (y) { return h("td", { class: cls(cells[x][y]), text: f(cells[x][y]) }); })); })));
+  }
+  function chshClassicalCard() {
+    var cl = QC.chshClassical(chsh.cl);
+    function bit(key) { return h("div", { class: "qc-seg", role: "group" }, [0, 1].map(function (b) { return h("button", { type: "button", "aria-pressed": chsh.cl[key] === b ? "true" : "false", "data-fk": "cl-" + key + b, onclick: function () { chsh.cl[key] = b; persistChsh(); render(); }, text: String(b) }); })); }
+    var pick = h("div", { class: "qc-pick" }, h("span"), h("span", { class: "who", text: "收到 0 时答" }), h("span", { class: "who", text: "收到 1 时答" }), h("span", { text: "Alice" }), bit("a0"), bit("a1"), h("span", { text: "Bob" }), bit("b0"), bit("b1"));
+    return h("section", { class: "qc-card a-cl", "aria-label": "经典的答法" },
+      h("h4", null, "第一步 · 经典的答法", h("span", { class: "aside mono", text: "胜率 " + QC.pct(cl.tot) })),
+      pick,
+      winsTable(cl.cells, function (v) { return v ? "赢" : "输"; }, function (v) { return v ? "ok" : "no"; }),
+      h("p", { class: "note", text: "16 张确定的答法表里，最好的也只赢 3 格，即 75%。事先共享随机数，只是在这些答法表之间抽签，平均不会更高。" }));
+  }
+  function angleDiagram(k) {
+    var S = 200, c = S / 2, R = 62, svg = s("svg", { width: S, height: S, viewBox: "0 0 " + S + " " + S, role: "img", "aria-label": "四个测量方向" });
+    svg.appendChild(s("circle", { cx: c, cy: c, r: R, fill: "none", stroke: "var(--line)", "stroke-width": 1.2 }));
+    svg.appendChild(line(c - R, c, c + R, c, "var(--line)", 1, { "stroke-dasharray": "2 3" })); svg.appendChild(line(c, c - R, c, c + R, "var(--line)", 1, { "stroke-dasharray": "2 3" }));
+    function t(x, y, str, anchor) { return s("text", { x: x, y: y, "text-anchor": anchor || "middle", "font-size": 10, class: "qc-wname", text: str }); }
+    svg.appendChild(t(c, c - R - 6, "|0⟩")); svg.appendChild(t(c, c + R + 14, "|1⟩")); svg.appendChild(t(c + R + 5, c + 4, "|+⟩", "start")); svg.appendChild(t(c - R - 5, c + 4, "|−⟩", "end"));
+    [["a0", "α₀", "var(--accent)", null, R - 13], ["a1", "α₁", "var(--accent)", null, R - 13], ["b0", "β₀", "var(--ink)", "5 4", R - 30], ["b1", "β₁", "var(--ink)", "5 4", R - 30]].forEach(function (x) {
+      var th = k[x[0]] * QC.UNIT, dx = Math.sin(2 * th), dy = -Math.cos(2 * th), col = x[2], dash = x[3] || "", lr = x[4];
+      svg.appendChild(line(c - R * dx, c - R * dy, c, c, col, 1, { "stroke-opacity": 0.35, "stroke-dasharray": dash }));
+      svg.appendChild(line(c, c, c + R * dx, c + R * dy, col, 2, { "stroke-dasharray": dash }));
+      svg.appendChild(s("circle", { cx: c + R * dx, cy: c + R * dy, r: 3, fill: col }));
+      svg.appendChild(s("text", { x: c + lr * dx - 9 * dy, y: c + lr * dy + 9 * dx + 4, "text-anchor": "middle", "font-size": 11, fill: col, class: "mono", text: x[1] }));
+    });
+    return svg;
+  }
+  function sampleRounds(k, N) {
+    var r = QC.chshQuantum(k), w = 0;
+    for (var i = 0; i < N; i++) {
+      var x = Math.random() < 0.5 ? 0 : 1, y = Math.random() < 0.5 ? 0 : 1, P = r.joint[x][y], u = Math.random(), idx = 0;
+      while (idx < 3 && u > P[idx]) { u -= P[idx]; idx++; }
+      if (((idx >> 1) ^ (idx & 1)) === (x & y)) w++;
+    }
+    return w;
+  }
+  function chshQuantumCard() {
+    var outs = {}, sliders = h("div", { class: "qc-sliders" });
+    [["a0", "α₀ · Alice 收到 0"], ["a1", "α₁ · Alice 收到 1"], ["b0", "β₀ · Bob 收到 0"], ["b1", "β₁ · Bob 收到 1"]].forEach(function (x) {
+      var k = x[0], id = "qcAng-" + k;
+      var inp = h("input", { type: "range", id: id, min: -8, max: 8, step: 1, value: chsh.q[k], "data-fk": id, "aria-valuetext": piFrac(chsh.q[k]) + "（" + degOf(chsh.q[k]) + "）" });
+      var out = h("output", { for: id, text: piFrac(chsh.q[k]) });
+      inp.addEventListener("input", function () {
+        chsh.q[k] = int8(inp.value); chsh.sample = null;
+        inp.setAttribute("aria-valuetext", piFrac(chsh.q[k]) + "（" + degOf(chsh.q[k]) + "）");
+        persistChsh();
+        var had = result != null; result = null; update(had);
+      });
+      outs[k] = out;
+      sliders.appendChild(h("label", { for: id, text: x[1] })); sliders.appendChild(inp); sliders.appendChild(out);
+    });
+    var diagramBox = h("div"), tableBox = h("div"), big = h("div", { class: "qc-big" }), fill = h("div", { class: "fill" }), tsi = 100 * Math.pow(Math.cos(Math.PI / 8), 2);
+    var gauge = h("div", { class: "qc-gauge", role: "img" }, h("div", { class: "track" }), fill, h("div", { class: "mk", style: { left: "75%" } }), h("div", { class: "mk ts", style: { left: tsi.toFixed(2) + "%" } }));
+    var legend = h("div", { class: "qc-legend" }, h("span", null, h("i", { style: { background: "var(--ink2)" } }), "经典的上限 75%"), h("span", null, h("i", { style: { background: "var(--accent)" } }), "Tsirelson 界 85.36%"));
+    var sampleOut = h("span", { class: "qc-meta" });
+    var degLine = h("p", { class: "note" });
+    var bottom = h("div", { class: "qc-duo" },
+      h("button", { class: "btn small", type: "button", "data-fk": "sample", onclick: function () { chsh.sample = sampleRounds(chsh.q, 1000); update(false); }, text: "模拟 1000 轮" }),
+      sampleOut, h("span", { class: "qc-spacer" }),
+      h("button", { class: "btn small primary", type: "button", "data-fk": "check", id: "qcCheck", onclick: doCheck, text: "检验" }));
+    function update(refreshVerdict) {
+      var r = QC.chshQuantum(chsh.q);
+      Object.keys(outs).forEach(function (k) { outs[k].textContent = piFrac(chsh.q[k]); });
+      clear(diagramBox).appendChild(angleDiagram(chsh.q));
+      clear(tableBox).appendChild(winsTable(r.cells, function (v) { return QC.pct(v); }, function (v) { return v >= 0.8 ? "ok" : v < 0.5 ? "no" : ""; }));
+      big.textContent = pct2(r.tot);
+      fill.style.width = (100 * r.tot).toFixed(2) + "%";
+      gauge.setAttribute("aria-label", "量子的做法的胜率 " + pct2(r.tot));
+      sampleOut.textContent = chsh.sample == null ? "" : "1000 轮里赢了 " + chsh.sample + " 轮";
+      degLine.textContent = "换成偏振片的角度：α₀ = " + degOf(chsh.q.a0) + "，α₁ = " + degOf(chsh.q.a1) + "，β₀ = " + degOf(chsh.q.b0) + "，β₁ = " + degOf(chsh.q.b1) + "。";
+      if (refreshVerdict) { var v = root && root.querySelector(".qc-verdict"); if (v) { var nv = verdictCard(LV[cur]); nv.classList.add("a-vd"); v.parentNode.replaceChild(nv, v); } }
+    }
+    update(false);
+    return h("section", { class: "qc-card a-qu", "aria-label": "量子的做法" },
+      h("h4", null, "第二步 · 共享 |Φ⁺⟩", h("span", { class: "aside", text: "角度以 π/16 为一格" })),
+      sliders,
+      h("div", { class: "qc-duo" }, diagramBox, h("div", { class: "qc-col" }, h("div", { class: "qc-meta", text: "每一格的获胜概率" }), tableBox)),
+      h("p", { class: "note", text: "图是 Bloch 球的 x–z 截面。沿角度 θ 测量，对应球面上从 |0⟩ 转过 2θ 的方向；实线是 Alice 的两个设置，虚线是 Bob 的。" }),
+      degLine,
+      h("div", null, h("div", { class: "qc-meta", text: "量子的做法的胜率" }), big, gauge, legend),
+      bottom);
+  }
+  function chshResult() {
+    var p = QC.chshQuantum(chsh.q).tot, stars = QC.chshStars(p);
+    return {
+      pass: stars > 0, stars: stars,
+      rows: [{ label: "量子的做法的胜率", value: pct2(p), ok: p > 0.75 + 1e-9 }, { label: "经典的做法的上限", value: "75.00%", ok: null }, { label: "Tsirelson 界 cos²(π/8)", value: "85.36%", ok: null }],
+      note: stars ? "" : "还没有超过经典的上限 75%。"
+    };
+  }
+
+  /* ---------- 整个面板 ---------- */
+  function tally() { var sum = 0, done = 0; save.stars.forEach(function (x) { sum += x; if (x > 0) done++; }); return { sum: sum, done: done }; }
+  function render() {
+    if (!root) return;
+    var fk = document.activeElement && document.activeElement.getAttribute && document.activeElement.getAttribute("data-fk");
+    var t = tally(), L = LV[cur];
+    clear(root.querySelector(".qc-tally")).appendChild(h("span", null, "通过 ", h("b", { text: String(t.done) }), " / 10 关 · ★ ", h("b", { text: String(t.sum) }), " / 30"));
+    var nav = clear(root.querySelector(".qc-levels"));
+    LV.forEach(function (x, i) {
+      nav.appendChild(h("button", { class: "qc-lv", type: "button", "aria-current": i === cur ? "true" : "false", "data-fk": "lv-" + i, "aria-label": "第 " + (i + 1) + " 关：" + x.title + "，" + save.stars[i] + " 星", onclick: function () { loadLevel(i); } },
+        h("span", { class: "num", text: pad2(i + 1) }), h("span", { class: "name", text: x.title }), starsEl(save.stars[i], "st")));
+    });
+    var main = clear(root.querySelector(".qc-main"));
+    if (L.type === "chsh") {
+      var vd = verdictCard(L); vd.classList.add("a-vd");
+      main.appendChild(brief(L)); main.appendChild(h("div", { class: "qc-chsh" }, chshClassicalCard(), chshQuantumCard(), vd));
+    } else {
+      main.appendChild(brief(L)); main.appendChild(bench(L)); main.appendChild(h("div", { class: "qc-lower" }, stateCard(L), verdictCard(L)));
+    }
+    if (fk) { var el = root.querySelector('[data-fk="' + fk + '"]'); if (el && el.focus) try { el.focus({ preventScroll: true }); } catch (e) {} }
+  }
+  function firstOpen() { for (var i = 0; i < save.stars.length; i++) if (!save.stars[i]) return i; return 0; }
+  /** 打开面板。lv：关卡的编号（0–9）或 id（"bomb"、"grover"、"chsh"……）；不给就到第一个还没通过的关 */
+  A.openQuantum = function (lv) {
+    var i = typeof lv === "string" ? QC.BYID[lv] : lv;
+    if (!(i >= 0 && i < LV.length)) i = firstOpen();
+    if (ui && root) { loadLevel(i); return ui; }                       // 面板已经开着：换到那一关，不再叠一层
+    root = h("div", { class: "qc" },
+      h("div", { class: "qc-top" }, h("p", { class: "qc-lead", text: "十关，从叠加到 Bell 不等式。点格子放门，看振幅和 Bloch 球怎么变，再点\"检验\"。炸弹、四选一、打破 75% 这三关做完，可以去对应的量子玩法里让规则跑几千局。" }), h("div", { class: "qc-tally" })),
+      h("div", { class: "qc-shell" }, h("nav", { class: "qc-levels", "aria-label": "关卡" }), h("div", { class: "qc-main" })));
+    ui = A.modal("量子电路谜题", root, { cls: "qcm", focus: ".qc-lv[aria-current=true]", onClose: function () { ui = null; root = null; } });
+    loadLevel(i);
+    return ui;
+  };
+  A.quantumProgress = tally;
+
+  /* ---------- 大厅里的一张卡片（地址里写 #quantum 也能直接打开） ---------- */
+  if (A.lobbyAdd) A.lobbyAdd({
+    id: "qcircuit", order: 60, route: "quantum", kicker: "一个人玩 · 量子", title: "量子电路谜题",
+    label: function () { return tally().done ? "接着玩" : "开始"; }, keys: "quantum circuit 量子 电路 谜题 量子比特 纠缠 叠加 Bell Grover 炸弹 隐形传态",
+    blurb: "十关：相对相位、换基、纠缠、三次异或、Deutsch 算法、不碰炸弹、四选一、超密编码、隐形传态、打破 75%。和三套量子玩法用的是同一个模拟器。",
+    status: function () { var t = tally(); return t.done ? "通过 " + t.done + " / 10 关，★ " + t.sum + " / 30" : ""; },
+    go: function (arg) { A.openQuantum(arg && QC.BYID[arg] != null ? arg : undefined); }
+  });
+})(App);
+
 /* ===== app-guide.js ===== */
 /* 应用主体（五）：手册。
  * 一个平时收起的说明层：顶栏的"手册"按钮、每个标题旁的小问号、? 键、命令面板都能把它调出来，
@@ -17176,12 +19257,13 @@ var App = (function () {
     G.start.forEach(function (s) { L.push({ key: "start:" + s.id, group: "从这里开始", title: s.title, keys: s.keys || "", src: s.body }); });
     L.push({ key: "glossary", group: "从这里开始", title: "名词", keys: "名词 术语 词汇 解释 是什么 行话", src: G.glossary });
     L.push({ key: "now", group: "当前", title: "当前的细则", keys: "规则 游戏规则 细则 当前 现在 这一局 计分 基准 怎么算 怎么玩" });
-    L.push({ key: "games", group: "玩法", title: "总览：玩法、世界、规则", keys: "玩法 游戏 十套 四套 观测 规则方案 总览 世界 三层 架构 区别" });
+    L.push({ key: "games", group: "玩法", title: "总览：玩法、世界、规则", keys: "玩法 游戏 十套 四套 三套 观测 量子 规则方案 总览 世界 三层 架构 区别" });
     L.push({ key: "game:trade", group: "玩法", title: A.TRADE.name, keys: "交易 仓位 价格 trade 净值 三种口径 定仓位 " + A.TRADE.blurb });
     QL.GAMES.forEach(function (t) { var w = QL.WORLDS[t]; L.push({ key: "game:" + t, group: "十套玩法", title: w.name, keys: w.short + " " + t + " " + w.blurb, src: G.games[t] }); });
     QL.OBS.forEach(function (t) { var w = QL.WORLDS[t]; L.push({ key: "game:" + t, group: QL.OBS_GROUP, title: w.name, keys: w.short + " " + t + " 观测 自然 物理 " + w.blurb, src: G.games[t] }); });
+    (QL.QUANTUM || []).forEach(function (t) { var w = QL.WORLDS[t]; L.push({ key: "game:" + t, group: QL.QUANTUM_GROUP, title: w.name, keys: w.short + " " + t + " 量子 quantum 纠缠 测量 电路 " + w.blurb, src: G.games[t] }); });
     QL.WORLD_GROUPS.forEach(function (g) {
-      if (g === QL.GAME_GROUP || g === QL.OBS_GROUP) return;
+      if (g === QL.GAME_GROUP || g === QL.OBS_GROUP || g === QL.QUANTUM_GROUP) return;
       Object.keys(QL.WORLDS).forEach(function (t) { var w = QL.WORLDS[t]; if (w.group !== g || w.game) return; var ob = (G.worldObs || {})[t]; L.push({ key: "world:" + t, group: "世界", sub: g, title: w.short, keys: w.name + " " + t + " " + w.blurb + (ob ? " 不当价格 研究对象 观测 物理" : ""), src: [G.worlds[t], ob ? ob.md : ""] }); });
     });
     A.allStrats().forEach(function (st) {
@@ -17320,6 +19402,8 @@ var App = (function () {
     };
     host.appendChild(sec("二、十套玩法", md("十套回合制的小游戏。细则写死，计分明确，每一套都取自一个真实的场景、一道经典的题目或者一个做过的实验，而且（至少部分地）知道最优解是什么。所以结果栏里除了你的得分，还有理论最优、上界和真人实验的成绩可以对照。"), mk(QL.GAMES)));
     host.appendChild(sec("三、四套观测玩法", md("把布朗运动、均值回复、混沌映射这些来自自然世界的过程，当作研究对象而不是价格。这里不挣钱：动作是一个估计、一个预测，或者\"现在报警\"\"现在停\"；计分是误差或延迟。它们回答的是这样的问题：这个过程的参数，一条轨迹能量准吗？它能不能预测，能提前多久？它变了没有？它的最高点能不能抓住？"), mk(QL.OBS)));
+    if (QL.QUANTUM) host.appendChild(sec("四、三套量子玩法", md("量子力学只在裁判手里：规则看不到量子态，只能通过裁判给的几个动作去碰它，测一个光子、让量子计算机再转一步、让光子走一圈，和实验物理学家面对一台仪器时一样。每一套都有一个\"经典的做法最多能做到多好\"的定理，以及量子的做法能把它推到哪里：Bell 游戏里是 75% 对 85%，搜索里是 N 对 √N，炸弹检测里是\"一碰就炸\"对\"几乎不碰\"。\n\n这三套和\"量子电路谜题\"用的是同一个模拟器。谜题是在电路上一个门一个门地搭一次实验；到了这里，规则把同一个实验做几千次，看结果的分布。"), mk(QL.QUANTUM),
+      A.openQuantum ? h("div", { class: "gd-acts" }, btn("打开量子电路谜题（十关）", closeThen(function () { A.openQuantum(); }))) : null));
     host.appendChild(sec("怎么开始", md("1. 左栏最上面的\"玩法\"里选一套。下面的\"世界\"会换成这套玩法能用的那几种；\"规则\"会换成它自己的内置规则，第一条通常是基准。\n2. 结果栏给出这套玩法自己的得分，旁边（窄屏上在下面）是同一批对局上的对照表。\n3. \"单局明细\"把一局从头到尾回放出来；\"参数扫描\"对一个参数逐个取值重打一遍，有公式可循的参数会叠上理论曲线。\n4. 换一个世界，规则不动，看得分怎么变。\"场景对比\"和手册里每套玩法的那张表，做的就是这件事。\n5. \"玩法\"一栏里的\"完整的细则与来历\"，通向这本手册里它的那一条。\n6. 接单与冷却、秘书问题、偏硬币下注、多臂老虎机这四套可以自己上手：点\"玩法\"一栏里的\"亲手玩一局\"，逐回合做决定；打完之后同一局交给各条参照规则再打一遍，和你并排着比，多打几局还会累计。")));
   }
   /* ---------- 交易一个资产 ---------- */
@@ -17429,8 +19513,9 @@ var App = (function () {
     Object.keys(p).forEach(function (k) { if (mine[k] !== undefined && mine[k] !== p[k]) { p[k] = mine[k]; touched = true; } });
     if (isCur) p = A.wp();
     var th = w.theory(p);
-    head(host, (w.obsGame ? QL.OBS_GROUP : "十套玩法") + " · " + ((G.gameIndex || {})[type] || ["", "", ""])[2], w.name, w.blurb, [isCur ? btn("回到这一套", function () { if (ui) ui.close(); }, true) : btn("去玩这一套", closeThen(function () { A.applySetup({ world: type, strat: S.last[type] || w.defStrat }); }), true),
-      A.humanOk && A.humanOk(type) ? btn("亲手玩一局", closeThen(function () { if (S.world.type !== type) A.applySetup({ world: type, strat: S.last[type] || w.defStrat }); A.openHuman(); })) : null]);   // 从手册过去：用这套玩法自己的规则（上次用的，或者默认的）
+    head(host, (w.obsGame ? QL.OBS_GROUP : w.quantum ? QL.QUANTUM_GROUP : "十套玩法") + " · " + ((G.gameIndex || {})[type] || ["", "", ""])[2], w.name, w.blurb, [isCur ? btn("回到这一套", function () { if (ui) ui.close(); }, true) : btn("去玩这一套", closeThen(function () { A.applySetup({ world: type, strat: S.last[type] || w.defStrat }); }), true),
+      A.humanOk && A.humanOk(type) ? btn("亲手玩一局", closeThen(function () { if (S.world.type !== type) A.applySetup({ world: type, strat: S.last[type] || w.defStrat }); A.openHuman(); })) : null,
+      w.quantum && A.openQuantum ? btn("量子电路谜题里的那一关", closeThen(function () { A.openQuantum({ q_bell: "chsh", q_search: "grover", q_bomb: "bomb" }[type]); })) : null]);   // 从手册过去：用这套玩法自己的规则（上次用的，或者默认的）
     if (g.scene) host.appendChild(sec("它从哪来", md(g.scene)));
     if (g.rules) host.appendChild(sec("细则", rulesList(g.rules(p, th)), h("p", { class: "note", text: isCur ? "数字取自左栏当前的设定。" : touched ? "数字取自你上次在这套玩法里留下的设定；\"去玩这一套\"会回到那里。" : "数字是默认的设定；选了这套玩法之后，在左栏可以改。" })));
     host.appendChild(sec("你的规则看得到什么、能做什么", apiBox(w), h("p", { class: "note", text: "s 是裁判每回合交给规则的那个对象。上面没列出来的东西，规则读不到。让 " + A.AI + " 写规则时，它拿到的也是这一份。" })));
@@ -17614,7 +19699,7 @@ var App = (function () {
   function tbl(headRow, rows, cls) { return h("div", { class: "gd-tw" }, h("table", { class: "gd-t" + (cls ? " " + cls : "") }, h("thead", null, h("tr", null, headRow.map(function (x) { return h("th", { text: x }); }))), h("tbody", null, rows.map(function (r) { return h("tr", null, r.map(function (c, i) { return i === 0 ? h("th", null, c) : h("td", typeof c === "string" ? { text: c } : null, typeof c === "string" ? null : c); })); })))); }
   function pageAlgos(host) {
     var N = G.algoNotes || {};
-    head(host, "对照", "算法对比：计算量与存储", "四张表，加上在你这台设备上量出来的数：事先算多少，每一步算多少，要记住多少东西。");
+    head(host, "对照", "算法对比：计算量与存储", "五张表，加上在你这台设备上量出来的数：事先算多少，每一步算多少，要记住多少东西。");
     host.appendChild(md(N.intro || ""));
     var np = function (st) { return String((st.params || []).filter(function (q) { return q.type === "num"; }).length); };
     var pr = A.allStrats().filter(function (st) { return !st.game && !st.src && G.algo[st.id]; }).map(function (st) { var a = G.algo[st.id]; return [link(st.name.replace(/（.*$/, ""), "strat:" + st.id), a.kind, a.fit, a.step, a.mem, a.need, np(st), A.tierBadge(st.explain && st.explain.tier)]; });
@@ -17625,6 +19710,8 @@ var App = (function () {
     host.appendChild(sec("十套玩法的内置规则", tbl(["规则", "玩法", "类型", "事先的计算", "每一步", "存储", "需要的数据"], gr), md(N.game || "")));
     var orr = []; QL.OBS.forEach(function (t) { A.allStrats().filter(function (st) { return st.game === t && !st.src && G.algo[st.lib]; }).forEach(function (st) { var a = G.algo[st.lib]; orr.push([link(st.name, "strat:" + st.id), QL.WORLDS[t].short, a.kind, a.fit, a.step, a.mem, a.need]); }); });
     host.appendChild(sec("四套观测玩法的内置规则", tbl(["规则", "玩法", "类型", "事先的计算", "每一步", "存储", "需要的数据"], orr), md(N.obs || "")));
+    var qrr = []; (QL.QUANTUM || []).forEach(function (t) { A.allStrats().filter(function (st) { return st.game === t && !st.src && G.algo[st.lib]; }).forEach(function (st) { var a = G.algo[st.lib]; qrr.push([link(st.name, "strat:" + st.id), QL.WORLDS[t].short, a.kind, a.fit, a.step, a.mem, a.need]); }); });
+    if (qrr.length) host.appendChild(sec("三套量子玩法的内置规则", tbl(["规则", "玩法", "类型", "事先的计算", "每一步", "存储", "需要的数据"], qrr), md(N.quantum || "")));
     host.appendChild(sec("实测", md(N.measure || "")));
   }
 

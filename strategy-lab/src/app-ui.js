@@ -65,6 +65,7 @@
   /* ---------- 世界 ---------- */
   /* 左栏最上面两块：先选玩法（做什么、怎么算分），再选世界（数据服从什么）。
    * 价格世界共用同一种玩法"交易一个资产"；十套玩法和四套观测玩法各自规定了能换哪些世界。 */
+  var QC_LEVEL = { q_bell: "chsh", q_search: "grover", q_bomb: "bomb" };   // 三套量子玩法各对应量子电路谜题里的哪一关
   A.TRADE = { name: "交易一个资产", blurb: "给你一条价格路径。每一步你决定持有多少仓位，净值跟着价格涨跌。和基准（一般是买入持有）在同一批路径上比，按三种口径衡量：长期增长率、夏普比率、带风险上限的期望收益。" };
   A.gameOf = function (type) { type = type || S.world.type; var x = QL.WORLDS[type]; return x && x.game ? type : "trade"; };
   /** 换玩法。回到"交易一个资产"时，世界回到上次在那里用的那一个 */
@@ -77,12 +78,13 @@
     gh.appendChild(h("h2", null, "玩法", h("small", { text: "做什么、怎么算分" }), h("span", { class: "sp" }), A.helpBtn("game:" + game, "这套玩法的细则、来历和已知结论")));
     var gsel = h("select", { id: "gameType", "aria-label": "玩法", onchange: function () { A.setGame(gsel.value); } });
     gsel.appendChild(h("optgroup", { label: "交易" }, h("option", { value: "trade", text: A.TRADE.name + "（定仓位）", selected: game === "trade" })));
-    [[QL.GAME_GROUP, QL.GAMES], [QL.OBS_GROUP, QL.OBS]].forEach(function (x) { gsel.appendChild(h("optgroup", { label: x[0] }, x[1].map(function (k) { return h("option", { value: k, text: QL.WORLDS[k].name, selected: k === game }); }))); });
+    [[QL.GAME_GROUP, QL.GAMES], [QL.OBS_GROUP, QL.OBS], [QL.QUANTUM_GROUP, QL.QUANTUM || []]].forEach(function (x) { if (!x[1].length) return;  gsel.appendChild(h("optgroup", { label: x[0] }, x[1].map(function (k) { return h("option", { value: k, text: QL.WORLDS[k].name, selected: k === game }); }))); });
     gh.appendChild(gsel);
     gh.appendChild(h("p", { class: "blurb", text: d.game ? d.blurb : A.TRADE.blurb }));
     gh.appendChild(h("div", { class: "row tight", style: { "margin-bottom": d.game ? "10px" : "0" } },
       A.humanOk && A.humanOk(game) ? h("button", { class: "btn small primary", type: "button", id: "btnHuman", text: "亲手玩一局", title: "你自己逐回合做决定，打完和各条参照规则在同一局上比", onclick: function () { A.openHuman(); } }) : null,
-      h("button", { class: "btn small", type: "button", id: "btnRules", text: "完整的细则与来历", onclick: function () { A.openGuide("game:" + game); } })));
+      h("button", { class: "btn small", type: "button", id: "btnRules", text: "完整的细则与来历", onclick: function () { A.openGuide("game:" + game); } }),
+      d.quantum && A.openQuantum ? h("button", { class: "btn small", type: "button", id: "btnQc", text: "电路谜题", title: "量子电路谜题里对应的那一关：先在电路上搭一遍，再回来让规则跑几千局", onclick: function () { A.openQuantum(QC_LEVEL[game]); } }) : null));
     if (d.game) {
       var gp = h("div", { class: "fields" }); gh.appendChild(gp);
       A.renderParams(gp, A.wschema().filter(function (q) { return !isW(q); }), vals, onIn, onCm, "w");

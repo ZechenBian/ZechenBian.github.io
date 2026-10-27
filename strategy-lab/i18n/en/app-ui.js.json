@@ -10,6 +10,8 @@
 {"zh":"§0§（定仓位）","en":"§0§ (position sizing)"},
 {"zh":"亲手玩一局","en":"Play it yourself"},
 {"zh":"你自己逐回合做决定，打完和各条参照规则在同一局上比","en":"You make the decision in every round; afterwards each reference rule plays the same episode for comparison"},
+{"zh":"电路谜题","en":"Circuit puzzle"},
+{"zh":"量子电路谜题里对应的那一关：先在电路上搭一遍，再回来让规则跑几千局","en":"The matching level of the quantum circuit puzzles: build it once on a circuit, then come back and let the rules run thousands of episodes"},
 {"zh":"数据从哪里来","en":"Where the data comes from"},
 {"zh":"这套玩法能换哪些世界、换了之后应该看到什么","en":"Which worlds this game can be switched to, and what you should see after switching"},
 {"zh":"这个世界从哪来、什么时候用它","en":"Where this world comes from and when to use it"},
@@ -227,6 +229,8 @@
 {"zh":"AI 设置：服务商、密钥、模型","en":"AI settings: provider, key, model"},
 {"zh":"ai 设置 接入 密钥 key deepseek chatgpt openai kimi 豆包 doubao 模型","en":"ai settings connect provider api key deepseek chatgpt openai kimi doubao model"},
 {"zh":"手册 说明 帮助 help guide 文档 怎么用","en":"handbook notes help guide docs manual how to use"},
+{"zh":"打开机器学习实验室（另一张页面，中文）","en":"Open the Machine Learning Lab (a separate page, in Chinese)"},
+{"zh":"机器学习 实验室 ml machine learning 训练 模型 神经网络 算法 数据集","en":"machine learning lab ml training models neural networks algorithms datasets"},
 {"zh":"亲手玩一局（§0§）","en":"Play it yourself (§0§)"},
 {"zh":"play human 亲手 自己 玩 手动 打一局","en":"play human yourself by hand manual interactive try an episode"},
 {"zh":"reset 重置 默认","en":"reset default restore"},
@@ -294,7 +298,5 @@
 {"zh":"SILSO 太阳黑子数","en":"SILSO sunspot number"},
 {"zh":"（分号分隔、没有表头：数值列选第 4 列，含义选\"一般信号\"，月度数据每年 12 步）。","en":" (semicolon-separated, no header row: choose column 4 as the value column and \"General signal\" as its meaning; monthly data has 12 steps per year)."},
 {"zh":"页面本身不能联网，所以需要你下载后拖进来。导入的数据只保存在这台设备的浏览器里。","en":"The page itself cannot go online, so you need to download the file and drag it in. Imported data is saved only in the browser on this device."},
-{"zh":"数据","en":"Data"},
-{"zh": "打开机器学习实验室（另一张页面，中文）", "en": "Open the Machine Learning Lab (a separate page, in Chinese)"},
-{"zh": "机器学习 实验室 ml machine learning 训练 模型 神经网络 算法 数据集", "en": "machine learning lab ml training models neural networks algorithms datasets"}
+{"zh":"数据","en":"Data"}
 ]
