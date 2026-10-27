@@ -62,6 +62,26 @@ const { probe, ALLOW, clipped } = require("./en-probe.js");   // 汉字探头、
   await stage("scenes"); await page.evaluate(() => { const A = window.App; if (A.shown().indexOf("scenes") < 0) A.toggleChart("scenes"); }); await page.waitForTimeout(300);
   if (await page.locator("#btnScenes").count()) { await page.click("#btnScenes"); await page.waitForFunction(() => { const b = document.getElementById("btnScenes"); return b && !b.disabled && !document.getElementById("scnProg"); }, null, { timeout: 240000 }).catch(() => {}); await page.waitForTimeout(300); }
 
+  // 3b) 量子电路谜题：十关逐一打开，提示展开、各种情形和每一步的状态都看一眼、检验一次；第一关和第十关做出来，看通过之后的说明，再把角度交给 Bell 游戏
+  await stage("quantum");
+  for (let i = 0; i < 10; i++) {
+    await page.evaluate(i => { window.__stage = "quantum:" + i; window.App.openQuantum(i); }, i); await page.waitForSelector(".modal.qcm .qc-main");
+    await page.evaluate(() => document.querySelectorAll(".modal.qcm details").forEach(d => { d.open = true; }));
+    const tabs = await page.locator('.modal.qcm [data-fk^="scen-"]').count(); for (let k = 0; k < tabs; k++) await page.click(`.modal.qcm [data-fk="scen-${k}"]`);
+    if (await page.locator('.modal.qcm [data-fk="step-0"]').count()) await page.click('.modal.qcm [data-fk="step-0"]');
+    await page.click("#qcCheck"); await page.waitForTimeout(60);
+  }
+  await page.evaluate(() => { window.__stage = "quantum:solve"; window.App.openQuantum("minus"); }); await page.waitForSelector('.qc-lv[aria-current=true][data-fk="lv-0"]');
+  for (const [g, c] of [["X", 0], ["H", 1]]) { await page.click(`[data-fk="tool-${g}"]`); await page.click(`[data-fk="cell-${c}-0"]`); }
+  await page.click("#qcCheck"); ok(/Solved/.test(await page.locator(".qc-verdict").innerText()), "量子电路谜题（英文）：第一关做出来，判定是英文的", await page.locator(".qc-verdict").innerText());
+  await page.evaluate(() => window.App.openQuantum("chsh")); await page.waitForSelector("#qcAng-a1");
+  for (const [k, v] of [["a0", 0], ["a1", 4], ["b0", 2], ["b1", -2]]) await page.locator("#qcAng-" + k).evaluate((el, v) => { el.value = String(v); el.dispatchEvent(new Event("input", { bubbles: true })); }, v);
+  await page.click('[data-fk="sample"]'); await page.click("#qcCheck"); await page.waitForSelector("#qcGo");
+  await page.click("#qcGo"); await idle(); await page.waitForTimeout(200);
+  ok((await page.evaluate(() => window.App.state.stratId)) === "bell_q", "量子电路谜题（英文）：角度交给了 Bell 游戏");
+  await closeModals();
+  await stage("lobby:quantum"); await page.evaluate(() => { location.hash = "quantum"; }); await page.waitForSelector(".modal.qcm .qc-lv"); await closeModals();
+
   // 4) 手册：每一页
   await stage("guide");
   const nGuide = await page.evaluate(() => window.App.guideCommands().length);
@@ -80,7 +100,7 @@ const { probe, ALLOW, clipped } = require("./en-probe.js");   // 汉字探头、
     if (key === "matrix") await page.screenshot({ path: SH("en-matrix.png") });
   }
   const ckSum = await page.locator("#ckSum").innerText().catch(() => "(no #ckSum)");
-  ok(/65/.test(ckSum) && (await page.locator(".ck.fail").count()) === 0 && (await page.locator(".ck.pass").count()) === 65, "自检在英文版里照样逐条通过", ckSum + " pass=" + (await page.locator(".ck.pass").count()) + " fail=" + (await page.locator(".ck.fail").count()));
+  ok(/78/.test(ckSum) && (await page.locator(".ck.fail").count()) === 0 && (await page.locator(".ck.pass").count()) === 78, "自检在英文版里照样逐条通过", ckSum + " pass=" + (await page.locator(".ck.pass").count()) + " fail=" + (await page.locator(".ck.fail").count()));
   await page.screenshot({ path: SH("en-selfcheck.png") });
   const enLive = await page.evaluate(async () => { await new Promise(r => setTimeout(r, 1900)); return { cache: localStorage.getItem("ql.live.v2"), sig: window.App.live.sig, srcSig: window.App.live.srcSig }; });
   await page.evaluate(() => window.App.openGuide("start:what")); await page.waitForTimeout(250); await page.screenshot({ path: SH("en-guide.png") });
@@ -218,7 +238,7 @@ const { probe, ALLOW, clipped } = require("./en-probe.js");   // 汉字探头、
   // ================= 三、和中文版是同一套计算 =================
   ok(enLive.sig && enLive.srcSig && enLive.sig !== enLive.srcSig, "英文版的现算缓存用的是中文版的签名（它自己的源码因为文字不同，签名本来不一样）", JSON.stringify([enLive.sig, enLive.srcSig]));
   const pick = async (page, idle, k, strat) => { await pickWorld(page, k); await idle(); if (strat) { await page.selectOption("#stratSel", strat); await idle(); } return page.evaluate(() => { const r = window.App.run, s = r.sum; return JSON.stringify(r.game ? [r.game.score, r.game.se, r.game.refs.map(x => x.score)] : [s.growth, s.growthSE, s.sharpe, s.meanW, s.pDD, s.medW, s.turnover]); }); };
-  const CASES = [["gbm", null], ["ou", "oukelly"], ["garch", "voltarget"], ["g_lock", "lock_dp"], ["g_bandit", "ban_ts"], ["g_exec", "exec_ac"], ["o_meas", null], ["o_stop", null]];
+  const CASES = [["gbm", null], ["ou", "oukelly"], ["garch", "voltarget"], ["g_lock", "lock_dp"], ["g_bandit", "ban_ts"], ["g_exec", "exec_ac"], ["o_meas", null], ["o_stop", null], ["q_bell", "bell_q"], ["q_search", "srch_bbht"], ["q_bomb", null]];
   const res = {};
   for (const lang of ["zh", "en"]) {
     t = await open({ viewport: { width: 1280, height: 900 }, standalone: true, en: lang === "en", seedLive: lang === "zh" }); page = t.page; idle = mkIdle(page);

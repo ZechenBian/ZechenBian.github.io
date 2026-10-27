@@ -11,7 +11,7 @@ let pass = 0, fail = 0; const ok = (c, name, d) => { if (c) pass++; else { fail+
   await page.waitForSelector(".crit .big"); await idle();
   // 0) 价格世界照旧
   const groups = await page.locator("#gameType optgroup").evaluateAll(g => g.map(x => x.label + ":" + x.children.length));
-  ok(groups.join() === "交易:1,十套玩法:10,观测玩法:4", "玩法的下拉框：交易一个资产、十套玩法、四套观测玩法", groups.join(","));
+  ok(groups.join() === "交易:1,十套玩法:10,观测玩法:4,量子玩法:3", "玩法的下拉框：交易一个资产、十套玩法、四套观测玩法、三套量子玩法", groups.join(","));
   const wopts = await page.locator("#worldType option").evaluateAll(o => o.map(x => x.value));
   ok(wopts.length >= 15 && wopts.every(v => !/^(g|o)_/.test(v)) && (await page.inputValue("#gameType")) === "trade", "世界的下拉框里只剩价格世界", wopts.join(","));
   ok((await page.locator("#stratSel option").count()) === 18, "价格世界里只列价格世界的规则", String(await page.locator("#stratSel option").count()));

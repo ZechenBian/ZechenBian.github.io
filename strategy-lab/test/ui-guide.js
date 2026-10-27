@@ -124,7 +124,7 @@ let pass = 0, fail = 0; const ok = (c, name, d) => { if (c) pass++; else { fail+
   ok(/全部 \d+ 格都算好了/.test(await page.locator("#mxDone").innerText()) && (await page.locator(".gd-art td.pend").count()) === 0, "对照表算完了，没有还在等的格子", await page.locator("#mxDone").innerText());
   await saveLive(page);
   const dims = await page.evaluate(() => { const t = document.querySelector(".gd-art table.mx"); return { rows: t.querySelectorAll("tbody tr").length, cols: t.querySelectorAll("thead tr:first-child th").length - 1, tables: document.querySelectorAll(".gd-art table.mx").length, up: t.querySelectorAll("td.up").length, down: t.querySelectorAll("td.down").length }; });
-  ok(dims.rows === 16 && dims.cols === 15 && dims.tables === 15 && dims.up > 30 && dims.down > 100, "对照表：16 条规则 × 15 个世界，外加十四套玩法各一张", JSON.stringify(dims));
+  ok(dims.rows === 16 && dims.cols === 15 && dims.tables === 18 && dims.up > 30 && dims.down > 100, "对照表：16 条规则 × 15 个世界，外加十七套玩法各一张", JSON.stringify(dims));
   await page.locator(".gd-art").screenshot({ path: SH("h-matrix.png") });
   const cellTxt = await page.evaluate(() => { const M = window.App.matrix.price, t = document.querySelector(".gd-art table.mx"), ri = Array.from(t.querySelectorAll("tbody tr")).findIndex(tr => /均线交叉/.test(tr.querySelector("th").textContent)), ci = M.worlds.findIndex(w => w.key === "fbm"); const b = t.querySelectorAll("tbody tr")[ri].querySelectorAll("td button")[ci]; const txt = b.textContent; b.click(); return { txt, want: M.cells.ma[ci][1] }; });
   await idle(); const s4 = await page.evaluate(() => ({ w: window.App.state.world.type, s: window.App.state.stratId, dg: window.App.run.sum.dGrowth, open: document.querySelectorAll(".modal.guide").length }));

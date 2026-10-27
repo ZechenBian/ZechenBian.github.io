@@ -136,7 +136,7 @@ const num = s => parseFloat(String(s).replace("−", "-").replace(/[^0-9.\-]/g, 
   await page.evaluate(() => window.App.openGuide("selfcheck")); await page.waitForSelector(".ck-list");
   const NCK = await page.evaluate(() => window.QL_GUIDE.checks.length), allPass = new RegExp(NCK + " 条全部通过");
   const ck0 = await page.evaluate(() => ({ n: document.querySelectorAll(".ck").length, wait: document.querySelectorAll(".ck.wait").length, pass: document.querySelectorAll(".ck.pass").length, sum: (document.getElementById("ckSum") || {}).innerText || "" }));
-  ok(NCK === 65 && ck0.n === NCK && ck0.wait > 10 && ck0.pass >= 8 && new RegExp("已核对 \\d+ / " + NCK + " 条").test(ck0.sum), "自检页：六十五条；刚才算过的那些已经判了，其余的在等", JSON.stringify(ck0));
+  ok(NCK === 78 && ck0.n === NCK && ck0.wait > 10 && ck0.pass >= 8 && new RegExp("已核对 \\d+ / " + NCK + " 条").test(ck0.sum), "自检页：七十八条；刚才算过的那些已经判了，其余的在等", JSON.stringify(ck0));
   await page.screenshot({ path: SH("o-check-wait.png") });
   await liveIdle(page);
   const ck1 = await page.evaluate(() => ({ wait: document.querySelectorAll(".ck.wait").length, pass: document.querySelectorAll(".ck.pass").length, fail: Array.from(document.querySelectorAll(".ck.fail")).map(e => e.textContent), sum: document.getElementById("ckSum").innerText, notes: Array.from(document.querySelectorAll(".ck .ck-note")).filter(e => e.textContent).length, groups: Array.from(document.querySelectorAll(".gd-art .gd-sec > h3")).map(e => e.textContent).join("|") }));
@@ -153,7 +153,7 @@ const num = s => parseFloat(String(s).replace("−", "-").replace(/[^0-9.\-]/g, 
   const t2 = Date.now();
   await page.evaluate(() => window.App.openGuide("matrix")); await page.waitForTimeout(400);
   const mx0 = await page.evaluate(() => ({ pend: document.querySelectorAll(".gd-art td.pend").length, prog: (document.querySelector(".gd-art .lv-prog") || {}).textContent || "", tables: document.querySelectorAll(".gd-art table.mx").length }));
-  ok(mx0.pend > 60 && /正在这台电脑上现算对照表/.test(mx0.prog) && /后台线程/.test(mx0.prog) && mx0.tables === 15, "对照表：十五张表先摆出来，没算的格子是占位的点，顶上写着进度", JSON.stringify(mx0).slice(0, 200));
+  ok(mx0.pend > 60 && /正在这台电脑上现算对照表/.test(mx0.prog) && /后台线程/.test(mx0.prog) && mx0.tables === 18, "对照表：十八张表先摆出来，没算的格子是占位的点，顶上写着进度", JSON.stringify(mx0).slice(0, 200));
   await page.waitForTimeout(2500); await page.locator(".gd-art").screenshot({ path: SH("o-matrix-computing.png") });
   const mid = await page.evaluate(() => ({ pend: document.querySelectorAll(".gd-art td.pend").length, done: window.App.live.done, total: window.App.live.total }));
   ok(mid.pend < mx0.pend && mid.done > 0 && mid.total >= mid.done, "算出一格显示一格：占位的点在减少", JSON.stringify(mid));
@@ -191,7 +191,7 @@ const num = s => parseFloat(String(s).replace("−", "-").replace(/[^0-9.\-]/g, 
   const gtxt = await page.locator(".gd-art").innerText();
   ok(/总览：玩法、世界、规则/.test(await page.locator(".gd-title").innerText()) && /三层/.test(gtxt) && /一、交易一个资产/.test(gtxt) && /二、十套玩法/.test(gtxt) && /三、四套观测玩法/.test(gtxt), "总览页：三层，三类玩法");
   const rowsG = await page.evaluate(() => Array.from(document.querySelectorAll(".gd-art table.gd-t")).map(t => ({ n: t.querySelectorAll("tbody tr").length, head: Array.from(t.querySelectorAll("thead th")).map(x => x.textContent).join(), empty: Array.from(t.querySelectorAll("tbody tr")).filter(tr => !tr.children[3] || tr.children[3].textContent.trim().length < 2).length })));
-  ok(rowsG.length === 2 && rowsG[0].n === 10 && rowsG[1].n === 4 && rowsG.every(r => /能换的世界/.test(r.head) && r.empty === 0), "两张表：十套 + 四套，每一行都写了能换的世界", JSON.stringify(rowsG));
+  ok(rowsG.length === 3 && rowsG[0].n === 10 && rowsG[1].n === 4 && rowsG[2].n === 3 && rowsG.every(r => /能换的世界/.test(r.head) && r.empty === 0), "三张表：十套 + 四套 + 三套，每一行都写了能换的世界", JSON.stringify(rowsG));
   await page.locator(".gd-art").screenshot({ path: SH("o-guide-games.png") });
   await page.evaluate(() => window.App.openGuide("game:trade")); await page.waitForTimeout(150);
   const tt = await page.locator(".gd-art").innerText(); ok(/交易一个资产/.test(await page.locator(".gd-title").innerText()) && /能换的世界/.test(tt) && /细则/.test(tt) && (await page.locator('.gd-art .gd-a').count()) >= 15, "「交易一个资产」一页：细则，和通往十五个价格世界的链接", String(await page.locator('.gd-art .gd-a').count()));
