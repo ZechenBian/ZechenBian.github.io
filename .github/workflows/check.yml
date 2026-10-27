@@ -116,7 +116,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: 装测试依赖（numpy、KaTeX、acorn、Playwright、Chromium）
+      - name: 装测试依赖（numpy、KaTeX、acorn、ws、Playwright、Chromium）
         working-directory: strategy-lab
         run: |
           python -m pip install --quiet numpy
@@ -124,7 +124,16 @@ jobs:
           npx playwright install --with-deps chromium
       - name: 全套测试
         working-directory: strategy-lab
-        run: sh test/run-all.sh
+        run: sh test/run-all.sh 2>&1 | tee "$RUNNER_TEMP/strategy-lab-tests.log"
+      - name: 把每个测试的结果写到 PR 页面上
+        if: always()
+        run: |
+          log="$RUNNER_TEMP/strategy-lab-tests.log"
+          [ -f "$log" ] || exit 0
+          # 失败的行写成 error（PR 的 Files changed 和检查页面上能直接看到），最多 10 条；其余结果写进本次运行的摘要
+          grep -E "[1-9][0-9]* failed|^[[:space:]]+FAIL|CRASH|OVERFLOWING|PROBLEMS|SOMETHING FAILED|Error:|Cannot find module" "$log" \
+            | head -10 | sed 's/%/%25/g' | while IFS= read -r line; do echo "::error title=策略实验室测试::$line"; done
+          { echo '### 策略实验室测试'; echo '```'; grep -E "passed, [0-9]+ failed|^ml-engine|^ui-responsive|^ui-models-shots|^ui-guide-responsive|ALL GREEN|SOMETHING FAILED" "$log"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
 
   all:
     name: All checks · 全部检查
