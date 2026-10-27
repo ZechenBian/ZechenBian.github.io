@@ -3,8 +3,8 @@
 You are writing one or two interactive "labs" for a Chinese-language website that explains classic Nobel Prize breakthroughs. Audience: a pure-math PhD student who wants to *see* the key observation and *play* with it. Labs must be correct physics/chemistry/biology, not decoration.
 
 ## Files
-- Shared helpers: `/home/claude/nobel/src/core.js` — READ IT FIRST. It defines global `H` (el, slider, choice, toggle, button, readout, canvas, loop, axes, wavelengthRGB) and `window.LABS`.
-- You write: `/home/claude/nobel/src/labs/<id>.js` — plain browser JS (no modules, no imports, no libraries). Wrap everything in an IIFE so nothing leaks except the `LABS.<id>` assignment.
+- Shared helpers: `nobel-lab/src/core.js` — READ IT FIRST. It defines global `H` (el, slider, choice, toggle, button, readout, canvas, loop, axes, wavelengthRGB) and `window.LABS`.
+- You write: `nobel-lab/src/labs/<id>.js` — plain browser JS (no modules, no imports, no libraries). Wrap everything in an IIFE so nothing leaks except the `LABS.<id>` assignment.
 
 ## Shape
 ```js
@@ -42,6 +42,6 @@ You are writing one or two interactive "labs" for a Chinese-language website tha
 - Code ~150–350 lines per lab, clean, commented briefly.
 
 ## Verify before finishing
-1. `node --check /home/claude/nobel/src/labs/<id>.js`
+1. `node --check nobel-lab/src/labs/<id>.js`
 2. Write a tiny Node test in the scratchpad that loads core.js-free math (copy your pure functions or structure them so they can be required) and prints a few key numbers to confirm correctness (e.g. Wien peak at 5800 K ≈ 500 nm). Do not leave test files in src/.
 3. Reply with: file path(s), a 3-line summary of what each lab shows, and the numeric sanity checks you ran. Do not paste the code back.

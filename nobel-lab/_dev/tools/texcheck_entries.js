@@ -1,9 +1,9 @@
-// Usage: node tools/texcheck_entries.js [id ...]
+// Usage (from the repo root): node nobel-lab/_dev/tools/texcheck_entries.js [id ...]
 // Loads content1-3 + src/entries/*.js in a sandbox, validates every $…$ / $$…$$ TeX segment with KaTeX,
 // and checks entry fields / no-raw-"<" inside TeX / balanced $ signs. Exit code 1 on any problem.
 const fs = require('fs'), path = require('path'), vm = require('vm');
 const katex = require('/opt/npm-tools/node_modules/katex');
-const SRC = '/home/claude/nobel/src';
+const SRC = require('path').resolve(__dirname, '../../src'); // nobel-lab/src
 const ctx = { console }; ctx.window = ctx; vm.createContext(ctx);
 const files = ['content1.js', 'content2.js', 'content3.js'].map((f) => path.join(SRC, f))
   .concat(fs.readdirSync(path.join(SRC, 'content')).filter((f) => f.endsWith('.js')).sort().map((f) => path.join(SRC, 'content', f)));

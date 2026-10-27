@@ -1,13 +1,13 @@
-"""Usage: python3 tools/harness.py <id> [outdir]
+"""Usage (from the repo root): python3 nobel-lab/_dev/tools/harness.py <id> [outdir]
 Builds <outdir>/<id>_harness.html that mounts CHALLENGES.<id> (and LABS.<id> below it if present),
 then loads it headlessly at 760px (dark) and 380px (light), clicks through nothing, and reports
 console errors + horizontal overflow, saving screenshots <outdir>/<id>_760.png and <id>_380.png.
 Import and use `page_for(id)` yourself if you want to drive interactions (see bottom)."""
 import sys, pathlib
 from playwright.sync_api import sync_playwright
-import sys as _sys; _sys.path.insert(0, '/home/claude/nobel/tools')
+import sys as _sys; _sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 from browserlock import browser_lock
-ROOT = pathlib.Path('/home/claude/nobel/src')
+ROOT = pathlib.Path(__file__).resolve().parents[2] / 'src'  # nobel-lab/src
 
 def build(cid, outdir):
     head = (ROOT/'head.html').read_text().replace('<script async src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js"></script>', '')

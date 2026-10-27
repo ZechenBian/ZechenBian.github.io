@@ -1,6 +1,6 @@
 """Shared lock so only ONE headless browser runs at a time across all builders (2 CPUs / 8 GB machine).
 Usage in your own Playwright scripts:
-    import sys; sys.path.insert(0, '/home/claude/nobel/tools')
+    import sys; sys.path.insert(0, 'nobel-lab/_dev/tools')  # from the repo root
     from browserlock import browser_lock
     with browser_lock():
         with sync_playwright() as p: ...
