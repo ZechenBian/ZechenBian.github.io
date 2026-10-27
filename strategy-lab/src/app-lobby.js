@@ -33,7 +33,9 @@
       // 青少年版是另一张页面（teen/），只有中文：先亲手打一局，再学编程和算法的基本想法，最后自己写一条规则
       h("p", { class: "note lb-teen" }, h("a", { href: (/^en/i.test(document.documentElement.getAttribute("lang") || "") ? "../" : "") + "teen/", id: "lbTeen", text: "青少年版" }), h("span", { text: "：给中学生的入口。先亲手打一局，再学编程和算法的基本想法，最后自己写一条规则（中文）。" })),
       // 机器学习实验室也是另一张页面（ml/），只有中文
-      h("p", { class: "note lb-teen" }, h("a", { href: (/^en/i.test(document.documentElement.getAttribute("lang") || "") ? "../" : "") + "ml/", id: "lbML", text: "机器学习实验室" }), h("span", { text: "：在浏览器里做机器学习实验。表格、时间序列、图像与格点、科研玩具四类任务，几十种内置算法，也可以让 AI 写；学习曲线、排行榜与配对检验、模型内部和训练过程的动画（中文）。" }))
+      h("p", { class: "note lb-teen" }, h("a", { href: (/^en/i.test(document.documentElement.getAttribute("lang") || "") ? "../" : "") + "ml/", id: "lbML", text: "机器学习实验室" }), h("span", { text: "：在浏览器里做机器学习实验。表格、时间序列、图像与格点、科研玩具四类任务，几十种内置算法，也可以让 AI 写；学习曲线、排行榜与配对检验、模型内部和训练过程的动画（中文）。" })),
+      // 数据分析案例也是另一张页面（cases/），只有中文
+      h("p", { class: "note lb-teen" }, h("a", { href: (/^en/i.test(document.documentElement.getAttribute("lang") || "") ? "../" : "") + "cases/", id: "lbCases", text: "数据分析案例" }), h("span", { text: "：几个完整的数据分析例子（共享单车的需求、车桩没车时的需求、房价、标普 500 的收益能不能预测），每个都按八步从定义问题走到验证，数字在浏览器里现算（中文）。" }))
     ], { cls: "lbm", focus: ".lb-card .btn" });
     return m;
   };
