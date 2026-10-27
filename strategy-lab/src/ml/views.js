@@ -441,7 +441,19 @@
   A.restoreCsv = function () {
     var o = null; try { o = JSON.parse(localStorage.getItem(CKEY) || "null"); } catch (e) {} if (!o) return;
     var opt = { target: o.target, kind: o.kind, features: o.features, time: o.time, name: o.name, summary: o.summary, docs: o.docs, web: o.web, text: o.text, store: false, select: false };
-    function done(table) { try { A.importTable(table, opt); return true; } catch (e) { return false; } }
+    // 从"数据分析案例"那张页面过来（地址是 ml/#csv）：数据已经放好了，打开时直接选中它
+    var pick = /^#csv$/.test(location.hash || "");
+    function done(table) {
+      try {
+        var def = A.importTable(table, opt);
+        if (pick) {
+          var want = def.family === "timeseries" ? "ts" : def.kind === "classification" ? "tab-cls" : "tab-reg"; S.group = want; (S.ds[want] = S.ds[want] || { id: "csv", seed: 1, params: {} }).id = "csv";
+          try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {}
+          setTimeout(function () { if (A.toast) A.toast("已选中交过来的数据：" + def.name, 4000); }, 300);
+        }
+        return true;
+      } catch (e) { return false; }
+    }
     try {
       if (o.text) { done(o.web && A.webTable ? A.webTable(o.text, o.web.plan || {}).table : QL.mlreg.parseCSV(o.text)); return; }
       if (o.web && A.webRefetch) {
