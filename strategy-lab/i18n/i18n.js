@@ -271,8 +271,8 @@ if (require.main === module) {
   } else if (cmd === "sig") {
     // 和页面里 app-live.js 的算法一致：hash(线程池的源码) + "." + 长度
     const req = (f) => require(path.join(SRC, f));
-    const QL_CORE = req("core.js"); global.QL_CORE = QL_CORE; global.QL_ML_INSTALL = req("ml.js"); global.QL_GAMES_INSTALL = req("games.js"); global.QL_OBS_INSTALL = req("obs-games.js"); global.QL_LIVE_INSTALL = req("live.js");
-    const QL = QL_CORE({}), STRATS = req("strategies.js"); global.QL_STRATS = STRATS; req("models.js"); req("game-strats.js")(QL).forEach((x) => STRATS.push(x)); req("obs-strats.js")(QL).forEach((x) => STRATS.push(x));
+    const QL_CORE = req("core.js"); global.QL_CORE = QL_CORE; global.QL_ML_INSTALL = req("ml.js"); global.QL_GAMES_INSTALL = req("games.js"); global.QL_OBS_INSTALL = req("obs-games.js"); global.QL_QUANTUM_INSTALL = req("q-games.js"); global.QL_LIVE_INSTALL = req("live.js");
+    const QL = QL_CORE({}), STRATS = req("strategies.js"); global.QL_STRATS = STRATS; req("models.js"); req("game-strats.js")(QL).forEach((x) => STRATS.push(x)); req("obs-strats.js")(QL).forEach((x) => STRATS.push(x)); req("q-strats.js")(QL).forEach((x) => STRATS.push(x));
     const QLEngine = new Function(fs.readFileSync(path.join(SRC, "engine-client.js"), "utf8") + "\n;return QLEngine;")();
     const src = QLEngine.poolSource(STRATS.filter((x) => !x.src)); let x = 2166136261; for (let i = 0; i < src.length; i++) { x ^= src.charCodeAt(i); x = Math.imul(x, 16777619); }
     console.log((x >>> 0).toString(36) + "." + src.length);

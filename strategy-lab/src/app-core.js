@@ -7,6 +7,7 @@ var App = (function () {
   var A = { QL: QL };
   if (typeof QL_GAME_STRATS === "function") QL_GAME_STRATS(QL).forEach(function (s) { QL_STRATS.push(s); });   // 十套玩法各自的内置规则
   if (typeof QL_OBS_STRATS === "function") QL_OBS_STRATS(QL).forEach(function (s) { QL_STRATS.push(s); });     // 四套观测玩法的内置规则
+  if (typeof QL_Q_STRATS === "function") QL_Q_STRATS(QL).forEach(function (s) { QL_STRATS.push(s); });         // 三套量子玩法的内置规则
 
   /* ---------- DOM 小工具 ---------- */
   function h(tag, attrs) {

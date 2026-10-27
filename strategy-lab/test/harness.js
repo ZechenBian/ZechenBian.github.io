@@ -8,6 +8,7 @@ try { QL_ML_INSTALL = require(path.join(__dirname, "../src/ml.js")); } catch (e)
 if (QL_ML_INSTALL) global.QL_ML_INSTALL = QL_ML_INSTALL;
 try { global.QL_GAMES_INSTALL = require(path.join(__dirname, "../src/games.js")); } catch (e) { if (e.code !== "MODULE_NOT_FOUND") throw e; }
 try { global.QL_OBS_INSTALL = require(path.join(__dirname, "../src/obs-games.js")); } catch (e) { if (e.code !== "MODULE_NOT_FOUND") throw e; }
+try { global.QL_QUANTUM_INSTALL = require(path.join(__dirname, "../src/q-games.js")); } catch (e) { if (e.code !== "MODULE_NOT_FOUND") throw e; }
 try { global.QL_LIVE_INSTALL = require(path.join(__dirname, "../src/live.js")); } catch (e) { if (e.code !== "MODULE_NOT_FOUND") throw e; }
 const scope = {};
 const QL = QL_CORE(scope);
@@ -16,6 +17,7 @@ global.QL_STRATS = STRATS;
 try { require(path.join(__dirname, "../src/models.js")); } catch (e) { if (e.code !== "MODULE_NOT_FOUND") throw e; }
 try { require(path.join(__dirname, "../src/game-strats.js"))(QL).forEach(s => STRATS.push(s)); } catch (e) { if (e.code !== "MODULE_NOT_FOUND") throw e; }
 try { require(path.join(__dirname, "../src/obs-strats.js"))(QL).forEach(s => STRATS.push(s)); } catch (e) { if (e.code !== "MODULE_NOT_FOUND") throw e; }
+try { require(path.join(__dirname, "../src/q-strats.js"))(QL).forEach(s => STRATS.push(s)); } catch (e) { if (e.code !== "MODULE_NOT_FOUND") throw e; }
 
 function compile(code) {
   const fn = new Function('"use strict";\n' + code + '\n;return { init: typeof init === "function" ? init : null, decide: typeof decide === "function" ? decide : null, fit: typeof fit === "function" ? fit : null };');

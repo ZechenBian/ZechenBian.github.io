@@ -15,7 +15,7 @@ let pass = 0, fail = 0; const ok = (c, name, d) => { if (c) { pass++; if (proces
   console.log("== 一、入口");
   await page.click("#btnLobby"); await page.waitForSelector(".modal.lbm .lb-card");
   const cards = await page.evaluate(() => Array.from(document.querySelectorAll(".lb-card")).map(c => ({ id: c.getAttribute("data-card"), wide: c.classList.contains("wide"), btn: c.querySelector("[data-go]").innerText, primary: c.querySelector("[data-go]").classList.contains("primary"), status: (c.querySelector(".lb-status") || {}).innerText || "", text: c.innerText })));
-  ok(cards.map(c => c.id).join() === "tutorial,daily,quest,room,deca,arena,workshop" && cards[0].wide && cards[0].primary && cards[0].btn === "开始" && cards[0].status === "" && cards[0].text.includes("新手教程") && cards[0].text.includes("八步"), "大厅里第一张、占整行的是新手教程；还没看过时按钮是\"开始\"", JSON.stringify(cards.map(c => c.id + ":" + c.btn)));
+  ok(cards.map(c => c.id).join() === "tutorial,daily,quest,room,deca,arena,workshop,qcircuit" && cards[0].wide && cards[0].primary && cards[0].btn === "开始" && cards[0].status === "" && cards[0].text.includes("新手教程") && cards[0].text.includes("八步"), "大厅里第一张、占整行的是新手教程；还没看过时按钮是\"开始\"", JSON.stringify(cards.map(c => c.id + ":" + c.btn)));
   await page.click('.lb-card[data-card="tutorial"] [data-go]'); await page.waitForSelector(".modal.tourm #tourTitle");
   let s = await state();
   const pills = await page.evaluate(() => Array.from(document.querySelectorAll(".tour-pill")).map(p => p.getAttribute("data-step") + ":" + p.innerText.replace(/\s+/g, " ")));

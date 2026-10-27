@@ -5,7 +5,7 @@
 cd "$(dirname "$0")/.." || exit 1
 python3 build.py || exit 1
 fail=0
-for t in engine worker io ml ai claims model-claims games games-worker obs human guide social room jobs arena shop quest teen ml-stats ml-nn ml-data-tab ml-data-img ml-algos ml-anim ml-guide cases; do
+for t in engine worker io ml ai claims model-claims games games-worker obs quantum human guide social room jobs arena shop quest teen ml-stats ml-nn ml-data-tab ml-data-img ml-algos ml-anim ml-guide cases; do
   out=$(node test/$t.test.js 2>&1); line=$(echo "$out" | grep -E "passed, [0-9]+ failed" | tail -1)
   echo "$t: $line"; echo "$out" | grep -E "^\s+FAIL|CRASH" ; echo "$line" | grep -q ", 0 failed" || fail=1
 done
@@ -13,7 +13,7 @@ done
 if command -v python3 >/dev/null 2>&1; then out=$(cd ml-engine && python3 -m unittest 2>&1); echo "ml-engine: $(echo "$out" | tail -1)"; echo "$out" | tail -1 | grep -q "^OK" || fail=1; fi
 # ui-obs 排第一个：它不用存档、把现算从头跑一遍，算完的结果留在 test/.cache/ 里，后面几个测试接着用
 # 大厅的那几样（每日一局、每日一题、实时房间、十项全能、规则同场、世界工坊、新手教程）：GitHub 和 drand 的接口换成本机的假数据，实时房间走本机的假中继
-for t in ui-obs ui-tour ui-claude ui-data ui-models ui-explain ui-games ui-human ui-guide ui-review2 ui-review3 ui-review4 ui-daily ui-quest ui-room ui-deca ui-arena ui-shop ui-tutorial ui-teen ui-ml ui-ml-engine ui-ml-web ui-ml-claude ui-cases; do
+for t in ui-obs ui-tour ui-claude ui-data ui-models ui-explain ui-games ui-quantum ui-human ui-guide ui-review2 ui-review3 ui-review4 ui-daily ui-quest ui-room ui-deca ui-arena ui-shop ui-tutorial ui-teen ui-ml ui-ml-engine ui-ml-web ui-ml-claude ui-cases; do
   out=$(node test/$t.js 2>&1); line=$(echo "$out" | grep -E "passed, [0-9]+ failed|TOTAL LOGS|CRASH" | tail -1); logs=$(echo "$out" | grep -E "^page logs:|TOTAL LOGS" | tail -1)
   echo "$t: $line | $logs"; echo "$out" | grep -E "^\s+FAIL|CRASH"; echo "$out" | grep -qE "[1-9][0-9]* failed|CRASH" && fail=1
 done

@@ -85,12 +85,13 @@
     G.start.forEach(function (s) { L.push({ key: "start:" + s.id, group: "从这里开始", title: s.title, keys: s.keys || "", src: s.body }); });
     L.push({ key: "glossary", group: "从这里开始", title: "名词", keys: "名词 术语 词汇 解释 是什么 行话", src: G.glossary });
     L.push({ key: "now", group: "当前", title: "当前的细则", keys: "规则 游戏规则 细则 当前 现在 这一局 计分 基准 怎么算 怎么玩" });
-    L.push({ key: "games", group: "玩法", title: "总览：玩法、世界、规则", keys: "玩法 游戏 十套 四套 观测 规则方案 总览 世界 三层 架构 区别" });
+    L.push({ key: "games", group: "玩法", title: "总览：玩法、世界、规则", keys: "玩法 游戏 十套 四套 三套 观测 量子 规则方案 总览 世界 三层 架构 区别" });
     L.push({ key: "game:trade", group: "玩法", title: A.TRADE.name, keys: "交易 仓位 价格 trade 净值 三种口径 定仓位 " + A.TRADE.blurb });
     QL.GAMES.forEach(function (t) { var w = QL.WORLDS[t]; L.push({ key: "game:" + t, group: "十套玩法", title: w.name, keys: w.short + " " + t + " " + w.blurb, src: G.games[t] }); });
     QL.OBS.forEach(function (t) { var w = QL.WORLDS[t]; L.push({ key: "game:" + t, group: QL.OBS_GROUP, title: w.name, keys: w.short + " " + t + " 观测 自然 物理 " + w.blurb, src: G.games[t] }); });
+    (QL.QUANTUM || []).forEach(function (t) { var w = QL.WORLDS[t]; L.push({ key: "game:" + t, group: QL.QUANTUM_GROUP, title: w.name, keys: w.short + " " + t + " 量子 quantum 纠缠 测量 电路 " + w.blurb, src: G.games[t] }); });
     QL.WORLD_GROUPS.forEach(function (g) {
-      if (g === QL.GAME_GROUP || g === QL.OBS_GROUP) return;
+      if (g === QL.GAME_GROUP || g === QL.OBS_GROUP || g === QL.QUANTUM_GROUP) return;
       Object.keys(QL.WORLDS).forEach(function (t) { var w = QL.WORLDS[t]; if (w.group !== g || w.game) return; var ob = (G.worldObs || {})[t]; L.push({ key: "world:" + t, group: "世界", sub: g, title: w.short, keys: w.name + " " + t + " " + w.blurb + (ob ? " 不当价格 研究对象 观测 物理" : ""), src: [G.worlds[t], ob ? ob.md : ""] }); });
     });
     A.allStrats().forEach(function (st) {
@@ -229,6 +230,8 @@
     };
     host.appendChild(sec("二、十套玩法", md("十套回合制的小游戏。细则写死，计分明确，每一套都取自一个真实的场景、一道经典的题目或者一个做过的实验，而且（至少部分地）知道最优解是什么。所以结果栏里除了你的得分，还有理论最优、上界和真人实验的成绩可以对照。"), mk(QL.GAMES)));
     host.appendChild(sec("三、四套观测玩法", md("把布朗运动、均值回复、混沌映射这些来自自然世界的过程，当作研究对象而不是价格。这里不挣钱：动作是一个估计、一个预测，或者\"现在报警\"\"现在停\"；计分是误差或延迟。它们回答的是这样的问题：这个过程的参数，一条轨迹能量准吗？它能不能预测，能提前多久？它变了没有？它的最高点能不能抓住？"), mk(QL.OBS)));
+    if (QL.QUANTUM) host.appendChild(sec("四、三套量子玩法", md("量子力学只在裁判手里：规则看不到量子态，只能通过裁判给的几个动作去碰它，测一个光子、让量子计算机再转一步、让光子走一圈，和实验物理学家面对一台仪器时一样。每一套都有一个\"经典的做法最多能做到多好\"的定理，以及量子的做法能把它推到哪里：Bell 游戏里是 75% 对 85%，搜索里是 N 对 √N，炸弹检测里是\"一碰就炸\"对\"几乎不碰\"。\n\n这三套和\"量子电路谜题\"用的是同一个模拟器。谜题是在电路上一个门一个门地搭一次实验；到了这里，规则把同一个实验做几千次，看结果的分布。"), mk(QL.QUANTUM),
+      A.openQuantum ? h("div", { class: "gd-acts" }, btn("打开量子电路谜题（十关）", closeThen(function () { A.openQuantum(); }))) : null));
     host.appendChild(sec("怎么开始", md("1. 左栏最上面的\"玩法\"里选一套。下面的\"世界\"会换成这套玩法能用的那几种；\"规则\"会换成它自己的内置规则，第一条通常是基准。\n2. 结果栏给出这套玩法自己的得分，旁边（窄屏上在下面）是同一批对局上的对照表。\n3. \"单局明细\"把一局从头到尾回放出来；\"参数扫描\"对一个参数逐个取值重打一遍，有公式可循的参数会叠上理论曲线。\n4. 换一个世界，规则不动，看得分怎么变。\"场景对比\"和手册里每套玩法的那张表，做的就是这件事。\n5. \"玩法\"一栏里的\"完整的细则与来历\"，通向这本手册里它的那一条。\n6. 接单与冷却、秘书问题、偏硬币下注、多臂老虎机这四套可以自己上手：点\"玩法\"一栏里的\"亲手玩一局\"，逐回合做决定；打完之后同一局交给各条参照规则再打一遍，和你并排着比，多打几局还会累计。")));
   }
   /* ---------- 交易一个资产 ---------- */
@@ -338,8 +341,9 @@
     Object.keys(p).forEach(function (k) { if (mine[k] !== undefined && mine[k] !== p[k]) { p[k] = mine[k]; touched = true; } });
     if (isCur) p = A.wp();
     var th = w.theory(p);
-    head(host, (w.obsGame ? QL.OBS_GROUP : "十套玩法") + " · " + ((G.gameIndex || {})[type] || ["", "", ""])[2], w.name, w.blurb, [isCur ? btn("回到这一套", function () { if (ui) ui.close(); }, true) : btn("去玩这一套", closeThen(function () { A.applySetup({ world: type, strat: S.last[type] || w.defStrat }); }), true),
-      A.humanOk && A.humanOk(type) ? btn("亲手玩一局", closeThen(function () { if (S.world.type !== type) A.applySetup({ world: type, strat: S.last[type] || w.defStrat }); A.openHuman(); })) : null]);   // 从手册过去：用这套玩法自己的规则（上次用的，或者默认的）
+    head(host, (w.obsGame ? QL.OBS_GROUP : w.quantum ? QL.QUANTUM_GROUP : "十套玩法") + " · " + ((G.gameIndex || {})[type] || ["", "", ""])[2], w.name, w.blurb, [isCur ? btn("回到这一套", function () { if (ui) ui.close(); }, true) : btn("去玩这一套", closeThen(function () { A.applySetup({ world: type, strat: S.last[type] || w.defStrat }); }), true),
+      A.humanOk && A.humanOk(type) ? btn("亲手玩一局", closeThen(function () { if (S.world.type !== type) A.applySetup({ world: type, strat: S.last[type] || w.defStrat }); A.openHuman(); })) : null,
+      w.quantum && A.openQuantum ? btn("量子电路谜题里的那一关", closeThen(function () { A.openQuantum({ q_bell: "chsh", q_search: "grover", q_bomb: "bomb" }[type]); })) : null]);   // 从手册过去：用这套玩法自己的规则（上次用的，或者默认的）
     if (g.scene) host.appendChild(sec("它从哪来", md(g.scene)));
     if (g.rules) host.appendChild(sec("细则", rulesList(g.rules(p, th)), h("p", { class: "note", text: isCur ? "数字取自左栏当前的设定。" : touched ? "数字取自你上次在这套玩法里留下的设定；\"去玩这一套\"会回到那里。" : "数字是默认的设定；选了这套玩法之后，在左栏可以改。" })));
     host.appendChild(sec("你的规则看得到什么、能做什么", apiBox(w), h("p", { class: "note", text: "s 是裁判每回合交给规则的那个对象。上面没列出来的东西，规则读不到。让 " + A.AI + " 写规则时，它拿到的也是这一份。" })));
@@ -523,7 +527,7 @@
   function tbl(headRow, rows, cls) { return h("div", { class: "gd-tw" }, h("table", { class: "gd-t" + (cls ? " " + cls : "") }, h("thead", null, h("tr", null, headRow.map(function (x) { return h("th", { text: x }); }))), h("tbody", null, rows.map(function (r) { return h("tr", null, r.map(function (c, i) { return i === 0 ? h("th", null, c) : h("td", typeof c === "string" ? { text: c } : null, typeof c === "string" ? null : c); })); })))); }
   function pageAlgos(host) {
     var N = G.algoNotes || {};
-    head(host, "对照", "算法对比：计算量与存储", "四张表，加上在你这台设备上量出来的数：事先算多少，每一步算多少，要记住多少东西。");
+    head(host, "对照", "算法对比：计算量与存储", "五张表，加上在你这台设备上量出来的数：事先算多少，每一步算多少，要记住多少东西。");
     host.appendChild(md(N.intro || ""));
     var np = function (st) { return String((st.params || []).filter(function (q) { return q.type === "num"; }).length); };
     var pr = A.allStrats().filter(function (st) { return !st.game && !st.src && G.algo[st.id]; }).map(function (st) { var a = G.algo[st.id]; return [link(st.name.replace(/（.*$/, ""), "strat:" + st.id), a.kind, a.fit, a.step, a.mem, a.need, np(st), A.tierBadge(st.explain && st.explain.tier)]; });
@@ -534,6 +538,8 @@
     host.appendChild(sec("十套玩法的内置规则", tbl(["规则", "玩法", "类型", "事先的计算", "每一步", "存储", "需要的数据"], gr), md(N.game || "")));
     var orr = []; QL.OBS.forEach(function (t) { A.allStrats().filter(function (st) { return st.game === t && !st.src && G.algo[st.lib]; }).forEach(function (st) { var a = G.algo[st.lib]; orr.push([link(st.name, "strat:" + st.id), QL.WORLDS[t].short, a.kind, a.fit, a.step, a.mem, a.need]); }); });
     host.appendChild(sec("四套观测玩法的内置规则", tbl(["规则", "玩法", "类型", "事先的计算", "每一步", "存储", "需要的数据"], orr), md(N.obs || "")));
+    var qrr = []; (QL.QUANTUM || []).forEach(function (t) { A.allStrats().filter(function (st) { return st.game === t && !st.src && G.algo[st.lib]; }).forEach(function (st) { var a = G.algo[st.lib]; qrr.push([link(st.name, "strat:" + st.id), QL.WORLDS[t].short, a.kind, a.fit, a.step, a.mem, a.need]); }); });
+    if (qrr.length) host.appendChild(sec("三套量子玩法的内置规则", tbl(["规则", "玩法", "类型", "事先的计算", "每一步", "存储", "需要的数据"], qrr), md(N.quantum || "")));
     host.appendChild(sec("实测", md(N.measure || "")));
   }
 

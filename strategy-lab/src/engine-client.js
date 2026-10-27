@@ -5,12 +5,12 @@
 var QLEngine = (function () {
   "use strict";
   // 策略代码里碰不到这些名字（后台线程本来也没有 DOM 和网络）
-  var SHADOW = "var self, globalThis, postMessage, onmessage, importScripts, fetch, XMLHttpRequest, WebSocket, close, navigator, indexedDB, caches, setTimeout, setInterval, QL_CORE, QL_ML_INSTALL, QL_GAMES_INSTALL, QL_OBS_INSTALL, QL_LIVE_INSTALL;";
+  var SHADOW = "var self, globalThis, postMessage, onmessage, importScripts, fetch, XMLHttpRequest, WebSocket, close, navigator, indexedDB, caches, setTimeout, setInterval, QL_CORE, QL_ML_INSTALL, QL_GAMES_INSTALL, QL_OBS_INSTALL, QL_QUANTUM_INSTALL, QL_LIVE_INSTALL;";
   var seq = 0;
   function lines(s) { var n = 0, i = -1; while ((i = s.indexOf("\n", i + 1)) >= 0) n++; return n; }
 
   function buildSource(stratCode, worldCode) {
-    var head = (typeof QL_ML_INSTALL === "function" ? QL_ML_INSTALL.toString() + "\n" : "") + (typeof QL_GAMES_INSTALL === "function" ? QL_GAMES_INSTALL.toString() + "\n" : "") + (typeof QL_OBS_INSTALL === "function" ? QL_OBS_INSTALL.toString() + "\n" : "") + (typeof QL_LIVE_INSTALL === "function" ? QL_LIVE_INSTALL.toString() + "\n" : "") + "var QL = (" + QL_CORE.toString() + ")(self);\n";
+    var head = (typeof QL_ML_INSTALL === "function" ? QL_ML_INSTALL.toString() + "\n" : "") + (typeof QL_GAMES_INSTALL === "function" ? QL_GAMES_INSTALL.toString() + "\n" : "") + (typeof QL_OBS_INSTALL === "function" ? QL_OBS_INSTALL.toString() + "\n" : "") + (typeof QL_QUANTUM_INSTALL === "function" ? QL_QUANTUM_INSTALL.toString() + "\n" : "") + (typeof QL_LIVE_INSTALL === "function" ? QL_LIVE_INSTALL.toString() + "\n" : "") + "var QL = (" + QL_CORE.toString() + ")(self);\n";
     var wPre = "var __W = (function () { \"use strict\"; " + SHADOW + "\n";
     var wPost = "\n;return { simulate: typeof simulate === \"function\" ? simulate : null };\n})();\n";
     var sPre = "var __S = (function () { \"use strict\"; " + SHADOW + "\n";
@@ -105,7 +105,7 @@ var QLEngine = (function () {
   /* ---------- 现算用的线程池 ----------
    * 对照表和手册里引用的数字是在这台电脑上现算的。池里的每个线程都装着全部内置规则，一条消息算一件事（见 live.js 的 LV.main）。 */
   function installs() {
-    return [typeof QL_ML_INSTALL === "function" ? QL_ML_INSTALL : null, typeof QL_GAMES_INSTALL === "function" ? QL_GAMES_INSTALL : null, typeof QL_OBS_INSTALL === "function" ? QL_OBS_INSTALL : null, typeof QL_LIVE_INSTALL === "function" ? QL_LIVE_INSTALL : null]
+    return [typeof QL_ML_INSTALL === "function" ? QL_ML_INSTALL : null, typeof QL_GAMES_INSTALL === "function" ? QL_GAMES_INSTALL : null, typeof QL_OBS_INSTALL === "function" ? QL_OBS_INSTALL : null, typeof QL_QUANTUM_INSTALL === "function" ? QL_QUANTUM_INSTALL : null, typeof QL_LIVE_INSTALL === "function" ? QL_LIVE_INSTALL : null]
       .filter(Boolean).map(function (f) { return f.toString(); }).join("\n") + "\n";
   }
   /** strats：全部内置规则。玩法自带的规则用裁判手里的那一份函数，价格世界的规则把代码编进线程里 */

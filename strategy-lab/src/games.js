@@ -80,17 +80,19 @@ function runGame(B, strat, p, set, opt, model) {
   var grid = opt.fan ? QL.timeGrid(T, 220) : null, G = grid ? grid.length : 0, gpos = null, EQ = null;
   if (grid) { gpos = new Int32Array(T + 1).fill(-1); for (i = 0; i < G; i++) gpos[grid[i]] = i; EQ = new Float32Array(N * G); }
   var det = opt.detail != null ? { n: opt.detail, x: new Float32Array(T).fill(NaN), a: new Float32Array(T).fill(NaN), w: new Float32Array(T + 1), m: new Int8Array(T) } : null;
-  var C = QL.makeView(), V = C.view, VL = B.VL || L, sc = QL.makeScratch(T), bad = 0, sum = 0, sumsq = 0, ruined = 0, cur = 0, st = null, srng = null;
+  var C = QL.makeView(), V = C.view, VL = B.VL || L, sc = QL.makeScratch(T), bad = 0, sum = 0, sumsq = 0, ruined = 0, cur = 0, st = null, st2 = null, srng = null;
   var oL = 0, prev = 0, peak = 0, mdd = 0, psum = 0, rec = false, hk = Object.keys(B.H || {}), asRet = w.act === "position";
   V.rf = 0; V.g = Object.freeze(w.consts ? w.consts(gp, T) : {}); V.x = NaN; V.last = NaN; V.lastA = NaN; V.left = NaN; V.locked = 0;
   V.rnd = function () { return srng.u(); };
   V.rnorm = function () { return srng.normal(); };
   V.rbeta = function (a, b) { var x = srng.gamma(a), y = srng.gamma(b); return x / (x + y); };
   var E = { T: T, p: gp, g: V.g, V: V, acct: C.acct, r: null, lv: null, h: {}, aux: new Float64Array(naux), score: 0, wt: NaN, turn: 0, expo: 0, dead: false, n: 0, tmp: {} };
-  /** 问规则要这一回合的动作。无效的返回值（非数、NaN）记一次，并交给裁判当作"什么都不做" */
-  E.ask = function (t) {
+  /** 问规则要这一回合的动作。无效的返回值（非数、NaN）记一次，并交给裁判当作"什么都不做"。
+   *  slot = 1：一局里的第二个玩家（Bell 游戏里的 Bob）。他用的是自己的一份 st（同样由 init 造出来），和第一个玩家的那份互不相通 */
+  E.ask = function (t, slot) {
     C.at(t); var price = VL[oL + t]; V.price = price; V.logp = Math.log(price);   // 规则看到的是 VL（没有另备时就是 L）
-    var a = decide(V, p, st, model);
+    if (slot && st2 === null) { st2 = init ? init(p, model) : {}; if (st2 == null) st2 = {}; }
+    var a = decide(V, p, slot ? st2 : st, model);
     if (typeof a !== "number" || a !== a) { bad++; return NaN; }
     return a;
   };
@@ -115,7 +117,7 @@ function runGame(B, strat, p, set, opt, model) {
     E.n = n; E.r = R.subarray(n * T, (n + 1) * T); E.lv = L.subarray(oL, oL + T + 1);
     for (i = 0; i < hk.length; i++) { var Hh = B.H[hk[i]], len = Hh.length / N; E.h[hk[i]] = Hh.subarray(n * len, (n + 1) * len); }
     srng = new RNG(B.seed, (B.n0 | 0) + n, -1000 - B.bid);     // 规则自己要用的随机数（s.rnd() 等）：与对局的随机数不是同一条流
-    st = init ? init(p, model) : {}; if (st == null) st = {};
+    st = init ? init(p, model) : {}; if (st == null) st = {}; st2 = null;
     V.x = NaN; V.last = NaN; V.lastA = NaN; V.left = NaN; V.locked = 0; C.acct(1, 0);
     E.score = 0; E.wt = NaN; E.turn = 0; E.expo = 0; E.dead = false; E.aux.fill(0);
     rec = !!det && det.n === n;

@@ -18,7 +18,7 @@ let pass = 0, fail = 0; const ok = (c, name, d) => { if (c) pass++; else { fail+
   await page.click("#btnGuide"); await page.waitForSelector(".modal.guide .gd-title");
   ok((await page.locator(".gd-title").innerText()) === "这是什么", "第一次打开落在\"这是什么\"", await page.locator(".gd-title").innerText());
   ok((await page.locator("#guideHint").count()) === 0, "打开过手册之后提示消失");
-  const groups = await page.locator(".gd-nav h4").allInnerTexts(); ok(groups.join() === "从这里开始,当前,玩法,十套玩法,观测玩法,世界,规则,图表,对照", "目录的九个部分", groups.join());
+  const groups = await page.locator(".gd-nav h4").allInnerTexts(); ok(groups.join() === "从这里开始,当前,玩法,十套玩法,观测玩法,量子玩法,世界,规则,图表,对照", "目录的十个部分", groups.join());
   const nlinks = await page.locator(".gd-nav .gd-link").count(); ok(nlinks >= 8 + 1 + 2 + 10 + 4 + 16 + 18 + 16 + 4, "目录里的条目数", String(nlinks));
   ok((await page.locator('.gd-nav .gd-link:has-text("总览：玩法、世界、规则")').count()) === 1 && (await page.locator('.gd-nav .gd-link:has-text("交易一个资产")').count()) === 1 && (await page.locator('.gd-nav .gd-link:has-text("自检")').count()) === 1, "目录里有总览、交易一个资产、自检");
   await page.screenshot({ path: SH("h-open.png") });
@@ -114,7 +114,7 @@ let pass = 0, fail = 0; const ok = (c, name, d) => { if (c) pass++; else { fail+
   const atxt = await page.locator(".gd-art").innerText(); ok(/价格世界的十八条规则/.test(atxt) && /十种模型/.test(atxt) && /十套玩法的内置规则/.test(atxt) && /四套观测玩法的内置规则/.test(atxt) && /O\(n·d² \+ d³\)/.test(atxt) && /O\(T·G²\)/.test(atxt) && /O\(2ʰ\) 个节点/.test(atxt), "算法对比：四张表和记号");
   ok((await page.locator(".gd-art table.gd-t").nth(3).locator("tbody tr").count()) === 23, "四套观测玩法的二十三条内置规则，每一条都有计算量和存储", String(await page.locator(".gd-art table.gd-t").nth(3).locator("tbody tr").count()));
   ok((await page.locator(".gd-art table.gd-t").nth(2).locator("tbody tr").count()) === 44, "十套玩法的四十四条内置规则，每一条都有计算量和存储", String(await page.locator(".gd-art table.gd-t").nth(2).locator("tbody tr").count()));
-  ok((await page.locator(".gd-art table.gd-t").count()) === 4 && (await page.locator(".gd-art table.gd-t >> nth=0 >> tbody tr").count()) === 18 && (await page.locator(".gd-art table.gd-t >> nth=1 >> tbody tr").count()) === 10, "表的行数：18 条规则、10 种模型");
+  ok((await page.locator(".gd-art table.gd-t").count()) === 5 && (await page.locator(".gd-art table.gd-t >> nth=0 >> tbody tr").count()) === 18 && (await page.locator(".gd-art table.gd-t >> nth=1 >> tbody tr").count()) === 10 && (await page.locator(".gd-art table.gd-t >> nth=4 >> tbody tr").count()) === 15, "表的行数：18 条规则、10 种模型，量子玩法 15 条");
   await page.locator(".gd-art").screenshot({ path: SH("h-algos.png") });
 
   // 8) 对照表：点一格，页面摆成那个样子，数字一致
@@ -124,7 +124,7 @@ let pass = 0, fail = 0; const ok = (c, name, d) => { if (c) pass++; else { fail+
   ok(/全部 \d+ 格都算好了/.test(await page.locator("#mxDone").innerText()) && (await page.locator(".gd-art td.pend").count()) === 0, "对照表算完了，没有还在等的格子", await page.locator("#mxDone").innerText());
   await saveLive(page);
   const dims = await page.evaluate(() => { const t = document.querySelector(".gd-art table.mx"); return { rows: t.querySelectorAll("tbody tr").length, cols: t.querySelectorAll("thead tr:first-child th").length - 1, tables: document.querySelectorAll(".gd-art table.mx").length, up: t.querySelectorAll("td.up").length, down: t.querySelectorAll("td.down").length }; });
-  ok(dims.rows === 16 && dims.cols === 15 && dims.tables === 15 && dims.up > 30 && dims.down > 100, "对照表：16 条规则 × 15 个世界，外加十四套玩法各一张", JSON.stringify(dims));
+  ok(dims.rows === 16 && dims.cols === 15 && dims.tables === 18 && dims.up > 30 && dims.down > 100, "对照表：16 条规则 × 15 个世界，外加十七套玩法各一张", JSON.stringify(dims));
   await page.locator(".gd-art").screenshot({ path: SH("h-matrix.png") });
   const cellTxt = await page.evaluate(() => { const M = window.App.matrix.price, t = document.querySelector(".gd-art table.mx"), ri = Array.from(t.querySelectorAll("tbody tr")).findIndex(tr => /均线交叉/.test(tr.querySelector("th").textContent)), ci = M.worlds.findIndex(w => w.key === "fbm"); const b = t.querySelectorAll("tbody tr")[ri].querySelectorAll("td button")[ci]; const txt = b.textContent; b.click(); return { txt, want: M.cells.ma[ci][1] }; });
   await idle(); const s4 = await page.evaluate(() => ({ w: window.App.state.world.type, s: window.App.state.stratId, dg: window.App.run.sum.dGrowth, open: document.querySelectorAll(".modal.guide").length }));

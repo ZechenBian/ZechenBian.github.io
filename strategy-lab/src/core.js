@@ -1198,6 +1198,7 @@ QL.ml = {}; // 模型库在下面的 QL_ML 里补上
 if (typeof QL_ML_INSTALL === "function") QL_ML_INSTALL(QL);
 if (typeof QL_GAMES_INSTALL === "function") QL_GAMES_INSTALL(QL);   // 十套玩法
 if (typeof QL_OBS_INSTALL === "function") QL_OBS_INSTALL(QL);       // 四套观测玩法（要排在十套之后：它们共用同一个裁判）
+if (typeof QL_QUANTUM_INSTALL === "function") QL_QUANTUM_INSTALL(QL); // 三套量子玩法（同一个裁判，排在观测玩法之后）
 if (typeof QL_LIVE_INSTALL === "function") QL_LIVE_INSTALL(QL);     // 现算：对照表的清单和一格怎么算
 
 self.QL = QL;

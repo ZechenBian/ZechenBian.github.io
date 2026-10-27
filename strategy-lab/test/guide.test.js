@@ -4,7 +4,7 @@
 // 对照表（现算，test/live-node.js 按页面同样的办法算、按源码内容缓存）齐全，而且和引擎直接跑的一致；手册里引用的数字和引擎对得上。
 const path = require("path"), fs = require("fs");
 const { QL, STRATS, compile, ok, near, section, done } = require("./harness.js");
-global.QL_GUIDE = require("../src/guide.js"); require("../src/guide-games.js"); require("../src/guide-worlds.js"); require("../src/guide-obs.js");
+global.QL_GUIDE = require("../src/guide.js"); require("../src/guide-games.js"); require("../src/guide-worlds.js"); require("../src/guide-obs.js"); require("../src/guide-quantum.js");
 const G = global.QL_GUIDE, MX = require("./live-node.js").matrix();
 const chartsSrc = fs.readFileSync(path.join(__dirname, "../src/app-charts.js"), "utf8") + fs.readFileSync(path.join(__dirname, "../src/app-scenes.js"), "utf8");
 const chartIds = Array.from(new Set((chartsSrc.match(/CH\.([a-z0-9]+) = \{/g) || []).map(s => s.slice(3, -4))));
@@ -98,7 +98,7 @@ const pst = STRATS.filter(s => !s.game).map(s => s.id);
 ok(MX.v === 2 && MX.price.strats.join() === pst.join() && MX.price.worlds.length === 15, "价格表：十八条规则 × 十五个世界", MX.price.strats.length + "×" + MX.price.worlds.length);
 ok(pst.every(id => MX.price.cells[id].length === 15 && MX.price.cells[id].every(c => c && c.length === 10)), "价格表每一格都有数");
 ok(MX.price.worlds.every(w => QL.WORLDS[w.type] && w.bench.length === 4), "价格表的列都指向存在的世界");
-ok(QL.ALL_GAMES.length === 14 && QL.ALL_GAMES.every(t => { const M = MX.games[t], rules = STRATS.filter(s => s.game === t).map(s => s.id); return M && M.strats.join() === rules.join() && M.scenes.length === QL.WORLDS[t].scenes.length && M.scenes.every(sc => typeof sc.bench === "number") && rules.every(id => M.cells[id].length === M.scenes.length && M.cells[id].every(c => c && c.length >= 4 && c.slice(0, 4).every(x => typeof x === "number" && x === x))); }), "十四套玩法的表：每条规则 × 每个场景都有数");
+ok(QL.ALL_GAMES.length === 17 && QL.ALL_GAMES.every(t => { const M = MX.games[t], rules = STRATS.filter(s => s.game === t).map(s => s.id); return M && M.strats.join() === rules.join() && M.scenes.length === QL.WORLDS[t].scenes.length && M.scenes.every(sc => typeof sc.bench === "number") && rules.every(id => M.cells[id].length === M.scenes.length && M.cells[id].every(c => c && c.length >= 4 && c.slice(0, 4).every(x => typeof x === "number" && x === x))); }), "十七套玩法的表：每条规则 × 每个场景都有数");
 // 抽查：表里的数和引擎现算的一致（同样的种子、同样的批次、同样的默认参数）
 function priceCell(sid, wkey) {
   const w = MX.price.worlds.find(x => x.key === wkey), d = QL.WORLDS[w.type], st = STRATS.find(s => s.id === sid), S = compile(st.code), p = {}; st.params.forEach(q => { p[q.key] = q.def; });
@@ -184,7 +184,7 @@ section("第三轮复核：细则写的是裁判实际用的数；每条规则�
   t = R("g_bandit", { arms: 3, D: 5 }); ok(/轮流拉最好的 3 台/.test(t), "老虎机：轮流拉的台数不超过总台数");
   // 每条内置规则都有算法信息；条目不多不少
   const miss = STRATS.filter(st => !st.src && !G.algo[st.lib || st.id]).map(st => st.id), extra = Object.keys(G.algo).filter(k => !STRATS.some(st => (st.lib || st.id) === k));
-  ok(miss.length === 0 && extra.length === 0 && Object.keys(G.algo).length === 85, "八十五条内置规则，每条都有计算量和存储", miss.concat(extra).join(","));
+  ok(miss.length === 0 && extra.length === 0 && Object.keys(G.algo).length === 100, "一百条内置规则，每条都有计算量和存储", miss.concat(extra).join(","));
   ok(Object.keys(G.algo).every(k => { const a = G.algo[k]; return long(a.kind, 2) && long(a.fit, 2) && long(a.step, 2) && long(a.mem, 2) && long(a.need, 2); }), "算法信息的五项都填了");
   ok(!/同一张表/.test(G.algo.pipe.mem) && /算法对比/.test(G.algo.pipe.mem), "流水线的存储一栏自己说得清去哪看");
   // 名词
