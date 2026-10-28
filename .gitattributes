@@ -11,6 +11,7 @@ strategy-lab/en/index.html            linguist-generated=true
 strategy-lab/teen/index.html          linguist-generated=true
 strategy-lab/ml/index.html            linguist-generated=true
 strategy-lab/cases/index.html         linguist-generated=true
+strategy-lab/cases-ask/index.html     linguist-generated=true
 
 # 天下棋局：tianxia/_source/build-pages.js 生成四个版本的页面，auth.html 和 ai-proxy.mjs 从 src/web/ 复制过去。
 # Tianxia: tianxia/_source/build-pages.js writes the four editions; auth.html and ai-proxy.mjs are copied from src/web/.
