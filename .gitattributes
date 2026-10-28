@@ -12,9 +12,19 @@ strategy-lab/teen/index.html          linguist-generated=true
 strategy-lab/ml/index.html            linguist-generated=true
 strategy-lab/cases/index.html         linguist-generated=true
 
-# 天下棋局：源码还没进仓库（见 CLAUDE.md），这几个页面目前是从仓库外的源码构建的。
-# Tianxia: source not in this repository yet (see CLAUDE.md); these pages are built outside it for now.
+# 天下棋局：tianxia/_source/build-pages.js 生成四个版本的页面，auth.html 和 ai-proxy.mjs 从 src/web/ 复制过去。
+# Tianxia: tianxia/_source/build-pages.js writes the four editions; auth.html and ai-proxy.mjs are copied from src/web/.
 tianxia/index.html                    linguist-generated=true
 tianxia-v2/index.html                 linguist-generated=true
 tianxia-v3/index.html                 linguist-generated=true
 tianxia-v4/index.html                 linguist-generated=true
+tianxia*/auth.html                    linguist-generated=true
+tianxia*/ai-proxy.mjs                 linguist-generated=true
+# 天下棋局的地图数据由 tianxia/_source/build/ 里的脚本生成，图层数据由 tools/layers.mjs 生成。
+# 回放比对的结果 tianxia/_source/test/replay-golden.json 不折叠：它的改动就是玩法的改动，要让人看到。
+tianxia/_source/src/geo.js            linguist-generated=true
+tianxia/_source/src/geo_cn.js         linguist-generated=true
+tianxia/_source/src/cities.js         linguist-generated=true
+tianxia/_source/src/layers.js         linguist-generated=true
+# 第三方原始数据（Natural Earth，公共领域），见 tianxia/_source/THIRD-PARTY-NOTICES.md
+tianxia/_source/build/ne/**           linguist-vendored=true

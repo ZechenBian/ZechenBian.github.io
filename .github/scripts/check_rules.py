@@ -6,7 +6,7 @@
 1. 每个对外页面都在 .github/scripts/pages.json 里登记了，并且带版权声明（All rights reserved）。
 2. 由构建生成的页面在 .gitattributes 里标了 linguist-generated（PR 里默认折叠）。
 3. 仓库里没有像密钥的字符串（API key、令牌、私钥）。测试里的假密钥要带 "not-a-real" 字样。
-4. 没有压缩包，单个文件不超过 10 MB。
+4. 没有压缩包，单个文件不超过 10 MB（下面 LARGE_OK 里写明理由的除外）。
 
 用法（仓库根目录）：python3 .github/scripts/check_rules.py
 """
@@ -14,6 +14,11 @@ import json, pathlib, re, subprocess, sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 MAX_BYTES = 10 * 1024 * 1024
+# 允许超过 10 MB 的文件：逐个列出，写明理由。不要用通配符。
+LARGE_OK = {
+    "tianxia/_source/build/ne/geojson/ne_10m_admin_0_countries_chn.geojson":
+        "Natural Earth 的中国视角国界（公共领域，原样），天下棋局的中国标准地图从它生成；没有它就改不了地图",
+}
 ARCHIVES = (".zip", ".tar", ".gz", ".tgz", ".bz2", ".xz", ".7z", ".rar")
 SECRET = re.compile(
     r"sk-ant-[A-Za-z0-9_-]{10,}"               # Anthropic
@@ -70,7 +75,7 @@ def main():
         if f.lower().endswith(ARCHIVES):
             bad(f"{f}：仓库里不放压缩包")
         size = p.stat().st_size
-        if size > MAX_BYTES:
+        if size > MAX_BYTES and f not in LARGE_OK:
             bad(f"{f}：{size / 1048576:.1f} MB，超过单个文件 10 MB 的上限")
         data = p.read_bytes()
         if b"\0" in data[:8000]:

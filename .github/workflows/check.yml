@@ -5,6 +5,7 @@
 #   规矩检查     页面登记、版权声明、构建产物标记、没有密钥、没有压缩包和超大文件
 #   重建一致     每个项目从 src/ 重新构建，必须和提交的页面一模一样
 #   冒烟测试     每个公开页面在无头浏览器里打开（电脑宽度 + 手机宽度），断开外网
+#   天下棋局回放比对  四个版本 × 四个开局年代各推演 12 回合，逐回合和 tianxia/_source/test/replay-golden.json 比对
 #   策略实验室测试  改到 strategy-lab/ 或 .github/ 时跑全套测试（半小时左右）
 #   全部检查     汇总：上面任何一项失败就失败。main 的保护规则只要求这一项。
 # 这个工作流只读仓库，不发布、不写入任何东西，也不用任何密钥。
@@ -81,7 +82,23 @@ jobs:
       - name: 装策略实验室的构建工具（KaTeX、acorn）
         working-directory: strategy-lab
         run: npm install --no-audit --no-fund --no-package-lock
+      - name: 装天下棋局地图的构建工具（d3-geo）
+        working-directory: tianxia/_source
+        run: npm install --no-audit --no-fund --no-package-lock
       - run: python3 .github/scripts/check_rebuild.py
+
+  tianxia-replay:
+    name: 天下棋局回放比对
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      # 必须是 Node 22：指纹只能在同一版本的 JavaScript 引擎（V8 12.4）上比，见 replay.js 开头的说明
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node tianxia/_source/test/replay.js
 
   smoke:
     name: 冒烟测试
@@ -138,7 +155,7 @@ jobs:
   all:
     name: All checks · 全部检查
     if: always()
-    needs: [changes, rules, rebuild, smoke, strategy-lab]
+    needs: [changes, rules, rebuild, smoke, tianxia-replay, strategy-lab]
     runs-on: ubuntu-24.04
     steps:
       - env:
