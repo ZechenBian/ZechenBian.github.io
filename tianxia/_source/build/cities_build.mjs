@@ -1,7 +1,6 @@
 // 城市坐标 → 与地图相同的 Natural Earth 投影；并计算各地区凸包（用于战线显示）。输出 ../src/cities.js
 import fs from 'fs';
-const M = '/home/claude/.npm-global/lib/node_modules/@mermaid-js/mermaid-cli/node_modules';
-const d3 = await import(M + '/d3-geo/src/index.js');
+const d3 = await import('d3-geo'); // tianxia/_source/package.json 里固定版本的 d3-geo（先在 tianxia/_source 里 npm install）
 const ne = JSON.parse(fs.readFileSync('./ne/geojson/ne_50m_admin_0_countries.geojson', 'utf8'));
 const feats = ne.features.filter(f => f.properties.ADM0_A3 !== 'ATA');
 const W = 2000; const proj = d3.geoNaturalEarth1(); proj.fitWidth(W - 20, { type: 'FeatureCollection', features: feats });

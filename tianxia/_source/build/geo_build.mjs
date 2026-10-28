@@ -1,8 +1,7 @@
 // Build-time geometry: Natural Earth 50m admin-0 -> projected SVG paths grouped by game actor,
 // plus land adjacency, inter-actor distances, label anchors. Output: ../src/geo.js
 import fs from 'fs';
-const M = '/home/claude/.npm-global/lib/node_modules/@mermaid-js/mermaid-cli/node_modules';
-const d3 = await import(M + '/d3-geo/src/index.js');
+const d3 = await import('d3-geo'); // tianxia/_source/package.json 里固定版本的 d3-geo（先在 tianxia/_source 里 npm install）
 
 const MEMBERS = {
   USA: 'USA PRI VIR GUM MNP ASM',

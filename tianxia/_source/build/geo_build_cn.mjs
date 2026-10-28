@@ -3,8 +3,7 @@
 // 引擎用到的 label / land / dist / areaPx（以及 w / h / grat / sphere）原样取自 src/geo.js，结算结果不变。
 // 另加：南海诸岛、钓鱼岛及其附属岛屿（画成小块，属中国 / 台湾省）与南海断续线（十段，GEO.dash）。输出 ../src/geo_cn.js
 import fs from 'fs';
-const M = '/home/claude/.npm-global/lib/node_modules/@mermaid-js/mermaid-cli/node_modules';
-const d3 = await import(M + '/d3-geo/src/index.js');
+const d3 = await import('d3-geo'); // tianxia/_source/package.json 里固定版本的 d3-geo（先在 tianxia/_source 里 npm install）
 
 const MEMBERS = {
   USA: 'USA PRI VIR GUM MNP ASM UMI',

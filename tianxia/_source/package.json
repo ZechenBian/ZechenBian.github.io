@@ -1,0 +1,15 @@
+{
+  "name": "tianxia",
+  "private": true,
+  "description": "天下棋局 · Tianxia — a browser grand-strategy game (web editions at /tianxia/ … /tianxia-v4/)",
+  "scripts": {
+    "build": "node build-pages.js",
+    "map": "cd build && node geo_build.mjs && node geo_build_cn.mjs && node cities_build.mjs",
+    "replay": "node test/replay.js"
+  },
+  "devDependencies": {
+    "d3-geo": "3.1.1"
+  },
+  "license": "SEE LICENSE IN ../../LICENSE",
+  "author": "Zechen Bian"
+}
