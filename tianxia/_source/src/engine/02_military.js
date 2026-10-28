@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* ===================== 军事：兵种部署、调动、行动、战役、占领 =====================
  * 兵力按兵种记录：forces[驻地] = [陆, 海, 空]，每一项是该兵种总兵力在此处的比例（各兵种分别合计为 1）。
  * 调动、战线、集结中的行动也都用 [陆, 海, 空] 向量表示投入的兵力。

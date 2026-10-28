@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* ===================== 对外接口 ===================== */
 return {
   DEF, IDS, ACTIONS, ACT, STANCES, STANCE_KEY, LLM_TYPES, DEAL_TYPES, RL_TYPES, TREATY_TYPES, SB, MOB, MANP, CRISES, WORLD_EVENTS, LANDLOCKED, ISLAND,

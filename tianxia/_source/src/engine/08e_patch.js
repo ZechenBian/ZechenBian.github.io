@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* ===================== 自然语言指令的实时数据修订（联机版） =====================
  * Claude 把一条自然语言命令换算成对各国数据的具体修订（patch）：发令国自身的投入与收益，以及对其他国家的连锁影响。
  * 引擎逐项校验——字段白名单与幅度上限；内政设定（军费、动员、产能、核计划）只有发令国能改自己的；

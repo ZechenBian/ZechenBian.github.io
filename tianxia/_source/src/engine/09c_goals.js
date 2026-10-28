@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* ===================== 目标与计分（联机版的排行榜） =====================
  * 每个年代的主要国家有几条历史目标；其余国家用通用目标。三类：
  *   reach：在期限（[年, 季]，可省）之前做到一次即达成；过了期限还没做到算失败

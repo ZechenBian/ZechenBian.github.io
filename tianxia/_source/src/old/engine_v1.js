@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* ===================== 规则引擎（纯逻辑，可在 Node 中测试） ===================== */
 const WG = (() => {
 'use strict';

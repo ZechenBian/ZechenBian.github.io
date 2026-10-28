@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* 网页版：一键接入 AI（OpenRouter 授权，src/web/02_ai.js 与 src/web/auth.html）、房主的 AI 统一推演（src/web/ui/04y_hostai.js）；
  * 并更新联机说明里与隐私、AI 费用有关的说法（私信端到端加密、方案只加密给房主、房主共享 AI 时由房主付费）。 */
 I18N.add({

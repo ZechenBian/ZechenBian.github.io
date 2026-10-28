@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* 界面文字 / Interface strings */
 I18N.add({
   'u.title': ['天下棋局', 'Tianxia: Grand Strategy'], 'u.turn': ['第{n}回合', 'Turn {n}'], 'u.lang_switch': ['切换为英文界面', 'Switch to Chinese'],

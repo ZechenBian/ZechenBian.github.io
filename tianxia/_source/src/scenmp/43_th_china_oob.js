@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* 由 tools/th_china_oob.py 根据 research/china_geo.json、china_nra.json、ccp.json 生成。
  * 每条：[中文名, 原名/英文名, 类型, 素质, 规模, 所属, 开局区格, -, -, 分组]（分组：日军 KW关东军 KR朝鲜军 NC华北 CC华中 SC华南 PP伪军；国军为战区；中共 8RA/N4A） */
 var TH_DATA = TH_DATA || {};

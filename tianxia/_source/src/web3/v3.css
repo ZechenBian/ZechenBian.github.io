@@ -1,3 +1,5 @@
+/* Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+   Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。 */
 /* ===================== 网页版 v3：行动力（百分比） ===================== */
 .ap .v3cap { position: relative; display: block; width: 92px; height: 9px; border-radius: 5px; background: var(--line); overflow: hidden; border: 1px solid var(--line2); }
 .ap .v3cap > i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--accent); border-radius: 4px 0 0 4px; transition: width .25s; }

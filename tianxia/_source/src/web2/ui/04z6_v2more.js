@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* ===================== 新版 · 军事页、设置（AI 来源）、建局（AI 用量）、大厅、帮助、新手教学 ===================== */
 /* ---------- 军事页：兵力、战线、作战地图、部署；征兵与订单移到动员页，请求盟友变成协议，核心利益阶梯移到目标页 ---------- */
 function milHTML() {

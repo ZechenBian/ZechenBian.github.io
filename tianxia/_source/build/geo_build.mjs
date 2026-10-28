@@ -1,6 +1,9 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 // Build-time geometry: Natural Earth 50m admin-0 -> projected SVG paths grouped by game actor,
 // plus land adjacency, inter-actor distances, label anchors. Output: ../src/geo.js
 import fs from 'fs';
+const HDR = '// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。\n// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。\n'; // 生成的文件也带版权声明（build.js 拼页面时去掉）
 const d3 = await import('d3-geo'); // tianxia/_source/package.json 里固定版本的 d3-geo（先在 tianxia/_source 里 npm install）
 
 const MEMBERS = {
@@ -232,6 +235,6 @@ const out = {
 };
 const js = 'const GEO=' + JSON.stringify(out) + ';\n';
 fs.mkdirSync('../src', { recursive: true });
-fs.writeFileSync('../src/geo.js', js);
+fs.writeFileSync('../src/geo.js', HDR + js);
 console.log('geo.js bytes', js.length);
 for (const a of actorIds) console.log(a, 'land:', out.land[a].join(','), '| near(<=450km):', actorIds.filter(b => b !== a && !land[a].has(b) && (dist[a + '|' + b] ?? dist[b + '|' + a]) <= 450).join(','));

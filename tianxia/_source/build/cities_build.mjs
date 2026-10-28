@@ -1,5 +1,8 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 // 城市坐标 → 与地图相同的 Natural Earth 投影；并计算各地区凸包（用于战线显示）。输出 ../src/cities.js
 import fs from 'fs';
+const HDR = '// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。\n// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。\n'; // 生成的文件也带版权声明（build.js 拼页面时去掉）
 const d3 = await import('d3-geo'); // tianxia/_source/package.json 里固定版本的 d3-geo（先在 tianxia/_source 里 npm install）
 const ne = JSON.parse(fs.readFileSync('./ne/geojson/ne_50m_admin_0_countries.geojson', 'utf8'));
 const feats = ne.features.filter(f => f.properties.ADM0_A3 !== 'ATA');
@@ -57,7 +60,7 @@ const C = {
 const out = {};
 for (const [id, list] of Object.entries(C)) out[id] = list.map(([zh, en, lon, lat, cap]) => { const p = proj([lon, lat]); return [zh, en, Math.round(p[0] * 10) / 10, Math.round(p[1] * 10) / 10, cap ? 1 : 0]; });
 // 各地区凸包（取自 geo.js 的投影路径）
-const geoSrc = fs.readFileSync('../src/geo.js', 'utf8'); const GEO = (new Function(geoSrc + ';return GEO;'))();
+const geoSrc = fs.readFileSync('../src/geo.js', 'utf8').replace(HDR, ''); const GEO = (new Function(geoSrc + ';return GEO;'))();
 function hull(pts) { pts = pts.slice().sort((a, b) => a[0] - b[0] || a[1] - b[1]); const cr = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]); const lo = [], up = []; for (const p of pts) { while (lo.length >= 2 && cr(lo[lo.length - 2], lo[lo.length - 1], p) <= 0) lo.pop(); lo.push(p); } for (let i = pts.length - 1; i >= 0; i--) { const p = pts[i]; while (up.length >= 2 && cr(up[up.length - 2], up[up.length - 1], p) <= 0) up.pop(); up.push(p); } up.pop(); lo.pop(); return lo.concat(up); }
 const HULL = {};
 for (const [id, d] of Object.entries(GEO.paths)) {
@@ -69,5 +72,5 @@ for (const [id, d] of Object.entries(GEO.paths)) {
   const cityPts = (out[id] || []).map(c => [c[2], c[3]]);
   HULL[id] = hull(keep.concat(cityPts)).map(p => [Math.round(p[0] * 10) / 10, Math.round(p[1] * 10) / 10]);
 }
-fs.writeFileSync('../src/cities.js', '/* 城市（投影坐标）与地区凸包：由 build/cities_build.mjs 生成 */\nconst CITIES=' + JSON.stringify(out) + ';\nconst HULL=' + JSON.stringify(HULL) + ';\n');
+fs.writeFileSync('../src/cities.js', HDR + '/* 城市（投影坐标）与地区凸包：由 build/cities_build.mjs 生成 */\nconst CITIES=' + JSON.stringify(out) + ';\nconst HULL=' + JSON.stringify(HULL) + ';\n');
 console.log('cities', Object.values(out).reduce((s, l) => s + l.length, 0), 'hull pts', Object.values(HULL).reduce((s, h) => s + h.length, 0));

@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* ===================== 联机版 · 网络层（db / room / user） =====================
  * 房主权威：房主的浏览器运行引擎，其他玩家提交命令与“就绪”，房主结算后把压缩快照写入 db，所有人几秒内同步。
  * 数据布局（db）：

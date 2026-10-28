@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* ===================== 联机版 · 精细战区：结算中的作战阶段暂停、联机同步、自然语言命令 =====================
  * 结算时（mpResolve）在规则反应之后、finishTurn 之前运行战区：thBegin → 6 个作战阶段 → thEnd。
  * 每个阶段结束后，凡在战区里有接敌部队、没有交给参谋代管、本季度也没有选择“不再暂停”的真人玩家都可以调整部署：

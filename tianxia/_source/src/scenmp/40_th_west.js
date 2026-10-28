@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* ===================== 精细战区 · 西线（1939–1940，可延续到 1944） =====================
  * 区格中心取真实城镇坐标（经纬度），区格形状、相邻关系、河流过境与铁路由 tools/thgeo.mjs 按真实地理生成（45_th_geo.js）。
  * 地形：plain 平原 · hills 丘陵 · forest 森林丘陵 · mount 山地 · marsh 沼泽/圩田 · urban 城市工业区

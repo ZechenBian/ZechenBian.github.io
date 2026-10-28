@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* ===================== 网页版 v3（行动力按百分比的新版，部署在 tianxia-v3/；只在 node build.js web3 的构建里） =====================
  * 在 v2（合并操作、六个页签、统一输入框）之上：行动点改成每回合 100% 的行动力，每项行动占一定百分比，
  * 花钱的行动按金额占本国 GDP 的比例多占（规则见 src/engine/06_turn.js 的“规则 v3”）。

@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* ===================== 网页版 v4 · 联网：房间密码与名称检查（包在 01_shim.js 的 db / user 外面） =====================
  * 房间密码：建局时设了密码，房主用 PBKDF2（SHA-256，12 万次，盐 = 对局编号）从密码派生 512 位：前 256 位是 AES-GCM 密钥，
  * 后 96 位公开作“校验码”（只用来判断密码对不对，推不出密钥）。这局的文档在写进中继之前加密，读出来之后解密：

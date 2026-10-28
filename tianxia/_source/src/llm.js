@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* ===================== Claude 推演层 v2（claude.use("sample")） =====================
  * 提示词用英文书写，要求按当前界面语言输出。所有结果都经过引擎的上下限校验。
  */

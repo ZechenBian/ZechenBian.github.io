@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* ===================== 网页版 v4 · 单机任务的定义 =====================
  * 每个任务：年代、国家、期限（until：期限那个季度）、一回合多长（qpt：一回合连算几个季度；2 = 半年，4 = 一年）、难度（diff：1–3 个点）。
  * 三档难度（d：0 简单、1 普通、2 困难）：tg[d] 是这一档的目标数值；简单档的期限多一年（坚守型除外），AI 也按这一档的聪明程度行事。

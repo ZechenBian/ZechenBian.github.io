@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* 历史剧本与核心利益扩展的文字 */
 I18N.add({
   'co.arms': ['向{t:N}紧急输送武器装备', 'rushed arms and equipment to {t:N}'],

@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* ===================== 联机版 · 目标、计分与排行榜 =====================
  * 本国页顶部：我的历史目标（达成 / 失败 / 正满足 / 未满足）与得分构成；状态栏的 🏆 按钮打开排行榜。
  * 多人局：排行榜列出所有真人；单人局：与几个 AI 大国对照。房主可以“结束对局并公布排名”。 */

@@ -1,8 +1,11 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 // 网页版用的中国标准地图（显示用）：Natural Earth 10m “中国视角”数据（藏南、阿克赛钦归中国，台湾按省级单位），
 // 投影与 geo_build.mjs 完全相同（同样用 50m 数据拟合），只重算显示用的路径：paths / outline / internal / borders / coast / bbox；
 // 引擎用到的 label / land / dist / areaPx（以及 w / h / grat / sphere）原样取自 src/geo.js，结算结果不变。
 // 另加：南海诸岛、钓鱼岛及其附属岛屿（画成小块，属中国 / 台湾省）与南海断续线（十段，GEO.dash）。输出 ../src/geo_cn.js
 import fs from 'fs';
+const HDR = '// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。\n// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。\n'; // 生成的文件也带版权声明（build.js 拼页面时去掉）
 const d3 = await import('d3-geo'); // tianxia/_source/package.json 里固定版本的 d3-geo（先在 tianxia/_source 里 npm install）
 
 const MEMBERS = {
@@ -215,7 +218,7 @@ dashLL.push([[122.45, 23.75], [122.62, 24.65]]); // 第十段：台湾以东（�
 const dash = dashLL.map(line => 'M' + dp(line.map(ll => proj(ll)), 0.2).map(p => fmt(p[0]) + ' ' + fmt(p[1])).join('L')).join('');
 
 // —— 引擎用到的字段原样保留 ——
-const G0 = eval(fs.readFileSync('../src/geo.js', 'utf8').replace(/^const GEO=/, '(').replace(/;\s*$/, ')'));
+const G0 = eval(fs.readFileSync('../src/geo.js', 'utf8').replace(HDR, '').replace(/^const GEO=/, '(').replace(/;\s*$/, ')'));
 const bbox = Object.fromEntries(actorIds.map(a => [a, actorBBox[a].map(v => Math.round(v))]));
 const out = Object.assign({}, G0, {
   paths: Object.fromEntries(actorIds.map(a => [a, actorPath[a].join('')])),
@@ -225,5 +228,5 @@ const out = Object.assign({}, G0, {
 });
 for (const k of ['w', 'h', 'label', 'land', 'dist', 'areaPx', 'grat', 'sphere']) if (JSON.stringify(out[k]) !== JSON.stringify(G0[k])) throw new Error('engine field changed: ' + k);
 const js = '/* 网页版的中国标准地图（显示用，build/geo_build_cn.mjs 生成）：藏南、阿克赛钦属中国，台湾按省级单位，南海诸岛与断续线、钓鱼岛及其附属岛屿；\n * 引擎用到的 label / land / dist / areaPx 与 src/geo.js 相同 */\nconst GEO=' + JSON.stringify(out) + ';\n';
-fs.writeFileSync('../src/geo_cn.js', js);
+fs.writeFileSync('../src/geo_cn.js', HDR + js);
 console.log('geo_cn.js bytes', js.length, '| geo.js bytes', fs.statSync('../src/geo.js').size);

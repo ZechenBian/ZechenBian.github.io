@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* ===================== 行动库（玩家与 AI 通用） ===================== */
 const TIERS = [0.05, 0.2, 0.6];
 const pctG = (S, me, p) => S.actors[me].gdp * p / 100;

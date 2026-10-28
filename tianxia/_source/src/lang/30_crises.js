@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* 危机事件卡 / Crisis cards */
 I18N.add({
   'cr.collision.t': ['海空相撞事件', 'Collision at sea'],

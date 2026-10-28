@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* ===================== 多人局：席位的加入、退出与界面辅助 ===================== */
 function seatDefaults(S) {
   return { goal: S.goal || 'hegemony', queue: [], inbox: [], ultis: [], crises: [], commits: [], cb: {}, mem: {}, grudge: {}, favor: {}, threat: {}, unattrib: [], crossed: {}, intelLog: [], carry: [], cbmUntil: -1, lowStab: 0, chat: {}, heg: 0, holds: {}, pre: null, history: [], pol: null, rep: null, report: null, apUsed: 0 };

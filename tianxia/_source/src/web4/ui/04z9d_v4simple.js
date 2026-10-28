@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* ===================== 网页版 v4 · 简化模式（快速上手） =====================
  * 开局画面与游戏菜单里可以切换（存在本机 localStorage 'tianxia4.simple'）。打开后：
  *   · 目标页：一组常用行动按钮（峰会、援助、提议自贸/互不侵犯/结盟、停火/和平、谴责、制裁、军演、进攻），

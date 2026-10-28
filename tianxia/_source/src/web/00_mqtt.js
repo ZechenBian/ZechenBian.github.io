@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* ===================== 网页版 · 极简 MQTT 3.1.1 客户端（经 WebSocket） =====================
  * 只实现联机需要的部分：CONNECT/CONNACK、SUBSCRIBE/SUBACK、UNSUBSCRIBE/UNSUBACK、PUBLISH（QoS 0/1，保留消息）、
  * PUBACK、PINGREQ/PINGRESP、DISCONNECT。断线由上一层（01_shim.js）负责重连。

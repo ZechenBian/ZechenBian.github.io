@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* 由 tools/th_west_oob.py 根据 research/west_oob.json 生成。
  * 每条：[中文名, 原名, 类型, 素质, 规模, 所属集团军, 开局区格(null=增援), 1940年5月集结区格, 迪尔计划目标区格, 集团军群] */
 var TH_DATA = TH_DATA || {};

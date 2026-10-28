@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* 网页版：涉及中国的文字按中国标准——各国战略画像里的相关说法、针对中国的表态措辞、按中国标准处理的规则说明、免责声明。
  * 在数据之后、引擎之前载入：直接改写 ACTORS 与 SCENARIOS 里的战略画像（引擎载入时据此建立各国资料）。 */
 (() => {

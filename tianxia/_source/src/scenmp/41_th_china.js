@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* ===================== 精细战区 · 中国战场（1939 年 10 月起） =====================
  * 区格中心取真实城镇坐标；控制关系按 1939 年 10 月的接触线（research/china_geo.md：front_1939_10）。
  * 第 11 列为人口（百万，约数），用于根据地、征兵与征粮。

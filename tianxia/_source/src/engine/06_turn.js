@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* ===================== 回合流程：新游戏、经济、同时结算、来函、通牒、协议、自由指令、胜负 ===================== */
 
 /* ---------- 经济 ---------- */

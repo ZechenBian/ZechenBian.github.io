@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* ===================== 网页版 v4 · 详细教程与行动手册 =====================
  * 新手教学有两版：经典的快速教程（原来的步骤，约 3 分钟）和详细教程（约 10 分钟，逐项讲清界面上每个部分和每类操作的作用机制）。
  * 两版用同一套聚光灯与说明卡（uimp/04h_tut.js），开始时把步骤表换成对应的一版。

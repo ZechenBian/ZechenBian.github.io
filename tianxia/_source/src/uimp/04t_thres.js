@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* ===================== 联机版 · 精细战区：逐阶段战果 =====================
  * 每个作战阶段（15 天）结束时引擎记下战斗账（thPhaseRecord），视图模型 thView().res 给出玩家能看到的部分
  * （己方与友军为实数，敌军为情报估计）。这里负责：侧栏“战果”页、地图叠加层（该阶段末的态势、战斗位置与结果、

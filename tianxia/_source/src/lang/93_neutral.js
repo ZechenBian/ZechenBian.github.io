@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* 永久中立地区（联机网页版的台湾）的文字 */
 I18N.add({
   'c.neutral': ['涉及中立地区（{t}）：任何国家都不能对它采取行动。', 'This involves a neutral zone ({t}): no country may take any action toward it.'],

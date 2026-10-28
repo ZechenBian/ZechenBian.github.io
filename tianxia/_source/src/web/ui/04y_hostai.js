@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* ===================== 网页版 · 房主的 AI 统一推演（src/web/ui，只在网页版构建里；与 src/ui、src/uimp 同一作用域） =====================
  * 联网对局里，房主可以把自己接入的 AI 共享给本局所有玩家：其他玩家不用自己接入（也不用密钥），他们的一句话命令、危机应对、
  * 与 AI 智能体的谈判都经房主的浏览器交给房主的 AI 推演，费用记在房主的 AI 账户上。各国反应与世界推演本来就由房主结算。

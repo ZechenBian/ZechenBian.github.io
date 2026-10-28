@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* ===================== 界面层 v2 · 地图 ===================== */
 const svg = $('#map'), gWorld = $('#world'), gLand = $('#gLand'), gHatch = $('#gHatch'), gOver = $('#gOver'), labelsEl = $('#labels');
 const view = { k: 1, x: 0, y: 0 };

@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* 网页版 v4 的文字：地图上的行动动画 */
 I18N.add({
   'v4f.replay': ['回放本回合的地图动画', 'Replay this turn’s map animations'],

@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* 词条：检查、预估、结果、反应 / Checks, previews, results, reactions */
 I18N.add({
   // 不能执行的原因

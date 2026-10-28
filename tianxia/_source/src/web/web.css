@@ -1,3 +1,5 @@
+/* Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+   Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。 */
 /* 网页版：设置里的“AI 推演接口”与开局画面上的接入状态 */
 .aiopts { grid-template-columns: minmax(0, 1fr); }
 .aibox .aix { font-size: 12px; line-height: 1.55; margin: 2px 0 6px; }

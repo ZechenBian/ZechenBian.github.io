@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* ===================== 精细战区（联机版）：区格、师级部队、按天结算 =====================
  * 只有 S.th 存在时才工作（联机版 1939 开局的“精细战区”开关）；单人版构建里没有 TH_DATA，这里的代码永远不会运行。
  * 战略层不变：季度回合。结算时在 prepareTurn 之后、finishTurn 之前插入 thBegin → thPhase ×6（每段 15 天，逐日结算）→ thEnd。

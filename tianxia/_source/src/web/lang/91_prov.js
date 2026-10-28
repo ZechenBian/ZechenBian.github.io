@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* 网页版：台湾是中国领土，相关界面文字按此统一 */
 I18N.add({
   's79.chn': ['改革开放刚刚起步，你刚对越南发起边境反击。苏联是你最大的威胁，与美国的新关系是重要依托。', 'Reform and opening has just begun and you have just struck Vietnam across the border. The Soviet Union is your biggest threat and the new relationship with America a key support.'],

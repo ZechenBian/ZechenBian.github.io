@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* ===================== 网页版 · AI 推演接口（玩家自带 API 密钥） =====================
  * 在 claude.ai 里，推演层（src/llm.js）经页面运行时的 sample 能力调用 Claude。放到普通网站上时没有这个能力，这里提供同样接口的替代品：
  *   window.claude.use('sample') → TXAI.sample()：sample.json(input, {modelTier, signal, onText}) 返回解析好的 JSON 对象，出错时抛出 {code, message, detail}。

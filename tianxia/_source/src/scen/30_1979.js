@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* ===================== 1979 · 冷战高峰 =====================
  * 1979 年第一季度：美苏核均势，中美刚刚建交，伊朗爆发伊斯兰革命，埃以媾和，中越边境战火。
  * GDP 与军费为当年美元按物价折算为 2025 年美元（约×4.4）；苏联按美国中央情报局的美元成本估算。

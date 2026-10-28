@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* 网页版 v3（行动力按百分比）的界面文字：覆盖 v1、v2 里说“行动点”的地方；新增行动力条、帮助里的“行动力”一节 */
 I18N.add({
   'mp.title': ['天下棋局 · 联机版 v3', 'Tianxia Online v3'],

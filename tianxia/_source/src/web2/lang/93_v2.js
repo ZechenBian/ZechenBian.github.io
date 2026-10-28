@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* 新版（tianxia-v2/）的界面文字：六个页签、合并后的行动表单、行动组合、统一输入框、动员页、外交页、AI 来源与 AI 用量、帮助与教学 */
 I18N.add({
   'mp.title': ['天下棋局 · 联机版 v2', 'Tianxia Online v2'],

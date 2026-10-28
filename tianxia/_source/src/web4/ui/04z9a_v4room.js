@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* ===================== 网页版 v4 · 房间：名称检查与密码 =====================
  * 建局：对局名称与昵称按 01a_v4nmcore.js 检查，不合规的不让建并写明原因；可以设密码（4–32 个字符），设了就用密码派生的密钥加密这局（01b_v4net.js）。
  * 对局列表：带锁的显示 🔒；进入带锁的对局先输密码（本机已有这局的密钥时直接进）。邀请链接打开、继续上次的对局也一样。

@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* ===================== AI：战略规划、主动行动、通牒、危机、反应 ===================== */
 function aiAP(S, X) { const g = S.actors[X].gdp; return 1 + (g >= 1500 ? 1 : 0) + (g >= 8000 ? 1 : 0); }
 function stanceOf(S, X, Y) { const pl = S.actors[X].plan; if (pl && pl.until >= S.turn && pl.stance && pl.stance[Y]) return pl.stance[Y]; const a = (sc().agenda || {})[X]; return (a && a.stance && a.stance[Y]) || null; }

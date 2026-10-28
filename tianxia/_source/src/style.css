@@ -1,3 +1,5 @@
+/* Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+   Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。 */
 /* 布局：顶部指挥栏 + 地图(主) + 右侧情报/行动面板 + 底部指令台；窄屏时纵向堆叠 */
 :root {
   --bg: #e9ece6; --paper: #f6f6f1; --paper2: #eef0ea; --ink: #1a2326; --muted: #5b686b; --line: #cdd3ca; --line2: #b9c1b6;

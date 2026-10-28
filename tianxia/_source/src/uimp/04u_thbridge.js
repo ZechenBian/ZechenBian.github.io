@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* ===================== 联机版 · 精细战区与国家战略的衔接（界面） =====================
  * 侧栏“战区”页的“占领区与国力”、区格页的经济权重。数据来自引擎的 thOccInfo / thView（见 engine/10f_th_bridge.js）。
  */

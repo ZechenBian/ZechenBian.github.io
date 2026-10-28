@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* ===================== 联机版 · 通讯：真人之间的私信与正式提议、与各国智能体谈判、实时数据变更 ===================== */
 MPS.thread = null; MPS.seen = {}; MPS.chatBusy = false; MPS.prop = [];
 let mpPrivT = null;

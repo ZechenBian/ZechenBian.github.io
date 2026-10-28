@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* ===================== 新版（tianxia-v2/）· 基础：六个页签、侧栏路由、队列里的行动组合、旧入口改道 =====================
  * 只在 node build.js web2 的构建里，和 src/ui、src/uimp、src/web/ui 在同一作用域，按文件名排在它们之后：
  * 这里重新声明的同名函数（renderSide、targetHTML……）覆盖旧版的实现，旧版（tianxia/）的代码一字不动。

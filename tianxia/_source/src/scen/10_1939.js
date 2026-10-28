@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* ===================== 1939 · 二战爆发 =====================
  * 1939 年第三季度：德国刚刚入侵波兰，英法对德宣战；苏德刚签订互不侵犯条约，意大利暂未参战，美国中立，日本深陷侵华战争。
  * GDP 与军费折算为 2025 年美元（Maddison 1990 年国际元 × 约 2.1；军费占比依据 Harrison《二战经济学》）；兵员、坦克、战机、舰艇为约数。

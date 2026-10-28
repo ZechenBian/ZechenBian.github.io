@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* ===================== 精细战区 · 界面数据（视图模型）=====================
  * 界面只读这里给出的数据：己方与友军部队的全部信息；敌军只有情报估计（相邻区格、己方区格可见；中国战场上根据地、
  * 治安区与敌后游击区也提供情报），兵力给出一个带噪声的区间。

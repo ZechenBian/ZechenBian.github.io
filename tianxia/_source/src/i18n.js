@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* ===================== 双语框架 / i18n =====================
  * 引擎只产生结构化消息 {k, p}，界面按当前语言渲染。
  * 模板占位符：{a} 国家名（玩家显示为“你/you”）；{a:C} 句首大写；{a:P} 所有格；{a:PC} 句首所有格；{a:N} 强制显示国名；

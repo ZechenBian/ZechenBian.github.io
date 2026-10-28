@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* ===================== 网页版 v4（部署在 tianxia-v4/；只在 node build.js web4 的构建里） =====================
  * 在 v3（行动力按百分比、六个页签、统一输入框、协议回合结束时结算）之上：
  *   · 房间名与昵称按国内账号名称的现行规定过滤，房间可以设密码（对局内容用密码派生的密钥加密）——src/web4/01b_v4net.js、ui/04z9a_v4room.js

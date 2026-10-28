@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* 网页版规则 v2（window.TX_RULES2）用到的引擎文字：臣服的前提、动员即时生效、行动组合、只退出一项条约；
  * 规则 v3（window.TX_RULES3）：和 AI 国家的协议回合结束统一结算（冲突、对方的选择、行动力退还） */
 I18N.add({

@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* 多人局：私信加密、公开频道、方针、联合推演与交叉影响 */
 I18N.add({
   'mp.keychg': ['{a}的设备密钥变了（可能换了浏览器或清除了数据），已改用新密钥。', "{a:C}'s device key changed (a new browser or cleared data); the new key is now in use."],

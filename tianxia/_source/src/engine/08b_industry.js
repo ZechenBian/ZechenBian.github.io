@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* ===================== 人口、动员与战时生产（v4） =====================
  * 兵员：可动员人口（本土 + 已并入地区 + 少量占领区人口）× 历史最高动员率（mobMax）× 动员等级系数。
  * 生产：军费只有在军工产能允许的范围内才能转化为装备；产能利用率（cu）按国家的转产速度（ramp）逐季提高，

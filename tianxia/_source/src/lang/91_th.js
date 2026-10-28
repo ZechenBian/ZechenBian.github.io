@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* 联机版：精细战区（西线、中国战场）、中国共产党与统一战线 */
 I18N.add({
   // —— 作战阶段报告 ——

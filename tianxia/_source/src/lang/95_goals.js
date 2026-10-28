@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* 目标、计分与排行榜 */
 I18N.add({
   'gl.h': ['目标与计分', 'Objectives and score'],

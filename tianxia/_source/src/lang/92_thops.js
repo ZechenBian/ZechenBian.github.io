@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* 联机版：精细战区的参谋部方案、作战跟踪、参谋长评估与粗一级指挥（战区段） */
 I18N.add({
   // —— 参谋部方案 ——

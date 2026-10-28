@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* 由 tools/thgeo.mjs 生成，请勿手改。坐标为地图像素（与 geo.js 同一投影）。
  * z: [x, y, 面积px², 沿海]；e: [区格a, 区格b, 距离km, 河流等级, 河流名, 铁路(0/1/2), 特殊(sea/dike), 边界长度px] */
 var TH_GEO = TH_GEO || {};

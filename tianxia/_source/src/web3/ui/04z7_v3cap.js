@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* ===================== 网页版 v3 · 行动力（百分比） =====================
  * 在 v2 的界面上，把“行动点”换成每回合 100% 的行动力：顶栏是一条行动力条，表单、队列、按钮上写占用的百分比。
  * 规则在引擎里（src/engine/06_turn.js 的“规则 v3”）：基础比例 + 花钱的部分（按金额占 GDP 的比例），乘本国系数。 */

@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* ===================== 界面层 v2 · 交互与回合流程 ===================== */
 document.addEventListener('click', e => {
   const t = e.target.closest('button, a, [data-toggle], [data-sel], th[data-sort], th[data-isort], td[data-sel], [data-wcity], [data-wfront], [data-wreg]');

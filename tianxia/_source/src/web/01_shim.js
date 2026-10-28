@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* ===================== 网页版 · 联机后端（在 claude.ai 之外运行时代替 window.claude 的 db / room / user） =====================
  * 联机版原本用 claude.ai 页面运行时的共享数据库（db）、房间（room）与身份（user）。放到 GitHub Pages 等普通网站上时没有这些能力，
  * 这里用公共 MQTT 中继服务器（经 WebSocket）实现同样的接口，供 04m_net.js 等联机代码原样使用：

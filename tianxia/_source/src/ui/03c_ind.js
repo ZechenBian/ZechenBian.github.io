@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* ===================== 界面层 v4 · 人口、动员与工业 ===================== */
 const mtT = v => (v == null ? '—' : EN() ? (v >= 100 ? Math.round(v) : v >= 10 ? v.toFixed(0) : v.toFixed(1)) + ' Mt' : v >= 1 ? (v >= 100 ? Math.round(v) : v >= 10 ? v.toFixed(0) : v.toFixed(1)) + T('u.i.mt') : Math.round(v * 100) + T('u.i.wt'));
 const popT = m => (EN() ? (m >= 100 ? Math.round(m) : m.toFixed(1)) + 'M' : m >= 100 ? (m / 100).toFixed(m >= 1000 ? 1 : 2) + '亿' : Math.round(m * 100) + '万');

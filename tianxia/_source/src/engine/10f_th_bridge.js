@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* ===================== 精细战区 ↔ 国家战略：衔接层 =====================
  * 一、占领区影响国力：按区格的人口与工业权重（剧本数据 econ），计算每个地区被其宗主国的敌人控制的份额。
  *     与基线相比，本国的财政、工业产能与兵源按仍在手中的份额折算；占领者按新占的份额得到一部分

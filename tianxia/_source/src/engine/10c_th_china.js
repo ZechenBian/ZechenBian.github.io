@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* ===================== 精细战区 · 中国战场：敌后根据地、游击与扫荡、伪军、统一战线 =====================
  * 只在中国战场（TS.base 存在）工作。区格的控制（TS.zc）表示县城、铁路与公路在谁手里——日军的“点线”占领；在此之上：
  *   jc   日军治安度 0–100：守备兵力、碉堡与伪政权使其上升，根据地与破袭使其下降；决定伪军来源。

@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* ===================== 1945 · 战后新秩序 =====================
  * 1945 年第四季度：二战刚刚结束，美国独占原子弹并开始大规模复员，苏联红军控制东欧，殖民帝国开始瓦解。
  * GDP 与军费折算为 2025 年美元（依据 Maddison 估算）；stock 为战时积累的兵力倍数（随复员逐步回落）。

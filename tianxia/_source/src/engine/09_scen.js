@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* ===================== 剧本：切换、开局、存档迁移 ===================== */
 let CURS = null;
 /* ---------- 中立地区：剧本副本里去掉一切涉及它的设定（并入/占领/附庸、条约、集团、经济圈、制裁、战争、战线、驻军、关系、

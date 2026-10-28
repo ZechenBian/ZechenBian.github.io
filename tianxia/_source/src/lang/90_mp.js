@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* 联机版：多人席位、国家智能体、自然语言实时指令、战时经济 */
 I18N.add({
   'mp.join': ['{a:N}由真人玩家接掌', '{a:N} is now controlled by a human player'],

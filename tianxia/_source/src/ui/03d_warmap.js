@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* ===================== 界面层 v4 · 作战地图 =====================
  * 战区地图：双方控制区、占领区、推进线、城市目标与我方驻军；点击战线或城市下达命令。
  * 进攻方：设定主攻城市、调整投入兵力、空中支援、增援出发阵地、停止进攻。

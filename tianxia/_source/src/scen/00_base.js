@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* ===================== 剧本注册表 / Scenarios =====================
  * 2026 年为基础数据（data.js）；其他年份在此基础上逐项覆盖。
  * 字段：actors 国家属性覆盖；inv 装备存量；part 并入某国的地区；occ 被占领地区 [占领者, 抵抗]；vassal 附庸/殖民地；

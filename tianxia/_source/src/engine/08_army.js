@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* ===================== 军队建设：征兵、军工订单、盟军派兵、护航 ===================== */
 const CONSCRIPT = [0.0005, 0.0015, 0.004];           // 每次征兵规模（占人口比例）
 const PERS_CAP = [0.012, 0.03, 0.07, 0.12];           // 各动员等级下兵员上限（占人口比例）

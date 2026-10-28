@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* 网页版的世界设定（在引擎之前生效）：
  * · 台湾在四个年代里都是中国领土：地图上按中国着色（1945、1979、2026 年开局标“台湾省”），不能被选为玩家国家，
  *   任何国家都不能单独对它采取行动（战争、制裁、援助、贸易、驻军……），它也不会独立。引擎见 01_core.js 的 PROV 与 09_scen.js 的 provincialize。

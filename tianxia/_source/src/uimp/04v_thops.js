@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* ===================== 联机版 · 精细战区：参谋部方案、作战跟踪、参谋长评估（Claude） =====================
  * 远处的目标（例如巴黎）：选中部队，按“进攻”或“突进”后点目标，参谋部按不同轴线拟定 2—3 个分段方案（引擎 thPlanOps）：
  * 侧栏列出每个方案的阶段、战力比、渡河、要塞、补给、天数与风险，地图上画出路线；选定后一键下令（命令 thOp，联机时经房主执行）。

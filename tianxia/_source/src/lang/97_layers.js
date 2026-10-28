@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* 地图图层、战线箭头与动画 */
 I18N.add({
   'u.ly.btn': ['图层', 'Layers'],

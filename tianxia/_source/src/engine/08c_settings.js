@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* ===================== 自由指令的“设定变更”（v4） =====================
  * 自由指令除了外交、经济等一次性效果，还可能改变游戏中的持久设定：国名、政体、战略方针、军费、动员、生产结构、
  * 征兵与军工订单、部队部署、战线指挥、领土处置、集团与长期援助计划等。

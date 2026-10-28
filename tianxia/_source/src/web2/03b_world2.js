@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* 新版的世界设定（在旧版的 03_world.js 之后、引擎之前生效）：
  * · 保底：四个年代里中国和美国都不会被征服、不会投降、不会沦为附庸——对它们本土的攻势最多推进到 62% 就陷入僵持（引擎见 01_core.js 的 GUARD）。
  * · 规则 v2（TX_RULES2）：协议按条款计行动点（含同盟或臣服 2 点，其余 1 点）；提高动员等级即时生效、花 1 点（总体战并入动员等级）；

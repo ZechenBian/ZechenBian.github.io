@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 // 组装单文件页面：src/* → out/tianxia.html（单人版）；node build.js mp → out/tianxia_mp.html（联机版）
 // node build.js web → out/tianxia_web.html：可以放到 GitHub Pages 等普通网站上的联机版（不含精细战区；联网经公共 MQTT 中继，见 src/web）
 // node build.js mp nth → 联机版去掉精细战区的数据
@@ -13,7 +15,9 @@ const MP = process.argv.includes('mp') || WEB;
 const NTH = WEB || process.argv.includes('nth');
 const dir = __dirname + '/src/';
 let html = fs.readFileSync(dir + 'shell.html', 'utf8');
-const rd = f => fs.readFileSync(dir + f, 'utf8');
+// 每个源文件头上都有两行版权声明（JS 用 //，CSS 用 /* */）；拼成一页时去掉，网页版整页只在最前面留一份（见下面的 lic）
+const HDR = /^(?:\/\/ Copyright \(c\) 2026 Zechen Bian\.[^\n]*\n\/\/ Not open source\.[^\n]*\n|\/\* Copyright \(c\) 2026 Zechen Bian\.[^\n]*\n   Not open source\.[^\n]*\*\/\n)/;
+const rd = f => { const s = fs.readFileSync(dir + f, 'utf8'); if (!HDR.test(s)) throw new Error('缺少版权声明：src/' + f); return s.replace(HDR, ''); };
 const ls = sub => (fs.existsSync(dir + sub) ? fs.readdirSync(dir + sub).filter(f => f.endsWith('.js')).map(f => sub + '/' + f) : []);
 const cat = sub => ls(sub).sort().map(rd).join('\n');
 const byBase = (a, b) => path.basename(a).localeCompare(path.basename(b));

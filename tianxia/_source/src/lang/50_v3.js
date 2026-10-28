@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* v3：兵种部署、战役细节、核心利益、军队建设、盟军派兵 */
 I18N.add({
   // 战役

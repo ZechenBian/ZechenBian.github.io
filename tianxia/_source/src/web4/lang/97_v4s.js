@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* 网页版 v4 的文字：简化模式与参谋建议 */
 I18N.add({
   'v4s.toggle': ['简化模式', 'Simple mode'],

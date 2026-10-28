@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* ===================== 网页版 · “AI 推演接口”的界面（src/web/ui，只在网页版构建里；与 src/ui 同一作用域） =====================
  * 设置面板里的一节：一键接入（OpenRouter 授权，不用复制密钥）、选服务商、填密钥与模型、获取模型列表、测试连接、转发代理（附搭建说明与代理代码）；
  * 开局画面上显示接入状态。保存后重新连接推演层（LLM.init），并把界面文字里的“Claude”换成所选服务商的名字（没有接入时换成“AI”；

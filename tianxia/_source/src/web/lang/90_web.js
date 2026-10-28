@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* 网页版（GitHub Pages 等普通网站）：联网经公共中继服务器；AI 推演由玩家自带密钥接入（src/web/02_ai.js）。覆盖联机版里与 claude.ai 有关的文字。
  * 界面文字里的“Claude”会在运行时换成所选服务商的名字（没有接入时是“AI”），见 src/web/ui/04x_ai.js。 */
 I18N.add({

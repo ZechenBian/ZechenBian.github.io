@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* ===================== 局势说明用的分解（只读，不改局面，不用随机数） =====================
  * 网页版 v4 每回合的“局势说明”用：把一个国家这个季度的增长、稳定、国库、军力按引擎的公式拆成各项来源。
  * 与 economy()（06_turn.js）里的算式一一对应；这里只计算、不写回，单人版与 v1–v3 不调用，结果完全不变。 */

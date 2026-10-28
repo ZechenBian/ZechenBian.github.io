@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* ===================== 联机版 · 私密数据与端到端加密 =====================
  * 每台设备一对 ECDH（P-256）密钥：私钥只留在本人这边（网页版存在本浏览器；claude.ai 版存在本人的私密数据里），公钥写在入座记录与自己的通道里。
  * 两人之间用 ECDH 协商出共同密钥（HKDF-SHA256 → AES-GCM-256）；内容先 gzip 再加密，附加数据（AAD）写明用途与编号，不能挪作他用。

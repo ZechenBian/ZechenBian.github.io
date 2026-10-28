@@ -1,3 +1,5 @@
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* ===================== 界面层 · 地图图层、战线箭头与动画 =====================
  * 图层：战线箭头与兵力集群、补给线、航运线与封锁、铁路干线、油田与煤田、海峡要冲、驻军与在途部队、国名标注；
  * 预设：简洁 / 作战 / 经济 / 全部（记在本浏览器的偏好里）。
