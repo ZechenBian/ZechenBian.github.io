@@ -123,7 +123,7 @@ flowchart TB
 **claude.ai（网页、桌面、手机）**
 
 - 推荐：在对话里请 Claude 为改过的 skill 出“保存 skill”的卡片，点保存。
-- 卡片里只有 `SKILL.md`。flavored-notes 还带着脚本和参考文件：用卡片保存之后，看一眼它的 `scripts/` 和 `references/` 还在不在。不在也能用——flavored-notes 和 research-writeup 会退回普通 Markdown，用 pandoc 出 PDF，排版简单一些；要完整版就按下一条用压缩包上传。
+- 卡片里只有 `SKILL.md`。更新已有的 skill 时，它原来的附带文件会保留：2026-10-28 用卡片更新 flavored-notes 后核对过，`scripts/`、`references/`、`assets/` 都在，保存下来的 `SKILL.md` 和仓库里的逐字一致。新建的 skill 只有 `SKILL.md`，所以 flavored-notes 要是在新账户里从卡片新建，就缺脚本。缺脚本也能用：flavored-notes 和 research-writeup 会退回普通 Markdown，用 pandoc 出 PDF，排版简单一些。要完整版，就按下一条用压缩包上传。
 - 压缩包：在仓库根目录运行 `python3 _skills/tools/sync_skills.py pack ~/Desktop/skills-zip`，再到 claude.ai 的设置里逐个上传。压缩包要放在仓库外面（仓库里不放压缩包）。
 - 自己上传的 skill 在技能列表里有时显示成 `anthropic-skills:名字`，工作流按名字找，不受影响。
 
