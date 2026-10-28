@@ -1,0 +1,60 @@
+<!doctype html>
+<!--
+  Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+  Not open source: no copying, modification, redistribution, commercial use or AI/ML training without written permission.
+  非开源：未经书面许可，不得复制、修改、再分发、商用或用于 AI/机器学习训练。
+  License: https://github.com/ZechenBian/zechenbian.github.io/blob/main/LICENSE
+-->
+<!--
+  天下棋局 · 一键接入 AI 的回调页（OpenRouter OAuth PKCE）
+  OpenRouter 授权完成后跳回这里（?code=…&state=…）。本页只把授权码写进本机的 localStorage（'tianxia.oauth.code'），
+  由游戏页用它自己保存的 code_verifier 换取密钥（见 index.html 里的 TXAI.oauthFinish）。本页不发出任何网络请求。
+  弹出窗口：写完后关闭，游戏页从 localStorage 的变化得知；本页跳转（弹出窗口被拦截时）：写完后回到游戏页。
+-->
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex, noai, noimageai">
+<meta name="referrer" content="no-referrer">
+<meta name="author" content="Zechen Bian">
+<title>天下棋局 · AI 授权</title>
+<style>
+:root { --bg: #f6f4ef; --fg: #1f2328; --mut: #6b6f76; --acc: #b4532a; }
+@media (prefers-color-scheme: dark) { :root { --bg: #16181c; --fg: #e8e6e1; --mut: #9a9ea6; --acc: #e08a5f; } }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.6 system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; }
+main { max-width: 440px; margin: 18vh auto 0; padding: 0 16px; text-align: center; }
+h1 { font-size: 18px; margin: 0 0 8px; }
+p { margin: 6px 0; } .en { color: var(--mut); font-size: 13.5px; }
+a { color: var(--acc); }
+</style>
+</head>
+<body>
+<main>
+  <h1 id="h">天下棋局 · AI 授权</h1>
+  <p id="m">正在完成授权……</p>
+  <p class="en" id="me">Finishing the authorization…</p>
+  <p id="lk" hidden><a id="back" href="./">回到游戏 · Back to the game</a></p>
+</main>
+<script>
+(() => {
+  const q = new URLSearchParams(location.search), code = q.get('code') || '', st = q.get('state') || '';
+  let p = null; try { p = JSON.parse(localStorage.getItem('tianxia.oauth') || 'null'); } catch (e) { }
+  let ok = false;
+  try {
+    if (code && /^[A-Za-z0-9._~-]{4,2048}$/.test(code)) { localStorage.setItem('tianxia.oauth.code', JSON.stringify({ code, st, at: Date.now() })); ok = true; }
+    else if (p) localStorage.setItem('tianxia.oauth.code', JSON.stringify({ error: String(q.get('error') || 'denied').slice(0, 60), at: Date.now() })); // 取消了授权
+  } catch (e) { }
+  try { history.replaceState(null, '', location.pathname); } catch (e) { } // 地址栏与历史记录里不留授权码
+  const back = p && typeof p.back === 'string' && p.back.indexOf(location.origin + '/') === 0 ? p.back : new URL('./', location.href).href;
+  document.getElementById('back').href = back;
+  if (p && p.mode === 'redirect') { location.replace(back); return; } // 本页跳转：回到游戏页，由它完成授权
+  try { if (window.opener && !window.opener.closed) window.opener.postMessage({ type: 'tianxia-oauth', ok }, location.origin); } catch (e) { }
+  const say = (zh, en) => { document.getElementById('m').textContent = zh; document.getElementById('me').textContent = en; };
+  if (ok) say('授权完成，请回到游戏页面（这个窗口会自动关闭）。', 'Authorized. Go back to the game (this window closes by itself).');
+  else say('授权没有完成（已取消或出错），可以关闭这个窗口，回到游戏重新点一次。', 'The authorization did not complete (cancelled or failed). Close this window and try again in the game.');
+  setTimeout(() => { try { window.close(); } catch (e) { } setTimeout(() => { document.getElementById('lk').hidden = false; }, 300); }, ok ? 600 : 1500);
+})();
+</script>
+</body>
+</html>

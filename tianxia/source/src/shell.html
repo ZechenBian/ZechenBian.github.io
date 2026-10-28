@@ -1,0 +1,94 @@
+<title>天下棋局</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@600;900&display=swap">
+<style>
+/*__STYLE__*/
+</style>
+<div class="app" id="app">
+  <header class="top">
+    <div class="brand"><span class="seal" aria-hidden="true">棋</span><div><b data-i18n="u.title">天下棋局</b><small id="dateLine">—</small></div></div>
+    <button class="me-chip" id="meChip" data-i18n-ti="u.me_ti">—</button>
+    <div class="kpis" id="kpis"></div>
+    <div class="ap" id="apBox" data-i18n-ti="u.ap_ti"></div>
+    <button class="engine" id="engineBadge">…</button>
+    <div class="top-actions">
+      <button class="lang-btn" id="btnLang">EN</button>
+      <button id="btnMenu" data-i18n="u.menu">设置 / 存档</button>
+      <button class="end" id="btnEnd" data-i18n="u.end">结束回合 ▸</button>
+    </div>
+  </header>
+  <main class="stage">
+    <section class="mapwrap" id="mapwrap">
+      <svg id="map" role="img" data-i18n-al="u.map_al">
+        <defs>
+          <pattern id="hatchP" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="2.2" height="7" style="fill: var(--ink); fill-opacity: .28"/></pattern>
+          <marker id="arr-me" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0,0 L10,5 L0,10 z" style="fill: var(--accent)"/></marker>
+          <marker id="arr-vs" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0,0 L10,5 L0,10 z" style="fill: var(--hostile)"/></marker>
+          <marker id="arr-ot" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0,0 L10,5 L0,10 z" style="fill: var(--unknown)"/></marker>
+        </defs>
+        <g id="world">
+          <path id="sphere" class="sea"/>
+          <path id="grat" class="grat"/>
+          <g id="gSea"></g>
+          <g id="gLand"></g>
+          <g id="gHatch"></g>
+          <path id="internal" class="internal"/>
+          <path id="coast" class="coast"/>
+          <path id="borders" class="borders"/>
+          <g id="gRail"></g>
+          <path id="mePath" class="me-out"/>
+          <path id="hovPath" class="hov"/>
+          <path id="selPath" class="sel"/>
+          <g id="gRes"></g>
+          <g id="gOver"></g>
+        </g>
+      </svg>
+      <div class="labels" id="labels"></div>
+      <div class="maptools">
+        <div class="seg" id="viewSeg" role="group" data-i18n-al="u.views">
+          <button data-v="political" class="on" data-i18n="u.v.political">政治</button><button data-v="relation" data-i18n="u.v.relation">关系</button><button data-v="threat" data-i18n="u.v.threat">威胁</button><button data-v="military" data-i18n="u.v.military">军力</button><button data-v="economy" data-i18n="u.v.economy">经济</button><button data-v="alliance" data-i18n="u.v.alliance">同盟</button><button data-v="war" data-i18n="u.v.war">战局</button>
+        </div>
+        <input id="search" type="search" data-i18n-ph="u.search" data-i18n-al="u.search">
+        <div class="zoom"><button data-z="in" data-i18n-al="u.zin">+</button><button data-z="out" data-i18n-al="u.zout">−</button><button data-z="reset" data-i18n-al="u.zreset">⌂</button></div>
+      </div>
+      <div class="legend" id="legend"></div>
+      <div class="tip" id="tip" hidden></div>
+      <div class="ticker" id="ticker"></div>
+    </section>
+    <aside class="side">
+      <nav class="tabs" id="tabs">
+        <button data-tab="target" class="on" data-i18n="u.t.target">目标</button><button data-tab="home"><span data-i18n="u.t.home">本国</span></button><button data-tab="mil"><span data-i18n="u.t.mil">军事</span><span class="dot" id="milDot" hidden></span></button><button data-tab="diplo"><span data-i18n="u.t.diplo">外交</span><span class="dot" id="inboxDot" hidden></span></button><button data-tab="intel"><span data-i18n="u.t.intel">情报</span><span class="dot" id="intelDot" hidden></span></button>
+      </nav>
+      <div class="tabbody" id="tabbody"></div>
+    </aside>
+  </main>
+  <footer class="console">
+    <div class="queue" id="queue"></div>
+    <form class="cmd" id="cmdForm">
+      <textarea id="cmdText" rows="2" data-i18n-ph="u.cmd_ph"></textarea>
+      <button type="submit" id="cmdBtn" data-i18n="u.adjudicate">裁定</button>
+    </form>
+  </footer>
+</div>
+<div class="modal" id="modal" hidden><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
+<div class="busy" id="busy" hidden></div>
+<div class="toast" id="toast" hidden role="status"></div>
+<script>
+/*__GEO__*/
+</script>
+<script>
+/*__DATA__*/
+</script>
+<script>
+/*__I18N__*/
+</script>
+<script>
+/*__ENGINE__*/
+</script>
+<script>
+/*__LLM__*/
+</script>
+<script>
+/*__UI__*/
+</script>

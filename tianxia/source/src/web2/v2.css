@@ -1,0 +1,80 @@
+/* ===================== 新版（tianxia-v2/）的样式：合并表单、行动组合、统一输入框、动员页、外交页 ===================== */
+.v2tabs button { padding-left: .2em; padding-right: .2em; }
+/* 目标页：行动 */
+.v2acts .v2quick { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+.v2acts .v2quick button { font-size: 13px; padding: .3em .8em; }
+.v2deals { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; margin: 0 0 8px; }
+.v2deals small { margin-right: 2px; }
+.v2deals button { border-radius: 99px; }
+.v2core { border: 1px solid var(--hostile); border-radius: var(--r); padding: 6px 8px; margin: 0 0 8px; background: var(--paper2); }
+.v2forms { gap: 6px; }
+.v2form .act-h .v2kind { font-size: 11px; }
+.v2form .v2sub { font-size: 12px; padding: 0 10px 8px; margin-top: -3px; }
+.v2form.open { border-color: var(--line2); box-shadow: 0 1px 6px rgba(0,0,0,.06); }
+.v2items { display: flex; flex-direction: column; gap: 4px; }
+.v2it { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; padding: 5px 7px; border: 1px solid var(--line); border-radius: 6px; background: var(--paper); }
+.v2it.on { border-color: var(--accent); background: var(--accent-soft); }
+.v2it.dis { opacity: .6; }
+.v2it .v2chk { display: flex; align-items: center; gap: 6px; cursor: pointer; flex: 1 1 9em; min-width: 0; font-size: 13px; }
+.v2it .v2chk b { font-weight: 600; }
+.v2it .v2chk .apc { display: flex; gap: 2px; margin-left: 2px; }
+.v2it .v2chk .apc i { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); display: inline-block; }
+.v2it .v2d { flex-basis: 100%; font-size: 11.5px; color: var(--muted); line-height: 1.35; }
+.v2it .v2d.no { color: var(--bad); }
+.v2it select, .v2amt input, .v2turns input, .v2row select { padding: .15em .35em; border: 1px solid var(--line2); border-radius: 4px; background: var(--paper); font-size: 12.5px; }
+.v2amt { display: inline-flex; align-items: center; gap: 4px; }
+.v2amt input { width: 6.5em; font-family: var(--f-mono); }
+.v2amt small, .v2turns { font-size: 11.5px; color: var(--muted); }
+.v2turns { display: inline-flex; align-items: center; gap: 4px; }
+.v2turns input { width: 3.5em; }
+.v2seg { flex: none; }
+.v2freq { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; font-size: 12.5px; }
+.v2freq small { flex-basis: 100%; font-size: 11.5px; }
+.v2lift { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 12.5px; }
+.v2sum { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; justify-content: space-between; font-size: 12.5px; padding: 6px 8px; background: var(--paper2); border-radius: 6px; }
+.v2sum button { margin-left: auto; }
+.v2fprm, .act-b .prm { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; font-size: 12.5px; }
+.v2fprm select { padding: .2em .4em; border: 1px solid var(--line2); border-radius: 4px; background: var(--paper); }
+.v2ptr { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; justify-content: space-between; border-left-color: var(--accent); }
+.v2jl { margin: 6px 0; padding-left: 1.2em; font-size: 13px; }
+/* 队列 */
+.qchip.qpkg { border-color: var(--accent); }
+/* 统一输入框 */
+.cmd.v2cmd { flex-wrap: wrap; }
+.cmd.v2cmd textarea { flex: 1 1 60%; }
+.ubm { flex-basis: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+.ubm .ubseg button { font-size: 12px; padding: .2em .75em; }
+.ubm .ubseg button[hidden] { display: none; }
+.ubm select { font-size: 12.5px; padding: .15em .35em; border: 1px solid var(--line2); border-radius: 4px; background: var(--paper); max-width: 12em; }
+.ubm .ubformal { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; }
+.ubm #ubHint { font-size: 11.5px; flex: 1 1 12em; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* 动员页 */
+.v2mobseg { display: flex; width: 100%; box-shadow: none; margin: 2px 0 6px; }
+.v2mobseg button { flex: 1 1 0; padding: .35em .2em; font-size: 12.5px; white-space: nowrap; }
+.v2mobseg button.tw:not(.on) { color: var(--hostile); }
+.v2mobseg button.on.tw { background: var(--hostile); color: #fff; }
+.v2mobseg button:disabled { opacity: .45; }
+.v2mobd { font-size: 12px; color: var(--muted); min-height: 2.6em; }
+.v2mobd b { color: var(--ink); }
+.v2rows { display: flex; flex-direction: column; gap: 6px; }
+.v2row { border: 1px solid var(--line); border-radius: var(--r); padding: 7px 9px; background: var(--paper); display: grid; gap: 4px; }
+.v2row .row { display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center; }
+.v2row .row b { flex: 1 1 6em; font-size: 13.5px; }
+.v2wrow { display: grid; gap: 4px; }
+.v2once { margin-left: 14px; padding-left: 8px; border-left: 2px dashed var(--line2); display: grid; gap: 2px; }
+.v2once > small { font-size: 11px; letter-spacing: .06em; }
+.v2once .mpweact { border-style: dashed; }
+/* 外交页 */
+.v2th-b { display: inline-flex; gap: 4px; flex-wrap: wrap; }
+.v2hint { font-size: 11.5px; margin: 6px 0 0; }
+.v2prop summary small { font-weight: 400; margin-left: 4px; }
+.v2tr .row { align-items: flex-start; }
+.v2trks { display: inline-flex; flex-wrap: wrap; gap: 4px 10px; justify-content: flex-end; }
+.v2trk { font-size: 12.5px; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.v2adv { margin: 8px 0; }
+.v2adv summary { cursor: pointer; font-size: 13px; }
+@media (max-width: 560px) {
+  .v2amt input { width: 5.5em; }
+  .ubm #ubHint { flex-basis: 100%; white-space: normal; }
+  .v2mobseg button { font-size: 11.5px; }
+}
