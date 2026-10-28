@@ -28,7 +28,7 @@ This is the streamlined new edition of [Tianxia Online](https://zechenbian.githu
 
 ### 按中国标准（三个版本相同）
 
-地图用中国标准地图（藏南、阿克赛钦属中国，画出南海诸岛与断续线、钓鱼岛及其附属岛屿，台湾标“台湾省”）；中国不显示政体、不会发生政变，随机事件和危机里没有中国的负面内容；别国不能对中国舆论战、扶植反对派、策动政变；中国不采取隐蔽行动，奉行不首先使用核武器政策、不进行核威胁；涉及中国的表态措辞平和。详见[旧版说明](https://github.com/ZechenBian/zechenbian.github.io/blob/main/tianxia/README.md)。
+地图用中国标准地图（藏南、阿克赛钦属中国，画出南海诸岛与断续线、钓鱼岛及其附属岛屿，台湾标“台湾省”）；中国不显示政体、不会发生政变，随机事件和危机里没有中国的负面内容；别国不能对中国舆论战、扶植反对派、策动政变；中国不采取隐蔽行动，奉行不首先使用核武器政策、不进行核威胁；涉及中国的表态措辞平和；中国领土（含台湾）上不允许任何外国军队驻扎，盟友也不行，和中国只能结成军事同盟——不能和中国签驻军协定，不能调兵进入中国、请盟友把兵派进中国或向中国派志愿军；开局时的外国驻军撤回本国（载入以前的存档时也一样）。中国在海外驻军不受影响。详见[旧版说明](https://github.com/ZechenBian/zechenbian.github.io/blob/main/tianxia/README.md)。
 
 ### 免责声明
 
@@ -103,7 +103,7 @@ Everything else — the three modes, four timelines, tutorial, online play and e
 
 ### China-standard settings (same in all three editions)
 
-The map follows China's standard map (South Tibet and Aksai Chin are part of China; the South China Sea Islands with the dashed line and the Diaoyu Islands are drawn; Taiwan is labelled “Taiwan Province, China”); China shows no government-type label and has no coups, and random events and crises contain nothing negative about China; no country can run propaganda, sponsor an opposition or stage a coup against China; China carries out no covert actions, follows a no-first-use nuclear policy and makes no nuclear threats; statements about China are worded calmly. See the [original edition](https://github.com/ZechenBian/zechenbian.github.io/blob/main/tianxia/README.md#english) for details.
+The map follows China's standard map (South Tibet and Aksai Chin are part of China; the South China Sea Islands with the dashed line and the Diaoyu Islands are drawn; Taiwan is labelled “Taiwan Province, China”); China shows no government-type label and has no coups, and random events and crises contain nothing negative about China; no country can run propaganda, sponsor an opposition or stage a coup against China; China carries out no covert actions, follows a no-first-use nuclear policy and makes no nuclear threats; statements about China are worded calmly. No foreign forces may be based on Chinese territory (Taiwan included), allies included — with China an alliance is as far as it goes. No basing rights with China, no moving troops in, no asking allies to send troops there and no volunteers; foreign garrisons at the start go home (also when an older save is loaded). China's own bases abroad are unaffected. See the [original edition](https://github.com/ZechenBian/zechenbian.github.io/blob/main/tianxia/README.md#english) for details.
 
 ### Disclaimer
 
