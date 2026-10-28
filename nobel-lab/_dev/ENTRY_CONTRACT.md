@@ -15,10 +15,10 @@ For EACH entry assigned to you, you write THREE files (ids are fixed — use exa
 | file | global | contract |
 |---|---|---|
 | `src/content/<id>.js`    | pushes into `ENTRIES` | this document, section A |
-| `src/challenges/<id>.js` | `CHALLENGES.<id>`     | `/home/claude/nobel/CHALLENGE_CONTRACT.md` (READ IT) |
-| `src/labs/<id>.js`       | `LABS.<id>`           | `/home/claude/nobel/LAB_CONTRACT.md` (READ IT) — compact (≈150–300 lines); it may reuse the simulation you wrote for the challenge (copy the code; files must be independent) and should let the reader play freely with the answer exposed |
+| `src/challenges/<id>.js` | `CHALLENGES.<id>`     | `nobel-lab/_dev/CHALLENGE_CONTRACT.md` (READ IT) |
+| `src/labs/<id>.js`       | `LABS.<id>`           | `nobel-lab/_dev/LAB_CONTRACT.md` (READ IT) — compact (≈150–300 lines); it may reuse the simulation you wrote for the challenge (copy the code; files must be independent) and should let the reader play freely with the answer exposed |
 
-Read `/home/claude/nobel/src/core.js` (helpers H.*, H.stages, H.answer, H.quiz) and look at good
+Read `nobel-lab/src/core.js` (helpers H.*, H.stages, H.answer, H.quiz) and look at good
 existing examples before starting:
 - content: `src/content1.js` (entry `planck`) and `src/content3.js` (entry `giauque`) — match their depth and tone.
 - challenges: `src/challenges/planck.js`, `src/challenges/hh.js`, `src/challenges/giauque.js`.
@@ -81,7 +81,7 @@ stages. Success messages may name the concept. 2–4 stages (usually 3).
 1. `node --check` on all three files; `node tools/check_content.js <id>` → OK;
    `python3 tools/texcheck_ui.py <id>` → 0 problems (it builds every stage eagerly, parses every TeX string in
    tasks / hints / answers / quiz / answer labels, and mounts the lab).
-2. `cd /home/claude/nobel && python3 tools/harness.py <id> <your scratch dir>` → no errors, scroll width
+2. `python3 nobel-lab/_dev/tools/harness.py <id> <your scratch dir>` → no errors, scroll width
    == inner width at 760 and 380; READ the two screenshots and fix visual problems.
 3. A Playwright script that solves every stage end-to-end (events `['mark', i, false]` for each stage and a
    final `['complete', …]`), and confirms checkers reject an obviously wrong answer.

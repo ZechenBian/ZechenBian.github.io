@@ -1,0 +1,154 @@
+# Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+# Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
+#
+# 自动检查：每个合并请求（PR）和每次推到 main 都跑。说明见仓库根目录 CLAUDE.md。
+#   规矩检查     页面登记、版权声明、构建产物标记、没有密钥、没有压缩包和超大文件
+#   重建一致     每个项目从 src/ 重新构建，必须和提交的页面一模一样
+#   冒烟测试     每个公开页面在无头浏览器里打开（电脑宽度 + 手机宽度），断开外网
+#   策略实验室测试  改到 strategy-lab/ 或 .github/ 时跑全套测试（半小时左右）
+#   全部检查     汇总：上面任何一项失败就失败。main 的保护规则只要求这一项。
+# 这个工作流只读仓库，不发布、不写入任何东西，也不用任何密钥。
+
+name: Checks · 自动检查
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: checks-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    name: 改了哪些项目
+    runs-on: ubuntu-24.04
+    outputs:
+      strategy_lab: ${{ steps.diff.outputs.strategy_lab }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - id: diff
+        env:
+          EVENT: ${{ github.event_name }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+        run: |
+          case "$EVENT" in
+            pull_request) base="$PR_BASE" ;;
+            push) base="$PUSH_BEFORE" ;;
+            *) base="" ;;
+          esac
+          if [ -z "$base" ] || ! git cat-file -e "$base^{commit}" 2>/dev/null; then
+            echo "没有可比较的基准（手动运行或新分支）：全部都跑"
+            echo "strategy_lab=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          files=$(git diff --name-only "$base" HEAD)
+          echo "改动的文件："; echo "$files"
+          if echo "$files" | grep -qE '^(strategy-lab/|\.github/)'; then
+            echo "strategy_lab=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "strategy_lab=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  rules:
+    name: 规矩检查
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - run: python3 .github/scripts/check_rules.py
+
+  rebuild:
+    name: 重建一致
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: 装策略实验室的构建工具（KaTeX、acorn）
+        working-directory: strategy-lab
+        run: npm install --no-audit --no-fund --no-package-lock
+      - run: python3 .github/scripts/check_rebuild.py
+
+  smoke:
+    name: 冒烟测试
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: 装 Playwright 和 Chromium
+        working-directory: strategy-lab
+        run: |
+          npm install --no-audit --no-fund --no-package-lock
+          npx playwright install --with-deps chromium
+      - run: node .github/scripts/smoke.js
+
+  strategy-lab:
+    name: 策略实验室测试
+    needs: changes
+    if: needs.changes.outputs.strategy_lab == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: 装测试依赖（numpy、KaTeX、acorn、ws、Playwright、Chromium）
+        working-directory: strategy-lab
+        run: |
+          python -m pip install --quiet numpy
+          npm install --no-audit --no-fund --no-package-lock
+          npx playwright install --with-deps chromium
+      - name: 全套测试
+        working-directory: strategy-lab
+        run: sh test/run-all.sh 2>&1 | tee "$RUNNER_TEMP/strategy-lab-tests.log"
+      - name: 把每个测试的结果写到 PR 页面上
+        if: always()
+        run: |
+          log="$RUNNER_TEMP/strategy-lab-tests.log"
+          [ -f "$log" ] || exit 0
+          # 失败的行写成 error（PR 的 Files changed 和检查页面上能直接看到），最多 10 条；其余结果写进本次运行的摘要
+          grep -E "[1-9][0-9]* failed|^[[:space:]]+FAIL|CRASH|OVERFLOWING|PROBLEMS|SOMETHING FAILED|Error:|Cannot find module" "$log" \
+            | head -10 | sed 's/%/%25/g' | while IFS= read -r line; do echo "::error title=策略实验室测试::$line"; done
+          { echo '### 策略实验室测试'; echo '```'; grep -E "passed, [0-9]+ failed|^ml-engine|^ui-responsive|^ui-models-shots|^ui-guide-responsive|ALL GREEN|SOMETHING FAILED" "$log"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+
+  all:
+    name: All checks · 全部检查
+    if: always()
+    needs: [changes, rules, rebuild, smoke, strategy-lab]
+    runs-on: ubuntu-24.04
+    steps:
+      - env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "各项结果：$RESULTS"
+          for r in $RESULTS; do
+            case "$r" in
+              success|skipped) ;;
+              *) echo "有检查没通过（$r），点开上面失败的那一项看原因"; exit 1 ;;
+            esac
+          done
+          echo "全部通过"

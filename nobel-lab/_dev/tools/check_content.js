@@ -1,9 +1,9 @@
-// Usage: node tools/check_content.js <id>   — validates src/content/<id>.js
+// Usage (from the repo root): node nobel-lab/_dev/tools/check_content.js <id>   — validates src/content/<id>.js
 const fs = require('fs'), path = require('path');
 const katex = require('/opt/npm-tools/node_modules/katex');
 const id = process.argv[2];
-if (!id) { console.error('usage: node tools/check_content.js <id>'); process.exit(2); }
-const file = path.join(__dirname, '..', 'src', 'content', id + '.js');
+if (!id) { console.error('usage: node nobel-lab/_dev/tools/check_content.js <id>'); process.exit(2); }
+const file = path.join(__dirname, '..', '..', 'src', 'content', id + '.js'); // nobel-lab/src/content
 global.window = global; global.ENTRIES = []; global.LINKS = [];
 eval(fs.readFileSync(file, 'utf8'));
 const e = ENTRIES.find((x) => x.id === id);

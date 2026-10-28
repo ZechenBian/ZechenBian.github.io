@@ -1,0 +1,20 @@
+# 构建产物：由各项目的构建脚本从 src/ 生成，不要手改。
+# 标成 linguist-generated 之后，GitHub 的 PR「Files changed」里默认折叠，只显示源码的改动（点开仍能看）。
+# Built pages: generated from each project's src/ by its build script. Do not edit by hand.
+# Marked linguist-generated so pull-request diffs collapse them and show only source changes.
+
+gravity-slingshot/index.html          linguist-generated=true
+nobel-lab/index.html                  linguist-generated=true
+nobel-lab/literature-peace/index.html linguist-generated=true
+strategy-lab/index.html               linguist-generated=true
+strategy-lab/en/index.html            linguist-generated=true
+strategy-lab/teen/index.html          linguist-generated=true
+strategy-lab/ml/index.html            linguist-generated=true
+strategy-lab/cases/index.html         linguist-generated=true
+
+# 天下棋局：源码还没进仓库（见 CLAUDE.md），这几个页面目前是从仓库外的源码构建的。
+# Tianxia: source not in this repository yet (see CLAUDE.md); these pages are built outside it for now.
+tianxia/index.html                    linguist-generated=true
+tianxia-v2/index.html                 linguist-generated=true
+tianxia-v3/index.html                 linguist-generated=true
+tianxia-v4/index.html                 linguist-generated=true

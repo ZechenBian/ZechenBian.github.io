@@ -7,9 +7,9 @@ reads Simplified Chinese natively; they want depth, not a textbook summary. All 
 Chinese (proper names may add the original in parentheses).
 
 ## Files
-- READ FIRST: `/home/claude/nobel/src/core.js` (global `H`: el, slider, choice, toggle, button, readout, canvas,
-  loop, axes, quiz, answer, stages…) and the CSS tokens/classes in `/home/claude/nobel/src/head.html`.
-- You write ONE file: `/home/claude/nobel/src/humanities/<id>.js`, an IIFE that sets
+- READ FIRST: `nobel-lab/src/core.js` (global `H`: el, slider, choice, toggle, button, readout, canvas,
+  loop, axes, quiz, answer, stages…) and the CSS tokens/classes in `nobel-lab/src/head.html`.
+- You write ONE file: `nobel-lab/src/humanities/<id>.js`, an IIFE that sets
   `window.HUM = window.HUM || {}; HUM.<id> = { title, mount(root, ctx) { …; return { destroy() {} } } }`.
 - ctx = { color(token), reduced, h: H, typeset(node) }.
 - Structure the experience as a sequence of "chapters" (幕) the reader moves through (a chapter nav strip at top,

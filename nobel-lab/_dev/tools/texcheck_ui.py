@@ -1,12 +1,12 @@
-"""Usage: python3 tools/texcheck_ui.py <id> [<id> ...]
+"""Usage (from the repo root): python3 nobel-lab/_dev/tools/texcheck_ui.py <id> [<id> ...]
 Mounts CHALLENGES.<id> (every stage built eagerly, in detached containers) and LABS.<id> in headless Chromium,
 collects every string that could carry TeX (stage title/task/hints/answer, H.answer labels, H.quiz text, any
 H.el html attribute), validates each $…$ segment with the local KaTeX, and reports TeX errors and page errors."""
 import sys, pathlib, json
 from playwright.sync_api import sync_playwright
-import sys as _sys; _sys.path.insert(0, '/home/claude/nobel/tools')
+import sys as _sys; _sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 from browserlock import browser_lock
-ROOT = pathlib.Path('/home/claude/nobel/src')
+ROOT = pathlib.Path(__file__).resolve().parents[2] / 'src'  # nobel-lab/src
 KATEX = pathlib.Path('/opt/npm-tools/node_modules/katex/dist/katex.min.js').read_text()
 
 HOOK = r"""

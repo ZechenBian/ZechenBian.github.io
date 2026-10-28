@@ -8,9 +8,9 @@ reader is a pure-math PhD student (sharp, likes quantitative reasoning, Chinese 
 All visible text in Simplified Chinese; symbols/units in Latin.
 
 ## Files
-- READ FIRST: `/home/claude/nobel/src/core.js` (helpers `H.el, slider, choice, toggle, button, readout, canvas, loop, axes, wavelengthRGB` and the NEW framework `H.stages`, `H.answer`, `H.quiz` at the bottom — read their doc comments carefully).
-- Look at the existing "answer demo" lab for your prize in `/home/claude/nobel/src/labs/<id>.js` (if any). You may copy physics/math code from it (copy, don't import), but the challenge is a different, puzzle-style experience.
-- You write: `/home/claude/nobel/src/challenges/<id>.js`, an IIFE that sets `CHALLENGES.<id> = { title, mount(root, ctx) { return H.stages(root, ctx, [...]) } }`.
+- READ FIRST: `nobel-lab/src/core.js` (helpers `H.el, slider, choice, toggle, button, readout, canvas, loop, axes, wavelengthRGB` and the NEW framework `H.stages`, `H.answer`, `H.quiz` at the bottom — read their doc comments carefully).
+- Look at the existing "answer demo" lab for your prize in `nobel-lab/src/labs/<id>.js` (if any). You may copy physics/math code from it (copy, don't import), but the challenge is a different, puzzle-style experience.
+- You write: `nobel-lab/src/challenges/<id>.js`, an IIFE that sets `CHALLENGES.<id> = { title, mount(root, ctx) { return H.stages(root, ctx, [...]) } }`.
 - CSS classes available (already styled): `lab-stage`, `lab-controls`, `lab-readout`, `lab-hint`, `lab-canvas`, `ctl…`, `btn`, `btn-primary`, `btn-ghost`, `ro…`, `dtable` (wrap a <table> in div.dtable for data tables), plus the stage/quiz/answer classes the helpers emit. If you need a few extra styles, inject one <style> element with classes prefixed by your id (e.g. `.planck-…`) once (check `document.getElementById('st-<id>')` first) and use only CSS variables for colours.
 
 ## Stage design rules
@@ -28,6 +28,6 @@ All visible text in Simplified Chinese; symbols/units in Latin.
 
 ## Verify
 1. `node --check` your file.
-2. Run the harness: `cd /home/claude/nobel && python3 tools/harness.py <id> <your scratch dir>` → prints errors and overflow for 760px dark and 380px light, and saves screenshots. Look at the screenshots (Read the png). Fix errors / overflow (scroll width must equal inner width).
+2. Run the harness: `python3 nobel-lab/_dev/tools/harness.py <id> <your scratch dir>` → prints errors and overflow for 760px dark and 380px light, and saves screenshots. Look at the screenshots (Read the png). Fix errors / overflow (scroll width must equal inner width).
 3. Drive your puzzles end-to-end at least once with Playwright (import tools/harness.py's `build`, open the page, solve each stage programmatically by filling inputs / moving sliders / clicking) and confirm each stage calls `done` (check `window.__events` for ['mark', i, false]) and that the final stage fires ['complete', …]. Also confirm your numeric checkers accept the true answer and reject a clearly wrong one.
 4. Keep scratch files out of src/. Reply briefly: file path, the stages (one line each: what the reader does → what they rediscover), and what you verified.

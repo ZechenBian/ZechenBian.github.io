@@ -42,7 +42,7 @@
 - `src/`：页面源码。`core.js` 是共用的界面和关卡框架；`content1.js`–`content3.js` 和 `content/` 是每一项的文字；`challenges/` 是还原挑战；`labs/` 是答案演示；`humanities/` 和 `hum_app.js` 是文学与和平。
 - `python3 build.py --github .` 生成本目录下的 `index.html` 和 `literature-peace/index.html`。
 - 一个新条目写完三个文件（`content/`、`challenges/`、`labs/` 里同名的 `.js`）并通过检查后，把它的 id 加进 `build.py` 里的 `READY` 列表才会上线。
-- `_dev/` 里是写条目用的说明文档和检查工具，不会发布到网站上；其中的路径以开发目录 `/home/claude/nobel` 为准。
+- `_dev/` 里是写条目用的说明文档和检查工具，不会发布到网站上；工具从仓库根目录运行（例如 `python3 nobel-lab/_dev/tools/harness.py <id>`），直接读写本目录的 `src/`。
 
 ---
 
@@ -78,7 +78,7 @@ The Literature and Peace prizes have no right answers to rediscover, so they are
 - `src/`: page sources. `core.js` is the shared UI and stage framework; `content1.js`–`content3.js` and `content/` hold each entry's text; `challenges/` the rediscovery challenges; `labs/` the answer demos; `humanities/` and `hum_app.js` the Literature & Peace page.
 - `python3 build.py --github .` writes `index.html` and `literature-peace/index.html` in this folder.
 - A new entry goes live once its three files (same-named `.js` in `content/`, `challenges/` and `labs/`) are written and checked and its id is added to the `READY` list in `build.py`.
-- `_dev/` holds the writing guides and test tools for entries. It is not published on the website, and its paths assume the working directory `/home/claude/nobel`.
+- `_dev/` holds the writing guides and test tools for entries. It is not published on the website. Run the tools from the repository root (for example `python3 nobel-lab/_dev/tools/harness.py <id>`); they read and write this folder's `src/` directly.
 
 ---
 
