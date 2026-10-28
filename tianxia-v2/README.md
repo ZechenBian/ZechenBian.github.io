@@ -2,9 +2,9 @@
 
 [中文](#中文) · [English](#english)
 
-这是 [天下棋局·联机版](https://zechenbian.github.io/tianxia/) 的合并操作新版，单独放在这里试玩；旧版保持原样。两版的联机对局互不相通，本机存档也分开；AI 接入的设置两版共用。
+这是 [天下棋局·联机版](https://zechenbian.github.io/tianxia/) 的合并操作新版，单独放在这里试玩；旧版保持原有的玩法。两版的联机对局互不相通，本机存档也分开；AI 接入的设置两版共用。
 
-This is the streamlined new edition of [Tianxia Online](https://zechenbian.github.io/tianxia/), kept separately so it can be tried side by side; the original stays as it was. Online games and local saves are separate between the two editions; your AI connection settings are shared.
+This is the streamlined new edition of [Tianxia Online](https://zechenbian.github.io/tianxia/), kept separately so it can be tried side by side; the original keeps its own gameplay. Online games and local saves are separate between the two editions; your AI connection settings are shared.
 
 **▶ 在线玩 / Play online:** https://zechenbian.github.io/tianxia-v2/
 

@@ -85,3 +85,9 @@ I18N.shield(typeof window !== 'undefined' && Array.isArray(window.TX_SHIELD) ? w
   'cs.ok_mine': ['a'], 'co.yield': ['a'], 'u.cs.mine_about': ['a'], 'm.uprising': ['a'], 'm.nuke.strat': ['a'], 'm.nuke.tac': ['a'],
   'stance.contain': ['a'], 'stance.coerce': ['a'], 'stance.attack': ['a'],
 });
+/* 中国领土上不允许外国驻军（TX_NOBASE，四个版本都有）：在兵力部署的说明和“战区与战役”的帮助里各加一句 */
+(() => {
+  const add = (k, zh, en) => { const e = I18N.dict[k]; if (e) I18N.add({ [k]: [String(e[0]) + zh, String(e[1]) + en] }); };
+  add('u.forces_help', '中国领土上（含台湾）不允许外国驻军，盟友也不行。', ' No foreign troops may be based on Chinese territory (Taiwan included), allies included.');
+  add('u.h.mil_x', '中国领土上（含台湾）不允许外国驻军：和中国只能结成军事同盟，任何国家（包括盟友）都不能在中国驻军、调兵进入或派志愿军。', ' No foreign troops may be based on Chinese territory (Taiwan included): with China an alliance is as far as it goes, and no country, ally or not, may station troops there, move them in or send volunteers.');
+})();
