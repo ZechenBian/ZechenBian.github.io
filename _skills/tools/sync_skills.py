@@ -3,7 +3,7 @@
 # Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 """把 _skills 里分层存放的 skill 装到别处（说明见 _skills/README.md 的"安装与同步"一节）。
 
-仓库里按层分目录（0-flows / 1-methods / 2-makers），而 Claude Code 和 claude.ai 都要求
+仓库里按层分目录（0-flows / 1-makers / 2-methods），而 Claude Code 和 claude.ai 都要求
 每个 skill 是一个平铺的文件夹：<名字>/SKILL.md。这个脚本负责"拍平"。evals/ 不随 skill 安装。
 
 用法（仓库根目录）：
@@ -11,7 +11,8 @@
   python3 _skills/tools/sync_skills.py install [--dest ~/.claude/skills] [--only 名字 ...] [--dry-run]
   python3 _skills/tools/sync_skills.py pack 输出目录 [--only 名字 ...]
 
-install：复制到 Claude Code 的 skills 目录；同名的旧版本先挪进 dest/.backup-时间戳/，不直接覆盖。
+install：复制到 Claude Code 的 skills 目录；同名的旧版本先挪进 dest 旁边的 skills-backup/时间戳/
+         （例如 ~/.claude/skills-backup/20261028-120000/），不直接覆盖，也不留在 skills 目录里被当成 skill 读到。
 pack：每个 skill 打成 输出目录/<名字>.zip，供 claude.ai 的"上传 skill"使用。
       输出目录必须在仓库外面（仓库里不放压缩包，见仓库根目录 CLAUDE.md）。
 """
@@ -20,7 +21,7 @@ import argparse, datetime, pathlib, re, shutil, sys, zipfile
 HERE = pathlib.Path(__file__).resolve().parent
 LIB = HERE.parent
 REPO = LIB.parent
-LAYERS = ("0-flows", "1-methods", "2-makers")
+LAYERS = ("0-flows", "1-makers", "2-methods")
 SKIP = {"evals", "__pycache__"}
 
 
@@ -57,13 +58,14 @@ def cmd_list(args):
 def cmd_install(args):
     dest = pathlib.Path(args.dest).expanduser()
     stamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    backup_root = dest.parent / "skills-backup" / stamp
     for _, d in skills(args.only):
         target = dest / d.name
         if args.dry_run:
-            print(f"会装：{d.name} → {target}" + ("（旧版本先备份）" if target.exists() else ""))
+            print(f"会装：{d.name} → {target}" + (f"（旧版本先备份到 {backup_root / d.name}）" if target.exists() else ""))
             continue
         if target.exists():
-            backup = dest / f".backup-{stamp}" / d.name
+            backup = backup_root / d.name
             backup.parent.mkdir(parents=True, exist_ok=True)
             shutil.move(str(target), str(backup))
             print(f"旧版本已备份：{backup}")

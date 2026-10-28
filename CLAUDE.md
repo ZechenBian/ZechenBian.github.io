@@ -1,6 +1,6 @@
 # 仓库规矩 / Repository rules
 
-这是 Zechen Bian 的个人主页仓库，也放着他的几个网页项目（每个项目一个子目录）。
+这是 Zechen Bian 的个人主页仓库，也放着他的几个网页项目（每个项目一个子目录），以及他给 Claude 写的 skill（`_skills/`，网站不发布）。
 GitHub Pages 直接发布 main 分支，服务器上不跑构建，所以**构建出来的页面也要提交**。
 任何会话（Claude Code、Claude 网页版、Cowork）改这个仓库之前，先读完这一页。
 
@@ -15,6 +15,7 @@ GitHub Pages 直接发布 main 分支，服务器上不跑构建，所以**构�
 | `nobel-lab/` | `src/`；写条目的说明和工具在 `_dev/`（Jekyll 不发布下划线开头的目录） | `python3 build.py --github .` → `index.html`、`literature-peace/index.html` | `_dev/tools/` 里的检查工具，从仓库根目录运行 |
 | `strategy-lab/` | `src/`、`i18n/`（英文版译文）、`daily/`（每日一题）、`ml-engine/`（本机 Python 引擎） | 先 `npm install`，再 `python3 build.py` → `index.html`、`en/`、`teen/`、`ml/`、`cases/` | `sh test/run-all.sh`（半小时左右）；单个文件 `node test/xxx.test.js` |
 | `tianxia/`、`tianxia-v2/`、`tianxia-v3/`、`tianxia-v4/` | `tianxia/_source/`（四个版本共用一份，见下面"天下棋局"） | 在 `tianxia/_source/` 里：`node build-pages.js` → 四个版本目录的 `index.html`、`auth.html`、`ai-proxy.mjs`；地图数据 `npm install` 后 `npm run map` | 回放比对 `node tianxia/_source/test/replay.js`；冒烟测试 |
+| `_skills/` | 每个 skill 一个目录，分三层：`0-flows/`、`1-makers/`、`2-methods/`（使用说明见 `_skills/README.md`） | 无构建 | `python3 _skills/tools/check_skills.py`（从仓库根目录运行） |
 
 ## 铁律
 
@@ -66,6 +67,7 @@ python3 .github/scripts/check_rules.py     # 规矩：页面登记、版权声�
 python3 .github/scripts/check_rebuild.py   # 重建一致（先在 strategy-lab/ 和 tianxia/_source/ 里各 npm install）
 node .github/scripts/smoke.js              # 冒烟测试；可以加过滤词，例如 node .github/scripts/smoke.js tianxia
 node tianxia/_source/test/replay.js        # 天下棋局回放比对
+python3 _skills/tools/check_skills.py      # skills 库：格式、测试题、三个工作流的总控协议一致
 cd strategy-lab && sh test/run-all.sh      # 改到策略实验室时
 ```
 

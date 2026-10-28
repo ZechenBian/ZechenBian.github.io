@@ -18,7 +18,7 @@ import json, pathlib, re, sys
 
 HERE = pathlib.Path(__file__).resolve().parent
 LIB = HERE.parent
-LAYERS = ("0-flows", "1-methods", "2-makers")
+LAYERS = ("0-flows", "1-makers", "2-methods")
 NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 PROTO_BEGIN = "<!-- 总控协议 v1 开始"
 PROTO_END = "<!-- 总控协议 v1 结束 -->"

@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: timed-drill-start
+expected_outcome: |
+  先读背景（这里是 profile.md）；错题本里有到期的概率旧题，开场先出旧题；出题时取一次当前时间并给时限；不给答案，等作答。
+context:
+  scaffold_script: place-files.sh
