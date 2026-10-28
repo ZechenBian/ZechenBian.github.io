@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: five-refs-one-fake
+expected_outcome: |
+  逐条打开来源核实；第 5 条是编造的（标不支持或未核实并说明）；输出台账（编号、主张、引用、标识、结果、核实方式、核实日期）。

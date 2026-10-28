@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: feynman-chinese
+expected_outcome: |
+  lang: zh；风味卡；量纲与极限检查；风味盲测；PDF 与 Markdown。

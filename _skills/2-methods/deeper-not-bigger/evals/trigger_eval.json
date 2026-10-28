@@ -1,0 +1,42 @@
+[
+  {
+    "query": "按顶尖的标准来，帮我做这份竞品分析",
+    "should_trigger": true
+  },
+  {
+    "query": "这个复现我想做到专业水准，不是随便跑一下",
+    "should_trigger": true
+  },
+  {
+    "query": "做深一点：别给我 markdown 表，按真正数据科学家的做法来",
+    "should_trigger": true
+  },
+  {
+    "query": "交任务前帮我把标准提一提：这份投资备忘录",
+    "should_trigger": true
+  },
+  {
+    "query": "我要的不是更多页数，是更专业，帮我重写这个任务",
+    "should_trigger": true
+  },
+  {
+    "query": "快速告诉我 VaR 是什么",
+    "should_trigger": false
+  },
+  {
+    "query": "这个函数名拼错了，帮我改一下",
+    "should_trigger": false
+  },
+  {
+    "query": "从这份日志里验证一下“流失是新手引导的问题”",
+    "should_trigger": false
+  },
+  {
+    "query": "先评估这个小游戏想法",
+    "should_trigger": false
+  },
+  {
+    "query": "帮我组个团队把发布会演示做出彩",
+    "should_trigger": false
+  }
+]

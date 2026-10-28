@@ -1,0 +1,42 @@
+[
+  {
+    "query": "我有个新游戏想法：用真实天气数据猜城市，你从评估一路带到上线吧",
+    "should_trigger": true
+  },
+  {
+    "query": "用 flow-project 推进一下“量子电路谜题”第二季",
+    "should_trigger": true
+  },
+  {
+    "query": "想做一个帮中学生练受力分析的互动页，从想法到上线按流程来",
+    "should_trigger": true
+  },
+  {
+    "query": "这个 agent 点子（每天读 arXiv 挑相关论文）你按项目流程推进，每轮给我一张批示单",
+    "should_trigger": true
+  },
+  {
+    "query": "把我积压的“天下棋局观战模式”从评估做到合并",
+    "should_trigger": true
+  },
+  {
+    "query": "这个想法靠谱吗？先评估一下，别开工：一个 AI 剧本杀网页",
+    "should_trigger": false
+  },
+  {
+    "query": "给策略实验室的英文版修一个按钮错位的 bug",
+    "should_trigger": false
+  },
+  {
+    "query": "帮我总结一下 Langlands 纲领的几何版本",
+    "should_trigger": false
+  },
+  {
+    "query": "往大了做：帮我准备下周组会的幻灯片",
+    "should_trigger": false
+  },
+  {
+    "query": "做一个展示我这季度 GitHub 提交数的仪表盘",
+    "should_trigger": false
+  }
+]

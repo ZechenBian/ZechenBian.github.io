@@ -1,0 +1,4 @@
+# Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+# claude plugin eval 的运行结果（每个 skill 的 evals/results/），不提交。
+/*/*/evals/results/
+__pycache__/

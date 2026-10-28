@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: pitch-team-design
+expected_outcome: |
+  名词改动词；按动词找领域（含不太显然的）；团队设计含至少一个红队、每个角色交什么；说明执行方式和用量；停下等确认。

@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: dashboard-is-not-a-lab
+expected_outcome: |
+  这不是学习或游戏页面：不套用实验室规程（中文默认、实验室页脚、Pages 规矩等），按普通仪表盘做。

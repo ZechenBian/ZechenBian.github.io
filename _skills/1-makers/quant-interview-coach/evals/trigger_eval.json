@@ -1,0 +1,42 @@
+[
+  {
+    "query": "下周有个做市商的电面，帮我准备一下",
+    "should_trigger": true
+  },
+  {
+    "query": "来一道 C++ 面试题，限时",
+    "should_trigger": true
+  },
+  {
+    "query": "帮我把学术 CV 改成一页的 quant 简历",
+    "should_trigger": true
+  },
+  {
+    "query": "刚面完一轮，帮我复盘一下",
+    "should_trigger": true
+  },
+  {
+    "query": "这个 take-home 做不完，交还是撤回",
+    "should_trigger": true
+  },
+  {
+    "query": "帮我回测一下这个均线策略",
+    "should_trigger": false
+  },
+  {
+    "query": "期权的 Greeks 是什么",
+    "should_trigger": false
+  },
+  {
+    "query": "帮我做一个策略模拟的网页",
+    "should_trigger": false
+  },
+  {
+    "query": "鞅的定义是什么",
+    "should_trigger": false
+  },
+  {
+    "query": "我的仓位应该开多大",
+    "should_trigger": false
+  }
+]

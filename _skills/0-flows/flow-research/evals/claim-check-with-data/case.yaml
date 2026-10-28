@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: claim-check-with-data
+expected_outcome: |
+  先用 assumption-audit：写出可检验命题与推翻判据，看结果前按时间切出并封存留出集，跑规格网格，给支持 / 反驳 / 无法判断；结论并入一份 research-writeup 风格的小报告，并注明数据是合成的。
+context:
+  scaffold_script: place-files.sh

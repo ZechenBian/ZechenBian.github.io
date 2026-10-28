@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: agent-idea-usage-dimensions
+expected_outcome: |
+  非游戏项目：用“替代什么做法 / 谁每周用 / 成功看什么指标”代替核心循环；AI 调用成本查官方定价并写来源和日期；以 A/B/C 结尾。

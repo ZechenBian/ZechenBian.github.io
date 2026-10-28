@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: bug-fix-ladder-layer4-plan-only
+expected_outcome: |
+  给四层：修这个 bug；找出同类溢出问题；用冒烟测试在手机宽度回测；长期自动运行只列方案不建；每层有裁判。

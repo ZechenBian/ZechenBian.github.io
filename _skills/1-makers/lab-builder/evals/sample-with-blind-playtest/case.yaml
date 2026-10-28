@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: sample-with-blind-playtest
+expected_outcome: |
+  先读 CLAUDE.md（仓库不可用时说明并只做单文件样本）；样本能完整玩一遍；交给用户前派没看过设计的子 agent 只拿页面试玩，回报想让我发现什么 / 卡在哪 / 哪一步不知道该干什么，结果附在样本说明里；不合并。

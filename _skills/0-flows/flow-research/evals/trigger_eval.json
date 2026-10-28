@@ -1,0 +1,42 @@
+[
+  {
+    "query": "用 flow-research 把 Coulomb branch 的 BFN 构造写成一份完整成稿",
+    "should_trigger": true
+  },
+  {
+    "query": "帮我把 DPO 这篇论文吃透，出一份核过引用、带 PDF 的笔记",
+    "should_trigger": true
+  },
+  {
+    "query": "这篇综述里说“最低工资对就业几乎没影响”，我有数据，帮我核一下再写成报告",
+    "should_trigger": true
+  },
+  {
+    "query": "研究问题：为什么深度网络能泛化？做成一份可以存档的研究级总结",
+    "should_trigger": true
+  },
+  {
+    "query": "用 Serre 风格写一份类域论的讲义，走完整流程",
+    "should_trigger": true
+  },
+  {
+    "query": "Langlands 对偶群怎么定义？一句话说一下",
+    "should_trigger": false
+  },
+  {
+    "query": "\\mathcal{M}_g 在 LaTeX 里怎么打",
+    "should_trigger": false
+  },
+  {
+    "query": "帮我调研 2026 年中国储能市场的主要玩家和份额",
+    "should_trigger": false
+  },
+  {
+    "query": "做一个让中学生重新发现开普勒定律的互动页",
+    "should_trigger": false
+  },
+  {
+    "query": "帮我把这段英文摘要改得更通顺",
+    "should_trigger": false
+  }
+]

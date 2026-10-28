@@ -1,0 +1,42 @@
+[
+  {
+    "query": "总结一下 Atiyah–Bott 那篇 Yang–Mills 的论文",
+    "should_trigger": true
+  },
+  {
+    "query": "给我讲讲 3d 镜像对称是怎么回事",
+    "should_trigger": true
+  },
+  {
+    "query": "这篇 Transformer 论文说了什么，为什么能 work",
+    "should_trigger": true
+  },
+  {
+    "query": "X 和 Y 什么关系：几何 Satake 和 Langlands 对偶群",
+    "should_trigger": true
+  },
+  {
+    "query": "写一份关于大语言模型 scaling law 的研究级笔记",
+    "should_trigger": true
+  },
+  {
+    "query": "用 Serre 风格写一份类域论讲义",
+    "should_trigger": false
+  },
+  {
+    "query": "帮我调研一下新能源车行业的竞争格局",
+    "should_trigger": false
+  },
+  {
+    "query": "这个 tikz-cd 箭头怎么加标签",
+    "should_trigger": false
+  },
+  {
+    "query": "核一下这几条参考文献",
+    "should_trigger": false
+  },
+  {
+    "query": "帮我做一个讲重整化群的互动网页",
+    "should_trigger": false
+  }
+]

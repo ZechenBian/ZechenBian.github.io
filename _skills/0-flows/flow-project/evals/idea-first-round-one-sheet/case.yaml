@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: idea-first-round-one-sheet
+expected_outcome: |
+  先盘点已有材料，再按 kickoff-assessment 的固定结构评估；本轮以一张批示单收尾，第一条是 A/B/C；本轮不写游戏代码。

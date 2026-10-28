@@ -1,0 +1,18 @@
+$if(title)$
+# $title$
+$endif$
+$if(subtitle)$
+
+*$subtitle$*
+$endif$
+$if(author)$
+
+$for(author)$$author$$sep$, $endfor$$if(date)$ · $date$$endif$
+$elseif(date)$
+
+$date$
+$endif$
+$if(abstract)$
+
+> **$abstract-title$** $abstract$
+$endif$

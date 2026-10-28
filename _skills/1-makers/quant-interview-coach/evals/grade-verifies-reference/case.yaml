@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: grade-verifies-reference
+expected_outcome: |
+  判分前用枚举（代码）核参考答案；判满分；指出无误并追问一个面试官会追问的问题；不主动给完整解答。

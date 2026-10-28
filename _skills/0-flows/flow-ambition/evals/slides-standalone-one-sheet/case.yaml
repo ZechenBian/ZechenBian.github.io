@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: slides-standalone-one-sheet
+expected_outcome: |
+  独立模式：先盘点并写出“目标背后的目标”推断；四个方法分析后合成一张提标单，开头写明原任务（幻灯片）照交；每条升级有非自评的裁判，成本写成模型时间加用户要提供什么；批示前不执行升级。

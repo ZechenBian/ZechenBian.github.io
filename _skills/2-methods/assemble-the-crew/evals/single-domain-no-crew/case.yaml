@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: single-domain-no-crew
+expected_outcome: |
+  单一领域、边界清楚：不组队，直接做。

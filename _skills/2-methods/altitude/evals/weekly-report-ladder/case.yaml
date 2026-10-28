@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: weekly-report-ladder
+expected_outcome: |
+  先看已有材料并问（或推断）目标背后的目标；四层阶梯每层有裁判和“模型时间 + 用户要提供什么”的工作量；推荐一层并附首个探针；原来的周报照交；不替用户发送。

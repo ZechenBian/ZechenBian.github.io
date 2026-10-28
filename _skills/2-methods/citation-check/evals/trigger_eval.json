@@ -1,0 +1,42 @@
+[
+  {
+    "query": "核一下这几条参考文献是不是真的",
+    "should_trigger": true
+  },
+  {
+    "query": "这条引用真的说过这句话吗？帮我查原文",
+    "should_trigger": true
+  },
+  {
+    "query": "我这篇稿子的参考文献列表，帮我查有没有编造的",
+    "should_trigger": true
+  },
+  {
+    "query": "这句“X 在 1953 年首先证明了 Y”对吗，帮我核出处",
+    "should_trigger": true
+  },
+  {
+    "query": "引用台账帮我补全核实日期和 DOI",
+    "should_trigger": true
+  },
+  {
+    "query": "帮我写一份关于 Hodge 理论的总结",
+    "should_trigger": false
+  },
+  {
+    "query": "BibTeX 里中文作者名怎么写",
+    "should_trigger": false
+  },
+  {
+    "query": "推荐几篇入门 Morse 理论的论文",
+    "should_trigger": false
+  },
+  {
+    "query": "帮我把这段文字改成学术风格",
+    "should_trigger": false
+  },
+  {
+    "query": "这篇论文的结论站得住吗？数据都在附件",
+    "should_trigger": false
+  }
+]

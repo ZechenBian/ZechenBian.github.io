@@ -1,0 +1,42 @@
+[
+  {
+    "query": "帮我准备明天组会要用的几张数据图",
+    "should_trigger": true
+  },
+  {
+    "query": "往上抽一层：这个月的报销单怎么才能不用每次都手填",
+    "should_trigger": true
+  },
+  {
+    "query": "修一下这个周报脚本的日期 bug，顺便想想这件事怎么才能不用每次都做",
+    "should_trigger": true
+  },
+  {
+    "query": "帮我整理一下这批面试记录，之后要跟合伙人开会讨论",
+    "should_trigger": true
+  },
+  {
+    "query": "每周都要手动导出一次 Google Analytics 数据给老板，帮我弄一下",
+    "should_trigger": true
+  },
+  {
+    "query": "写一首关于秋天的短诗",
+    "should_trigger": false
+  },
+  {
+    "query": "我有个新游戏点子，先评估一下可玩性",
+    "should_trigger": false
+  },
+  {
+    "query": "这个说法靠得住吗？我有原始日志可以查",
+    "should_trigger": false
+  },
+  {
+    "query": "给我讲讲 Morse 理论",
+    "should_trigger": false
+  },
+  {
+    "query": "把这段话翻译成英文",
+    "should_trigger": false
+  }
+]

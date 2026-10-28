@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: summary-full-pipeline
+expected_outcome: |
+  由 research-writeup 主写；一行报默认规格后直接写；摘要按四问回答；citation-check 核引用并在附录给台账；做独立审稿或明确标注未做；用 flavored-notes 的构建脚本出 PDF；交付说明含交付前清单。

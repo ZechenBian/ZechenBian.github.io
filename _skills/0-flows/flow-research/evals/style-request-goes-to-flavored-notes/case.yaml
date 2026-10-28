@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: style-request-goes-to-flavored-notes
+expected_outcome: |
+  分流到 flavored-notes：写出风味卡、按其规则写作与验证、跑风味盲测并在交付时报告结果；引用按 citation-check 核验或不引。

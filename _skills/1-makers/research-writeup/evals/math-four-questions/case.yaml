@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: math-four-questions
+expected_outcome: |
+  模块 A，博士生档；一行报默认规格；摘要在整篇层面回答四问，节内不套四问模板；每条命题有标签（已证 / 物理论证 / 猜想 / 推测）；附录有命题台账与引用台账；独立审稿或标注；PDF 用 build_note.py；交付前清单。

@@ -1,0 +1,42 @@
+[
+  {
+    "query": "这次发布会的演示要做得特别出彩，帮我组个跨领域团队",
+    "should_trigger": true
+  },
+  {
+    "query": "我的论文引言写得很平，想找不同领域的视角把它做出彩",
+    "should_trigger": true
+  },
+  {
+    "query": "产品首页设计感觉只有工程师视角，帮我拉一个团队重做",
+    "should_trigger": true
+  },
+  {
+    "query": "年度回顾文档很重要，请组队做，并且要有人专门挑刺",
+    "should_trigger": true
+  },
+  {
+    "query": "这份融资材料只从财务角度写的，想要更多角度",
+    "should_trigger": true
+  },
+  {
+    "query": "帮我改一下这段代码的缩进",
+    "should_trigger": false
+  },
+  {
+    "query": "评估一下这个游戏点子的可玩性",
+    "should_trigger": false
+  },
+  {
+    "query": "往上抽一层：这周的报销怎么才能不用每次都做",
+    "should_trigger": false
+  },
+  {
+    "query": "检验一下“周末销量更高”这个说法，数据附上",
+    "should_trigger": false
+  },
+  {
+    "query": "这个 LaTeX 公式怎么对齐",
+    "should_trigger": false
+  }
+]

@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: tiny-task-no-ladder
+expected_outcome: |
+  小任务：不展开阶梯，直接改；结尾最多一句话提到可以往上抽。

@@ -2,7 +2,7 @@
 # Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 #
 # 自动检查：每个合并请求（PR）和每次推到 main 都跑。说明见仓库根目录 CLAUDE.md。
-#   规矩检查     页面登记、版权声明、构建产物标记、没有密钥、没有压缩包和超大文件
+#   规矩检查     页面登记、版权声明、构建产物标记、没有密钥、没有压缩包和超大文件；skills 库（_skills/）的格式和测试题
 #   重建一致     每个项目从 src/ 重新构建，必须和提交的页面一模一样
 #   冒烟测试     每个公开页面在无头浏览器里打开（电脑宽度 + 手机宽度），断开外网
 #   天下棋局回放比对  四个版本 × 四个开局年代各推演 12 回合，逐回合和 tianxia/_source/test/replay-golden.json 比对
@@ -68,6 +68,7 @@ jobs:
         with:
           persist-credentials: false
       - run: python3 .github/scripts/check_rules.py
+      - run: python3 _skills/tools/check_skills.py
 
   rebuild:
     name: 重建一致

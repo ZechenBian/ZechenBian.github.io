@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: no-repo-single-file
+expected_outcome: |
+  说明仓库挂不上的原因；只做单文件样本（文件或私有 Artifact）；样本能完整玩一遍；不改仓库。

@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: ab-test-alternatives
+expected_outcome: |
+  检查替代解释（新奇效应随时间衰减、设备构成）；规格网格（排除规则、时间窗、按设备分层）；留出最近几周作样本外；结论附置信程度。
+context:
+  scaffold_script: place-files.sh

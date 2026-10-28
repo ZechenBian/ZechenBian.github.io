@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: budget-respected
+expected_outcome: |
+  只核前 3 条；其余 5 条标“未核实”并写原因（超出预算）；报告核验数与预算。
