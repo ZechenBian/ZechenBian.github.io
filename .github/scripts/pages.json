@@ -14,9 +14,9 @@
     { "path": "tianxia-v2/index.html",                 "name": "天下棋局·联机版 v2",         "generated": true },
     { "path": "tianxia-v3/index.html",                 "name": "天下棋局·联机版 v3",         "generated": true },
     { "path": "tianxia-v4/index.html",                 "name": "天下棋局·联机版 v4",         "generated": true },
-    { "path": "tianxia/auth.html",                     "name": "天下棋局 · AI 授权回调",     "smoke": false },
-    { "path": "tianxia-v2/auth.html",                  "name": "天下棋局 v2 · AI 授权回调",  "smoke": false },
-    { "path": "tianxia-v3/auth.html",                  "name": "天下棋局 v3 · AI 授权回调",  "smoke": false },
-    { "path": "tianxia-v4/auth.html",                  "name": "天下棋局 v4 · AI 授权回调",  "smoke": false }
+    { "path": "tianxia/auth.html",                     "name": "天下棋局 · AI 授权回调",     "smoke": false, "generated": true },
+    { "path": "tianxia-v2/auth.html",                  "name": "天下棋局 v2 · AI 授权回调",  "smoke": false, "generated": true },
+    { "path": "tianxia-v3/auth.html",                  "name": "天下棋局 v3 · AI 授权回调",  "smoke": false, "generated": true },
+    { "path": "tianxia-v4/auth.html",                  "name": "天下棋局 v4 · AI 授权回调",  "smoke": false, "generated": true }
   ]
 }
