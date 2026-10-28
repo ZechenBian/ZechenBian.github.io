@@ -270,7 +270,54 @@ if all(os.path.exists(os.path.join(ROOT, "src", f)) for f in CASES_JS):
     os.makedirs(os.path.join(ROOT, "cases"), exist_ok=True)
     open(os.path.join(ROOT, "cases/index.html"), "w", encoding="utf8").write(cases_page)
 
+# 数据分析案例 · 框选提问（样本，cases-ask/index.html）：同一份案例源码，多带三个文件——src/ai.js（独立网页里用使用者自己的密钥）、
+# src/ask/ask.js（选中文字或拖一个框就地提问、回答里还能接着问的批注层）和 src/ask/cases.js（这张页面的适配）。普通的 cases/ 不变。
+# 在 Claude 里打开的版本（dist/cases-ask.html，发布成 Artifact 时声明 capabilities: {"sample": {}}）用打开页面的人自己的 Claude。
+CASES_ASK_JS = CASES_JS + ["ai.js", "ask/ask.js", "ask/cases.js"]
+cases_ask_page = ""
+if cases_page and all(os.path.exists(os.path.join(ROOT, "src", f)) for f in CASES_ASK_JS):
+    ask_js = "/* %s\n   Not open source. %s */\n" % (COPY, LICENSE_URL) + "\n".join("/* ===== %s ===== */\n%s" % (f, src(f)) for f in CASES_ASK_JS)
+    assert "</script" not in ask_js.lower(), "内联脚本里不能出现 </script"
+    ask_body = rd("src/cases/body.html").replace("<small>八步框架 · 真实数据 · 每一步都现算</small>", "<small>框选提问 · 样本</small>")
+    assert ask_body != rd("src/cases/body.html"), "数据分析案例的副标题变了：改一下这里"
+    ask_head = [
+        '<meta name="author" content="Zechen Bian">', '<meta name="copyright" content="© 2026 Zechen Bian. All rights reserved.">', '<meta name="robots" content="noai, noimageai">',
+        '<link rel="license" href="%s">' % LICENSE_URL]
+    ask_styles = [
+        "<style>\n" + src("styles.css") + "\n</style>",
+        "<style>\n" + src("cases/styles.css") + "\n</style>",
+        "<style>\n" + src("ask/styles.css") + "\n</style>",
+        "<style>\n/* KaTeX %s 的样式，字体内联。KaTeX: MIT License, (c) Khan Academy and other contributors; 字体: SIL Open Font License 1.1。全文见 THIRD-PARTY-NOTICES.md */\n%s\n</style>" % (KATEX_VER, katex_css())]
+    ask_scripts = [
+        "<script>\n/* KaTeX %s — MIT License, (c) Khan Academy and other contributors. https://github.com/KaTeX/KaTeX */\n%s\n</script>" % (KATEX_VER, katex_js),
+        "<script>\n" + ask_js + "\n</script>"]
+    cases_ask_page = "\n".join([
+        "<!doctype html>",
+        "<!--\n  %s\n  Not open source: no copying, modification, redistribution, commercial use or AI/ML training without written permission.\n  非开源：未经书面许可，不得复制、修改、再分发、商用或用于 AI/机器学习训练。\n  License: %s\n  Third-party code bundled in this page (KaTeX, MIT License) and three third-party datasets keep their own licenses: see THIRD-PARTY-NOTICES.md.\n-->" % (COPY, LICENSE_URL),
+        '<html lang="zh-CN">', "<head>", '<meta charset="utf-8">', '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">'] + ask_head + [
+        "<title>框选提问（样本）· 数据分析案例 · 策略实验室</title>",
+        '<meta name="description" content="数据分析案例的样本版：选中文字或拖一个框（文字、公式、表格、图上的一段）就地提问，回答里还能接着框、接着问。AI 用你自己的 Claude 或你自己的 API 密钥。">',
+        '<link rel="icon" href="%s">' % CASES_ICON,
+        '<link rel="preconnect" href="https://fonts.googleapis.com">',
+        '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>',
+        '<link rel="stylesheet" href="%s" media="print" onload="this.media=\'all\'">' % FONTS,
+        "<style>" + RESET + "</style>"] + ask_styles + [
+        "</head>", "<body>",
+        '<noscript><p style="padding:24px">这个页面要开着 JavaScript 才能用。</p></noscript>',
+        ask_body] + ask_scripts + ["</body>", "</html>", ""])
+    os.makedirs(os.path.join(ROOT, "cases-ask"), exist_ok=True)
+    open(os.path.join(ROOT, "cases-ask/index.html"), "w", encoding="utf8").write(cases_ask_page)
+    # 在 Claude 里打开的版本：只是页面的内容（Artifact 会套上自己的文档骨架）；回到网站的链接改成绝对地址
+    ask_body_claude = ask_body.replace('href="../"', 'href="%s" target="_blank" rel="noopener"' % SITE).replace('href="../ml/"', 'href="%sml/" target="_blank" rel="noopener"' % SITE)
+    assert ask_body_claude != ask_body, "回到策略实验室的链接变了：改一下这里"
+    cases_ask_claude = "\n".join(["<title>框选提问 · 数据分析案例</title>",
+        "<!-- %s Not open source: no copying, modification, redistribution, commercial use or AI/ML training without written permission. License: %s -->" % (COPY, LICENSE_URL),
+        '<link rel="stylesheet" href="%s">' % FONTS, "<style>" + RESET + "</style>"] + ask_styles + [ask_body_claude] + ask_scripts)
+    open(os.path.join(ROOT, "dist/cases-ask.html"), "w", encoding="utf8").write(cases_ask_claude)
+    open(os.path.join(ROOT, "dist/cases-ask-preview.html"), "w", encoding="utf8").write(
+        '<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>' + RESET + '</style></head><body>' + cases_ask_claude + '</body></html>')
+
 print("built: %.0f KB (js %.0f KB, katex css %.0f KB); index.html %.0f KB%s; teen/index.html %.0f KB%s%s" % (len(page.encode()) / 1024, len(js.encode()) / 1024, len(katex_css().encode()) / 1024, len(zh_page.encode()) / 1024,
       "; en/index.html %.0f KB" % (len(en_page.encode()) / 1024) if en_page else "; 没有 i18n/en，只生成了中文页", len(teen_page.encode()) / 1024,
       "; ml/index.html %.0f KB" % (len(ml_page.encode()) / 1024) if ml_page else "",
-      "; cases/index.html %.0f KB" % (len(cases_page.encode()) / 1024) if cases_page else ""))
+      "; cases/index.html %.0f KB" % (len(cases_page.encode()) / 1024) if cases_page else "") + ("; cases-ask/index.html %.0f KB" % (len(cases_ask_page.encode()) / 1024) if cases_ask_page else ""))

@@ -10,6 +10,7 @@
     { "path": "strategy-lab/teen/index.html",          "name": "策略实验室 · 青少年版",      "generated": true },
     { "path": "strategy-lab/ml/index.html",            "name": "机器学习实验室",            "generated": true },
     { "path": "strategy-lab/cases/index.html",         "name": "数据分析案例",              "generated": true },
+    { "path": "strategy-lab/cases-ask/index.html",     "name": "数据分析案例 · 框选提问（样本）", "generated": true },
     { "path": "tianxia/index.html",                    "name": "天下棋局·联机版",            "generated": true },
     { "path": "tianxia-v2/index.html",                 "name": "天下棋局·联机版 v2",         "generated": true },
     { "path": "tianxia-v3/index.html",                 "name": "天下棋局·联机版 v3",         "generated": true },

@@ -122,6 +122,8 @@ A place to run quantitative-strategy experiments in the browser: pick a game, a 
 
 每个案例的开头写着它对应的面试题，结尾是面试官会追问的问题和回答。“在机器学习实验室里继续”把案例整理好的那张表交给机器学习实验室（同一个网站，数据只存在这台电脑的浏览器里），那边打开时直接选中它，可以换各种算法；也可以下载成 CSV。
 
+[cases-ask/](cases-ask/) 是同一份案例做成的**样本**（还没有并进正式页面）：选中几个字，或者按住 Alt 拖一个框（文字、公式、表格、图上的一段都可以），就地问 AI；回答以批注的形式插在被问的地方，回答里还能接着选、接着框、接着问，一层套一层。在 Claude 里打开时用打开页面的人自己的 Claude，独立网页里用使用者自己的密钥（和策略实验室共用同一份设置，见 `src/ai.js`）；批注只存在这台电脑的浏览器里。批注层的源码在 `src/ask/`（`ask.js` 是通用的部分，`cases.js` 是这张页面的适配），普通的 `cases/` 不受影响。
+
 页面打开之后不再联网（界面字体除外），不要账号。案例是数据文件（`src/cases/case-*.js`）：每一步是一个往页面里写文字、表格、图和控件的函数，算的部分（`compute`）不碰页面，测试直接调用。三份真实数据为了嵌进页面重新编码过，数值不变，来源与许可见 [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)。
 
 ### 数字是在你的电脑上现算的
@@ -170,11 +172,13 @@ strategy-lab/
 ├── teen/index.html 构建出来的青少年版（中文）
 ├── ml/index.html 构建出来的机器学习实验室（中文）
 ├── cases/index.html 构建出来的数据分析案例（中文）
+├── cases-ask/index.html 数据分析案例 · 框选提问的样本
 ├── build.py      把 src/ 拼成一个文件
 ├── src/          引擎、内置规则、界面、手册的文字（只有一份，中文）；大厅的几样东西也在这里（hub.js 读写 GitHub，mq.js 是实时房间的中继，sandbox.js 是隔离环境）
 ├── src/teen/     青少年版：七个小游戏、两组课、它自己的界面和样式
 ├── src/ml/       机器学习实验室：数据集、算法、自动求导、统计检验、运行器、界面、手册、动画（设计见 src/ml/DESIGN.md）
 ├── src/cases/    数据分析案例：三份真实数据、一个车桩模拟器、回归与 Poisson 回归等数值工具、四个案例、界面
+├── src/ask/      框选提问的批注层（样本，只进 cases-ask/）
 ├── ml-engine/    机器学习实验室的本机 Python 引擎（可选）
 ├── i18n/         英文版：译文表和生成工具
 ├── data/         示例行情
@@ -184,14 +188,14 @@ strategy-lab/
 
 ```sh
 npm install                      # 取 KaTeX 的发行文件；英文版的生成工具要用 acorn，测试要用 Playwright
-python3 build.py                 # 生成 index.html、en/index.html、teen/index.html、ml/index.html 和 cases/index.html（以及 dist/ 下在 Claude 里发布用的那一份）
+python3 build.py                 # 生成 index.html、en/index.html、teen/index.html、ml/index.html、cases/index.html 和 cases-ask/index.html（以及 dist/ 下在 Claude 里发布用的那一份）
 npx playwright install chromium  # 只有跑界面测试才需要
 sh test/run-all.sh               # 全部测试，要半个多小时
 ```
 
 **英文版是怎么来的。** 源码只有一份，是中文的。构建时 [i18n/i18n.js](i18n/i18n.js) 把源码里每一段给人看的中文（界面上的字、手册、规则的说明、规则代码里的注释、发给 AI 的提示词，一共六千多段）换成 [i18n/en/](i18n/en/) 里的译文，代码本身一个字不动，所以两种语言跑的是同一套计算：同样的设定下结果逐位相同，现算的缓存也是共用的。译文入库时逐段自动核对：公式、现算的数字标记、代码必须和原文一致，占位符不能多也不能少。改了源码里的中文而没有补译文，构建会失败并指出是哪一段。细节见 [i18n/README.md](i18n/README.md)。
 
-测试分两部分：Node 里对引擎和手册里每个数字的核对（约 2800 项），无头浏览器里的界面检查（约 1500 项）。AI 接口的测试用的是本机的一个假服务商，大厅的测试把 GitHub 和 drand 换成本机的假数据、把中继换成本机的假中继，都不会向外发请求。每日一题的结算程序在测试里是直接调用的：私钥是测试自己造的，容器换成子进程，所以容器那一层只在 GitHub Actions 上实际运行时才用得上。青少年版的测试（`node test/teen.test.js`、`node test/ui-teen.js`）把讲解里写的每个数拿精确计算去对，把七个游戏按最简单的办法亲手打一遍、核对得分和对应的基准规则一模一样，并核对页面打开之后没有任何对外的请求。量子玩法的测试（`node test/quantum.test.js`）核对模拟器本身、十关谜题的参考解都拿三星、电路算出的数和 Bell、Grover、量子芝诺的公式一致、三套玩法模拟出来的数和理论值一致，以及手册里引用的每个数；`node test/ui-quantum.js` 在无头浏览器里点格子把几关做出来，再把设定带回玩法。别人写的代码那一部分是真测：测试里放了会联网、会改内置对象、会去动别人成绩的规则和裁判，核对它们一样也办不到。英文版的测试（`node test/ui-en.js`，大厅的那几样在 `node test/ui-en-lobby.js`）把页面的每一处走一遍：每个世界、每套玩法、每条规则、每张图、手册的每一页，页面上不能出现汉字；并核对两种语言算出来的数相同。机器学习实验室的测试：Node 里的统计检验、自动求导（逐个运算做梯度检查）、38 个数据集（理论最优、贝叶斯最优与独立计算对照）、24 个算法（在每类声称适用的数据上跑通并达到质量下限）、动画背后的数值和手册里引用的每个数，约 1700 项；`node test/ui-ml.js` 在无头浏览器里把每个数据集跑一遍，走一遍各视图、代码编辑、导入 CSV、手册和 AI 面板的四种用法（本机的假服务商）；`node test/ui-ml-engine.js` 起一个真的本机引擎，用 numpy 写的示例算法跑通，并核对没有令牌、别的来源都调不了它；引擎自己的单元测试是 `cd ml-engine && python3 -m unittest`。数据分析案例的测试：`node test/cases.test.js` 核对三份数据解码后和原文件一致（例如共享单车两年合计 3,292,679 次）、数值工具对得上闭式解和模拟、每个案例的关键数字和一份独立的 numpy 计算一致，以及正文里每一句“谁比谁大、符号是什么”在当前数据上成立；`node test/ui-cases.js` 在无头浏览器里把四个案例的每一步渲染出来，点控件、换种子、手机宽度、把数据交给机器学习实验室。单独跑一个：`node test/obs.test.js`、`node test/ui-standalone.js`。
+测试分两部分：Node 里对引擎和手册里每个数字的核对（约 2800 项），无头浏览器里的界面检查（约 1500 项）。AI 接口的测试用的是本机的一个假服务商，大厅的测试把 GitHub 和 drand 换成本机的假数据、把中继换成本机的假中继，都不会向外发请求。每日一题的结算程序在测试里是直接调用的：私钥是测试自己造的，容器换成子进程，所以容器那一层只在 GitHub Actions 上实际运行时才用得上。青少年版的测试（`node test/teen.test.js`、`node test/ui-teen.js`）把讲解里写的每个数拿精确计算去对，把七个游戏按最简单的办法亲手打一遍、核对得分和对应的基准规则一模一样，并核对页面打开之后没有任何对外的请求。量子玩法的测试（`node test/quantum.test.js`）核对模拟器本身、十关谜题的参考解都拿三星、电路算出的数和 Bell、Grover、量子芝诺的公式一致、三套玩法模拟出来的数和理论值一致，以及手册里引用的每个数；`node test/ui-quantum.js` 在无头浏览器里点格子把几关做出来，再把设定带回玩法。别人写的代码那一部分是真测：测试里放了会联网、会改内置对象、会去动别人成绩的规则和裁判，核对它们一样也办不到。英文版的测试（`node test/ui-en.js`，大厅的那几样在 `node test/ui-en-lobby.js`）把页面的每一处走一遍：每个世界、每套玩法、每条规则、每张图、手册的每一页，页面上不能出现汉字；并核对两种语言算出来的数相同。机器学习实验室的测试：Node 里的统计检验、自动求导（逐个运算做梯度检查）、38 个数据集（理论最优、贝叶斯最优与独立计算对照）、24 个算法（在每类声称适用的数据上跑通并达到质量下限）、动画背后的数值和手册里引用的每个数，约 1700 项；`node test/ui-ml.js` 在无头浏览器里把每个数据集跑一遍，走一遍各视图、代码编辑、导入 CSV、手册和 AI 面板的四种用法（本机的假服务商）；`node test/ui-ml-engine.js` 起一个真的本机引擎，用 numpy 写的示例算法跑通，并核对没有令牌、别的来源都调不了它；引擎自己的单元测试是 `cd ml-engine && python3 -m unittest`。数据分析案例的测试：`node test/cases.test.js` 核对三份数据解码后和原文件一致（例如共享单车两年合计 3,292,679 次）、数值工具对得上闭式解和模拟、每个案例的关键数字和一份独立的 numpy 计算一致，以及正文里每一句“谁比谁大、符号是什么”在当前数据上成立；`node test/ui-cases.js` 在无头浏览器里把四个案例的每一步渲染出来，点控件、换种子、手机宽度、把数据交给机器学习实验室；`node test/ui-cases-ask.js` 测框选提问的样本：框住图上的一段、在回答里接着问到第 3 层、层数过滤、换控件和换案例以后批注挂回原处、删除连同嵌在里面的一起删，以及独立网页里接入本机的假服务商以后能问。单独跑一个：`node test/obs.test.js`、`node test/ui-standalone.js`。
 
 引擎和规则是纯 JavaScript，没有运行时依赖。页面内联了 [KaTeX](https://katex.org) 来排公式（MIT 许可，见 [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)）；界面字体从 Google Fonts 加载，连不上时用系统字体。
 
@@ -289,6 +293,8 @@ Everything runs locally in the browser; algorithms train in an isolated backgrou
 ### Data analysis case studies
 
 [cases/](cases/) is another separate page (in Chinese): a few complete data-analysis examples, each taken through the same eight steps — define the problem, where the data come from, cleaning and exploration, baseline, features, model, validation, limitations and next steps. Every number, table and chart is computed in the browser when the page opens and recomputed when you change a control.
+
+[cases-ask/](cases-ask/) is a **sample** built from the same case studies (not merged into the main page yet): select a few words, or hold Alt and drag a box around anything (text, a formula, table rows, a stretch of a chart), and ask AI right there. The answer is inserted as a note where you asked; inside an answer you can select or box again and keep asking, one level deeper each time. Opened inside Claude it uses the viewer's own Claude; as a standalone page it uses the visitor's own API key (the same settings as the Strategy Lab, see `src/ai.js`). Notes are stored only in this browser. The note layer lives in `src/ask/`; the regular `cases/` page is unchanged.
 
 | Case | Data | What it covers |
 |---|---|---|
