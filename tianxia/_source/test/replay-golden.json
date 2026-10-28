@@ -1,0 +1,110 @@
+{
+ "_说明": "由 tianxia/_source/test/replay.js 生成，不要手改。cn = 在中国本土或台湾驻军的外国国家数，wars = 交战对数，fronts = 战线数，hash = 局面指纹；每项从第 0 回合（开局）起每回合一个数。",
+ "turns": 12,
+ "seed": 20261027,
+ "player": "BRA",
+ "tianxia": {
+  "1939": {
+   "hash": "2fztuh927bq 1occdgfrgvz r231rfmnj 263uef4brax 11ftx925rhe 1dd0e0dkk3z 1bb5z3ky87y 7zpnj96p0l mc2eij42gs 29lunagty0z rqitdqxzyx 10gft2bn3gr lib8qew95q",
+   "wars": "9 10 10 10 15 16 18 17 17 20 26 34 34",
+   "fronts": "2 2 1 1 4 3 3 2 2 6 6 5 7",
+   "cn": "0 0 0 0 0 0 0 0 0 0 0 0 0"
+  },
+  "1945": {
+   "hash": "1lxqibrp5jm 9adx2egayy 1o5l06psqyo 2194jls6l4w 1ue0e2bf5aw oj9f9mxvtj qw1emcryzw xowlz69dm1 1um2vol69fj 1tqfjpaxhye 1oksqloi1un 56q8c165q2 1f3wcln8fwx",
+   "wars": "0 0 0 0 0 0 0 0 0 0 0 0 1",
+   "fronts": "0 0 0 0 0 0 0 0 0 0 0 0 1",
+   "cn": "2 2 2 2 2 2 2 2 2 2 2 2 2"
+  },
+  "1979": {
+   "hash": "c7s0tp9g6b 1him8ks5i58 1nyusolss8s 70xfspg2p2 1lmndvru3o9 1eqpn2jnbab j9osljlcxu 235y0kvy7s4 2btnjqa0nq4 1bzncg5ip0t 1c20eldyjh9 1t5159u50j cbkhsn0v2k",
+   "wars": "0 0 0 0 0 0 0 0 1 1 1 1 1",
+   "fronts": "0 0 0 0 0 0 0 0 1 0 0 0 0",
+   "cn": "0 0 0 0 0 0 0 0 0 0 0 0 0"
+  },
+  "2026": {
+   "hash": "2gipmoisoqd 1qspes73w2k 39mfh8x3ma 1ci63p37n39 13dmrzo5j2q w1amw8lir 1a09u5h7ekf 1gh7b2n55wo 284mdmfva0g 1zzg05kusod a0rebk2a61 1e1zp5yxntx vqca0rlbai",
+   "wars": "1 1 1 1 1 1 1 1 1 1 1 1 1",
+   "fronts": "1 1 1 1 1 1 1 1 1 1 1 1 1",
+   "cn": "0 0 0 0 0 0 0 0 0 0 0 0 0"
+  }
+ },
+ "tianxia-v2": {
+  "1939": {
+   "hash": "1cir6yzcowq 1obfeuwhupc 1pusys3s15y 1s7o8e5ge6k 11u9yfx2nbn hpofgg5nno 1xc61oj6nft 1nrks92ujvx 1o98mcf9f1e 4pmd0sa848 69zanftjiw 2eqhmrk29aj 1kylob89329",
+   "wars": "9 10 10 10 15 16 18 17 17 20 26 34 34",
+   "fronts": "2 2 1 1 4 3 3 2 2 6 6 5 7",
+   "cn": "0 0 0 0 0 0 0 0 0 0 0 0 0"
+  },
+  "1945": {
+   "hash": "24s13uo9bsl 18vjdoelbw4 20aa20vtna2 28xtx9t9sjj 14lpntovlnk 1lray0j6b7v 1n9v2ctr1ir 1cbuigwvshe d1qxa8u8tv 1bsa7t8fqh7 16zvcci9kwx ctspq6z4oa 1ufpfcx1tgm",
+   "wars": "0 0 0 0 0 0 0 0 0 0 0 0 1",
+   "fronts": "0 0 0 0 0 0 0 0 0 0 0 0 1",
+   "cn": "2 2 2 2 2 2 2 2 2 2 2 2 2"
+  },
+  "1979": {
+   "hash": "195he7e5fgj 1niskxtria5 jfj3kgt0ap fr2fdgmpcn cfq9g3536z op85xrsrvp 12qzyco20o3 1thuou4fib x55ixc5u2u 1fh4eemg9ag 2e6k6mwwjwb uu7v9bp5yd 19dcvs6eu9q",
+   "wars": "0 0 0 0 0 0 0 0 1 1 1 1 1",
+   "fronts": "0 0 0 0 0 0 0 0 1 0 0 0 0",
+   "cn": "0 0 0 0 0 0 0 0 0 0 0 0 0"
+  },
+  "2026": {
+   "hash": "eqkaqljp3n tjoavgehx4 1fcoaexle97 xpt3kk3scr 265q9erd84p b4q2neb9ff 2f0setv0cma lh339axvbk szt1ywv70v 2317vr901aq 2czk4r96yt4 xpjlxizy3p uk78e4a7gw",
+   "wars": "1 1 1 1 1 1 1 1 1 1 1 1 1",
+   "fronts": "1 1 1 1 1 1 1 1 1 1 1 1 1",
+   "cn": "0 0 0 0 0 0 0 0 0 0 0 0 0"
+  }
+ },
+ "tianxia-v3": {
+  "1939": {
+   "hash": "218i7ogcyeb 1sndottdaor ukkjbv529o n87o8e3q76 g2mqu8dgdt hldhryj0qu hxjvc1ocxt ikosmpq8nm 1pfju1bah6s 1mw35i8twe4 1tcmx1jiob3 4ymon0w5ue 58gcdn4kks",
+   "wars": "9 10 10 10 15 16 18 17 17 20 26 34 34",
+   "fronts": "2 2 1 1 4 3 3 2 2 6 6 5 7",
+   "cn": "0 0 0 0 0 0 0 0 0 0 0 0 0"
+  },
+  "1945": {
+   "hash": "8o8wsi6a1z sjrx5yk1xp 1x1fxf2n40b 27giu2tggmv 1tzew98r3gp 2fnfn58bwvx 1oc4mwhvhj7 1gfgon8qg84 m6zdm5w86j 18eovejamy9 i5h7y7ree2 noro4mljjp 222e3333sn1",
+   "wars": "0 0 0 0 0 0 0 0 0 0 0 0 1",
+   "fronts": "0 0 0 0 0 0 0 0 0 0 0 0 1",
+   "cn": "0 0 0 0 0 0 0 0 0 0 0 0 0"
+  },
+  "1979": {
+   "hash": "2gbrxp5fk4e 1bnt7e11fx2 27a96txelo9 11hwpi2mrf1 o55j1kxvsk 16d9jmrwig9 1ana2wej7lz 1l688xrbr5 1pza8idvrns 1rqbxy6cc1f 1msc4jvqztt 1rek1e9he9m zyyuip8huy",
+   "wars": "0 0 0 0 0 0 0 0 1 1 1 1 1",
+   "fronts": "0 0 0 0 0 0 0 0 1 0 0 0 0",
+   "cn": "0 0 0 0 0 0 0 0 0 0 0 0 0"
+  },
+  "2026": {
+   "hash": "225t64skrou 6qogedczdo 1wyxo42d771 2bqp962yxl6 1jyb2t2d0fi 1q85nokmorw rfqmdlfdy5 c48u5ct1i 1q0tz6stdl5 21505ho6gip r961962hpo ub5y8mizq1 2fr8snu1wse",
+   "wars": "1 1 1 1 1 1 1 1 1 1 1 1 1",
+   "fronts": "1 1 1 1 1 1 1 1 1 1 1 1 1",
+   "cn": "0 0 0 0 0 0 0 0 0 0 0 0 0"
+  }
+ },
+ "tianxia-v4": {
+  "1939": {
+   "hash": "218i7ogcyeb 1sndottdaor ukkjbv529o n87o8e3q76 g2mqu8dgdt hldhryj0qu hxjvc1ocxt ikosmpq8nm 1pfju1bah6s 1mw35i8twe4 1tcmx1jiob3 4ymon0w5ue 58gcdn4kks",
+   "wars": "9 10 10 10 15 16 18 17 17 20 26 34 34",
+   "fronts": "2 2 1 1 4 3 3 2 2 6 6 5 7",
+   "cn": "0 0 0 0 0 0 0 0 0 0 0 0 0"
+  },
+  "1945": {
+   "hash": "8o8wsi6a1z sjrx5yk1xp 1x1fxf2n40b 27giu2tggmv 1tzew98r3gp 2fnfn58bwvx 1oc4mwhvhj7 1gfgon8qg84 m6zdm5w86j 18eovejamy9 i5h7y7ree2 noro4mljjp 222e3333sn1",
+   "wars": "0 0 0 0 0 0 0 0 0 0 0 0 1",
+   "fronts": "0 0 0 0 0 0 0 0 0 0 0 0 1",
+   "cn": "0 0 0 0 0 0 0 0 0 0 0 0 0"
+  },
+  "1979": {
+   "hash": "2gbrxp5fk4e 1bnt7e11fx2 27a96txelo9 11hwpi2mrf1 o55j1kxvsk 16d9jmrwig9 1ana2wej7lz 1l688xrbr5 1pza8idvrns 1rqbxy6cc1f 1msc4jvqztt 1rek1e9he9m zyyuip8huy",
+   "wars": "0 0 0 0 0 0 0 0 1 1 1 1 1",
+   "fronts": "0 0 0 0 0 0 0 0 1 0 0 0 0",
+   "cn": "0 0 0 0 0 0 0 0 0 0 0 0 0"
+  },
+  "2026": {
+   "hash": "225t64skrou 6qogedczdo 1wyxo42d771 2bqp962yxl6 1jyb2t2d0fi 1q85nokmorw rfqmdlfdy5 c48u5ct1i 1q0tz6stdl5 21505ho6gip r961962hpo ub5y8mizq1 2fr8snu1wse",
+   "wars": "1 1 1 1 1 1 1 1 1 1 1 1 1",
+   "fronts": "1 1 1 1 1 1 1 1 1 1 1 1 1",
+   "cn": "0 0 0 0 0 0 0 0 0 0 0 0 0"
+  }
+ }
+}
