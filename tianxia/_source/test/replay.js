@@ -2,7 +2,8 @@
 // Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 // 天下棋局 · 回放比对：确认改动没有悄悄改变某个版本的推演结果。
 //
-// 在无头 Chromium 里打开仓库里发布的四个页面（tianxia/、tianxia-v2/、tianxia-v3/、tianxia-v4/），
+// 从仓库里发布的四个页面（tianxia/、tianxia-v2/、tianxia-v3/、tianxia-v4/）里取出页面自己的脚本
+// （版本开关、地图、数据、文字、规则引擎；不含界面和 AI 推演层），在 Node 的隔离环境里运行。
 // 每个版本 × 每个开局年代用固定种子开一局，按界面不接 AI 时的流程（prepareTurn → ruleReactions → finishTurn）
 // 推演 TURNS 个回合；玩家选一个不行动的国家（PLAYER），其余国家都由引擎决策。
 // 每回合记下：整个局面的指纹（JSON 的哈希），以及几个看得懂的数：交战对数、战线数、在华驻军的外国国家数。
@@ -11,12 +12,17 @@
 //   · 不一致：列出哪个版本、哪个年代、从第几回合开始不同。如果这正是这次要改的玩法，
 //     用 --write 重新生成 replay-golden.json 并一起提交——这样玩法变化会出现在 PR 的 diff 里，一眼能看出影响了哪些版本。
 //
-// 用法（仓库根目录）：
-//   node tianxia/_source/test/replay.js           比对
-//   node tianxia/_source/test/replay.js --write   重新生成 replay-golden.json
-// 外部网络一律切断（页面断网也能推演）。Math.random 在页面里换成固定种子的版本，保证可重复。
+// 为什么用 Node 而不是浏览器：不同版本的 JavaScript 引擎，个别数学函数的结果在最后一位上会差一点
+// （例如 5.490623036878785 和 …784），推演几个回合就会放大成完全不同的局面。所以指纹只能在同一版本的引擎上比。
+// Node 22 的引擎版本固定（V8 12.4），本机和 GitHub 上一样；浏览器的版本则各处不同。
+// 引擎版本和 replay-golden.json 记录的不一样时，脚本会直接说明，不做比对。
+//
+// 用法（仓库根目录，Node 22）：
+//   node tianxia/_source/test/replay.js                         比对磁盘上的页面
+//   node tianxia/_source/test/replay.js --write                 重新生成 replay-golden.json
+//   node tianxia/_source/test/replay.js --git origin/main [--write]  用某个提交里的页面（例如线上的版本）
 "use strict";
-const http = require("http"), fs = require("fs"), path = require("path");
+const fs = require("fs"), path = require("path"), vm = require("vm"), { execFileSync } = require("child_process");
 
 const ROOT = path.resolve(__dirname, "../../..");
 const GOLDEN = path.join(__dirname, "replay-golden.json");
@@ -25,30 +31,45 @@ const SCENS = ["1939", "1945", "1979", "2026"];
 const TURNS = 12;          // 每局推演 12 个回合（三年）
 const SEED = 20261027;
 const PLAYER = "BRA";      // 玩家（不行动）：巴西在四个年代都是独立国家，离各个热点都远，三年内不会被占领而提前结束
+const V8 = process.versions.v8.split(".").slice(0, 2).join(".");
 
-function need() {
-  for (const p of [path.join(ROOT, "strategy-lab/node_modules/playwright"), "playwright", "/opt/npm-tools/node_modules/playwright"]) {
-    try { return require(p); } catch (e) { /* 换下一个 */ }
-  }
-  console.error("找不到 Playwright：先在 strategy-lab/ 里 npm install，再 npx playwright install chromium");
-  process.exit(2);
+// 读页面：默认读磁盘；--git <提交> 时读那个提交里的版本
+function pageHtml(ed, ref) {
+  const rel = `${ed}/index.html`;
+  return ref ? execFileSync("git", ["show", `${ref}:${rel}`], { cwd: ROOT, maxBuffer: 64 << 20 }).toString("utf8")
+             : fs.readFileSync(path.join(ROOT, rel), "utf8");
 }
 
-function serve() {
-  const server = http.createServer((req, res) => {
-    const rel = decodeURIComponent(new URL(req.url, "http://x").pathname);
-    let file = path.join(ROOT, rel);
-    if (!file.startsWith(ROOT)) { res.writeHead(403); return res.end(); }
-    if (fs.existsSync(file) && fs.statSync(file).isDirectory()) file = path.join(file, "index.html");
-    if (!fs.existsSync(file)) { res.writeHead(404); return res.end(); }
-    res.writeHead(200, { "Content-Type": file.endsWith(".html") ? "text/html; charset=utf-8" : "application/octet-stream" });
-    fs.createReadStream(file).pipe(res);
-  });
-  return new Promise((ok) => server.listen(0, "127.0.0.1", () => ok(server)));
+// 在隔离环境里运行页面的脚本，直到定义规则引擎 WG 的那一段（含）为止
+function loadEngine(html) {
+  const blocks = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
+  const iEng = blocks.findIndex((b) => /\bconst WG = \(\(\) =>/.test(b));
+  if (iEng < 0) throw new Error("页面里找不到规则引擎（const WG）");
+  // 页面开头的脚本（联网、AI 接口等）载入时会碰到浏览器对象：给一个什么都接受的替身，它们在推演里用不到
+  const any = () => new Proxy(function () {}, { get: (t, k) => (k === Symbol.toPrimitive ? () => "" : k === "then" ? undefined : any()), apply: () => any(), construct: () => any() });
+  const store = {};
+  const ctx = {
+    console, queueMicrotask, TextEncoder, TextDecoder, URL, URLSearchParams, atob, btoa, crypto: globalThis.crypto,
+    setTimeout: () => 0, clearTimeout() {}, setInterval: () => 0, clearInterval() {}, requestAnimationFrame: () => 0,
+    document: any(), navigator: { language: "zh-CN", languages: ["zh-CN"], userAgent: "node" },
+    location: { href: "http://localhost/", origin: "http://localhost", pathname: "/", search: "", hash: "" },
+    localStorage: { getItem: (k) => (k in store ? store[k] : null), setItem: (k, v) => { store[k] = String(v); }, removeItem: (k) => { delete store[k]; } },
+    addEventListener() {}, removeEventListener() {}, matchMedia: () => ({ matches: false, addEventListener() {} }),
+    WebSocket: function () {}, fetch: () => new Promise(() => {}),
+  };
+  ctx.window = ctx; ctx.self = ctx; ctx.globalThis = ctx; ctx.sessionStorage = ctx.localStorage;
+  vm.createContext(ctx);
+  // Math.random 换成固定种子的版本（mulberry32），保证可重复；引擎自己的随机数来自对局种子
+  vm.runInContext(`(${(seed) => {
+    let a = seed >>> 0;
+    Math.random = () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  }})(${SEED})`, ctx);
+  for (let i = 0; i <= iEng; i++) vm.runInContext(blocks[i], ctx, { filename: `script${i}` });
+  return ctx;
 }
 
-// 在页面里运行：开局、推演、每回合记指纹和摘要
-function runInPage({ scen, seed, turns, player }) {
+// 在页面的环境里运行：开局、推演、每回合记指纹和摘要
+function runGame({ scen, seed, turns, player }) {
   const W = WG; // eslint-disable-line no-undef
   const h53 = (str) => { // cyrb53
     let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
@@ -58,7 +79,7 @@ function runInPage({ scen, seed, turns, player }) {
     return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36);
   };
   const sum = (v) => (Array.isArray(v) ? v.reduce((a, b) => a + (+b || 0), 0) : 0);
-  // 外国在华驻军：在中国本土或台湾驻有兵力的外国国家数（和引擎的 stations 用同一个门槛）
+  // 在华驻军的外国国家数：在中国本土或台湾驻有兵力的外国国家（和引擎的 stations 用同一个门槛）
   const cnForeign = (S) => {
     let n = 0;
     for (const [id, x] of Object.entries(S.actors)) {
@@ -82,59 +103,49 @@ function runInPage({ scen, seed, turns, player }) {
     W.finishTurn(S);
     rec();
   }
-  return { hash: hash.join(" "), wars: wars.join(" "), fronts: fronts.join(" "), cn: cn.join(" ") };
+  return JSON.stringify({ hash: hash.join(" "), wars: wars.join(" "), fronts: fronts.join(" "), cn: cn.join(" ") });
 }
 
-(async () => {
-  const write = process.argv.includes("--write");
-  const { chromium } = need();
-  const server = await serve();
-  const origin = `http://127.0.0.1:${server.address().port}`;
-  const browser = await chromium.launch();
+function main() {
+  const args = process.argv.slice(2), write = args.includes("--write");
+  const gi = args.indexOf("--git"), ref = gi >= 0 ? args[gi + 1] : null;
+  const gold = fs.existsSync(GOLDEN) ? JSON.parse(fs.readFileSync(GOLDEN, "utf8")) : null;
+  if (!write && gold && gold.v8 !== V8) {
+    console.log(`✗ 这里的 JavaScript 引擎是 V8 ${V8}（Node ${process.versions.node}），replay-golden.json 是在 V8 ${gold.v8} 上生成的。` +
+      `不同版本的引擎在浮点运算的最后一位上可能不同，指纹没法直接比。请用 Node 22 运行；如果要换 Node 版本，` +
+      `先在旧版本上确认比对通过，再在新版本上用 --write 重新生成，单独提交。`);
+    process.exit(2);
+  }
   const out = { _说明: "由 tianxia/_source/test/replay.js 生成，不要手改。cn = 在中国本土或台湾驻军的外国国家数，wars = 交战对数，fronts = 战线数，hash = 局面指纹；每项从第 0 回合（开局）起每回合一个数。",
-    turns: TURNS, seed: SEED, player: PLAYER };
+    v8: V8, turns: TURNS, seed: SEED, player: PLAYER };
+  console.log(`页面：${ref ? `提交 ${ref} 里的` : "磁盘上的"}四个版本 · 引擎 V8 ${V8}（Node ${process.versions.node}）`);
   for (const ed of EDITIONS) {
-    const ctx = await browser.newContext({ locale: "zh-CN" });
-    await ctx.addInitScript((seed) => { // 页面里的 Math.random 换成固定种子的版本（mulberry32），保证可重复
-      let a = seed >>> 0;
-      Math.random = () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
-    }, SEED);
-    await ctx.route("**/*", (r) => (r.request().url().startsWith(origin) ? r.continue() : r.abort("internetdisconnected")));
-    await ctx.routeWebSocket(/.*/, (ws) => ws.close());
-    const page = await ctx.newPage();
-    const errs = [];
-    page.on("pageerror", (e) => errs.push(String(e.message || e)));
-    await page.goto(`${origin}/${ed}/index.html`, { waitUntil: "load", timeout: 120000 });
-    await page.waitForFunction(() => typeof WG !== "undefined" && WG.newGame, null, { timeout: 60000 }); // eslint-disable-line no-undef
+    const ctx = loadEngine(pageHtml(ed, ref));
     out[ed] = {};
     for (const scen of SCENS) {
-      const t0 = Date.now();
-      out[ed][scen] = await page.evaluate(runInPage, { scen, seed: SEED, turns: TURNS, player: PLAYER });
-      console.log(`  ${ed} ${scen}: ${((Date.now() - t0) / 1000).toFixed(1)}s  在华驻军的外国国家数 ${out[ed][scen].cn}`);
+      out[ed][scen] = JSON.parse(vm.runInContext(`(${runGame})(${JSON.stringify({ scen, seed: SEED, turns: TURNS, player: PLAYER })})`, ctx));
+      console.log(`  ${ed} ${scen}：在华驻军的外国国家数 ${out[ed][scen].cn}`);
     }
-    if (errs.length) { console.log(`✗ ${ed} 页面报错：\n    ${errs.slice(0, 5).join("\n    ")}`); process.exitCode = 1; }
-    await ctx.close();
   }
-  await browser.close();
-  server.close();
 
   if (write) {
     fs.writeFileSync(GOLDEN, JSON.stringify(out, null, 1) + "\n");
     console.log(`已写入 ${path.relative(ROOT, GOLDEN)}`);
     return;
   }
-  if (!fs.existsSync(GOLDEN)) { console.log(`✗ 没有 ${path.relative(ROOT, GOLDEN)}：先用 --write 生成`); process.exit(1); }
-  const gold = JSON.parse(fs.readFileSync(GOLDEN, "utf8"));
+  if (!gold) { console.log(`✗ 没有 ${path.relative(ROOT, GOLDEN)}：先用 --write 生成`); process.exit(1); }
   let bad = 0;
-  for (const k of ["turns", "seed", "player"]) if (gold[k] !== out[k]) { console.log(`✗ 设置不同：${k} ${gold[k]} → ${out[k]}`); bad++; }
+  const gh = process.env.GITHUB_ACTIONS === "true";
+  const report = (msg) => { console.log(msg); if (gh) console.log(`::error title=天下棋局回放比对::${msg.replace(/%/g, "%25").replace(/\n/g, "%0A")}`); };
+  for (const k of ["turns", "seed", "player"]) if (gold[k] !== out[k]) { report(`✗ 设置不同：${k} ${gold[k]} → ${out[k]}`); bad++; }
   for (const ed of EDITIONS) for (const scen of SCENS) {
     const a = (gold[ed] || {})[scen], b = out[ed][scen];
-    if (!a) { console.log(`✗ ${ed} ${scen}：replay-golden.json 里没有`); bad++; continue; }
+    if (!a) { report(`✗ ${ed} ${scen}：replay-golden.json 里没有`); bad++; continue; }
     if (a.hash === b.hash) { console.log(`✓ ${ed} ${scen}：${TURNS} 个回合逐回合一致`); continue; }
     const ah = a.hash.split(" "), bh = b.hash.split(" ");
     let t = 0; while (t < ah.length && ah[t] === bh[t]) t++;
-    console.log(`✗ ${ed} ${scen}：从第 ${t} 回合起推演结果不同`);
-    for (const k of ["cn", "wars", "fronts"]) if (a[k] !== b[k]) console.log(`    ${k}: ${a[k]}\n      → ${b[k]}`);
+    const rows = ["cn", "wars", "fronts"].filter((k) => a[k] !== b[k]).map((k) => `\n    ${k}: ${a[k]}\n      → ${b[k]}`).join("");
+    report(`✗ ${ed} ${scen}：从第 ${t} 回合起推演结果不同${rows}`);
     bad++;
   }
   if (bad) {
@@ -142,4 +153,6 @@ function runInPage({ scen, seed, turns, player }) {
     process.exit(1);
   }
   console.log(`\n回放比对通过：${EDITIONS.length} 个版本 × ${SCENS.length} 个年代，各 ${TURNS} 个回合`);
-})().catch((e) => { console.error(e); process.exit(1); });
+}
+
+main();

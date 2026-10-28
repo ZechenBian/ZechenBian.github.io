@@ -49,7 +49,7 @@ GitHub Pages 直接发布 main 分支，服务器上不跑构建，所以**构�
 
 改共享代码（`src/` 下除 `web*/` 以外的文件）会进入所有版本；只想改新版本就加开关。旧版本要不要某条规则，就是在对应那一层加或删一行开关。
 
-**回放比对**：`test/replay.js` 在无头浏览器里打开四个发布的页面，每个版本 × 每个开局年代用固定种子推演 12 回合，逐回合和 `test/replay-golden.json` 比对。结果不同就说明改动改变了玩法：是有意的，就用 `node tianxia/_source/test/replay.js --write` 重新生成并一起提交，在 PR 说明里写明哪些版本变了（replay-golden.json 里的 `cn`、`wars`、`fronts` 是看得懂的数）；不是有意的，就是改出了问题。
+**回放比对**：`test/replay.js` 从四个发布的页面里取出页面自己的引擎脚本，在 Node 里运行，每个版本 × 每个开局年代用固定种子推演 12 回合，逐回合和 `test/replay-golden.json` 比对。必须用 Node 22：不同版本的 JavaScript 引擎在浮点运算的最后一位上可能不同，指纹只能在同一版本上比（浏览器的版本各处不同，所以不用浏览器）。结果不同就说明改动改变了玩法：是有意的，就用 `node tianxia/_source/test/replay.js --write` 重新生成并一起提交，在 PR 说明里写明哪些版本变了（replay-golden.json 里的 `cn`、`wars`、`fronts` 是看得懂的数）；不是有意的，就是改出了问题。
 
 **地图**：`build/` 里的三个脚本从 Natural Earth 原始数据（`build/ne/geojson/`，公共领域，见 `THIRD-PARTY-NOTICES.md`）生成 `src/geo.js`、`src/geo_cn.js`（中国标准地图）、`src/cities.js`。图层数据 `src/layers.js` 由 `tools/layers.mjs` 生成，那个目录还没进仓库。
 
