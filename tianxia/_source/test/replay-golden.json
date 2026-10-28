@@ -6,25 +6,25 @@
  "player": "BRA",
  "tianxia": {
   "1939": {
-   "hash": "2fztuh927bq 17i9q9xcqg5 1xbnpbinngn 1kn2i67e6sk xc5sf0zvbz u9or4n4for 15847q3yopv 19rt3pki1vn 2cyzhiojdgb 1p4qsznvh3g 1mfwwj1ydpu 18l3urzp884 10c0hivj1kt",
+   "hash": "1kpituyb0h5 c9rci6qmij 2e9qjq2mvuv 1r3zi78yfa8 261i9bwac6r eivt58lrya 1js4wk0j6b6 10azsawxwny zdxf3cteix wd28br4j8t 21hsrnozu1z 1b8n8qkhwjk sk2mc96v2q",
    "wars": "9 10 10 10 15 16 18 17 17 20 26 34 34",
    "fronts": "2 2 1 1 4 3 3 2 2 6 6 5 7",
    "cn": "0 0 0 0 0 0 0 0 0 0 0 0 0"
   },
   "1945": {
-   "hash": "1lxqibrp5jm 28s01imvihl ciluis1vuf 1b8pd53o5r4 773eweprtd ixk4v0h5j0 18132b7nfbm vjkv8a4qdi kr850kl6dj 1tqfjpaxhye 1oksqloi1un 56q8c165q2 6pddmefdx2",
+   "hash": "2f7y9lzi3j6 14gp8zeehr2 ztrat3ej9d 2ds0qnhd6wq 165tb5d1k5p arh1td8skd 22lk4nj5h9a 19xfv1w6adl ixmg5zmh1k 7k4z8pdo24 2dt2t6zf40f 1l52u1namfj fmmao12ai5",
    "wars": "0 0 0 0 0 0 0 0 0 0 0 0 1",
    "fronts": "0 0 0 0 0 0 0 0 0 0 0 0 1",
-   "cn": "2 2 2 2 2 2 2 2 2 2 2 2 2"
+   "cn": "0 0 0 0 0 0 0 0 0 0 0 0 0"
   },
   "1979": {
-   "hash": "c7s0tp9g6b mhobia7fpo 21dsk1k6lqd f0qokec9nk 282wopiwntb hhp5ugo8ix gxkyrkuvnd 1j10822sag7 pv1rcyiku9 24xxsuqdnll c55wadsxdv 2g2fh37y8ye xvz5m9e0lx",
+   "hash": "2e9twit3cg0 288rvdrsqfb 269o75nobex 2200g3pnl7h 1b2thchmml6 183d5qgmsyz 1hqzvdmfjyi spgvppj6mh 15bhxa4wur8 dp7e9qbync 2pazjr07y7 l380lr0rtz ki62t4fcvi",
    "wars": "0 0 0 0 0 0 0 0 1 1 1 1 1",
    "fronts": "0 0 0 0 0 0 0 0 1 0 0 0 0",
    "cn": "0 0 0 0 0 0 0 0 0 0 0 0 0"
   },
   "2026": {
-   "hash": "d3xl01rdkh z4wee5n3rz k6ftt8rkhc 13sciiw288k 1n5lmqtfq02 19dgwfmtiks ecrtn992j9 1p7c2moefqp 13w0xxc6f00 yz7ivfim9l 17og7iwbhiv 1shpwizs1hl e4hv5lx0uo",
+   "hash": "v798mun21r 1s9zoa65urz 1dk33xpfnpc thkkheknpy 1p8k9635kn5 1za4q8h20hk r0mywl7ogr 255vmcscf94 9n2jax9s6u pwgxncx7oi 1fthi9ge023 29f99q9q60m 17sy1earxlg",
    "wars": "1 1 1 1 1 1 1 1 1 1 1 1 1",
    "fronts": "1 1 1 1 1 1 1 1 1 1 1 1 1",
    "cn": "0 0 0 0 0 0 0 0 0 0 0 0 0"
@@ -32,25 +32,25 @@
  },
  "tianxia-v2": {
   "1939": {
-   "hash": "1cir6yzcowq i8ua6z44lr zbfp89c9mf 5gcak87tra t1fsk32kuc zfxpxbv8qk 1l1acqtkad6 108irs5faxb fkxx8jj8vl 92600167b4 15hopzjw70p no76out67t ksqcz8h3oz",
+   "hash": "218i7ogcyeb 14u4ixqzfn1 1dy7gtocci0 1w6iuo4ho15 1op6z91s1k0 20buacb99j7 an5zke4o8y 1r0pr2dw7dp 1q9f31sjcht 13cdk1klixh 1t9eh3mi782 1amu2yoyqts 1isk1q11r6v",
    "wars": "9 10 10 10 15 16 18 17 17 20 26 34 34",
    "fronts": "2 2 1 1 4 3 3 2 2 6 6 5 7",
    "cn": "0 0 0 0 0 0 0 0 0 0 0 0 0"
   },
   "1945": {
-   "hash": "24s13uo9bsl 1pr9gipl6nh 2fbsb4r7ixv eqqa5dyxox 8fcvhll5v6 2ahpqm3rzv5 12so11r35du 1qyzil8zr2f 1erbr13pd8 1bsa7t8fqh7 16zvcci9kwx ctspq6z4oa 1t1ktdydmcr",
+   "hash": "8o8wsi6a1z 2bjb3mmrcsg 3u9548qwmm wntzqg4n2k 230ylzip262 lws80xlw6x 1lizv9r669q 31c2ga5emz 14hegr68sca 175u6i3vzud iugsql3lu0 2d3bh9xj5um 1wh4t70s675",
    "wars": "0 0 0 0 0 0 0 0 0 0 0 0 1",
    "fronts": "0 0 0 0 0 0 0 0 0 0 0 0 1",
-   "cn": "2 2 2 2 2 2 2 2 2 2 2 2 2"
+   "cn": "0 0 0 0 0 0 0 0 0 0 0 0 0"
   },
   "1979": {
-   "hash": "195he7e5fgj flxuqi4ccg 1267ix8tpi ex76ydjix8 3b2pa2w8nw fidkie6hdi 17hb1t524z3 1wjh2jybjua 1eggs3rekj1 2fyrto5j93l 1n3dqvhfgnl 1ip7v6owryy 54ggjbzt6g",
+   "hash": "2gbrxp5fk4e qpd42z35c1 gfmdsk4pjs 4ri0ery8v2 23n2y4otoqt 1buaw7qj331 oalzr10ay3 n7dkvt224p 113qyhy0a2u 12u109gwrux 1qmyf4cq4ey 2fnwr06rup 8nrsvvxf08",
    "wars": "0 0 0 0 0 0 0 0 1 1 1 1 1",
    "fronts": "0 0 0 0 0 0 0 0 1 0 0 0 0",
    "cn": "0 0 0 0 0 0 0 0 0 0 0 0 0"
   },
   "2026": {
-   "hash": "4zfkx5xwzx 2a3x6wgoo2s 1czfuzv8xmc 1kohuebdlcq 4tgk24veaq 46ni8q5eym dy98q3gvq0 1i9pbckllx8 ipqc6ow2bx 1otkpp9hmgu jtivgdmnr8 2gd35w28klc 1sm7kqcuh9c",
+   "hash": "27spo3t1ify 2evcckyjka 27fmav07756 2amjkrxx6on 9f07euzmpd hzp4w45d9p 252lq733x5m 109mfbvcw5a s5ocdpfn5r 1ksxs0odu21 1k9ukatqa33 2epkcrem903 2bejnlsbw95",
    "wars": "1 1 1 1 1 1 1 1 1 1 1 1 1",
    "fronts": "1 1 1 1 1 1 1 1 1 1 1 1 1",
    "cn": "0 0 0 0 0 0 0 0 0 0 0 0 0"

@@ -8,4 +8,4 @@ window.TX_V3 = true;
 window.TX_NS = 'tianxia-web/v3';
 window.TX_LSP = 'tianxia3';
 window.TX_RULES3 = true;
-window.TX_NOBASE = ['CHN']; // 中国领土上不允许外国驻军（盟友也不行，和中国只能结成军事同盟），见 src/engine/01_core.js 的 NOBASE
+// 中国领土上不允许外国驻军（TX_NOBASE）原来在这里打开，现在移到了 v1 那一层（src/web/03_world.js），四个版本都有

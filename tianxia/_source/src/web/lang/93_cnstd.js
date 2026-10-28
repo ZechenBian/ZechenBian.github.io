@@ -34,6 +34,7 @@
 })();
 
 I18N.add({
+  'ev39.manchuria': ['苏联对日宣战，向日本关东军发起进攻。', 'The Soviet Union declares war on Japan and attacks the Kwantung Army.'], // 中国领土上不允许外国驻军（原来只在 v3，现在四个版本都用）
   's79.chn': ['改革开放刚刚起步，你刚对越南进行了自卫反击。苏联是你最大的威胁，与美国的新关系是重要依托。', 'Reform and opening has just begun and you have just struck back at Vietnam in self-defense. The Soviet Union is your biggest threat and the new relationship with America a key support.'],
   's79.asn': ['东南亚分裂为亲苏的越南与亲西方的东盟国家，刚刚经历中国对越自卫反击战。', "Southeast Asia is split between Soviet-backed Vietnam and the pro-Western ASEAN states and has just seen China's self-defense counterattack against Vietnam."],
   'u.cmd_ph': ['自由指令：用自然语言下达任何命令，例如“向东盟各国提供基础设施贷款，同时提议与越南在南海共同开发油气”（Ctrl+Enter 裁定）', 'Free order: give any command in plain language, e.g. “Offer infrastructure loans across ASEAN and propose joint oil and gas development with Vietnam” (Ctrl+Enter)'],
@@ -84,3 +85,9 @@ I18N.shield(typeof window !== 'undefined' && Array.isArray(window.TX_SHIELD) ? w
   'cs.ok_mine': ['a'], 'co.yield': ['a'], 'u.cs.mine_about': ['a'], 'm.uprising': ['a'], 'm.nuke.strat': ['a'], 'm.nuke.tac': ['a'],
   'stance.contain': ['a'], 'stance.coerce': ['a'], 'stance.attack': ['a'],
 });
+/* 中国领土上不允许外国驻军（TX_NOBASE，四个版本都有）：在兵力部署的说明和“战区与战役”的帮助里各加一句 */
+(() => {
+  const add = (k, zh, en) => { const e = I18N.dict[k]; if (e) I18N.add({ [k]: [String(e[0]) + zh, String(e[1]) + en] }); };
+  add('u.forces_help', '中国领土上（含台湾）不允许外国驻军，盟友也不行。', ' No foreign troops may be based on Chinese territory (Taiwan included), allies included.');
+  add('u.h.mil_x', '中国领土上（含台湾）不允许外国驻军：和中国只能结成军事同盟，任何国家（包括盟友）都不能在中国驻军、调兵进入或派志愿军。', ' No foreign troops may be based on Chinese territory (Taiwan included): with China an alliance is as far as it goes, and no country, ally or not, may station troops there, move them in or send volunteers.');
+})();

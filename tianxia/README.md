@@ -90,6 +90,10 @@ A grand-strategy game with four starting years (1939, 1945, 1979, 2026), played 
 
 保底设定：中国不会被征服、不会投降、也不会沦为附庸。攻势越深入越慢，最多推进到战线的 62% 就陷入僵持；1939 年开局时大致是武汉、广州一线，西安、重庆、成都、昆明都守得住。
 
+### 中国领土上不允许外国驻军（四个年代）
+
+中国领土（含台湾）上不允许任何外国军队驻扎，盟友也不行，和中国只能结成军事同盟——不能和中国签驻军协定，不能调兵进入中国、请盟友把兵派进中国或向中国派志愿军；开局时的外国驻军撤回本国（载入以前的存档时也一样）。中国在海外驻军不受影响。
+
 ### 按中国标准
 
 - **地图**：用中国标准地图——藏南、阿克赛钦属中国；画出南海诸岛（东沙、西沙、中沙、南沙群岛与曾母暗沙、黄岩岛）和南海断续线，以及钓鱼岛及其附属岛屿；台湾按省级单位表示。
@@ -290,6 +294,10 @@ Use “Layers” at the top right of the map:
 ### China cannot lose (all four years)
 
 A safeguard: China cannot be conquered, will not surrender and cannot be made anyone's vassal. Offensives slow down the deeper they go and stall at 62% of the front at most; in the 1939 game that is roughly the Wuhan–Canton line, and Xi'an, Chongqing, Chengdu and Kunming hold.
+
+### No foreign troops on Chinese territory (all four years)
+
+No foreign forces may be based on Chinese territory (Taiwan included), allies included — with China an alliance is as far as it goes. No basing rights with China, no moving troops in, no asking allies to send troops there and no volunteers; foreign garrisons at the start go home (also when an older save is loaded). China's own bases abroad are unaffected.
 
 ### China-standard settings
 

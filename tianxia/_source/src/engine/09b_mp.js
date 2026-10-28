@@ -101,6 +101,7 @@ function applyHDeal(S, A, B, terms) {
       switch (t.type) {
         case 'alliance': case 'trade': case 'nap': case 'access': case 'partner': case 'armsctl': {
           if (atWar(S, A, B)) { done.push(M('dl.void', { x: M('dk.' + t.type), r: M('dl.atwar') })); break; }
+          if (t.type === 'access' && noBase(S, A, B)) { done.push(M('dl.void', { x: M('dk.access'), r: M('dl.nobase', { t: NBH(S, B) }) })); break; } // 中国领土上不允许外国驻军（界面已经不列出这一项；这里兜底，例如旧页面发来的提议）
           const w3 = RULES3 && ['alliance', 'partner', 'access'].includes(t.type) ? dealClash3(S, A, B, t) || dealClash3(S, B, A, t) : null; // 规则 v3：一方已和另一方的交战国结盟
           if (w3) { done.push(M('dl.void', { x: M('dk.' + t.type), r: w3 })); break; }
           addTreaty(S, t.type, A, B);

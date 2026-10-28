@@ -58,7 +58,6 @@ I18N.add({
   'v2.prop.help_ai': ['选条款、点“加入”，再“发出提议”：对方当场答复（接受、开条件或拒绝），接受后签署，回合结束时生效。', 'Pick terms, press Add, then Send: they answer at once (accept, counter or refuse); sign, and it takes effect at the end of the turn.'],
   'v2.prop.free': ['真人之间的协议不占行动力', 'free between human players'],
   'v2.prop.sign_cost': ['签署时占 {n}%，回合结束时生效', 'signing takes {n}%; it takes effect at the end of the turn'],
-  'ev39.manchuria': ['苏联对日宣战，向日本关东军发起进攻。', 'The Soviet Union declares war on Japan and attacks the Kwantung Army.'], // 中国领土上不允许外国驻军
   // 协议回合结束时统一结算
   'v3.q.deal': ['协议 → {a:N}（{x}）', 'Agreement → {a} ({x})'],
   'v3.deal_queued': ['已签署与{a}的协议，排进本回合队列（占 {n}%）：回合结束时统一结算，结算前可以撤回', 'Agreement with {a} signed and queued for this turn ({n}%): it is settled at the end of the turn, and you can withdraw it until then'],

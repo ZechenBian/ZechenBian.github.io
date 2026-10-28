@@ -171,7 +171,7 @@ function mpSuggest(X) {
   const P = S.player, war = W.atWar(S, P, X), out = [];
   const tt = k => T('mp.sug.' + k, { a: X });
   if (war) out.push(tt('ceasefire'), tt('peace'));
-  else { const sc = ['trade', 'nap', 'alliance', 'access'].map(t => [t, W.evalDeal(S, P, X, { type: t }).score]).filter(([t]) => !W.hasTreaty(S, P, X, t)).sort((a, b) => b[1] - a[1]); for (const [t] of sc.slice(0, 3)) out.push(tt(t)); }
+  else { const sc = ['trade', 'nap', 'alliance', 'access'].map(t => [t, W.evalDeal(S, P, X, { type: t }).score]).filter(([t]) => !W.hasTreaty(S, P, X, t) && !(t === 'access' && W.noBase(S, P, X))) /* 网页版：中国领土上不允许外国驻军 */.sort((a, b) => b[1] - a[1]); for (const [t] of sc.slice(0, 3)) out.push(tt(t)); }
   if (S.sanctions.some(z => z.from === X && z.to === P)) out.push(tt('lift'));
   const en = W.enemies(S, P).filter(E => E !== X && !W.atWar(S, X, E))[0]; if (en && !war) out.push(T('mp.sug.join', { b: en }));
   if (S.ultis.some(u => u.from === X && u.status === 'open')) out.push(tt('drop'));
@@ -186,7 +186,7 @@ function mpPropHTML(C) {
   const P = S.player, list = MPS.propFor === C ? MPS.prop : (MPS.prop = [], MPS.propFor = C, MPS.prop);
   const opts = W.IDS.filter(id => id !== P && id !== C && W.indep(S, id)).map(id => `<option value="${id}">${esc(NAME(id))}</option>`).join('');
   const war = W.atWar(S, P, C), voidWhy = t => (MP_TREATY[t.type] && war ? T('dl.atwar') : (t.type === 'ceasefire' || t.type === 'peace') && !war ? T('dl.notwar') : '');
-  const types = war ? MP_PT.filter(t => !MP_TREATY[t]) : MP_PT.filter(t => t !== 'ceasefire' && t !== 'peace');
+  const types = (war ? MP_PT.filter(t => !MP_TREATY[t]) : MP_PT.filter(t => t !== 'ceasefire' && t !== 'peace')).filter(t => !(t === 'access' && W.noBase(S, P, C))); // 网页版：不能在中国驻军，驻军权不列出
   return `<details class="mpprop" ${list.length ? 'open' : ''}><summary>${T('mp.p.title')}</summary>
     <div class="mppropform"><select id="mpPT">${types.map(t => `<option value="${t}">${esc(T('mp.pt.' + t))}</option>`).join('')}</select>
       <select id="mpPBy"><option value="${P}">${T('mp.p.by_me')}</option><option value="${C}">${T('mp.p.by_them', { a: { id: C } })}</option></select>
@@ -307,7 +307,7 @@ function mpRuleAgent(S_, X, msg) {
   const ulTxt = ul ? ' ' + T('ra.ulti', { d: { k: 'ud.' + ul.demand, p: { l: ul.loc, b: ul.with, t: ul.t } } }) : '';
   if (!terms.length) {
     const mood = war ? 'war' : rl >= 40 ? 'friend' : rl > -25 ? 'neutral' : 'hostile';
-    const sug = ['trade', 'nap', 'alliance', 'access'].filter(t => !W.hasTreaty(S_, P, X, t) && !war).map(t => [t, W.evalDeal(S_, P, X, { type: t }).score]).filter(z => z[1] > -0.25).sort((a, b) => b[1] - a[1]).map(z => ({ k: 'dk.' + z[0] }));
+    const sug = ['trade', 'nap', 'alliance', 'access'].filter(t => !W.hasTreaty(S_, P, X, t) && !war && !(t === 'access' && W.noBase(S_, P, X))).map(t => [t, W.evalDeal(S_, P, X, { type: t }).score]).filter(z => z[1] > -0.25).sort((a, b) => b[1] - a[1]).map(z => ({ k: 'dk.' + z[0] }));
     if (war) sug.unshift({ k: 'dk.ceasefire' });
     return { reply: T('ra.hello.' + mood, { v }) + (sug.length ? ' ' + T('ra.suggest', { x: { list: sug.slice(0, 3) } }) : '') + ulTxt, deal: { status: 'none', terms: [] } };
   }

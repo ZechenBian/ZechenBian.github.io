@@ -42,9 +42,9 @@ GitHub Pages 直接发布 main 分支，服务器上不跑构建，所以**构�
 
 | 层 | 文件 | 开关 | 生效的版本 |
 |---|---|---|---|
-| v1 | `src/web/03_world.js` | `TX_PROV`（台湾是中国的省）、`TX_GUARD`（1939 年的中国不会战败）、`TX_SHIELD`（中国按中国标准处理）、`TX_NOCCP`（不单列中共） | v1–v4 |
+| v1 | `src/web/03_world.js` | `TX_PROV`（台湾是中国的省）、`TX_GUARD`（中国不会战败）、`TX_SHIELD`（中国按中国标准处理）、`TX_NOCCP`（不单列中共）、`TX_NOBASE`（中国领土上不许外国驻军） | v1–v4 |
 | v2 | `src/web2/00_v2.js`、`src/web2/03b_world2.js` | `TX_V2`、`TX_RULES2`、`TX_GUARD`（加上美国）、`TX_NS`/`TX_LSP`（联网和存档的名字空间） | v2–v4 |
-| v3 | `src/web3/00_v3.js` | `TX_V3`、`TX_RULES3`（行动力按百分比）、`TX_NOBASE`（中国领土上不许外国驻军） | v3–v4 |
+| v3 | `src/web3/00_v3.js` | `TX_V3`、`TX_RULES3`（行动力按百分比）、`TX_NS`/`TX_LSP` | v3–v4 |
 | v4 | `src/web4/00_v4.js` | `TX_V4`、`TX_NS`/`TX_LSP` | v4 |
 
 改共享代码（`src/` 下除 `web*/` 以外的文件）会进入所有版本；只想改新版本就加开关。旧版本要不要某条规则，就是在对应那一层加或删一行开关。

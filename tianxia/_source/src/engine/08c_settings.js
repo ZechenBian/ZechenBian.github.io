@@ -75,7 +75,7 @@ function checkSetting(S, e) {
     case 'move': {
       const to = e.to; if (!S.actors[to]) return M('c.badmove');
       if (to === e.from) return M('c.badmove');
-      if (!canStation(S, P, to)) return M('c.nostation', { l: to });
+      if (!canStation(S, P, to)) return noBase(S, P, to) ? M('dl.nobase', { t: NBH(S, to) }) : M('c.nostation', { l: to }); // 中国领土上不允许外国驻军：说明原因，而不是“需要驻军协定”
       const fv = freeQV(S, e.from); if (vmax(vmin([e.land, e.navy, e.air], fv)) < 0.004) return M('c.nofree', { l: e.from, s: { pct: dotw(S, P, fv) } });
       return null;
     }
