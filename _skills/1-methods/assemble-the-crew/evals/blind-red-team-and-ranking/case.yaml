@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: blind-red-team-and-ranking
+expected_outcome: |
+  每个角色交实际成果；红队只拿整合后的成品和原始数据，互不看结论；红队问题去重后按致命 / 重要 / 一般排序，并逐条标已修复 / 接受风险 / 需要用户决定。
+context:
+  scaffold_script: place-files.sh

@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: commutative-square
+expected_outcome: |
+  给 tikz-cd 代码，代码块上方写 \usepackage{tikz-cd}。

@@ -1,0 +1,42 @@
+[
+  {
+    "query": "我想做一个 AI 人生模拟器网页，先评估下可行性",
+    "should_trigger": true
+  },
+  {
+    "query": "这个想法靠谱吗：用真实航班数据做一个调度小游戏",
+    "should_trigger": true
+  },
+  {
+    "query": "先别建，给我出个设计方案：一个帮我管理论文阅读的 agent",
+    "should_trigger": true
+  },
+  {
+    "query": "攻击它：做一个按 Felix 文章自动提标的浏览器插件",
+    "should_trigger": true
+  },
+  {
+    "query": "做成独立页面还是放进策略实验室好？先评估",
+    "should_trigger": true
+  },
+  {
+    "query": "开始做样本吧，就按上次评估的 A",
+    "should_trigger": false
+  },
+  {
+    "query": "帮我把这周的实验记录整理成周报",
+    "should_trigger": false
+  },
+  {
+    "query": "给诺奖实验室加一个英文版切换按钮",
+    "should_trigger": false
+  },
+  {
+    "query": "总结一下 BFN 构造",
+    "should_trigger": false
+  },
+  {
+    "query": "这段 Python 为什么报 KeyError",
+    "should_trigger": false
+  }
+]

@@ -1,0 +1,42 @@
+[
+  {
+    "query": "给策略实验室加一个英文版切换",
+    "should_trigger": true
+  },
+  {
+    "query": "量子电路谜题再加三关，先做一关样本",
+    "should_trigger": true
+  },
+  {
+    "query": "做一个让中学生重新发现牛顿第二定律的互动页",
+    "should_trigger": true
+  },
+  {
+    "query": "把天下棋局的观战模式合并到仓库",
+    "should_trigger": true
+  },
+  {
+    "query": "黑洞信息实验室加一个霍金辐射的模拟器",
+    "should_trigger": true
+  },
+  {
+    "query": "做一个展示我 GitHub 提交数的仪表盘",
+    "should_trigger": false
+  },
+  {
+    "query": "先评估一下这个游戏想法靠不靠谱，先别建",
+    "should_trigger": false
+  },
+  {
+    "query": "帮我写一份关于黑洞信息悖论的研究总结",
+    "should_trigger": false
+  },
+  {
+    "query": "做一个项目状态页给合作者看",
+    "should_trigger": false
+  },
+  {
+    "query": "这段 JavaScript 为什么报 undefined",
+    "should_trigger": false
+  }
+]

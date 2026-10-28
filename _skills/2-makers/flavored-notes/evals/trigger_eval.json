@@ -1,0 +1,42 @@
+[
+  {
+    "query": "用 Tao 博客的风格写一份关于 Szemerédi 定理的笔记",
+    "should_trigger": true
+  },
+  {
+    "query": "à la Witten 写一份 Chern–Simons 理论的讲义",
+    "should_trigger": true
+  },
+  {
+    "query": "给 qual 复习写一份交换代数的速查讲义",
+    "should_trigger": true
+  },
+  {
+    "query": "把这份笔记改成 Landau–Lifshitz 的风格",
+    "should_trigger": true
+  },
+  {
+    "query": "用 Lurie 那种风格写一页 ∞-范畴的定义",
+    "should_trigger": true
+  },
+  {
+    "query": "总结一下这篇论文的主要结果",
+    "should_trigger": false
+  },
+  {
+    "query": "这个公式在 LaTeX 里怎么对齐",
+    "should_trigger": false
+  },
+  {
+    "query": "帮我核一下参考文献",
+    "should_trigger": false
+  },
+  {
+    "query": "Sylow 定理第一条是什么",
+    "should_trigger": false
+  },
+  {
+    "query": "做一个讲傅里叶变换的互动页面",
+    "should_trigger": false
+  }
+]

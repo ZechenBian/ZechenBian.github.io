@@ -1,0 +1,42 @@
+[
+  {
+    "query": "这个符号怎么打：带波浪线的 LG",
+    "should_trigger": true
+  },
+  {
+    "query": "多行公式怎么按等号对齐",
+    "should_trigger": true
+  },
+  {
+    "query": "编译报错 Undefined control sequence \\operatorname，怎么办",
+    "should_trigger": true
+  },
+  {
+    "query": "交换图里斜箭头怎么画",
+    "should_trigger": true
+  },
+  {
+    "query": "中文文档用什么文档类",
+    "should_trigger": true
+  },
+  {
+    "query": "帮我写一份关于 K 理论的讲义",
+    "should_trigger": false
+  },
+  {
+    "query": "总结一下这篇论文",
+    "should_trigger": false
+  },
+  {
+    "query": "把这份笔记做成 PDF 并检查排版",
+    "should_trigger": false
+  },
+  {
+    "query": "Bun_G 是什么意思",
+    "should_trigger": false
+  },
+  {
+    "query": "核一下这条引用",
+    "should_trigger": false
+  }
+]

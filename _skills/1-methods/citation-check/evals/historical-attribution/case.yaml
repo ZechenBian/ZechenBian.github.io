@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: historical-attribution
+expected_outcome: |
+  打开原始论文核实；指出说法需要限定（等变意义下的完全性、所在空间与条件）；不把结果的具体部分归给错误的人；给出处标识与核实日期。

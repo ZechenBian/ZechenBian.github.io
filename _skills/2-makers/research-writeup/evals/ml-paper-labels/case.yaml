@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: ml-paper-labels
+expected_outcome: |
+  模块 B：问题设定、方法、结论；标签区分定理 / 多数据集复现 / 单论文单基准，预印本单独标明；引用按 citation-check；审稿攻击清单 B（泄漏、预印本当同行评审、无方差、相关当因果）。

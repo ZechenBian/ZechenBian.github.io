@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: serre-sylow
+expected_outcome: |
+  写风味卡并在开头几行说明；正确性不因风格放松；计算用代码核；构建 PDF 并看预览页；风味盲测并在交付时报告；引用按 citation-check 或不引。

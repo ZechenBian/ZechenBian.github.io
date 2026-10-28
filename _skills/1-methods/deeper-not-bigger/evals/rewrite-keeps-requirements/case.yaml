@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: rewrite-keeps-requirements
+expected_outcome: |
+  重写版逐条保留原任务的明确要求（两页、Times 12、下周五）；做深只加不换；外部验证不是自评。

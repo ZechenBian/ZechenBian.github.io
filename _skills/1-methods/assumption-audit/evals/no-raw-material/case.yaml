@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: no-raw-material
+expected_outcome: |
+  没有原始材料：不走完整审计流程，直接讨论证据，并可指出需要什么数据才能检验。

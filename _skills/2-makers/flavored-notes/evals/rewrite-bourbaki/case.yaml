@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: rewrite-bourbaki
+expected_outcome: |
+  从 Bourbaki 预设写风味卡；内容与原笔记一致、陈述仍然为真；构建并盲测。
+context:
+  scaffold_script: place-files.sh

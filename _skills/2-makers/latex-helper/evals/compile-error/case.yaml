@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: compile-error
+expected_outcome: |
+  指出出错原因（数学命令写在了文本模式）；只给修好的那一段，不重写整个文件。

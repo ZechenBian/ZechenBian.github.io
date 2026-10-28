@@ -1,0 +1,42 @@
+[
+  {
+    "query": "我们都觉得流失主要是新手引导的问题，日志在这，帮我验证一下",
+    "should_trigger": true
+  },
+  {
+    "query": "这篇论文说他们的方法比 baseline 好 5 个点，代码和数据都在，站得住吗",
+    "should_trigger": true
+  },
+  {
+    "query": "从这份交易记录里看看“我的策略赚钱是因为动量”是不是真的",
+    "should_trigger": true
+  },
+  {
+    "query": "老板说周末销量更高，这是全年订单表，帮我检验一下",
+    "should_trigger": true
+  },
+  {
+    "query": "这个 A/B 测试的结论靠得住吗？原始数据附上",
+    "should_trigger": true
+  },
+  {
+    "query": "给我讲讲 p 值是什么",
+    "should_trigger": false
+  },
+  {
+    "query": "帮我把这份数据画个折线图",
+    "should_trigger": false
+  },
+  {
+    "query": "按顶尖标准重写这个分析任务",
+    "should_trigger": false
+  },
+  {
+    "query": "听说多喝水能提高注意力，真的吗",
+    "should_trigger": false
+  },
+  {
+    "query": "总结一下这篇因果推断的综述",
+    "should_trigger": false
+  }
+]

@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: econ-per-conclusion
+expected_outcome: |
+  模块 D：每个结论单独定标签，写效应量（带置信区间）和偏倚风险；多方立场并列、不下结论；识别策略写清；快变问题先搜后写并注明检索日期。

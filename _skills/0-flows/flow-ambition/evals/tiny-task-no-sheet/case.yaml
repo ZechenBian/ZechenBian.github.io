@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: tiny-task-no-sheet
+expected_outcome: |
+  小任务直通：不出提标单，直接给改好的句子，结尾最多一句话提一个可以往大做的方向。

@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: attack-mode
+expected_outcome: |
+  压力测试模式：只列可能致命的问题，每条写为什么致命和怎么检验；不附改法、不说优点；结尾仍是 A/B/C。

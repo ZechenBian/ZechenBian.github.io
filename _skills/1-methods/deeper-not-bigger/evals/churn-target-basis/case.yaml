@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: churn-target-basis
+expected_outcome: |
+  回答四问；目标的依据可查（附出处）或写“未找到可查的先例”，不用“通常 / 业内”顶替；给外部验证方式；交出重写版后停下等确认。

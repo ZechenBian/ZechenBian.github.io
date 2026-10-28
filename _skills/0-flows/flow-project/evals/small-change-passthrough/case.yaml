@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: small-change-passthrough
+expected_outcome: |
+  属于小任务：不走评估和提标，直接按 lab-builder 和仓库规矩做；结尾最多一句话提到可以走完整流程。

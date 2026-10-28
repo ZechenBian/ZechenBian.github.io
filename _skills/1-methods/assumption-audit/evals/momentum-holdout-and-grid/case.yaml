@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: momentum-holdout-and-grid
+expected_outcome: |
+  写出命题、成立时应出现什么、推翻判据和信念来源；给 2–3 种方案并写明留出切法与分析计划；（按推荐）看结果前按时间封存留出集；规格网格；隔离对手或标注；三选一结论；注意数据是合成的。
+context:
+  scaffold_script: place-files.sh

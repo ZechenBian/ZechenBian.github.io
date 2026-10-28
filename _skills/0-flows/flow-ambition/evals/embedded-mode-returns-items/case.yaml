@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: embedded-mode-returns-items
+expected_outcome: |
+  嵌入模式：只交提标单条目（含第 1 条目标确认、原任务保底），不执行、不单独停下；条目可并进调用方的批示单；成本写成模型时间加用户要提供什么。

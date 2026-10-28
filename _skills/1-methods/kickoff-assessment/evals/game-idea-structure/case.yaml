@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: game-idea-structure
+expected_outcome: |
+  按固定 8 段结构评估；同类产品检索并附链接；头号假设配最小验证；分期列“暂缓”；以固定句结尾；不写代码。

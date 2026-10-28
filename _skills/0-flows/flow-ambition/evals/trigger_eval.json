@@ -1,0 +1,42 @@
+[
+  {
+    "query": "往大了做：帮我准备这周的组会汇报",
+    "should_trigger": true
+  },
+  {
+    "query": "提标：这份简历我想做到顶尖 quant 公司都愿意面的水平",
+    "should_trigger": true
+  },
+  {
+    "query": "用 flow-ambition 看看我的策略实验室下一步能怎么做得更有野心",
+    "should_trigger": true
+  },
+  {
+    "query": "这个季度回顾别只填模板，往上抽、做深，一次给我一张单子",
+    "should_trigger": true
+  },
+  {
+    "query": "我想把这篇论文的复现做到能让原作者都学到东西，帮我提一下标准",
+    "should_trigger": true
+  },
+  {
+    "query": "把这个变量名改成 snake_case",
+    "should_trigger": false
+  },
+  {
+    "query": "先评估一下这个想法靠不靠谱：AI 帮人写情书的网站",
+    "should_trigger": false
+  },
+  {
+    "query": "从数据里看看“流失主要是新手引导的问题”是不是真的（数据在附件）",
+    "should_trigger": false
+  },
+  {
+    "query": "给我讲讲 Hecke 算子是什么",
+    "should_trigger": false
+  },
+  {
+    "query": "帮我订明天早上去机场的车",
+    "should_trigger": false
+  }
+]

@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: baseline-and-frozen-judge
+expected_outcome: |
+  执行阶段：环境不够时交一段 Claude Code 提示，写清目标、材料、方法、基线怎么量、验证命令、完成标准；说明要冻结裁判；交付格式含目标 vs 实测。
