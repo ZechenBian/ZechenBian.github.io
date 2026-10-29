@@ -1,0 +1,12 @@
+[
+  {"query": "给我做一下这个月的月度复盘", "should_trigger": true},
+  {"query": "这个月我都干了什么？出个月报，顺便评一评做得怎么样", "should_trigger": true},
+  {"query": "（定时任务）按 monthly-review 跑本月复盘", "should_trigger": true},
+  {"query": "11 月的月报我批完了，出存档", "should_trigger": true},
+  {"query": "把前三个月的月度存档调出来，对比一下我上线了几个项目", "should_trigger": true},
+  {"query": "帮我建一个日程表，记下面试和截止日期", "should_trigger": false},
+  {"query": "今天我做了什么？简单说两句", "should_trigger": false},
+  {"query": "这份报告太长了，帮我过一遍我该看哪部分", "should_trigger": false},
+  {"query": "把天下棋局这个月的改动写成 PR 说明", "should_trigger": false},
+  {"query": "帮我写一份季度财报分析", "should_trigger": false}
+]
