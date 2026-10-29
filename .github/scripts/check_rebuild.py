@@ -19,6 +19,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 TIANXIA_PAGES = ["tianxia", "tianxia-v2", "tianxia-v3", "tianxia-v4"]
 BUILDS = [
     ("引力弹弓 gravity-slingshot", "gravity-slingshot", ["node", "build.js"]),
+    ("深夜解压铺 jieya",           "jieya",             ["node", "build.js"]),
     ("诺奖实验室 nobel-lab",       "nobel-lab",         ["python3", "build.py", "--github", "."]),
     ("策略实验室 strategy-lab",    "strategy-lab",      ["python3", "build.py"]),
     # 地图数据（geo.js、geo_cn.js、cities.js）从 Natural Earth 原始数据生成；要先在 tianxia/_source 里 npm install（d3-geo）

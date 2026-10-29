@@ -12,6 +12,7 @@ GitHub Pages 直接发布 main 分支，服务器上不跑构建，所以**构�
 |---|---|---|---|
 | 根目录 | `index.html`、`style.css`（手写，无构建） | — | 冒烟测试 |
 | `gravity-slingshot/` | `src/` | `node build.js` → `index.html` | 冒烟测试 |
+| `jieya/`（深夜解压铺） | `src/`（`template.html`、`core.js`、每个玩具一个 `toys/NN-<id>.js`，约定见 `jieya/README.md`） | `node build.js` → `index.html` | 冒烟测试 |
 | `nobel-lab/` | `src/`；写条目的说明和工具在 `_dev/`（Jekyll 不发布下划线开头的目录） | `python3 build.py --github .` → `index.html`、`literature-peace/index.html` | `_dev/tools/` 里的检查工具，从仓库根目录运行 |
 | `strategy-lab/` | `src/`、`i18n/`（英文版译文）、`daily/`（每日一题）、`ml-engine/`（本机 Python 引擎） | 先 `npm install`，再 `python3 build.py` → `index.html`、`en/`、`teen/`、`ml/`、`cases/` | `sh test/run-all.sh`（半小时左右）；单个文件 `node test/xxx.test.js` |
 | `tianxia/`、`tianxia-v2/`、`tianxia-v3/`、`tianxia-v4/` | `tianxia/_source/`（四个版本共用一份，见下面"天下棋局"） | 在 `tianxia/_source/` 里：`node build-pages.js` → 四个版本目录的 `index.html`、`auth.html`、`ai-proxy.mjs`；地图数据 `npm install` 后 `npm run map` | 回放比对 `node tianxia/_source/test/replay.js`；冒烟测试 |

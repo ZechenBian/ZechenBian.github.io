@@ -3,6 +3,7 @@
   "pages": [
     { "path": "index.html",                            "name": "主页 Homepage" },
     { "path": "gravity-slingshot/index.html",          "name": "引力弹弓 Gravity Slingshot", "generated": true },
+    { "path": "jieya/index.html",                      "name": "深夜解压铺",                "generated": true },
     { "path": "nobel-lab/index.html",                  "name": "诺奖思想实验室",            "generated": true },
     { "path": "nobel-lab/literature-peace/index.html", "name": "诺奖 · 文学与和平",          "generated": true },
     { "path": "strategy-lab/index.html",               "name": "策略实验室",                "generated": true },
