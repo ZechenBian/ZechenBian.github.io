@@ -1,0 +1,42 @@
+[
+  {
+    "query": "你来提问，激发一下我的灵感",
+    "should_trigger": true
+  },
+  {
+    "query": "问我问题，帮我想清楚我到底想做什么项目",
+    "should_trigger": true
+  },
+  {
+    "query": "/question 我对城市里的噪音一直有种说不清的兴趣",
+    "should_trigger": true
+  },
+  {
+    "query": "我有个模糊的念头，你一个一个问我，别给建议",
+    "should_trigger": true
+  },
+  {
+    "query": "当一个苏格拉底式的提问者，追问我的想法",
+    "should_trigger": true
+  },
+  {
+    "query": "给我出五道题测一下我懂没懂这篇讲解",
+    "should_trigger": false
+  },
+  {
+    "query": "给我十个周末项目的点子",
+    "should_trigger": false
+  },
+  {
+    "query": "先评估一下这个游戏想法靠不靠谱，先别建",
+    "should_trigger": false
+  },
+  {
+    "query": "陪我练一场量化面试，只判不答",
+    "should_trigger": false
+  },
+  {
+    "query": "你觉得我该先做哪个项目？",
+    "should_trigger": false
+  }
+]
