@@ -1,9 +1,9 @@
 # 我的 Skills · 分层工作流
 
-这里是我给 Claude 写的 skill（可复用的做事规程），共 15 个，分三层：
+这里是我给 Claude 写的 skill（可复用的做事规程），共 16 个，分三层：
 
 - **第 0 层 · 工作流**（4 个）：入口，负责顺序、每轮只问一次、关口核验；
-- **第 1 层 · 产出**（5 个）：各种交付物怎么做——实验室、研究总结、风格笔记、LaTeX、面试陪练；
+- **第 1 层 · 产出**（6 个）：各种交付物怎么做——实验室、研究总结、风格笔记、LaTeX、面试陪练、提问激发灵感；
 - **第 2 层 · 方法**（6 个）：工作流和产出共用的做事方法——评估、提标、检验、组队、核引用。
 
 调用只往下走。同层之间只有两处：flow-project 和 flow-research 会调 flow-ambition；research-writeup 借用 flavored-notes 的 PDF 构建脚本。
@@ -26,6 +26,7 @@ flowchart TB
     FN[flavored-notes]
     LH[latex-helper]
     QC[quant-interview-coach]
+    QU[question]
   end
   subgraph L2["第 2 层 · 方法"]
     KA[kickoff-assessment]
@@ -54,9 +55,10 @@ flowchart TB
   MR ~~~ FA
   QC ~~~ AC
   LH ~~~ CC
+  QU ~~~ KA
 ```
 
-实线箭头表示“会调用”。latex-helper 和 quant-interview-coach 不在任何工作流里，单独用。
+实线箭头表示“会调用”。latex-helper、quant-interview-coach 和 question 不在任何工作流里，单独用。
 
 ## 怎么用
 
@@ -80,7 +82,7 @@ flowchart TB
 每个 skill 都可以单独触发，工作流只在要走完整流程时才需要：
 
 - 只要一份总结或笔记：“总结一下 ××”会直接用 `research-writeup`，“用费曼的风格写 ××”会直接用 `flavored-notes`，它们自带核引用、审稿和 PDF。
-- “这个符号怎么打”直接用 `latex-helper`；“先评估一下，先别建”直接用 `kickoff-assessment`；面试准备和陪练用 `quant-interview-coach`。
+- “这个符号怎么打”直接用 `latex-helper`；“先评估一下，先别建”直接用 `kickoff-assessment`；面试准备和陪练用 `quant-interview-coach`；“你来提问，激发我的灵感”或 `/question` 用 `question`（一次一问，说“停”出灵感收获卡）。
 - 只想做深、按顶尖标准做 → `deeper-not-bigger`；只想往上抽一层 → `altitude`；手上有数据、想检验一个说法 → `assumption-audit`；要多个领域一起看 → `assemble-the-crew`。
 - 给已有实验室修 bug、加按钮这类小改动，`lab-builder` 直接改源码、构建、跑检查、开 PR。
 - 一两句话就能答的快问题，直接回答，不出文档也不走流程。
@@ -111,6 +113,7 @@ flowchart TB
 | 1 产出 | `flavored-notes` | 指定风格的数学物理笔记（PDF + Markdown），带风味盲测 | v2 |
 | 1 产出 | `latex-helper` | 自然语言描述 → 可粘贴的 LaTeX | v1.1 |
 | 1 产出 | `quant-interview-coach` | 量化面试准备、限时陪练（只判不答）、面完复盘 | v2 |
+| 1 产出 | `question` | 当提问者激发灵感：一次一问、跟着能量追问、说“停”出灵感收获卡 | v1 |
 | 2 方法 | `kickoff-assessment` | 新项目先评估、不开工；有压力测试模式 | v2 |
 | 2 方法 | `altitude` | 往上抽一层：四层阶梯，每层有工作量和裁判，推荐层附首个探针 | v2 |
 | 2 方法 | `deeper-not-bigger` | 按顶尖从业者的材料、方法和可查的标准重写任务 | v2 |
