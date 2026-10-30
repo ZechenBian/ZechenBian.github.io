@@ -1,0 +1,9 @@
+# 合成的提交记录（git log --since=2026-10-28 --date=short --pretty='%ad %s'）
+2026-11-20 Merge pull request #31 from demo/stars-levels
+2026-11-18 stars: levels 4-8
+2026-11-10 Merge pull request #30 from demo/stars-en
+2026-11-10 stars: English edition
+2026-11-09 ledger: charts
+2026-11-08 Merge pull request #29 from demo/ledger
+2026-11-08 ledger: web version
+2026-11-03 stars: three-level sample

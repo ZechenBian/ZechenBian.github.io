@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: not-last-tuesday-exit
+expected_outcome: |
+  判断出 2026-11-17 不是 11 月最后一个周二（加 7 天是 11-24，仍在 11 月），直接结束：不收集材料、不出月报文档、不发通知，最多一句话说明为什么结束。
