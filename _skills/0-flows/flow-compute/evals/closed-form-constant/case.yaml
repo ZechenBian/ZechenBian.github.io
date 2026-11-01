@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: closed-form-constant
+expected_outcome: |
+  在搜索闭式之前先声明验收：候选常数集合（如 π、ln 2、Catalan 常数及其乘积）、要求的一致位数、两档精度和对照；高精度算出数值，认出 π·ln2/8；报告在两档精度下一致的位数且位数随精度加深；故意改错一处候选（如系数或符号）并看到验收失败；给 CLOSED 和能单独重跑的脚本。

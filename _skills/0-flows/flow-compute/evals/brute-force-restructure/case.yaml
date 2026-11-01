@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: brute-force-restructure
+expected_outcome: |
+  开头写明取了哪种读法；先在小 n 上试跑并测速，据此推算暴力枚举到 n=30 不可行；不硬跑，改结构（递推、动态规划或闭式）；用小 n 的暴力结果作为植入真值核对新方法；交付 n=1..30 的结果、验收台账和 CLOSED / OPEN；没有启动超过约两小时的计算。

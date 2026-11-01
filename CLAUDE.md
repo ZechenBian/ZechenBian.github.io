@@ -68,7 +68,7 @@ python3 .github/scripts/check_rules.py     # 规矩：页面登记、版权声�
 python3 .github/scripts/check_rebuild.py   # 重建一致（先在 strategy-lab/ 和 tianxia/_source/ 里各 npm install）
 node .github/scripts/smoke.js              # 冒烟测试；可以加过滤词，例如 node .github/scripts/smoke.js tianxia
 node tianxia/_source/test/replay.js        # 天下棋局回放比对
-python3 _skills/tools/check_skills.py      # skills 库：格式、测试题、三个工作流的总控协议一致
+python3 _skills/tools/check_skills.py      # skills 库：格式、测试题、各工作流的总控协议一致
 cd strategy-lab && sh test/run-all.sh      # 改到策略实验室时
 ```
 

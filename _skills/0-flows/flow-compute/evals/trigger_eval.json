@@ -1,0 +1,42 @@
+[
+  {
+    "query": "用 flow-compute 跑一下二维 Ising 模型的蒙特卡洛，估临界温度并给误差",
+    "should_trigger": true
+  },
+  {
+    "query": "回测这个配对交易策略，结果要过样本外验收",
+    "should_trigger": true
+  },
+  {
+    "query": "0.9159655941772190… 是不是某个已知常数？算到 50 位再认",
+    "should_trigger": true
+  },
+  {
+    "query": "模拟克尔黑洞光子球半径随自旋的变化，给出误差和能重跑的脚本",
+    "should_trigger": true
+  },
+  {
+    "query": "拟合这组衰变数据的半衰期，我要能相信这个数",
+    "should_trigger": true
+  },
+  {
+    "query": "写一个回测框架的代码骨架，我自己来跑",
+    "should_trigger": false
+  },
+  {
+    "query": "解释一下蒙特卡洛方法为什么能算积分",
+    "should_trigger": false
+  },
+  {
+    "query": "用 flow-research 把这篇论文写成笔记",
+    "should_trigger": false
+  },
+  {
+    "query": "帮我核一下这几条参考文献",
+    "should_trigger": false
+  },
+  {
+    "query": "17 乘 23 是多少",
+    "should_trigger": false
+  }
+]
