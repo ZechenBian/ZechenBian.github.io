@@ -14,7 +14,7 @@ description: 从一个已掌握的方法、工具或刚解决的问题出发，�
 ## 与其他 skill 的关系
 
 - kickoff-assessment 评估一个已有的想法；flow-ambition 往上抽一层；本 skill 从方法出发找想法。
-- 选题后核“确实没人做过”用 lit-review（没装就按 citation-check 的规则，读原文、不凭记忆）；开算用 flow-compute。
+- 新颖性由 flow-discover 在选题前对排前几的卡核（lit-review；没装就近邻文献读全文、正反两个方向追引用）；单独使用时不核，卡上标“未核新颖性”。开算用 flow-compute。
 - 一般由 flow-discover 调用；单独用时做到候选卡为止，你选定并有了结果后再出专家包。
 
 ## 流程
@@ -49,7 +49,7 @@ description: 从一个已掌握的方法、工具或刚解决的问题出发，�
 
 ## 没人在场时
 
-做到候选卡为止：不选题、不开算、不发邮件。
+开头写明取了哪种读法（方法的哪种表述、扫了哪些领域）；做到候选卡为止：不选题、不开算、不发邮件。
 
 ## 边界
 
@@ -59,6 +59,6 @@ description: 从一个已掌握的方法、工具或刚解决的问题出发，�
 
 ## 版本
 
-- v1 · 2026-11-01：初版。按《Claude-shaped science → Skills 建造计划（逐条批示版）》第 2、3 条的推荐写成（专家改题并入本 skill；该文档尚未批示），由《Skills 分层设计：大 skill 编排小 skill（逐条批示版）》第 4 条批示启动。
+- v1 · 2026-11-01：初版。按《Claude-shaped science → Skills 建造计划（逐条批示版）》第 2、3 条的推荐写成（专家改题并入本 skill；该文档尚未批示），由《Skills 分层设计：大 skill 编排小 skill（逐条批示版）》第 4 条批示启动。同日按独立审查改一轮：新颖性核查的时机、没人在场时写明读法。
 
 © 2026 Zechen Bian · All rights reserved / 保留所有权利

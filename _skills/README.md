@@ -8,7 +8,7 @@
 
 调用只往下走。同层之间只有这几处：flow-project 和 flow-research 以嵌入模式调 flow-ambition；flow-research 和 flow-discover 以嵌入模式调 flow-compute；research-writeup 借用 flavored-notes 的 PDF 构建脚本。工作流之间最多两层：被嵌入的那个不再嵌入别的（总控协议第 7 条）。
 
-flow-compute、flow-research 还会调几个外部的 BootLoops skill（acceptance-gate、planted-truth、timing-discipline 等，见文末“没收进来的 skill”）；没装时，两个工作流里写了退路。
+flow-compute、flow-research、flow-discover 和 method-scout 还会调几个外部的 BootLoops skill（acceptance-gate、planted-truth、timing-discipline、lit-review 等，见文末“没收进来的 skill”）；没装时，各处写了退路。flow-discover 做完后把写成稿的事交接给 flow-research，这是交接，不是嵌入。
 
 目录名以下划线开头，GitHub Pages 不发布它（网站上看不到），在 GitHub 上照常可见。
 
@@ -51,6 +51,7 @@ flowchart TB
   FR --> FC
   FD --> CS
   FD --> FC
+  FD -. 交接成稿 .-> FR
   FC --> AA
   FA --> AL
   FA --> DN
@@ -74,7 +75,7 @@ flowchart TB
 | 工作流 | 什么时候用 | 怎么叫 | 会发生什么 | 你要做的 |
 |---|---|---|---|---|
 | `flow-project` | 有个新项目想法（游戏、互动页、实验室、agent、工具），想从评估一路推进到上线 | “用 flow-project 推进 ××”，或“从评估到上线带我走一遍” | 盘点 → 评估 → 提标（可选）→ 样本（过独立试玩）→ 铺开（过抽查）→ 合并 | 每轮批一张批示单；说“合并”才会合并 |
-| `flow-research` | 一个研究问题要跨几个 skill 才能做完：既写又用数据检验结论、先提标再写、要走完整流程出存档成稿 | “用 flow-research 写 ××” | 分流 → 写第一版 → 核引用 → 检验（有数据时）→ 独立审稿 → 出 PDF → 随追问生长 | 看成稿，追问；只有真有歧义、要提标或要检验时，动笔前才给你批示单 |
+| `flow-research` | 一个研究问题要跨几个 skill 才能做完：既写又检验结论（用数据、计算或证明）、先提标再写、要走完整流程出存档成稿 | “用 flow-research 写 ××”“证明或证伪 ××，写成成稿” | 分流 → 写第一版 → 核引用（有新颖性声明时加 lit-review）→ 检验（assumption-audit、嵌入 flow-compute 或 prove-protocol）→ 独立审稿（对外成稿加 referee-sim）→ 出 PDF → 随追问生长 | 看成稿，追问；只有真有歧义、要提标或要检验时，动笔前才给你批示单 |
 | `flow-ambition` | 想把手上一件事往大了做，或同时要往上抽、做深、检验假设、多领域一起看 | “往大了做 ××”“提标”“用 flow-ambition” | 四个方法各自分析，合成一张提标单；批完按选定的条目执行 | 批一张提标单 |
 | `monthly-review` | 每月复盘：这个月做了什么、做得怎样、哪些事还悬着；定时任务每月最后一个周二 17:00 自动跑 | “做一下这个月的月度复盘”；批完后说“出存档” | 收集 → 月报（做了什么、评判、待决池、skill 建议、工作流改动、下月三件事）→ 独立核验 → 你批 → 详细存档 | 批月报；批完说“出存档” |
 | `flow-compute` | 要跑一次会产出数字结论的计算：模拟、回测、拟合、训练、高精度数值、猜精确常数 | “用 flow-compute 算 ××”“回测 ××，要过样本外验收” | 先定验收 → 植入真值 → 试跑测速 → 计算 → 验收（CLOSED / OPEN）→ 结论 → 交付 | 批超过约两小时或要花钱的计算；看验收台账 |
@@ -109,7 +110,7 @@ flowchart TB
 5. **没人在场时**：按推荐项只做可逆的部分，开头写明按哪种理解做的；项目最远做到“样本过关口”（学习、游戏类页面就是样本过独立试玩，样本发成私有 Artifact）。推送到公开仓库、合并、删除、对外发送、超过约两小时或要花钱的计算都停在决定前。
 6. **小任务直通**：一两句话的小事不走流程。
 7. **最多两层**：工作流只能以嵌入模式调另一个工作流（可被嵌入的是 flow-ambition 和 flow-compute），被嵌入的不再嵌入别的。
-8. **状态在文件里**：跨轮的工作有一张“进度”表，每过一个关口就更新；回来时或上下文被压缩后，先重新加载工作流、再读进度表；每个阶段开始时重新加载这一阶段要调的 skill。
+8. **状态在文件里**：跨轮的工作有一张“进度”表，第一行写明按哪个工作流做，每过一个关口就更新，能写本地文件时另存一份；回来时或上下文被压缩后，先重新加载工作流、再读进度表；每个阶段开始时，先重新加载工作流，再加载这一阶段要调的 skill。
 9. **环境不够就交接**：跑不了代码、读不到数据时，交一段能直接粘贴进 Claude Code 的提示；要跑很久的，附一个压缩后读回进度表的钩子。
 
 为什么这样排：Claude Code 压缩上下文后，每个已调用 skill 的正文最多回填开头的 5,000 token，总共 25,000，最早调用的先丢。工作流最先被调用，最容易被截断或丢掉，所以协议和流水线放在每个工作流的最前面，并要求压缩后重新加载（规则出自 Claude Code 的“Explore the context window”文档；claude.ai 对话里没查到同样明确的公开规则）。
@@ -174,7 +175,11 @@ flowchart TB
 - [K-Dense 科研技能库](https://github.com/K-Dense-AI/claude-scientific-skills)：qiskit、pennylane、qutip、sympy、scientific-schematics
 - persona（Hajime Takeda，MIT）
 
-另有 BootLoops 的 skill（Matthew D. Schwartz，[BootLoops-ai/skills](https://github.com/BootLoops-ai/skills)，正文 CC BY 4.0、脚本 MIT），flow-compute 和 flow-research 会调用：acceptance-gate、planted-truth、timing-discipline、independence-bookkeeping、constant-recognition、prove-protocol、lit-review、referee-sim、prose-lint。按《Skills 分层设计》第 7 条批示锁定版本，不用会自动更新的插件，固定在 commit `ca89227`（2026-09-30，“BootLoops skills 1.0”）；升级时先读差异再换。
+另有 BootLoops 的 skill（Matthew D. Schwartz，[BootLoops-ai/skills](https://github.com/BootLoops-ai/skills)，正文 CC BY 4.0、脚本 MIT），flow-compute、flow-research、flow-discover 和 method-scout 会调用：acceptance-gate、planted-truth、timing-discipline、independence-bookkeeping、constant-recognition、prove-protocol、lit-review、referee-sim、prose-lint。按《Skills 分层设计》第 7 条批示锁定版本，不用会自动更新的插件，固定在 commit `ca89227`（2026-09-30，“BootLoops skills 1.0”）；升级时先读差异再换。安装这个固定版本：
+
+- claude.ai：上传按这个 commit 打好的 zip（每个 zip 里带 LICENSE-CONTENT、NOTICE 和 PINNED.txt），压缩包不放进仓库。
+- Claude Code：`git clone https://github.com/BootLoops-ai/skills`，`git -C skills checkout ca892277`，再把 `skills/skills/<名字>/` 逐个复制到 `~/.claude/skills/`。`sync_skills.py install` 不装它们。
+- 跑测试题前先装好它们，否则 flow-compute、flow-research 的题测到的是退路。
 
 按 2026-10-28 的批示：回测类以 backtest-expert 为主，backtesting-frameworks 的描述收窄为“写回测框架代码”，quant-analyst 停用；scientific-schematics 要用就放行 openrouter.ai 并提供 key，不用就停用。
 
