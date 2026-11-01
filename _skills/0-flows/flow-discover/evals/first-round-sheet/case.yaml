@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: first-round-sheet
+expected_outcome: |
+  先盘点方法、工具和数据；调 method-scout 出带出处的候选卡；只对排前三的卡核新颖性并逐张标“看来没人做过 / 有人做过 / 部分做过”；本轮以一张批示单收尾，请用户选题；选题之前不开始计算。

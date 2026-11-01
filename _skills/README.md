@@ -1,12 +1,14 @@
 # 我的 Skills · 分层工作流
 
-这里是我给 Claude 写的 skill（可复用的做事规程），共 15 个，分三层：
+这里是我给 Claude 写的 skill（可复用的做事规程），共 18 个，分三层：
 
-- **第 0 层 · 工作流**（4 个）：入口，负责顺序、每轮只问一次、关口核验；
+- **第 0 层 · 工作流**（6 个）：入口，负责顺序、每轮只问一次、关口核验；
 - **第 1 层 · 产出**（5 个）：各种交付物怎么做——实验室、研究总结、风格笔记、LaTeX、面试陪练；
-- **第 2 层 · 方法**（6 个）：工作流和产出共用的做事方法——评估、提标、检验、组队、核引用。
+- **第 2 层 · 方法**（7 个）：工作流和产出共用的做事方法——评估、提标、检验、组队、核引用、跨领域找题。
 
-调用只往下走。同层之间只有两处：flow-project 和 flow-research 会调 flow-ambition；research-writeup 借用 flavored-notes 的 PDF 构建脚本。
+调用只往下走。同层之间只有这几处：flow-project 和 flow-research 以嵌入模式调 flow-ambition；flow-research 和 flow-discover 以嵌入模式调 flow-compute；research-writeup 借用 flavored-notes 的 PDF 构建脚本。工作流之间最多两层：被嵌入的那个不再嵌入别的（总控协议第 7 条）。
+
+flow-compute、flow-research 还会调几个外部的 BootLoops skill（acceptance-gate、planted-truth、timing-discipline 等，见文末“没收进来的 skill”）；没装时，两个工作流里写了退路。
 
 目录名以下划线开头，GitHub Pages 不发布它（网站上看不到），在 GitHub 上照常可见。
 
@@ -19,6 +21,8 @@ flowchart TB
     FR["flow-research<br/>研究：提问 → 成稿"]
     FA["flow-ambition<br/>提标：一张单子"]
     MR["monthly-review<br/>月度复盘：月报 → 存档"]
+    FC["flow-compute<br/>计算：先定验收 → 结果"]
+    FD["flow-discover<br/>找题：方法 → 专家包"]
   end
   subgraph L1["第 1 层 · 产出"]
     LB[lab-builder]
@@ -34,6 +38,7 @@ flowchart TB
     AA[assumption-audit]
     AC[assemble-the-crew]
     CC[citation-check]
+    CS[method-scout]
   end
   FP --> LB
   FR --> RW
@@ -43,6 +48,10 @@ flowchart TB
   FP --> KA
   FR --> AA
   FR --> CC
+  FR --> FC
+  FD --> CS
+  FD --> FC
+  FC --> AA
   FA --> AL
   FA --> DN
   FA --> AA
@@ -60,7 +69,7 @@ flowchart TB
 
 ## 怎么用
 
-### 四条工作流
+### 六条工作流
 
 | 工作流 | 什么时候用 | 怎么叫 | 会发生什么 | 你要做的 |
 |---|---|---|---|---|
@@ -68,12 +77,16 @@ flowchart TB
 | `flow-research` | 一个研究问题要跨几个 skill 才能做完：既写又用数据检验结论、先提标再写、要走完整流程出存档成稿 | “用 flow-research 写 ××” | 分流 → 写第一版 → 核引用 → 检验（有数据时）→ 独立审稿 → 出 PDF → 随追问生长 | 看成稿，追问；只有真有歧义、要提标或要检验时，动笔前才给你批示单 |
 | `flow-ambition` | 想把手上一件事往大了做，或同时要往上抽、做深、检验假设、多领域一起看 | “往大了做 ××”“提标”“用 flow-ambition” | 四个方法各自分析，合成一张提标单；批完按选定的条目执行 | 批一张提标单 |
 | `monthly-review` | 每月复盘：这个月做了什么、做得怎样、哪些事还悬着；定时任务每月最后一个周二 17:00 自动跑 | “做一下这个月的月度复盘”；批完后说“出存档” | 收集 → 月报（做了什么、评判、待决池、skill 建议、工作流改动、下月三件事）→ 独立核验 → 你批 → 详细存档 | 批月报；批完说“出存档” |
+| `flow-compute` | 要跑一次会产出数字结论的计算：模拟、回测、拟合、训练、高精度数值、猜精确常数 | “用 flow-compute 算 ××”“回测 ××，要过样本外验收” | 先定验收 → 植入真值 → 试跑测速 → 计算 → 验收（CLOSED / OPEN）→ 结论 → 交付 | 批超过约两小时或要花钱的计算；看验收台账 |
+| `flow-discover` | 想给一个已掌握的方法或工具找新的用武之地，一路做到能交给领域专家 | “用 flow-discover 给 ×× 找新用途” | 盘点 → 找题（候选卡）→ 核新颖 → 选题 → 开算（嵌入 flow-compute）→ 专家包 | 选题；决定邮件发不发 |
 
 例子：
 
 - “我想做一个看星空认星座的网页小游戏，给初中生用。用 flow-project 带我走一遍。”
 - “用 flow-research 把 Atiyah–Bott 的 Yang–Mills 那套理论写成一份能存档的成稿。”
 - “下周给导师汇报这学期的进展，帮我准备十页幻灯片。往大了做。”
+- “用 flow-compute 算 ∫₀¹ ln(1+x)/(1+x²) dx 并猜闭式，要能让我相信它是对的。”
+- “我会做精确的贝叶斯证据积分。用 flow-discover 帮我找别的领域能用上它的题。”
 
 ### 单独用
 
@@ -81,31 +94,36 @@ flowchart TB
 
 - 只要一份总结或笔记：“总结一下 ××”会直接用 `research-writeup`，“用费曼的风格写 ××”会直接用 `flavored-notes`，它们自带核引用、审稿和 PDF。
 - “这个符号怎么打”直接用 `latex-helper`；“先评估一下，先别建”直接用 `kickoff-assessment`；面试准备和陪练用 `quant-interview-coach`。
-- 只想做深、按顶尖标准做 → `deeper-not-bigger`；只想往上抽一层 → `altitude`；手上有数据、想检验一个说法 → `assumption-audit`；要多个领域一起看 → `assemble-the-crew`。
+- 只想做深、按顶尖标准做 → `deeper-not-bigger`；只想往上抽一层 → `altitude`；手上有数据、想检验一个说法 → `assumption-audit`；要多个领域一起看 → `assemble-the-crew`；只想列出“这个方法还能用在哪”的跨领域候选 → `method-scout`。
 - 给已有实验室修 bug、加按钮这类小改动，`lab-builder` 直接改源码、构建、跑检查、开 PR。
 - 一两句话就能答的快问题，直接回答，不出文档也不走流程。
 
 单独用一个方法时，它也只停一次：要你决定的事放在同一张单子上。想把几个方法串起来，用 `flow-ambition`。
 
-### 总控协议（四个工作流共用）
+### 总控协议（六个工作流共用，v2）
 
 1. **先看再问**：先查对话里的文件、记忆、已连接的应用、仓库和之前的批示文档，能查到的不问。
 2. **一轮一张批示单**：每轮要你拍板的事合成一张单子，逐条编号，你逐条批（采纳 / 改后采纳 / 暂缓 / 不做）。4 条以内用提问工具，更多用“逐条批示版”文档。
 3. **原任务保底**：你原来要的东西照交；提标只加不换；发送、发布、删除、部署、合并、花钱、建定时任务都先问。
 4. **关口过独立核验**：流水线里写了关口的地方，成品交给一个没看过过程的子 agent 去审，结果分成已修 / 接受风险 / 需要你决定。没有子 agent 时，给你一段能粘贴进新会话的审查提示。
-5. **没人在场时**：按推荐项只做可逆的部分，开头写明按哪种理解做的；项目最远做到“样本过关口”（学习、游戏类页面就是样本过独立试玩，样本发成私有 Artifact）。推送到公开仓库、合并、删除、对外发送都停在决定前。
+5. **没人在场时**：按推荐项只做可逆的部分，开头写明按哪种理解做的；项目最远做到“样本过关口”（学习、游戏类页面就是样本过独立试玩，样本发成私有 Artifact）。推送到公开仓库、合并、删除、对外发送、超过约两小时或要花钱的计算都停在决定前。
 6. **小任务直通**：一两句话的小事不走流程。
-7. **记进度**：跨轮的工作有一张“进度”表，回来时从停下的地方接着做。
-8. **环境不够就交接**：跑不了代码、读不到数据时，交一段能直接粘贴进 Claude Code 的提示。
+7. **最多两层**：工作流只能以嵌入模式调另一个工作流（可被嵌入的是 flow-ambition 和 flow-compute），被嵌入的不再嵌入别的。
+8. **状态在文件里**：跨轮的工作有一张“进度”表，每过一个关口就更新；回来时或上下文被压缩后，先重新加载工作流、再读进度表；每个阶段开始时重新加载这一阶段要调的 skill。
+9. **环境不够就交接**：跑不了代码、读不到数据时，交一段能直接粘贴进 Claude Code 的提示；要跑很久的，附一个压缩后读回进度表的钩子。
+
+为什么这样排：Claude Code 压缩上下文后，每个已调用 skill 的正文最多回填开头的 5,000 token，总共 25,000，最早调用的先丢。工作流最先被调用，最容易被截断或丢掉，所以协议和流水线放在每个工作流的最前面，并要求压缩后重新加载（规则出自 Claude Code 的“Explore the context window”文档；claude.ai 对话里没查到同样明确的公开规则）。
 
 ## 全部 skill
 
 | 层 | skill | 做什么 | 版本 |
 |---|---|---|---|
-| 0 工作流 | `flow-project` | 项目从想法到上线：评估、提标、样本、铺开、合并 | v1 |
-| 0 工作流 | `flow-research` | 研究问题从提问到成稿：写、核、验、审、交付 | v1 |
-| 0 工作流 | `flow-ambition` | 把四个提标方法合成一张提标单，批完再执行 | v1 |
-| 0 工作流 | `monthly-review` | 月度复盘：月报带局部和整体评判、待决池、skill 建议；批示后出跨月可调取的存档 | v1 |
+| 0 工作流 | `flow-project` | 项目从想法到上线：评估、提标、样本、铺开、合并 | v2 |
+| 0 工作流 | `flow-research` | 研究问题从提问到成稿：写、核、验（数据、计算或证明）、审、交付 | v2 |
+| 0 工作流 | `flow-ambition` | 把四个提标方法合成一张提标单，批完再执行 | v2 |
+| 0 工作流 | `monthly-review` | 月度复盘：月报带局部和整体评判、待决池、skill 建议；批示后出跨月可调取的存档 | v1.1 |
+| 0 工作流 | `flow-compute` | 算出来再证明它算对了：先定验收、植入真值、试跑测速、CLOSED / OPEN 台账 | v1 |
+| 0 工作流 | `flow-discover` | 从一个方法出发找题、核新颖、开算，一路做到交给专家 | v1 |
 | 1 产出 | `lab-builder` | 浏览器实验室与小游戏的建造规程，样本过独立试玩，小改动直通 | v2 |
 | 1 产出 | `research-writeup` | 跨学科研究级总结：四问纲领、命题台账、独立审稿、PDF | v2 |
 | 1 产出 | `flavored-notes` | 指定风格的数学物理笔记（PDF + Markdown），带风味盲测 | v2 |
@@ -117,6 +135,7 @@ flowchart TB
 | 2 方法 | `assumption-audit` | 用原始材料检验默认结论：先封存留出集、跑规格网格、隔离的对手 | v2 |
 | 2 方法 | `assemble-the-crew` | 跨领域团队加红队盲审 | v2 |
 | 2 方法 | `citation-check` | 引用核验的唯一规则：什么算核实、预算、台账 | v1 |
+| 2 方法 | `method-scout` | 从方法出发跨领域找可核验的问题：候选卡、不变量、四项打分；选定后出专家包 | v1 |
 
 每个 skill 的目录里：`SKILL.md` 是规程本身，文末有版本记录；`evals/` 是测试题（见“维护”）。flavored-notes 另有 `scripts/`（PDF 构建脚本，research-writeup 也用）、`references/`（风味表）和 `assets/`（示例源文件）。
 
@@ -139,11 +158,11 @@ flowchart TB
 ## 维护
 
 - **改一个 skill**：批示 → 改 `SKILL.md` → 改或加测试题 → 文末版本记录加一条 → 跑检查 → 开 PR（规矩见仓库根目录 `CLAUDE.md`）。
-- **检查**：`python3 _skills/tools/check_skills.py`（自动检查的“规矩检查”一项也会跑它）。它查名字和描述是否合规、有没有版本记录和版权行、测试题是否齐全、四个工作流的总控协议是否一致、这份说明是否列出了每个 skill。
+- **检查**：`python3 _skills/tools/check_skills.py`（自动检查的“规矩检查”一项也会跑它）。它查名字和描述是否合规、有没有版本记录和版权行、测试题是否齐全、各工作流的总控协议是否逐字一致并从开头附近开始（工作流超过 6000 个字符会提醒）、这份说明是否列出了每个 skill。
 - **测试题**：每个 skill 的 `evals/` 里有至少 3 道任务题（skill-creator 的用例格式：`prompt.md`、`case.yaml`、`graders/`，带输入文件的还有 `files/` 和 `place-files.sh`）和 `trigger_eval.json`（10 句该触发或不该触发的问法，一半是容易混淆的近邻）。测试用的数据和背景都是合成或虚构的，文件里写明了。
   - 在对话里：请 Claude 用 skill-creator 跑某个 skill 的测试题。
   - 有 Claude Code 的话：先用上面的 `install` 把全部 skill 装上（工作流的题会调用下层的 skill），再在某个 skill 的目录里运行 `claude plugin eval . --allow-tools Write,Edit,Bash --scaffold`。这是真实计费的运行；结果写在该 skill 的 `evals/results/` 里，不提交（`_skills/.gitignore` 已排除）。
-- **总控协议**：四个工作流里的那一段要逐字相同，改的时候四处一起改。
+- **总控协议**：六个工作流里的那一段要逐字相同，改的时候六处一起改。
 - **暂缓的改动**（2026-10-28 批示时暂缓）：LB1 试玩脚本进自动检查；LB4 机制库每类一页模板；LH1 先编译再给、交换图附渲染图；LH2 测 latex-helper 的触发率；LH3 个人宏文件；DN3 “沉淀”走更新卡片、专家工具表设上限；AC1 子 agent 任务书固定格式；AC3 最小团队与用量。
 
 ## 没收进来的 skill
@@ -154,6 +173,8 @@ flowchart TB
 - [wshobson/agents](https://github.com/wshobson/agents)：backtesting-frameworks、risk-metrics-calculation、quant-analyst
 - [K-Dense 科研技能库](https://github.com/K-Dense-AI/claude-scientific-skills)：qiskit、pennylane、qutip、sympy、scientific-schematics
 - persona（Hajime Takeda，MIT）
+
+另有 BootLoops 的 skill（Matthew D. Schwartz，[BootLoops-ai/skills](https://github.com/BootLoops-ai/skills)，正文 CC BY 4.0、脚本 MIT），flow-compute 和 flow-research 会调用：acceptance-gate、planted-truth、timing-discipline、independence-bookkeeping、constant-recognition、prove-protocol、lit-review、referee-sim、prose-lint。按《Skills 分层设计》第 7 条批示锁定版本，不用会自动更新的插件，固定在 commit `ca89227`（2026-09-30，“BootLoops skills 1.0”）；升级时先读差异再换。
 
 按 2026-10-28 的批示：回测类以 backtest-expert 为主，backtesting-frameworks 的描述收窄为“写回测框架代码”，quant-analyst 停用；scientific-schematics 要用就放行 openrouter.ai 并提供 key，不用就停用。
 

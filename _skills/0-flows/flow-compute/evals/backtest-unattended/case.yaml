@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: backtest-unattended
+expected_outcome: |
+  在看结果之前声明留出期、门槛和对照；先用植入了已知收益的合成序列跑通整条流程并找回它，再用零收益序列确认不会报出假收益；报告样本内与留出期的具体指标并和门槛比较；给 CLOSED 或 OPEN；明确写出数据是合成的；不启动长时间或花钱的计算。

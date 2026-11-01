@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: unattended-stop
+expected_outcome: |
+  开头写明取了哪种读法；做完盘点、找题和前三张卡的新颖性核查；把候选卡、新颖性结果和批示单写进逐条批示版文档或 Markdown 文件；不替用户选题、不开算、不发邮件。

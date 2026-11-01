@@ -9,7 +9,9 @@
 3. 正文有"## 版本"（英文 skill 为"## Version"）一节，并带 All rights reserved 版权行。
 4. evals/ 下至少 3 个测试用例（prompt.md、case.yaml、graders/），case.yaml 的 name 和目录名一致；
    trigger_eval.json 至少 10 条，该触发和不该触发的都有。
-5. 三个 flow 的《总控协议》一段逐字相同。
+5. 0-flows/ 里每个工作流的《总控协议》一段逐字相同。
+   压缩后每个 skill 正文只回填开头一段，所以协议要在前 1000 个字符内开始（不满足算失败）；
+   工作流的 SKILL.md 超过 6000 个字符只提醒，不算失败。
 6. README.md 列出了每一个 skill。
 
 用法（仓库根目录）：python3 _skills/tools/check_skills.py
@@ -20,8 +22,10 @@ HERE = pathlib.Path(__file__).resolve().parent
 LIB = HERE.parent
 LAYERS = ("0-flows", "1-makers", "2-methods")
 NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
-PROTO_BEGIN = "<!-- 总控协议 v1 开始"
-PROTO_END = "<!-- 总控协议 v1 结束 -->"
+PROTO_BEGIN = "<!-- 总控协议 v2 开始"
+PROTO_END = "<!-- 总控协议 v2 结束 -->"
+PROTO_START_MAX = 1000   # 协议必须在 SKILL.md 的前这么多个字符内开始
+FLOW_SIZE_NOTE = 6000    # 工作流超过这么多个字符时提醒
 GRADER_HEAD = "---\ntype: llm\nfocus: trace\nweight: 1\n---\n"
 
 problems, notes = [], []
@@ -146,9 +150,16 @@ def main():
     for n, blk in blocks.items():
         if blk is None:
             bad(f"0-flows/{n}：找不到《总控协议》一段（开始和结束的注释）")
+            continue
+        start = flows[n].find(PROTO_BEGIN)
+        if start > PROTO_START_MAX:
+            bad(f"0-flows/{n}：《总控协议》从正文第 {start} 个字符才开始，要在前 {PROTO_START_MAX} 个字符内"
+                "（压缩后正文只回填开头）")
+        if len(flows[n]) > FLOW_SIZE_NOTE:
+            note(f"0-flows/{n}：正文 {len(flows[n])} 个字符（建议 {FLOW_SIZE_NOTE} 以内，不算失败）")
     texts = {blk for blk in blocks.values() if blk is not None}
     if len(texts) > 1:
-        bad("三个 flow 的《总控协议》不一致：改一处时三处要一起改")
+        bad(f"{len(flows)} 个工作流的《总控协议》不一致：改一处时各处要一起改")
 
     readme = LIB / "README.md"
     if not readme.is_file():

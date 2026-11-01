@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: proof-route-refute
+expected_outcome: |
+  走证明分流：先找反例（用实际运行的精确计算），找到 n = 40 时 1681 = 41²；判定为证伪；成稿给出反例、计算脚本或输出，以及可信度标签。

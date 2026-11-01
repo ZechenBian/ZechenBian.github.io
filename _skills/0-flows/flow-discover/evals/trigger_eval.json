@@ -1,0 +1,42 @@
+[
+  {
+    "query": "用 flow-discover 给我的方法找新用途，一路做到能交给专家",
+    "should_trigger": true
+  },
+  {
+    "query": "我的精确积分工具想在新领域落地，从找题到专家包都帮我做",
+    "should_trigger": true
+  },
+  {
+    "query": "从方法出发找题、核新颖、选题、开算，走完整流程",
+    "should_trigger": true
+  },
+  {
+    "query": "把我的生存分析技巧推广到别的学科，做出一个能给专家看的结果",
+    "should_trigger": true
+  },
+  {
+    "query": "找一个我的工具能解的跨领域问题，算出来，再起草给专家的邮件",
+    "should_trigger": true
+  },
+  {
+    "query": "只列几个候选就行，不用往下做",
+    "should_trigger": false
+  },
+  {
+    "query": "把这个积分算一下，要验收",
+    "should_trigger": false
+  },
+  {
+    "query": "评估一下这个游戏想法",
+    "should_trigger": false
+  },
+  {
+    "query": "总结这篇论文",
+    "should_trigger": false
+  },
+  {
+    "query": "往大了做这份汇报",
+    "should_trigger": false
+  }
+]
