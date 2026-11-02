@@ -64,7 +64,7 @@
   }
 
   // ---------- 导航 ----------
-  const halls = ['overview', 'forge', 'godel', 'inverse'];
+  const halls = Array.from(document.querySelectorAll('#tabs button')).map((b) => b.dataset.hall);
   let current = null;
   function show(hall) {
     if (!halls.includes(hall)) hall = 'overview';
@@ -72,6 +72,7 @@
     for (const b of document.querySelectorAll('#tabs button')) b.classList.toggle('on', b.dataset.hall === hall);
     current = hall; store.set('hall', hall); try { if (location.hash !== '#' + hall) history.replaceState(null, '', '#' + hall); } catch (e) { /* 无妨 */ }
     if (hall === 'forge') forge.render(); if (hall === 'godel') godel.enter(); else godel.leave(); if (hall === 'inverse') inverse.render();
+    if (window.GENESIS_Q_HALL) window.GENESIS_Q_HALL(hall);
   }
   $('tabs').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { show(b.dataset.hall); window.scrollTo({ top: 0 }); } });
   document.addEventListener('click', (e) => { const b = e.target.closest('[data-go]'); if (b) { e.preventDefault(); show(b.dataset.go); window.scrollTo({ top: 0 }); } });
@@ -82,13 +83,14 @@
   // ======================================================================
   const forge = (function () {
     const S = Object.assign({}, PRESETS[0].p);
+    const hooks = { input: [], solved: [], preset: [], dice: [] }; // 量子版通过这些钩子改输入、加卡片
     const TODAY = 299; let R = null, frames = [], frame = TODAY, playing = false, alog = false, presetId = 'planck', galaxies = null, lastDraw = 0;
     const ids = ['H0', 'Om', 'Or', 'OL', 'w'];
     function toSlider(k, v) { return k === 'Or' ? (v <= 0 ? -7 : Math.max(-7, Math.log10(v))) : v; }
     function fromSlider(k, v) { return k === 'Or' ? (v <= -7 ? 0 : Math.pow(10, v)) : v; }
     function syncSliders() { for (const k of ids) $('s-' + k).value = toSlider(k, S[k]); labels(); }
     function labels() {
-      $('v-H0').textContent = S.H0.toFixed(1) + ' km/s/Mpc'; $('v-Om').textContent = S.Om.toFixed(3); $('v-Or').textContent = S.Or === 0 ? '0' : S.Or.toExponential(2);
+      $('v-H0').textContent = S.H0.toFixed(1) + ' km/s/Mpc'; $('v-Om').textContent = S.Om.toFixed(3); $('v-Or').textContent = (S.Or === 0 ? '0' : S.Or.toExponential(2)) + '（T₀ = ' + sig(COSMO.temperatureOf(S.Or, S.H0), 3) + ' K）';
       $('v-OL').textContent = S.OL.toFixed(3); $('v-w').textContent = S.w.toFixed(2);
       const Ok = 1 - S.Om - S.Or - S.OL; $('v-Ok').textContent = (Ok >= 0 ? '+' : '') + Ok.toFixed(3);
       $('v-Okword').textContent = Math.abs(Ok) < 1e-3 ? '平坦（欧几里得空间）' : (Ok > 0 ? '开放（双曲空间，负曲率）' : '封闭（三维球面，正曲率）');
@@ -97,22 +99,24 @@
     function markPreset() { for (const b of document.querySelectorAll('#presets .chip')) b.classList.toggle('on', b.dataset.id === presetId); const pr = PRESETS.find((p) => p.id === presetId); $('preset-blurb').innerHTML = pr ? `<b style="color:var(--ink)">${pr.name}</b>${pr.real ? ' <span class="tag real">真实</span>' : ' <span class="tag sim">理想化</span>'} — ${pr.blurb}${pr.source ? `<br><span style="color:var(--faint)">来源：${pr.source}</span>` : ''}` : '（自定义参数）'; }
     const chips = $('presets');
     for (const p of PRESETS) { const b = document.createElement('button'); b.className = 'chip'; b.dataset.id = p.id; b.innerHTML = `${p.name}<small>${p.sub}</small>`; b.addEventListener('click', () => applyPreset(p.id)); chips.appendChild(b); }
-    function applyPreset(id) { const p = PRESETS.find((x) => x.id === id); if (!p) return; Object.assign(S, p.p); presetId = id; markPreset(); syncSliders(); frame = TODAY; solve(); }
+    function applyPreset(id) { const p = PRESETS.find((x) => x.id === id); if (!p) return; Object.assign(S, p.p); for (const f of hooks.preset) f(p, S); presetId = id; markPreset(); syncSliders(); frame = TODAY; solve(); }
     $('b-planck').addEventListener('click', () => applyPreset('planck'));
     $('b-dice').addEventListener('click', () => {
       const r = Math.random; S.H0 = +(30 + 80 * r()).toFixed(1); S.Om = +(Math.pow(10, -2.5 + 3.5 * r())).toFixed(3); S.Or = +Math.pow(10, -6 + 5.5 * r()).toExponential(2);
       S.OL = +((r() < 0.75 ? 1 : -1) * Math.pow(10, -2 + 3.3 * r())).toFixed(3); S.OL = Math.max(-3, Math.min(3, S.OL)); S.w = +(-1.7 + 1.5 * r()).toFixed(2);
-      presetId = null; markPreset(); syncSliders(); frame = TODAY; solve(); toast('掷出了一个宇宙——看看它活不活得了');
+      for (const f of hooks.dice) f(S); presetId = null; markPreset(); syncSliders(); frame = TODAY; solve(); toast('掷出了一个宇宙——看看它活不活得了');
     });
     // ---- 求解与帧 ----
     function solve() {
-      R = COSMO.solve(S);
+      let input = Object.assign({}, S); for (const f of hooks.input) input = f(input, S) || input;
+      R = COSMO.solve(input);
+      for (const f of hooks.solved) f(R, S, input);
       buildFrames(); render();
     }
     function buildFrames() {
       frames = []; const N = 300;
       // 过去：有大爆炸 → ln a 均匀；否则按时间均匀
-      if (R.origin === 'bigbang') { const l0 = Math.log(1e-6); for (let i = 0; i < N; i++) { const a = Math.exp(l0 + (0 - l0) * i / (N - 1)); frames.push({ t: COSMO.tOfA(R, a), a }); } }
+      if (R.origin === 'bigbang' || R.quantumBounce) { const l0 = Math.log(R.quantumBounce ? Math.max(R.aMin, 1e-9) : 1e-6); for (let i = 0; i < N; i++) { const a = Math.exp(l0 + (0 - l0) * i / (N - 1)); frames.push({ t: COSMO.tOfA(R, a), a }); } }
       else { const tMin = Math.max(R.past.ts[R.past.ts.length - 1], -12); for (let i = 0; i < N; i++) { const t = tMin + (0 - tMin) * i / (N - 1); frames.push({ t, a: aAt(R.past, t) }); } }
       // 未来
       if (R.fate === 'crunch') { for (let i = 1; i <= N; i++) { const t = R.tEnd * i / N; frames.push({ t, a: aAt(R.fut, t) }); } }
@@ -130,8 +134,8 @@
     function GYR() { return COSMO.GYR / S.H0; }
     function fateCards() {
       const g = GYR(), m = R.m, cards = [];
-      const age = R.origin === 'bigbang' ? gyr(R.age * g) : (R.origin === 'bounce' ? '无大爆炸' : '无限');
-      cards.push({ c: 'gold', k: '年龄', v: age, i: R.origin === 'bigbang' ? '从奇点到今天' : (R.origin === 'bounce' ? `在 a = ${sig(R.aMin, 2)} 反弹，${gyr(R.tBounce * g)}前` : '密度不发散，没有奇点') });
+      const age = R.origin === 'bigbang' || R.quantumBounce ? gyr(R.age * g) : (R.origin === 'bounce' ? '无大爆炸' : '无限');
+      cards.push({ c: 'gold', k: '年龄', v: age, i: R.origin === 'bigbang' ? '从奇点到今天' : (R.quantumBounce ? `从量子反弹（a = ${R.aMin.toExponential(1)}）到今天` : (R.origin === 'bounce' ? `在 a = ${sig(R.aMin, 2)} 反弹，${gyr(R.tBounce * g)}前` : '密度不发散，没有奇点')) });
       let fate, fi;
       if (R.fate === 'crunch') { fate = '大坍缩'; fi = `${gyr(R.tEnd * g)}后压回奇点；先膨胀到 a = ${sig(R.aMax, 3)}（${gyr(R.tTurn * g)}后回转）`; }
       else if (R.fate === 'rip') { fate = '大撕裂'; fi = `${gyr(R.tEnd * g)}后 a → ∞`; }
@@ -143,9 +147,9 @@
       const ph = R.particleHorizon * COSMO.CKMS / S.H0 / 306.6, eh = R.eventHorizon * COSMO.CKMS / S.H0 / 306.6;
       cards.push({ c: 'gold', k: '视界', v: `${isFinite(ph) ? sig(ph, 3) + ' Gly' : '无'} / ${isFinite(eh) ? sig(eh, 3) + ' Gly' : '无'}`, i: '粒子视界 / 事件视界（共动，今天）' });
       let ep = '';
-      if (R.origin === 'bigbang') { const tRec = COSMO.tOfA(R, R.aRec) + R.age, tEq = isFinite(R.aEq) && R.aEq < 1 ? COSMO.tOfA(R, R.aEq) + R.age : NaN; ep = `复合 ${gyr(tRec * g)}；物质-辐射相等 ${isFinite(tEq) ? gyr(tEq * g) : '从未'}；物质-暗能量相等 ${isFinite(R.aLambda) ? (R.aLambda <= 1 ? gyr((COSMO.tOfA(R, R.aLambda) + R.age) * g) : '还没发生') : '从未'}`; }
+      if (R.origin === 'bigbang' || R.quantumBounce) { const tRec = COSMO.tOfA(R, R.aRec) + R.age, tEq = isFinite(R.aEq) && R.aEq < 1 ? COSMO.tOfA(R, R.aEq) + R.age : NaN; ep = `复合 ${isFinite(tRec) && R.aRec > (R.aMin || 0) ? gyr(tRec * g) : '从未'}；物质-辐射相等 ${isFinite(tEq) ? gyr(tEq * g) : '从未'}；物质-暗能量相等 ${isFinite(R.aLambda) ? (R.aLambda <= 1 ? gyr((COSMO.tOfA(R, R.aLambda) + R.age) * g) : '还没发生') : '从未'}`; }
       else ep = '没有热的早期，纪元不适用';
-      cards.push({ c: 'teal', k: '关键纪元（大爆炸后）', v: R.origin === 'bigbang' ? `T₀ = ${COSMO.T_CMB} K` : '—', i: ep });
+      cards.push({ c: 'teal', k: '关键纪元（' + (R.quantumBounce ? '反弹后' : '大爆炸后') + '）', v: R.origin === 'bigbang' || R.quantumBounce ? `T₀ = ${sig(R.T0, 4)} K` : '—', i: ep });
       $('fate-cards').innerHTML = cards.map((c) => `<div class="k ${c.c}"><small>${c.k}</small><b>${c.v}</b><i>${c.i}</i></div>`).join('');
     }
     function drawA() {
@@ -184,7 +188,7 @@
       const tl = $('timeline'), g = GYR(), marks = [];
       const at = (a) => { let best = 0; for (let i = 0; i < frames.length; i++) if (Math.abs(Math.log(frames[i].a) - Math.log(a)) < Math.abs(Math.log(frames[best].a) - Math.log(a))) best = i; return best; };
       const atT = (t) => { let best = 0; for (let i = 0; i < frames.length; i++) if (Math.abs(frames[i].t - t) < Math.abs(frames[best].t - t)) best = i; return best; };
-      if (R.origin === 'bigbang') { marks.push([0, '大爆炸']); marks.push([at(R.aRec), '复合']); if (R.growth && isFinite(R.growth.aFirst) && R.growth.aFirst < 1) marks.push([at(R.growth.aFirst), '第一批星系']); }
+      if (R.origin === 'bigbang' || R.quantumBounce) { marks.push([0, R.quantumBounce ? '量子反弹' : '大爆炸']); if (R.aRec > (R.aMin || 0)) marks.push([at(R.aRec), '复合']); if (R.growth && isFinite(R.growth.aFirst) && R.growth.aFirst < 1) marks.push([at(R.growth.aFirst), '第一批星系']); }
       else if (R.origin === 'bounce') marks.push([atT(R.tBounce), '反弹']);
       marks.push([TODAY, '今天']);
       if (R.fate === 'crunch') { marks.push([atT(R.tTurn), '回转']); marks.push([599, '大坍缩']); } else if (R.fate === 'rip') marks.push([599, '大撕裂']); else marks.push([599, 'a = 30']);
@@ -199,7 +203,7 @@
     function drawMovie() {
       if (!galaxies) galaxies = makeGalaxies();
       const cv = $('c-movie'), { ctx, w, h } = fit(cv), f = frames[frame]; if (!f) return;
-      const a = f.a, g = GYR(), T = R.origin === 'bigbang' || true ? COSMO.T_CMB / a : NaN;
+      const a = f.a, g = GYR(), T = R.T0 / a;
       ctx.fillStyle = '#060913'; ctx.fillRect(0, 0, w, h);
       // 背景辐射：复合之前是不透明的火球
       const glow = clamp((T - 1500) / 3000, 0, 1);
@@ -222,8 +226,8 @@
       const H = aAtH(f) ; const t = f.t * g;
       let epoch; const contracting = R.fate === 'crunch' && f.t > R.tTurn, acc = COSMO.accel(R.m, a) > 0;
       if (contracting) epoch = a < R.aRec ? '大坍缩：重新变成火球，压回奇点' : '收缩中：天空越来越亮，温度回升';
-      else if (R.origin === 'bigbang' && a < R.aRec) epoch = '火球：不透明的等离子体，光走不出去';
-      else if (R.origin === 'bigbang' && !formed && a < 1) epoch = '黑暗时代：复合之后，第一批星系之前';
+      else if ((R.origin === 'bigbang' || R.quantumBounce) && a < R.aRec) epoch = '火球：不透明的等离子体，光走不出去';
+      else if ((R.origin === 'bigbang' || R.quantumBounce) && !formed && a < 1) epoch = '黑暗时代：复合之后，第一批星系之前';
       else if (R.fate === 'rip' && a > 50) epoch = '大撕裂逼近：先星系团，再星系，再原子';
       else if (isFinite(R.aLambda) && a > R.aLambda && acc) epoch = (f.t > 0 ? '未来 · ' : '') + '暗能量主导：加速膨胀，星系互相远离';
       else if (f.t > 0) epoch = '未来 · ' + (acc ? '加速膨胀' : '减速膨胀') + (formed ? '' : '（还没有星系）');
@@ -232,7 +236,7 @@
       // 比例尺：方框边长 = 2 Gpc × a
       const side = 2000 * a, sideTxt = side >= 1000 ? sig(side / 1000, 3) + ' Gpc' : (side >= 1 ? sig(side, 3) + ' Mpc' : sig(side * 1000, 3) + ' kpc');
       ctx.fillStyle = 'rgba(233,237,249,0.8)'; ctx.font = '12px Space Grotesk, sans-serif'; ctx.textAlign = 'right'; ctx.fillText('方框边长 ' + sideTxt + '（今天 2 Gpc）', w - 10, h - 10);
-      $('movie-hud').innerHTML = `t = <b>${gyr(t)}</b>${R.origin === 'bigbang' ? `（大爆炸后 <b>${gyr((f.t + R.age) * g)}</b>）` : ''}<br>a = <b>${sig(a, 3)}</b>　T = <b>${sig(T, 3)} K</b><br>H = <b>${isFinite(H) ? sig(H * S.H0, 3) : '—'} km/s/Mpc</b>`;
+      $('movie-hud').innerHTML = `t = <b>${gyr(t)}</b>${R.origin === 'bigbang' || R.quantumBounce ? `（${R.quantumBounce ? '反弹' : '大爆炸'}后 <b>${gyr((f.t + R.age) * g)}</b>）` : ''}<br>a = <b>${sig(a, 3)}</b>　T = <b>${sig(T, 3)} K</b><br>H = <b>${isFinite(H) ? sig(H * S.H0, 3) : '—'} km/s/Mpc</b>`;
       $('v-frame').textContent = `帧 ${frame + 1}/${frames.length}`;
       $('s-frame').value = frame;
     }
@@ -246,8 +250,9 @@
     const saved = store.get('forge', null); if (saved && typeof saved.H0 === 'number') { Object.assign(S, saved); presetId = PRESETS.find((p) => ids.every((k) => Math.abs(p.p[k] - S[k]) < 1e-9)) ? PRESETS.find((p) => ids.every((k) => Math.abs(p.p[k] - S[k]) < 1e-9)).id : null; }
     syncSliders(); markPreset();
     window.addEventListener('beforeunload', () => store.set('forge', S));
-    return { render: () => { if (!R) solve(); else render(); }, S, get R() { return R; } };
+    return { render: () => { if (!R) solve(); else render(); }, S, hooks, solve, syncSliders, labels, markPreset, get R() { return R; }, get frames() { return frames; } };
   })();
+  window.GENESIS = { forge, show: (h) => show(h), halls };
 
   // ======================================================================
   // 哥德尔旋转宇宙
@@ -517,6 +522,8 @@
     return { render: () => { if (!obs) newHidden(); else render(); } };
   })();
 
-  // 启动
-  show(halls.includes(location.hash.slice(1)) ? location.hash.slice(1) : store.get('hall', 'overview'));
+  // 启动（量子版先让 app_q 挂好钩子再启动）
+  const start = () => show(halls.includes(location.hash.slice(1)) ? location.hash.slice(1) : store.get('hall', 'overview'));
+  window.GENESIS.start = start; window.GENESIS.$ = $; window.GENESIS.chart = chart; window.GENESIS.fit = fit; window.GENESIS.sig = sig; window.GENESIS.gyr = gyr; window.GENESIS.toast = toast; window.GENESIS.CSS = CSS; window.GENESIS.store = store;
+  if (!window.GENESIS_Q) start();
 })();

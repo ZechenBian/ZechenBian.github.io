@@ -11,7 +11,7 @@ GitHub Pages 直接发布 main 分支，服务器上不跑构建，所以**构�
 | 目录 | 源码 | 构建（在该目录里运行） | 测试 |
 |---|---|---|---|
 | 根目录 | `index.html`、`style.css`（手写，无构建） | — | 冒烟测试 |
-| `genesis-lab/`（创世实验室） | `src/`（`cosmo.js` 弗里德曼引擎、`godel.js` 哥德尔引擎、`presets.js`、`puzzles.js`、`app.js`、`template.html`） | `node build.js` → `index.html` | `node test/cosmo.test.js`、`node test/godel.test.js`（解析解对照）；冒烟测试 |
+| `genesis-lab/`（创世实验室） | `src/`（`cosmo.js` 弗里德曼引擎、`godel.js` 哥德尔引擎、`presets.js`、`puzzles.js`、`app.js`、`template.html`）；量子版多出 `src/q/`（`thermal.js`、`bbn.js`、`recomb.js`、`inflation.js`、`app_q.js`、面板和展区的 HTML 片段） | `node build.js` → `index.html`（经典版）和 `quantum/index.html`（量子版），同一份源码按开关构建 | `npm test`（`test/cosmo.test.js`、`test/godel.test.js`、`test/q.test.js`：解析解和标准值对照）；冒烟测试 |
 | `gravity-slingshot/` | `src/` | `node build.js` → `index.html` | 冒烟测试 |
 | `jieya/`（深夜解压铺） | `src/`（`template.html`、`core.js`、每个玩具一个 `toys/NN-<id>.js`，约定见 `jieya/README.md`） | `node build.js` → `index.html` | 冒烟测试 |
 | `nobel-lab/` | `src/`；写条目的说明和工具在 `_dev/`（Jekyll 不发布下划线开头的目录） | `python3 build.py --github .` → `index.html`、`literature-peace/index.html` | `_dev/tools/` 里的检查工具，从仓库根目录运行 |

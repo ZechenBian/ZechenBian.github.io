@@ -15,7 +15,7 @@
 <meta name="copyright" content="© 2026 Zechen Bian. All rights reserved.">
 <meta name="robots" content="noai, noimageai">
 <link rel="license" href="https://github.com/ZechenBian/zechenbian.github.io/blob/main/LICENSE">
-<title>创世实验室 · Genesis Lab</title>
+<title>__TITLE__</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>
 :root{
@@ -137,10 +137,10 @@ footer{border-top:1px solid var(--line);padding:18px 0 28px;color:var(--faint);f
 <body>
 <header class="top"><div class="wrap">
   <div class="row">
-    <div class="title"><h1>创世实验室 <span style="color:var(--dim);font-weight:400">·</span> Genesis Lab</h1><small>输入创世参数，真的解爱因斯坦方程，看会生出什么样的宇宙——再反过来，只凭观测猜出宇宙的样子。</small></div>
+    <div class="title"><h1>创世实验室 <span style="color:var(--dim);font-weight:400">·</span> Genesis Lab__EDITION_BADGE__</h1><small>输入创世参数，真的解爱因斯坦方程，看会生出什么样的宇宙——再反过来，只凭观测猜出宇宙的样子。__EDITION_LINK__</small></div>
     <nav class="tabs" id="tabs">
       <button data-hall="overview" class="on">总览</button>
-      <button data-hall="forge">创世台</button>
+      <button data-hall="forge">创世台</button>__Q_TAB__
       <button data-hall="godel">哥德尔旋转宇宙</button>
       <button data-hall="inverse">反推台</button>
     </nav>
@@ -172,7 +172,7 @@ footer{border-top:1px solid var(--line);padding:18px 0 28px;color:var(--faint);f
         <li><a href="#godel" data-go="godel" style="color:var(--teal);font-weight:600">哥德尔旋转宇宙</a>：精确解里亲手发一束光，看它绕回来；看光锥一点点倾倒，直到可以沿一个圈走回过去。</li>
         <li><a href="#inverse" data-go="inverse" style="color:var(--teal);font-weight:600">反推台</a>：只给你一个隐藏宇宙的观测数据，你来判断它的形状和命运。</li>
       </ul>
-      <p style="margin-top:10px"><button class="btn primary" data-go="forge">开始创世 →</button></p></div>
+      <p style="margin-top:10px"><button class="btn primary" data-go="forge">开始创世 →</button>__Q_OVERVIEW_BTN__</p></div>
   </div>
   <p class="note" style="margin-top:14px;color:var(--faint);font-size:13px">数据标签：<span class="tag real">真实</span> = 真实测量（会注明来源）；<span class="tag sim">模拟</span> = 由本页方程算出、加了噪声的模拟观测。本页所有图表、影片都由浏览器里实时积分方程生成，没有预渲染的素材。</p>
 </section>
@@ -191,7 +191,7 @@ footer{border-top:1px solid var(--line);padding:18px 0 28px;color:var(--faint);f
         <div class="ctl"><label><span>暗能量状态方程 w</span><b class="mono" id="v-w"></b></label><input type="range" id="s-w" min="-2" max="0" step="0.01"><div class="sub">p = wρ；w = −1 就是 Λ，w &lt; −1 是幻影能量</div></div>
         <div class="ctl"><label><span>曲率 Ω<sub>k</sub> = 1 − Ω<sub>m</sub> − Ω<sub>r</sub> − Ω<sub>Λ</sub></span><b class="mono" id="v-Ok"></b></label><div class="sub" id="v-Okword"></div></div>
         <div class="bar"><button class="btn" id="b-dice">🎲 掷骰子创世</button><button class="btn ghost small" id="b-planck">回到我们的宇宙</button></div>
-      </div>
+      </div>__Q_PANEL__
       <div class="card" style="margin-top:14px">
         <h3>内置的宇宙 <span class="note" style="font-weight:400">方程允许、各有性格的十一组</span></h3>
         <div class="chips" id="presets"></div>
@@ -207,7 +207,7 @@ footer{border-top:1px solid var(--line);padding:18px 0 28px;color:var(--faint);f
         <div class="bar"><button class="btn small" id="b-play">▶ 播放</button><input type="range" id="s-frame" min="0" max="599" step="1" value="300"><span class="note mono" id="v-frame" style="min-width:150px;text-align:right"></span></div>
         <div class="timeline" id="timeline"></div>
       </div>
-      <div class="kv" id="fate-cards" style="margin-top:14px"></div>
+      <div class="kv" id="fate-cards" style="margin-top:14px"></div>__Q_CARDS__
       <div class="grid g2" style="margin-top:14px">
         <div class="card tight"><h3 style="font-size:14px">尺度因子 a(t) <span class="note" style="font-weight:400">今天 = 0</span></h3><canvas id="c-a" width="520" height="300"></canvas>
           <div class="bar"><button class="btn small" id="b-alog">对数刻度</button></div></div>
@@ -224,6 +224,7 @@ footer{border-top:1px solid var(--line);padding:18px 0 28px;color:var(--faint);f
   </div>
 </section>
 
+__Q_HALL__
 <!-- ================= 哥德尔 ================= -->
 <section class="hall" id="hall-godel" hidden>
   <p class="lede">1949 年，哥德尔送给爱因斯坦一份生日礼物：爱因斯坦方程的一个精确解。在这个宇宙里，物质整体在旋转。下面所有画面都是从这份度规直接数值积分出来的——先玩，再读解释。</p>
@@ -311,7 +312,9 @@ __COSMO__
 __GODEL__
 __PRESETS__
 __PUZZLES__
+__Q_ENGINES__
 __APP__
+__Q_APP__
 </script>
 </body>
 </html>

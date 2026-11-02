@@ -12,24 +12,44 @@ const COSMO = (function () {
   const GYR = 977.792;          // 1/H0 = 977.792/H0 Gyr（H0 以 km/s/Mpc 计）
   const CKMS = 299792.458;      // 光速 km/s → c/H0 = 299792.458/H0 Mpc
   const T_CMB = 2.7255;         // 今天的 CMB 温度 K（Fixsen 2009）
+  const T_REC = 2970;           // 复合温度 K（氢的 Saha 平衡；z_rec = T_REC/T0 − 1，我们的宇宙 ≈ 1090）
   const DELTA_C = 1.686;        // 线性坍缩阈值（球对称坍缩模型）
-  const A_SING = 1e-7, A_BIG = 1e7, T_MAX = 1000, H_CAP = 0.05, EPS = 0.01;
-  const Z_REC = 1090;           // 复合（CMB 发出）红移，近似与模型无关
+  const A_BIG = 1e7, T_MAX = 1000, H_CAP = 0.05, EPS = 0.01;
+  // 辐射密度由温度决定（普朗克黑体公式 + 三代中微子）：Ω_γ h² = 2.473e-5 (T0/2.7255)⁴，Ω_r = Ω_γ (1 + 0.2271 N_eff)
+  const OG_H2 = 2.473e-5, NEFF_STD = 3.044, NU_FAC = 0.2271;
+  function omegaR(T0, H0, Neff) { const h = H0 / 100; return OG_H2 * Math.pow(T0 / T_CMB, 4) * (1 + NU_FAC * (Neff === undefined ? NEFF_STD : Neff)) / (h * h); }
+  function temperatureOf(Or, H0, Neff) { const h = H0 / 100; return Or <= 0 ? 0 : T_CMB * Math.pow(Or * h * h / (OG_H2 * (1 + NU_FAC * (Neff === undefined ? NEFF_STD : Neff))), 0.25); }
 
   // 我们的宇宙：Planck 2018（TT,TE,EE+lowE+lensing，Table 2 最后一列）。Ω_r 由 T_CMB 和三代中微子算出：Ω_r h² = 4.18e-5。
-  const FIDUCIAL = { name: 'Planck 2018', H0: 67.4, Om: 0.315, Or: 4.18e-5 / (0.674 * 0.674), OL: 0.685, w: -1 };
+  const FIDUCIAL = { name: 'Planck 2018', H0: 67.4, Om: 0.315, Or: omegaR(T_CMB, 67.4), OL: 0.685, w: -1 };
 
+  // 输入可以给 Ω_r（经典版）或 T0 + N_eff（量子版，Ω_r 由黑体公式算出）；两种写法互相一致。
+  // 可选：rhoC（圈量子宇宙学的反弹密度，以今天的临界密度为单位）、aRec（外部算出的复合尺度因子）、sigScale（原初扰动幅度的倍数）
   function norm(m) {
     const w = (m.w === undefined || m.w === null) ? -1 : m.w;
-    const Or = m.Or === undefined ? 0 : m.Or;
-    return { H0: m.H0, Om: m.Om, Or, OL: m.OL, w, Ok: 1 - m.Om - Or - m.OL };
+    const Neff = m.Neff === undefined ? NEFF_STD : m.Neff;
+    let Or, T0;
+    if (m.T0 !== undefined && m.T0 !== null) { T0 = m.T0; Or = omegaR(T0, m.H0, Neff); }
+    else { Or = m.Or === undefined ? 0 : m.Or; T0 = temperatureOf(Or, m.H0, Neff); }
+    const out = { H0: m.H0, Om: m.Om, Or, OL: m.OL, w, Ok: 1 - m.Om - Or - m.OL, T0, Neff, rhoC: m.rhoC > 0 ? m.rhoC : null, sigScale: m.sigScale || null };
+    if (m.aRec > 0) out.aRecIn = m.aRec;
+    return out;
   }
-  function E2(m, a) { return m.Or / (a * a * a * a) + m.Om / (a * a * a) + m.Ok / (a * a) + m.OL * Math.pow(a, -3 * (1 + m.w)); }
+  // 流体部分的密度和压强（ρ_crit0 单位）
+  function rhoF(m, a) { return m.Or / (a * a * a * a) + m.Om / (a * a * a) + m.OL * Math.pow(a, -3 * (1 + m.w)); }
+  function pF(m, a) { return m.Or / (a * a * a * a) / 3 + m.w * m.OL * Math.pow(a, -3 * (1 + m.w)); }
+  // 第一弗里德曼方程；圈量子宇宙学的有效修正 H² = (8πG/3) ρ (1 − ρ/ρ_c)（Ashtekar–Singh；曲率项按经典处理）
+  function E2(m, a) { const r = rhoF(m, a); const q = m.rhoC ? (1 - r / m.rhoC) : 1; return r * q + m.Ok / (a * a); }
   function Ez(m, z) { const e = E2(m, 1 / (1 + z)); return e > 0 ? Math.sqrt(e) : NaN; }
-  // ä/a（H0² 单位）
-  function accel(m, a) { return -(m.Or / (a * a * a * a) + 0.5 * m.Om / (a * a * a) + 0.5 * (1 + 3 * m.w) * m.OL * Math.pow(a, -3 * (1 + m.w))); }
-  // 密度会不会在 a→0 时发散（真奇点）；纯 de Sitter 不会
-  function singularAtZero(m) { return m.Or > 1e-12 || m.Om > 1e-12 || m.Ok > 1e-12 || (m.OL > 0 && m.w > -1 / 3); }
+  // ä/a（H0² 单位）：−½(ρ + 3p)；LQC：−½[ρ(1 − 4ρ/ρ_c) + 3p(1 − 2ρ/ρ_c)]，在 ρ = ρ_c 处为正——反弹
+  function accel(m, a) {
+    const r = rhoF(m, a), p = pF(m, a);
+    if (!m.rhoC) return -0.5 * (r + 3 * p);
+    const x = r / m.rhoC; return -0.5 * (r * (1 - 4 * x) + 3 * p * (1 - 2 * x));
+  }
+  // 密度会不会在 a→0 时发散（真奇点）；纯 de Sitter 不会；LQC 有反弹，永远不会
+  function singularAtZero(m) { if (m.rhoC) return false; return m.Or > 1e-12 || m.Om > 1e-12 || m.Ok > 1e-12 || (m.OL > 0 && m.w > -1 / 3); }
+  function aSing(m) { return m.rhoC ? 1e-60 : 1e-7; }
 
   // ---------- 积分 ----------
   // 从今天出发，dir=+1 向未来，dir=−1 向过去。返回采样点和停下的原因。
@@ -38,6 +58,7 @@ const COSMO = (function () {
     const ts = [0], as = [1], vs = [1];
     let stop = null, turn = null, nStep = 0, lastLog = 0, lastT = 0;
     const f = (a, v) => [v, accel(m, a) * a];
+    const A_SING = aSing(m);
     while (nStep < 400000) {
       nStep++;
       const acc = Math.abs(accel(m, a));
@@ -54,6 +75,7 @@ const COSMO = (function () {
       a = na; v = nv; t += h;
       if (Math.abs(Math.log(a) - lastLog) > 0.004 || Math.abs(t - lastT) > 0.004) { ts.push(t); as.push(a); vs.push(v); lastLog = Math.log(a); lastT = t; }
       if (a <= A_SING) { stop = { why: singularAtZero(m) ? 'singular' : 'asymptotic', t, a }; break; }
+      if (dir < 0 && turn && a >= 1) { stop = { why: 'prebounce', t, a }; break; } // 反弹之前的收缩宇宙已经和今天一样大：够看了
       if (a >= A_BIG) { stop = { why: 'big', t, a }; break; }
       if (Math.abs(t) >= T_MAX) { stop = { why: 'tmax', t, a }; break; }
     }
@@ -83,7 +105,7 @@ const COSMO = (function () {
     const past = integrate(m, -1), fut = integrate(m, +1);
     const R = { m, past, fut };
     // 过去
-    if (past.turn) { R.origin = 'bounce'; R.aMin = past.turn.a; R.tBounce = past.turn.t; }
+    if (past.turn) { R.origin = 'bounce'; R.aMin = past.turn.a; R.tBounce = past.turn.t; R.quantumBounce = !!m.rhoC; if (m.rhoC) R.age = -past.turn.t; }
     else if (past.stop.why === 'singular') { R.origin = 'bigbang'; R.age = -past.stop.t; }
     else if (past.stop.why === 'asymptotic') { R.origin = 'eternalpast'; }
     else R.origin = 'eternalpast';
@@ -100,7 +122,7 @@ const COSMO = (function () {
     R.curvRadius = Math.abs(m.Ok) < 1e-9 ? Infinity : 1 / Math.sqrt(Math.abs(m.Ok)); // c/H0 单位
     // 视界：粒子视界 ∫_0^1 da/(a²E) 只在 a→0 处被辐射或物质（或 w>−1/3 的暗能量）压住时收敛；只有曲率的 Milne 宇宙没有粒子视界
     const phFinite = R.origin === 'bigbang' && (m.Or > 1e-12 || m.Om > 1e-12 || (m.OL > 0 && m.w > -1 / 3));
-    R.particleHorizon = phFinite ? confQuad(m, A_SING, 1) : Infinity;
+    R.particleHorizon = phFinite ? confQuad(m, 1e-7, 1) : (R.quantumBounce ? confQuad(m, R.aMin * 1.0001, 1) : Infinity);
     if (R.fate === 'eternal') R.eventHorizon = (m.OL > 0 && m.w < -1 / 3) ? confQuad(m, 1, 1e9) : Infinity;
     else if (R.fate === 'rip') R.eventHorizon = confQuad(m, 1, 1e9);
     else { // 大坍缩：整个未来的 ∫dt/a，沿轨迹数值积分
@@ -108,7 +130,8 @@ const COSMO = (function () {
     }
     // 纪元
     R.aEq = m.Om > 0 ? m.Or / m.Om : Infinity;
-    R.aRec = 1 / (1 + Z_REC);
+    R.T0 = m.T0;
+    R.aRec = m.aRecIn || (m.T0 > 0 ? m.T0 / T_REC : Infinity); // 复合：背景温度 T0/a 降到 T_REC 时，a_rec = T0/T_REC；没有辐射就没有复合
     R.aLambda = (m.OL > 0 && m.Om > 0) ? Math.pow(m.OL / m.Om, 1 / (3 * m.w)) : Infinity;
     R.tOf = (a) => tOfA(R, a);
     R.growth = growth(m, R);
@@ -123,9 +146,10 @@ const COSMO = (function () {
   // 过去分支（单调的大爆炸宇宙）：由 a 找时间 t（相对今天，负数）
   function tOfA(R, a) {
     if (a >= 1) return 0;
-    if (R.origin !== 'bigbang') return NaN;
-    const { ts, as } = R.past; // as 单调递减
+    if (R.origin !== 'bigbang' && !R.quantumBounce) return NaN;
+    const { ts, as } = R.past; // 从今天往回 a 单调递减；量子反弹的宇宙只在反弹之前这一段里找
     let lo = 0, hi = as.length - 1;
+    if (R.quantumBounce) { let k = 0; while (k < ts.length - 1 && ts[k + 1] >= R.tBounce) k++; hi = k; }
     if (a <= as[hi]) return ts[hi];
     while (hi - lo > 1) { const mid = (lo + hi) >> 1; if (as[mid] > a) lo = mid; else hi = mid; }
     const f = (Math.log(as[lo]) - Math.log(a)) / (Math.log(as[lo]) - Math.log(as[hi]));
@@ -176,10 +200,12 @@ const COSMO = (function () {
   //   星系团 8 h⁻¹Mpc：σ8 = 0.81；典型星系 10¹² M☉：σ ≈ 2.1；矮星系 / 第一批星系 10⁸ M☉：σ ≈ 3.9，取 3σ 高峰
   const SIG_8 = 0.81, SIG_GAL = 2.1, SIG_FIRST = 3 * 3.9;
   function growth(m, R) {
+    if (R.origin === 'bounce' && R.quantumBounce) R = Object.assign({}, R, { origin: 'bigbang' }); // 量子反弹之后的膨胀段和热大爆炸一样
     const g = growthRaw(m, R); if (!g) return null;
-    const d1 = fiducialD1();
-    const res = { as: g.as, dFirst: g.Ds.map((D) => D * SIG_FIRST / d1), dGal: g.Ds.map((D) => D * SIG_GAL / d1), d8: g.Ds.map((D) => D * SIG_8 / d1) };
-    res.dFirstMax = g.peak * SIG_FIRST / d1; res.dGalMax = g.peak * SIG_GAL / d1; res.d8Max = g.peak * SIG_8 / d1; res.growthMax = g.peak / d1;
+    const d1 = fiducialD1(), sc = m.sigScale || { first: 1, gal: 1, c8: 1 };
+    const S_F = SIG_FIRST * (sc.first || 1), S_G = SIG_GAL * (sc.gal || 1), S_8 = SIG_8 * (sc.c8 || 1);
+    const res = { as: g.as, dFirst: g.Ds.map((D) => D * S_F / d1), dGal: g.Ds.map((D) => D * S_G / d1), d8: g.Ds.map((D) => D * S_8 / d1) };
+    res.dFirstMax = g.peak * S_F / d1; res.dGalMax = g.peak * S_G / d1; res.d8Max = g.peak * S_8 / d1; res.growthMax = g.peak / d1;
     // 第一次越过阈值的 a（线性插值），再换成时间
     const cross = (arr) => { for (let i = 1; i < arr.length; i++) if (arr[i] >= DELTA_C && arr[i - 1] < DELTA_C) { const f = (DELTA_C - arr[i - 1]) / (arr[i] - arr[i - 1]); return g.as[i - 1] + (g.as[i] - g.as[i - 1]) * f; } return NaN; };
     const tAt = (a) => !isFinite(a) ? NaN : (a <= 1 ? tOfA(R, a) : tFutOfA(R, a));
@@ -197,19 +223,24 @@ const COSMO = (function () {
     const fmtT = (t) => (t * gyr).toPrecision(3) + ' Gyr';
     // 1 起点
     if (R.origin === 'bigbang') {
-      if (m.Or > 1e-12 || m.Om > 1e-12) items.push({ level: 'ok', key: 'origin', title: '热大爆炸', detail: `从奇点算起 ${fmtT(R.age)}。早期足够热，有核合成和 CMB。` });
+      if (m.Or > 1e-12) items.push({ level: 'ok', key: 'origin', title: '热大爆炸', detail: `从奇点算起 ${fmtT(R.age)}。今天的背景温度 ${m.T0.toPrecision(3)} K，往回追溯足够热，有核合成和 CMB。` });
+      else if (m.Om > 1e-12) items.push({ level: 'warn', key: 'origin', title: '大爆炸，但是冷的', detail: `从奇点算起 ${fmtT(R.age)}；没有辐射，温度始终为零：没有核合成，也没有 CMB。` });
       else items.push({ level: 'warn', key: 'origin', title: '大爆炸，但空无一物', detail: `从奇点算起 ${fmtT(R.age)}；没有物质也没有辐射，所谓"大爆炸"只是坐标的起点（米尔恩宇宙其实就是闵可夫斯基时空的一块）。` });
+    }
+    else if (R.origin === 'bounce' && R.quantumBounce) {
+      const Tb = m.T0 / R.aMin;
+      items.push({ level: Tb > 1e10 ? 'ok' : 'warn', key: 'origin', title: '量子反弹代替奇点', detail: `圈量子宇宙学的有效方程在密度到 ρ_c 时把收缩翻成膨胀：反弹在 ${fmtT(-R.tBounce)}前，最小 a = ${R.aMin.toExponential(2)}，那时温度 ${Tb.toExponential(2)} K。` + (Tb > 1e10 ? '足够热，核合成和 CMB 照常。' : '不够热：核合成没有发生过。') });
     }
     else if (R.origin === 'bounce') items.push({ level: 'warn', key: 'origin', title: '没有大爆炸（反弹）', detail: `过去收缩到最小 a = ${R.aMin.toPrecision(3)} 后反弹。从没热过：没有氦、没有 CMB——真实宇宙的观测排除了它。` });
     else items.push({ level: 'warn', key: 'origin', title: '没有奇点，无限的过去', detail: '密度不发散，膨胀只是指数地从极小开始（de Sitter 式）。也没有热的开端。' });
     // 2 星系
     if (!G) items.push({ level: 'dead', key: 'galaxies', title: '结构形成：不适用', detail: '没有热大爆炸就没有原初扰动的常规剧本，这里不做判断。' });
     else if (isFinite(G.tFirst)) {
-      const T = T_CMB / G.aFirst;
+      const T = m.T0 / G.aFirst;
       let d = `10⁸ M☉ 的 3σ 高峰在 a = ${G.aFirst.toPrecision(2)}（背景温度 ${T.toPrecision(2)} K）越过坍缩阈值 δ = 1.686。`;
       d += isFinite(G.tGal) ? ` 像银河系那样的典型星系（10¹² M☉ 的 1σ 涨落）在 ${G.aGal <= 1 ? '大爆炸后 ' + fmtT(G.tGal + R.age) : '今天之后 ' + fmtT(G.tGal)}坍缩；` : ' 典型星系尺度（10¹² M☉ 的 1σ）永远到不了阈值；';
       d += isFinite(G.tCluster) ? `星系团尺度（8 h⁻¹Mpc 的 1σ）在 ${G.aCluster <= 1 ? '大爆炸后 ' + fmtT(G.tCluster + R.age) : '今天之后 ' + fmtT(G.tCluster)}坍缩。` : '星系团尺度（8 h⁻¹Mpc 的 1σ）永远到不了阈值——真实的星系团是 2–3σ 的稀有高峰。';
-      items.push({ level: 'ok', key: 'galaxies', title: `第一批星系在大爆炸后 ${fmtT(G.tFirst + R.age)} 形成`, detail: d });
+      items.push({ level: 'ok', key: 'galaxies', title: `第一批星系在${R.quantumBounce ? '反弹' : '大爆炸'}后 ${fmtT(G.tFirst + R.age)} 形成`, detail: d });
     } else {
       let why;
       const peak = G.dFirstMax.toPrecision(2);
@@ -262,6 +293,6 @@ const COSMO = (function () {
     return { DM, DL: DM * (1 + z), DA: DM / (1 + z), mu: 5 * Math.log10(DM * (1 + z)) + 25 };
   }
 
-  return { GYR, CKMS, T_CMB, DELTA_C, Z_REC, FIDUCIAL, norm, E2, Ez, accel, integrate, solve, ageQuad, confQuad, tOfA, tFutOfA, growth, chiTable, chiAt, Sk, distances, SIG_FIRST, SIG_GAL, SIG_8 };
+  return { GYR, CKMS, T_CMB, T_REC, DELTA_C, FIDUCIAL, OG_H2, NEFF_STD, NU_FAC, omegaR, temperatureOf, norm, rhoF, E2, Ez, accel, integrate, solve, ageQuad, confQuad, tOfA, tFutOfA, growth, chiTable, chiAt, Sk, distances, SIG_FIRST, SIG_GAL, SIG_8 };
 })();
 if (typeof module !== 'undefined') module.exports = COSMO;

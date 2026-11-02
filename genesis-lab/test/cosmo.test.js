@@ -88,4 +88,19 @@ function eq(name, got, want) { n++; assert.strictEqual(got, want, `${name}: got 
   }
   assert(worst < 2e-3, 'ODE vs quadrature age mismatch ' + worst); console.log('✓ ODE age vs quadrature worst rel err ' + worst.toExponential(2)); n++;
 }
+// 11 温度 ↔ Ω_r 互相一致；复合尺度因子随 T0 变
+{
+  const m = C.norm(C.FIDUCIAL); close('Planck T0 from Or', m.T0, 2.7255, 1e-6);
+  const m2 = C.norm({ H0: 67.4, Om: 0.315, T0: 2.7255, OL: 0.685 }); close('Or from T0', m2.Or, m.Or, 1e-6);
+  const R = C.solve(C.FIDUCIAL); close('Planck a_rec', 1 / R.aRec - 1, 1089, 2e-3);
+  const Rhot = C.solve({ H0: 67.4, Om: 0.05, Or: 0.95, OL: 0 }); assert(Rhot.T0 > 20 && Rhot.T0 < 40, 'hot universe T0 ' + Rhot.T0); console.log('✓ Ω_r = 0.95 → T0 = ' + Rhot.T0.toFixed(1) + ' K, a_rec = ' + Rhot.aRec.toExponential(2)); n++;
+}
+// 12 圈量子宇宙学反弹：ρ_c = 1e20 ρ_crit0 → 反弹 a_min = (Ω_r/ρ_c)^{1/4}
+{
+  const R = C.solve({ H0: 67.4, Om: 0.315, Or: 9.2e-5, OL: 0.685, rhoC: 1e20 });
+  eq('LQC origin', R.origin, 'bounce'); eq('LQC quantum bounce', R.quantumBounce, true);
+  close('LQC a_min', R.aMin, Math.pow(9.2e-5 / 1e20, 0.25), 0.02);
+  assert(Math.abs(R.age - C.ageQuad(C.norm(C.FIDUCIAL))) < 0.01, 'LQC age should be ~ classical age: ' + R.age); console.log('✓ LQC age ≈ classical: ' + R.age.toFixed(4)); n++;
+  assert(R.growth && isFinite(R.growth.tFirst), 'LQC universe still forms galaxies'); console.log('✓ LQC universe forms galaxies'); n++;
+}
 console.log(`\n全部通过 / all ${n} checks passed`);
