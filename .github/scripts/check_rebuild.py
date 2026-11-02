@@ -18,6 +18,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 # 要比对的目录省略时就是运行的目录；天下棋局的源码在 tianxia/_source，产物写到四个版本的目录里。
 TIANXIA_PAGES = ["tianxia", "tianxia-v2", "tianxia-v3", "tianxia-v4"]
 BUILDS = [
+    ("创世实验室 genesis-lab",      "genesis-lab",       ["node", "build.js"]),
     ("引力弹弓 gravity-slingshot", "gravity-slingshot", ["node", "build.js"]),
     ("深夜解压铺 jieya",           "jieya",             ["node", "build.js"]),
     ("诺奖实验室 nobel-lab",       "nobel-lab",         ["python3", "build.py", "--github", "."]),
