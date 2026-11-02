@@ -17,6 +17,7 @@ const ai = process.argv.indexOf('--artifact');
 if (ai > 0 && process.argv[ai + 1]) {
   let a = t.replace(/<!doctype html>\s*<!--[\s\S]*?-->\s*/i, '').replace(/<html[^>]*>|<\/html>|<head>|<\/head>|<body>|<\/body>/g, '').replace(/<meta name="viewport"[^>]*>\s*/, '');
   a = a.replace('<title>创世实验室 · Genesis Lab</title>', '<title>创世实验室 · Genesis Lab</title>\n<meta name="claude:viewport-fit-sides" content="cover">');
+  a = a.replace('<script>\n', '<script>window.GENESIS_ARTIFACT = true; // Artifact 环境：下载按钮改为显示文本\n');
   a = '<!-- Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。 -->\n' + a.replace(/^\s+/, '');
   fs.writeFileSync(process.argv[ai + 1], a); console.log('artifact variant written to', process.argv[ai + 1], a.length, 'bytes');
 }

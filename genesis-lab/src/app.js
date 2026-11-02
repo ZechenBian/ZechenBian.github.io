@@ -504,6 +504,13 @@
       if (!obs) return; let csv = '# 创世实验室 · 反推台 第一关 · 模拟数据（由隐藏参数算出并加噪声）\n# 标准烛光：z, mu(mag), sigma\n';
       for (const d of obs.sn) csv += `sn,${d.z},${d.mu},${d.sig}\n`; csv += '# 标准尺：z, theta(deg), sigma（尺长 147.09 Mpc 共动）\n';
       for (const d of obs.rulers) csv += `ruler,${d.z},${d.theta},${d.sig}\n`; csv += `# 最老恒星：age(Gyr), sigma\noldest,${obs.oldest.t},${obs.oldest.sig}\n`;
+      if (window.GENESIS_ARTIFACT) { // Artifact 里不能直接下载：显示出来供复制
+        let box = $('csv-box'); if (!box) { box = document.createElement('div'); box.id = 'csv-box'; box.style.marginTop = '10px'; $('b-csv').parentNode.parentNode.appendChild(box); }
+        box.innerHTML = `<textarea class="num" style="width:100%;height:140px;font-size:11px" readonly></textarea><div class="bar"><button class="btn small" id="b-csv-copy">复制到剪贴板</button><span class="note">在 GitHub Pages 版本上这个按钮会直接下载 .csv 文件</span></div>`;
+        box.querySelector('textarea').value = csv;
+        $('b-csv-copy').addEventListener('click', () => { const ta = box.querySelector('textarea'); const done = () => toast('已复制'); if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(csv).then(done, () => { ta.select(); done(); }); else { ta.select(); done(); } });
+        return;
+      }
       const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = 'genesis-lab-inverse-1.csv'; a.click();
     });
     window.addEventListener('resize', () => { if (current === 'inverse' && obs) render(); });
