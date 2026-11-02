@@ -215,8 +215,8 @@ const COSMO = (function () {
       const peak = G.dFirstMax.toPrecision(2);
       if (m.Om <= 1e-12) why = '宇宙里没有物质：没有东西可以在引力下聚集。';
       else if (R.fate === 'crunch') why = `宇宙寿命只有 ${fmtT(R.tEnd + R.age)}，连最高的密度峰也只长到 δ = ${peak} 就被大坍缩压碎了。`;
+      else if (R.aEq > 0.01) why = `辐射主导得太久（物质-辐射相等${R.aEq < 1 ? '要到 a = ' + R.aEq.toPrecision(2) : '到今天还没发生'}），辐射压让物质扰动几乎不长（Mészáros 效应），最高的密度峰也只到 δ ≈ ${peak}。` + (m.OL > 0 && m.w < -1 / 3 && R.aLambda < 10 ? `之后暗能量又在 a = ${R.aLambda.toPrecision(2)} 接管，把增长彻底冻住。` : '');
       else if (m.OL > 0 && m.w < -1 / 3) why = `暗能量过早接管（物质-暗能量相等在 a = ${R.aLambda.toPrecision(2)}），增长被冻结：最高的密度峰也只长到 δ = ${peak} < 1.686，永远形不成星系。这正是温伯格 1987 年用来"预言"宇宙学常数不能比我们的大太多的论证。`;
-      else if (R.aEq > 0.01) why = `辐射主导得太久（物质-辐射相等要到 a = ${R.aEq.toPrecision(2)}），Mészáros 效应把增长冻结在 δ ≈ ${peak}。`;
       else why = `密度峰最多长到 δ = ${peak}，不够坍缩（开放宇宙的曲率让膨胀太快，增长在 a ≈ Ω_m/|Ω_k| 后冻结）。`;
       items.push({ level: 'dead', key: 'galaxies', title: '没有星系', detail: why });
     }

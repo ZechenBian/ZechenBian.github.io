@@ -90,12 +90,14 @@ canvas.pointer{cursor:crosshair}
 .movie{position:relative}
 .movie .hud{position:absolute;left:10px;top:8px;font-size:12px;color:var(--dim);pointer-events:none;text-shadow:0 1px 2px #000}
 .movie .hud b{color:var(--ink);font-weight:500}
-.movie .epoch{position:absolute;right:10px;top:8px;font-size:12px;color:var(--gold);font-weight:600;pointer-events:none;text-shadow:0 1px 2px #000;text-align:right;max-width:60%}
+.movie .hud{background:rgba(6,9,19,0.55);padding:4px 8px;border-radius:6px}
+.epoch-line{margin-top:6px;font-size:13px;color:var(--gold);font-weight:600;min-height:20px}
 .bar{display:flex;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap}
 .bar input[type=range]{flex:1;min-width:160px;accent-color:var(--gold)}
-.timeline{position:relative;height:30px;margin-top:4px}
+.timeline{position:relative;height:44px;margin-top:4px}
 .timeline .mk{position:absolute;top:0;transform:translateX(-50%);font-size:10px;color:var(--dim);white-space:nowrap;text-align:center}
 .timeline .mk::before{content:'';display:block;width:1px;height:8px;background:var(--line2);margin:0 auto 1px}
+.timeline .mk.alt{top:0}.timeline .mk.alt::before{height:22px}
 .diag{list-style:none;margin:0;padding:0;display:grid;gap:8px}
 .diag li{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:9px 11px}
 .diag .lv{width:10px;height:10px;border-radius:50%;margin-top:7px}
@@ -166,9 +168,9 @@ footer{border-top:1px solid var(--line);padding:18px 0 28px;color:var(--faint);f
       </ul></div>
     <div class="card"><h3>这个实验室打算让你看到什么</h3>
       <ul>
-        <li><b style="color:var(--ink)">创世台</b>：随手拨出来的宇宙大多死寂；诊断会告诉你死在哪一步，并给你十一组方程允许、各有性格的宇宙。</li>
-        <li><b style="color:var(--ink)">哥德尔旋转宇宙</b>：精确解里亲手发一束光，看它绕回来；看光锥一点点倾倒，直到可以沿一个圈走回过去。</li>
-        <li><b style="color:var(--ink)">反推台</b>：只给你一个隐藏宇宙的观测数据，你来判断它的形状和命运。</li>
+        <li><a href="#forge" data-go="forge" style="color:var(--teal);font-weight:600">创世台</a>：随手拨出来的宇宙大多死寂；诊断会告诉你死在哪一步，并给你十一组方程允许、各有性格的宇宙。</li>
+        <li><a href="#godel" data-go="godel" style="color:var(--teal);font-weight:600">哥德尔旋转宇宙</a>：精确解里亲手发一束光，看它绕回来；看光锥一点点倾倒，直到可以沿一个圈走回过去。</li>
+        <li><a href="#inverse" data-go="inverse" style="color:var(--teal);font-weight:600">反推台</a>：只给你一个隐藏宇宙的观测数据，你来判断它的形状和命运。</li>
       </ul>
       <p style="margin-top:10px"><button class="btn primary" data-go="forge">开始创世 →</button></p></div>
   </div>
@@ -181,7 +183,7 @@ footer{border-top:1px solid var(--line);padding:18px 0 28px;color:var(--faint);f
     <div>
       <div class="card">
         <h3>创世参数</h3>
-        <p class="note">四个数决定一个均匀各向同性的宇宙（曲率由它们算出）。拨一拨，右边的宇宙会实时重新解方程。</p>
+        <p class="note">四个数决定一个均匀各向同性的宇宙（曲率由它们算出）。拨一拨，旁边的宇宙会实时重新解方程。</p>
         <div class="ctl"><label><span>哈勃常数 H₀</span><b class="mono" id="v-H0"></b></label><input type="range" id="s-H0" min="20" max="120" step="0.5"><div class="sub">今天的膨胀率，km/s/Mpc</div></div>
         <div class="ctl"><label><span>物质 Ω<sub>m</sub></span><b class="mono" id="v-Om"></b></label><input type="range" id="s-Om" min="0" max="4" step="0.005"><div class="sub">普通物质 + 暗物质，占临界密度的比例</div></div>
         <div class="ctl"><label><span>辐射 Ω<sub>r</sub></span><b class="mono" id="v-Or"></b></label><input type="range" id="s-Or" min="-7" max="0" step="0.02"><div class="sub">光子和中微子（对数刻度；最左 = 0）</div></div>
@@ -200,7 +202,8 @@ footer{border-top:1px solid var(--line);padding:18px 0 28px;color:var(--faint);f
       <div class="card">
         <h3>创世影片 <span class="tag sim">模拟</span> <span class="note" style="font-weight:400">共动网格上的星系随尺度因子 a(t) 伸缩；颜色随背景温度变化</span></h3>
         <div class="movie"><canvas id="c-movie" width="900" height="420"></canvas>
-          <div class="hud" id="movie-hud"></div><div class="epoch" id="movie-epoch"></div></div>
+          <div class="hud" id="movie-hud"></div></div>
+        <div class="epoch-line" id="movie-epoch"></div>
         <div class="bar"><button class="btn small" id="b-play">▶ 播放</button><input type="range" id="s-frame" min="0" max="599" step="1" value="300"><span class="note mono" id="v-frame" style="min-width:150px;text-align:right"></span></div>
         <div class="timeline" id="timeline"></div>
       </div>
@@ -227,7 +230,7 @@ footer{border-top:1px solid var(--line);padding:18px 0 28px;color:var(--faint);f
   <div class="grid g-godel" style="margin-top:14px">
     <div class="card">
       <h3>① 你醒来，发现星空在转 <span class="tag sim">模拟</span></h3>
-      <p class="note">你手里有一个陀螺仪（画面以它为准，保持不转）。远处所有星系都在绕着你慢慢转圈。量一量周期——这就是反推这个宇宙的全部线索。</p>
+      <p class="note">你手里有一个陀螺仪（画面以它为准，保持不转）。远处所有星系都在绕着你慢慢转圈。量一量周期——这就是反推这个宇宙的全部线索。按下秒表后，金色标记星系会留下轨迹；它回到出发点就是一圈（影片里约 18 秒）。</p>
       <canvas id="c-sky" width="520" height="360"></canvas>
       <div class="bar"><button class="btn small" id="b-sky-watch">⏱ 秒表：开始</button><button class="btn small ghost" id="b-sky-reset">归零</button><span class="mono note" id="v-sky-watch">0.0 亿年</span><span class="note">（影片加速播放，秒表按宇宙时间走）</span></div>
       <div class="bar" style="margin-top:10px"><label class="note">你量到的周期 T =</label><input class="num" id="i-period" placeholder="亿年" inputmode="decimal"><span class="note">亿年</span><button class="btn small primary" id="b-period">反推这个宇宙</button></div>
@@ -250,7 +253,7 @@ footer{border-top:1px solid var(--line);padding:18px 0 28px;color:var(--faint);f
     </div>
     <div class="card">
       <h3>④ 这个宇宙的创世参数</h3>
-      <p class="note">哥德尔宇宙只有一个旋钮：物质密度 ρ（或等价的转动角速度 ω = √(4πGρ)）。宇宙学常数被方程锁死为 Λ = −ω²，你调不了它。</p>
+      <p class="note">哥德尔宇宙只有一个旋钮：物质密度 ρ（或等价的转动角速度 ω = √(4πGρ)）。宇宙学常数被方程锁死为 Λ = −ω²，你调不了它。这个旋钮是换算器：①里的星空是另一个密度未知的宇宙，②③用坐标单位画，形状和 ω 无关——变的只是它们对应多少光年、多少年。</p>
       <div class="ctl"><label><span>物质密度 ρ / ρ<sub>m,我们</sub></span><b class="mono" id="v-rho"></b></label><input type="range" id="s-rho" min="-2" max="3" step="0.02" value="0"><div class="sub">相对我们宇宙今天的物质密度（对数刻度）</div></div>
       <div class="kv" id="godel-cards"></div>
       <details open><summary>读完你自己的发现之后再看：这个宇宙在说什么</summary>
@@ -267,13 +270,13 @@ footer{border-top:1px solid var(--line);padding:18px 0 28px;color:var(--faint);f
   <p class="lede">第一关 · 命运之谜。实验室随机藏起一个宇宙，只把它的观测数据给你（全部<span class="tag sim">模拟</span>：由隐藏参数算出、加上真实量级的噪声）。请判断：它是开放还是封闭？会永远膨胀、还是终将坍缩？</p>
   <div class="grid g-inv" style="margin-top:14px">
     <div>
-      <div class="card tight"><h3 style="font-size:14px">标准烛光：Ia 型超新星的距离模数 μ(z) <span class="note" style="font-weight:400">烛光已定标，60 颗</span></h3><canvas id="c-sn" width="760" height="300"></canvas>
+      <div class="card tight"><h3 style="font-size:14px">标准烛光：Ia 型超新星的距离模数 μ(z) <span class="note" style="font-weight:400">烛光已定标，60 颗</span></h3><canvas id="c-sn" width="760" height="300" data-minh="230"></canvas>
         <div class="legend"><span><i style="background:var(--gold)"></i>你的模型</span><span><i style="background:var(--faint)"></i>空宇宙（米尔恩）作参照</span><span><i style="background:var(--teal)"></i>数据（1σ 误差棒）</span></div>
-        <h3 style="font-size:14px;margin-top:12px">同一批数据，减去空宇宙的预期：Δμ = μ − μ<sub>空</sub> <span class="note" style="font-weight:400">1998 年的那张图就是这么画的</span></h3><canvas id="c-snres" width="760" height="220"></canvas></div>
+        <h3 style="font-size:14px;margin-top:12px">同一批数据，减去空宇宙的预期：Δμ = μ − μ<sub>空</sub> <span class="note" style="font-weight:400">1998 年的那张图就是这么画的</span></h3><canvas id="c-snres" width="760" height="220" data-minh="190"></canvas></div>
       <div class="grid g2" style="margin-top:14px">
-        <div class="card tight"><h3 style="font-size:14px">标准尺：声学视界（147 Mpc）的张角 θ(z)</h3><canvas id="c-ruler" width="380" height="240"></canvas></div>
+        <div class="card tight"><h3 style="font-size:14px">标准尺：声学视界（147 Mpc）的张角 θ(z)</h3><canvas id="c-ruler" width="380" height="240" data-minh="200"></canvas></div>
         <div class="card tight"><h3 style="font-size:14px">最老的恒星</h3><div class="kv"><div class="k teal"><small>观测到的最老恒星年龄</small><b class="mono" id="v-oldest"></b><i>银河系里最老恒星的年龄不能超过宇宙年龄</i></div><div class="k gold"><small>你的模型给的宇宙年龄</small><b class="mono" id="v-model-age"></b><i id="v-age-ok"></i></div></div>
-          <h3 style="font-size:14px;margin-top:12px">拟合质量 <span class="mono note" id="v-chi2"></span></h3><div class="quality"><i id="q-bar" style="width:0%"></i></div><p class="note" id="v-quality"></p></div>
+          <h3 style="font-size:14px;margin-top:12px">拟合质量 <span class="mono note" id="v-chi2"></span></h3><div class="quality"><i id="q-bar" style="width:0%"></i></div><p class="note" id="v-quality"></p><p class="note" id="v-hints" style="color:var(--teal)"></p></div>
       </div>
     </div>
     <div>
@@ -521,8 +524,8 @@ const COSMO = (function () {
       const peak = G.dFirstMax.toPrecision(2);
       if (m.Om <= 1e-12) why = '宇宙里没有物质：没有东西可以在引力下聚集。';
       else if (R.fate === 'crunch') why = `宇宙寿命只有 ${fmtT(R.tEnd + R.age)}，连最高的密度峰也只长到 δ = ${peak} 就被大坍缩压碎了。`;
+      else if (R.aEq > 0.01) why = `辐射主导得太久（物质-辐射相等${R.aEq < 1 ? '要到 a = ' + R.aEq.toPrecision(2) : '到今天还没发生'}），辐射压让物质扰动几乎不长（Mészáros 效应），最高的密度峰也只到 δ ≈ ${peak}。` + (m.OL > 0 && m.w < -1 / 3 && R.aLambda < 10 ? `之后暗能量又在 a = ${R.aLambda.toPrecision(2)} 接管，把增长彻底冻住。` : '');
       else if (m.OL > 0 && m.w < -1 / 3) why = `暗能量过早接管（物质-暗能量相等在 a = ${R.aLambda.toPrecision(2)}），增长被冻结：最高的密度峰也只长到 δ = ${peak} < 1.686，永远形不成星系。这正是温伯格 1987 年用来"预言"宇宙学常数不能比我们的大太多的论证。`;
-      else if (R.aEq > 0.01) why = `辐射主导得太久（物质-辐射相等要到 a = ${R.aEq.toPrecision(2)}），Mészáros 效应把增长冻结在 δ ≈ ${peak}。`;
       else why = `密度峰最多长到 δ = ${peak}，不够坍缩（开放宇宙的曲率让膨胀太快，增长在 a ≈ Ω_m/|Ω_k| 后冻结）。`;
       items.push({ level: 'dead', key: 'galaxies', title: '没有星系', detail: why });
     }
@@ -816,7 +819,8 @@ const PUZZLES = (function () {
   }
   // 画布：按 CSS 宽度和 DPR 设置后备存储，返回 ctx 和逻辑尺寸
   function fit(cv) {
-    const w = cv.clientWidth || +cv.getAttribute('width'), ratio = +cv.getAttribute('height') / +cv.getAttribute('width'), h = Math.round(w * ratio);
+    const w = cv.clientWidth || +cv.getAttribute('width'), ratio = +cv.getAttribute('height') / +cv.getAttribute('width'), minH = +(cv.dataset.minh || 0);
+    const h = Math.round(Math.max(w * ratio, minH)); if (minH && w * ratio < minH) cv.style.height = h + 'px'; else cv.style.height = '';
     const bw = Math.round(w * DPR), bh = Math.round(h * DPR);
     if (cv.width !== bw || cv.height !== bh) { cv.width = bw; cv.height = bh; }
     const ctx = cv.getContext('2d'); ctx.setTransform(DPR, 0, 0, DPR, 0, 0); return { ctx, w, h };
@@ -865,11 +869,12 @@ const PUZZLES = (function () {
     if (!halls.includes(hall)) hall = 'overview';
     for (const h of halls) $('hall-' + h).hidden = h !== hall;
     for (const b of document.querySelectorAll('#tabs button')) b.classList.toggle('on', b.dataset.hall === hall);
-    current = hall; store.set('hall', hall);
+    current = hall; store.set('hall', hall); try { if (location.hash !== '#' + hall) history.replaceState(null, '', '#' + hall); } catch (e) { /* 无妨 */ }
     if (hall === 'forge') forge.render(); if (hall === 'godel') godel.enter(); else godel.leave(); if (hall === 'inverse') inverse.render();
   }
   $('tabs').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { show(b.dataset.hall); window.scrollTo({ top: 0 }); } });
-  document.addEventListener('click', (e) => { const b = e.target.closest('[data-go]'); if (b) { show(b.dataset.go); window.scrollTo({ top: 0 }); } });
+  document.addEventListener('click', (e) => { const b = e.target.closest('[data-go]'); if (b) { e.preventDefault(); show(b.dataset.go); window.scrollTo({ top: 0 }); } });
+  window.addEventListener('hashchange', () => { const h = location.hash.slice(1); if (halls.includes(h) && h !== current) show(h); });
 
   // ======================================================================
   // 创世台
@@ -894,7 +899,8 @@ const PUZZLES = (function () {
     function applyPreset(id) { const p = PRESETS.find((x) => x.id === id); if (!p) return; Object.assign(S, p.p); presetId = id; markPreset(); syncSliders(); frame = TODAY; solve(); }
     $('b-planck').addEventListener('click', () => applyPreset('planck'));
     $('b-dice').addEventListener('click', () => {
-      const r = Math.random; S.H0 = +(30 + 80 * r()).toFixed(1); S.Om = +(Math.pow(10, -2 + 2.6 * r())).toFixed(3); S.Or = +Math.pow(10, -6 + 5 * r()).toExponential(2); S.OL = +(-1.5 + 3.5 * r()).toFixed(3); S.w = +(-1.7 + 1.5 * r()).toFixed(2);
+      const r = Math.random; S.H0 = +(30 + 80 * r()).toFixed(1); S.Om = +(Math.pow(10, -2.5 + 3.5 * r())).toFixed(3); S.Or = +Math.pow(10, -6 + 5.5 * r()).toExponential(2);
+      S.OL = +((r() < 0.75 ? 1 : -1) * Math.pow(10, -2 + 3.3 * r())).toFixed(3); S.OL = Math.max(-3, Math.min(3, S.OL)); S.w = +(-1.7 + 1.5 * r()).toFixed(2);
       presetId = null; markPreset(); syncSliders(); frame = TODAY; solve(); toast('掷出了一个宇宙——看看它活不活得了');
     });
     // ---- 求解与帧 ----
@@ -981,7 +987,8 @@ const PUZZLES = (function () {
       else if (R.origin === 'bounce') marks.push([atT(R.tBounce), '反弹']);
       marks.push([TODAY, '今天']);
       if (R.fate === 'crunch') { marks.push([atT(R.tTurn), '回转']); marks.push([599, '大坍缩']); } else if (R.fate === 'rip') marks.push([599, '大撕裂']); else marks.push([599, 'a = 30']);
-      tl.innerHTML = marks.map(([i, l]) => `<div class="mk" style="left:${(i / 599 * 100).toFixed(1)}%">${l}</div>`).join('');
+      marks.sort((a, b) => a[0] - b[0]);
+      tl.innerHTML = marks.map(([i, l], k) => `<div class="mk${k % 2 ? ' alt' : ''}" style="left:${(i / 599 * 100).toFixed(1)}%">${l}</div>`).join('');
     }
     // ---- 影片 ----
     function makeGalaxies() { const r = mulberry32(7), out = []; for (let i = 0; i < 480; i++) out.push({ x: r() * 2 - 1, y: r() * 2 - 1, z: r() * 2 - 1, s: 0.6 + r() }); return out; }
@@ -1069,7 +1076,7 @@ const PUZZLES = (function () {
     $('s-rho').addEventListener('input', () => { rhoRel = Math.pow(10, +$('s-rho').value); cards(); });
     // ① 星空 + 秒表 + 反推
     const sky = { stars: null, hidden: null, t0: null, watch: { on: false, start: 0, acc: 0 }, raf: 0, marker: 0 };
-    const TURN_SEC = 30; // 影片里转一圈用 30 秒
+    const TURN_SEC = 18; // 影片里转一圈用 18 秒
     function newSky() { const r = mulberry32((Date.now() / 1000 | 0) % 100000); sky.stars = []; for (let i = 0; i < 160; i++) { const d = 0.15 + 0.85 * Math.sqrt(r()); sky.stars.push({ d, a: r() * Math.PI * 2, s: 0.7 + 1.6 * r(), b: 0.4 + 0.6 * r() }); } sky.marker = 0; sky.stars[0] = { d: 0.72, a: -Math.PI / 2, s: 2.6, b: 1 };
       sky.hidden = [0.25, 0.5, 1, 2, 4, 8][Math.floor(r() * 6)]; sky.t0 = performance.now(); sky.watch = { on: false, start: 0, acc: 0 }; $('v-sky-watch').textContent = '0.0 亿年'; $('b-sky-watch').textContent = '⏱ 秒表：开始'; $('godel-puzzle-out').innerHTML = ''; $('i-period').value = ''; }
     function skyTick(now) {
@@ -1077,6 +1084,13 @@ const PUZZLES = (function () {
       const ang = (now - sky.t0) / 1000 / TURN_SEC * 2 * Math.PI; // 转过的角度
       ctx.fillStyle = '#060913'; ctx.fillRect(0, 0, w, h);
       const R0 = Math.min(w, h) * 0.46, cx = w / 2, cy = h / 2;
+      // 秒表开着时，标记星系留下轨迹（起点有个小刻度）
+      if (sky.watch.on || sky.watch.acc > 0) {
+        const s0 = sky.stars[0], secAll = (sky.watch.on ? (now - sky.watch.start) / 1000 : 0) + sky.watch.acc, a0 = s0.a + ang - secAll / TURN_SEC * 2 * Math.PI, a1 = s0.a + ang;
+        ctx.strokeStyle = 'rgba(242,193,78,0.5)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(cx, cy, s0.d * R0, a0, a1, false); ctx.stroke();
+        ctx.strokeStyle = CSS('--gold'); ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(cx + (s0.d * R0 - 10) * Math.cos(a0), cy + (s0.d * R0 - 10) * Math.sin(a0)); ctx.lineTo(cx + (s0.d * R0 + 10) * Math.cos(a0), cy + (s0.d * R0 + 10) * Math.sin(a0)); ctx.stroke();
+        ctx.fillStyle = CSS('--gold'); ctx.font = '11px Space Grotesk'; ctx.textAlign = 'left'; ctx.fillText('出发点', cx + (s0.d * R0 + 14) * Math.cos(a0), cy + (s0.d * R0 + 14) * Math.sin(a0) + 4);
+      }
       for (let i = 0; i < sky.stars.length; i++) { const s = sky.stars[i]; const a = s.a + ang; const x = cx + s.d * R0 * Math.cos(a), y = cy + s.d * R0 * Math.sin(a); ctx.fillStyle = i === 0 ? CSS('--gold') : `rgba(230,236,255,${s.b})`; ctx.beginPath(); ctx.arc(x, y, s.s, 0, Math.PI * 2); ctx.fill(); if (i === 0) { ctx.strokeStyle = CSS('--gold'); ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(x, y, 8, 0, Math.PI * 2); ctx.stroke(); } }
       // 陀螺仪：固定的十字
       ctx.strokeStyle = CSS('--teal'); ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(cx - 14, cy); ctx.lineTo(cx + 14, cy); ctx.moveTo(cx, cy - 14); ctx.lineTo(cx, cy + 14); ctx.stroke();
@@ -1115,7 +1129,8 @@ const PUZZLES = (function () {
       let rMax = 0, back = null, tPast = false, tmax = 0;
       for (const P of paths) for (const p of P) { const r = Math.hypot(p.x[1], p.x[2]); if (r > rMax) rMax = r; if (p.u[0] < 0) tPast = true; if (p.x[0] > tmax) tmax = p.x[0]; }
       if (r0 < 1e-6) { const base = paths[0]; for (const p of base) { const r = Math.hypot(p.x[1], p.x[2]); if (rMax > 0.8 && r < 0.02 && p.lambda > 1) { back = p.x[0]; break; } } }
-      $('light-readout').innerHTML = r0 < 1e-6 ? `光最远到 r = ${rMax.toFixed(3)}（asinh 1 = ${GODEL.R_C.toFixed(3)}），然后折回${back !== null ? `，在 t = ${back.toFixed(2)} 全部回到轴上` : ''}` : `从 r₀ = ${r0.toFixed(2)} 发出：${tPast ? '<span style="color:var(--coral)">有些光子的坐标时在倒退——它们正走向你的过去</span>' : '所有光子的坐标时都在增加'}；最远到 r = ${rMax.toFixed(2)}`;
+      const Pn = physical(rhoRel);
+      $('light-readout').innerHTML = r0 < 1e-6 ? `光最远到 r = ${rMax.toFixed(3)}（asinh 1 = ${GODEL.R_C.toFixed(3)}，按④的密度 = ${sig(Pn.RctcGly, 3)} Gly），然后折回${back !== null ? `，在 t = ${back.toFixed(2)} 全部回到轴上` : ''}` : `从 r₀ = ${r0.toFixed(2)} 发出：${tPast ? '<span style="color:var(--coral)">红色的光子坐标时在倒退——它们正走向你的过去</span>' : '所有光子的坐标时都在增加'}；最远到 r = ${rMax.toFixed(2)}`;
       if (!light.raf) light.raf = requestAnimationFrame(lightTick);
     }
     function lightTick(now) {
@@ -1134,7 +1149,7 @@ const PUZZLES = (function () {
           ctx.beginPath(); let first = true, lastP = null;
           for (const p of P) { if (p.lambda > lam) break; const x = cx + p.x[1] * R0, y = cy + p.x[2] * R0; if (first) { ctx.moveTo(x, y); first = false; } else ctx.lineTo(x, y); lastP = p; }
           ctx.strokeStyle = 'rgba(95,224,207,0.45)'; ctx.lineWidth = 1; ctx.stroke();
-          if (lastP) { const br = clamp(0.35 + 0.65 * lastP.x[0] / maxT, 0.2, 1); ctx.fillStyle = lastP.u[0] < 0 ? CSS('--coral') : `rgba(255,255,255,${br})`; ctx.beginPath(); ctx.arc(cx + lastP.x[1] * R0, cy + lastP.x[2] * R0, 2.2, 0, Math.PI * 2); ctx.fill(); }
+          if (lastP) { const br = clamp(0.35 + 0.65 * lastP.x[0] / maxT, 0.2, 1); const past = lastP.u[0] < 0; ctx.fillStyle = past ? CSS('--coral') : `rgba(255,255,255,${br})`; ctx.beginPath(); ctx.arc(cx + lastP.x[1] * R0, cy + lastP.x[2] * R0, past ? 3.2 : 2.2, 0, Math.PI * 2); ctx.fill(); }
         }
         ctx.fillStyle = CSS('--dim'); ctx.textAlign = 'right'; ctx.fillText('仿射参数 λ = ' + lam.toFixed(2), w - 10, h - 10);
       }
@@ -1200,8 +1215,8 @@ const PUZZLES = (function () {
   // 反推台
   // ======================================================================
   const inverse = (function () {
-    const G = { H0: 70, Om: 0.5, OL: 0 }; let obs = null, locked = false, hiddenIdx = -1;
-    function newHidden() { hiddenIdx = Math.floor(Math.random() * PUZZLES.POOL.length); obs = PUZZLES.observe(PUZZLES.POOL[hiddenIdx], 11 + hiddenIdx); locked = false; $('reveal').hidden = true; $('reveal').innerHTML = ''; $('nolambda-out').textContent = ''; $('b-lock').disabled = false; G.H0 = 70; G.Om = 0.5; G.OL = 0; sync(); render(); }
+    const G = { H0: 70, Om: 0.5, OL: 0 }; let obs = null, locked = false, hiddenIdx = -1, nlBest = null;
+    function newHidden() { hiddenIdx = Math.floor(Math.random() * PUZZLES.POOL.length); obs = PUZZLES.observe(PUZZLES.POOL[hiddenIdx], 11 + hiddenIdx); locked = false; nlBest = null; $('reveal').hidden = true; $('reveal').innerHTML = ''; $('nolambda-out').textContent = ''; $('b-lock').disabled = false; G.H0 = 70; G.Om = 0.5; G.OL = 0; sync(); render(); }
     function sync() { $('ps-H0').value = G.H0; $('ps-Om').value = G.Om; $('ps-OL').value = G.OL; $('pv-H0').textContent = G.H0.toFixed(1); $('pv-Om').textContent = G.Om.toFixed(2); $('pv-OL').textContent = G.OL.toFixed(2); }
     for (const k of ['H0', 'Om', 'OL']) $('ps-' + k).addEventListener('input', () => { G[k] = +$('ps-' + k).value; sync(); render(); });
     function render() {
@@ -1211,22 +1226,32 @@ const PUZZLES = (function () {
       const zs = []; for (let z = 0.01; z <= 1.9; z *= 1.04) zs.push(z);
       const mus = zs.map((z) => COSMO.distances(m, T, z).mu), muM = zs.map((z) => COSMO.distances(milne, Tm, z).mu);
       const ys = obs.sn.map((d) => d.mu); const ymin = Math.min(...ys) - 1, ymax = Math.max(...ys) + 1;
-      chart($('c-sn'), { xmin: 0.01, xmax: 1.9, xlog: true, ymin, ymax, xlabel: '红移 z', ylabel: '距离模数 μ（mag）',
-        series: [{ xs: zs, ys: muM, color: CSS('--faint'), dash: [4, 4], width: 1.5 }, { xs: zs, ys: mus, color: CSS('--gold') }],
+      // 锁定之后把真相叠上去（紫色虚线）
+      let truthSeries = null, truthRes = null, truthTh = null;
+      if (locked) { const mt = COSMO.norm(PUZZLES.model(obs.truth)), Tt = COSMO.chiTable(mt, 3); truthSeries = zs.map((z) => COSMO.distances(mt, Tt, z).mu); truthRes = zs.map((z, i) => truthSeries[i] - muM[i]); truthTh = (zr) => zr.map((z) => { const DM = COSMO.distances(mt, Tt, z).DM; return DM > 0 ? PUZZLES.RULER / DM * 180 / Math.PI : NaN; }); }
+      const snSeries = [{ xs: zs, ys: muM, color: CSS('--faint'), dash: [4, 4], width: 1.5 }, { xs: zs, ys: mus, color: CSS('--gold') }]; if (truthSeries) snSeries.push({ xs: zs, ys: truthSeries, color: CSS('--violet'), dash: [6, 4] });
+      chart($('c-sn'), { xmin: 0.01, xmax: 1.9, xlog: true, ymin, ymax, xlabel: '红移 z', ylabel: '距离模数 μ（mag）', series: snSeries,
         points: [{ xs: obs.sn.map((d) => d.z), ys, es: obs.sn.map((d) => d.sig), color: CSS('--teal') }] });
       // 残差图：减去空宇宙（用玩家的 H₀）
       const resData = obs.sn.map((d) => d.mu - COSMO.distances(milne, Tm, d.z).mu), resModel = zs.map((z, i) => mus[i] - muM[i]);
       const rr = Math.max(0.6, ...resData.map(Math.abs).filter(isFinite));
+      const resSeries = [{ xs: zs, ys: resModel, color: CSS('--gold') }]; if (truthRes) resSeries.push({ xs: zs, ys: truthRes, color: CSS('--violet'), dash: [6, 4] });
       chart($('c-snres'), { xmin: 0.01, xmax: 1.9, xlog: true, ymin: -rr, ymax: rr, xlabel: '红移 z', ylabel: 'Δμ（mag）',
-        hlines: [{ y: 0, color: CSS('--faint'), dash: [4, 4], label: '空宇宙（匀速膨胀）' }],
-        series: [{ xs: zs, ys: resModel, color: CSS('--gold') }],
+        hlines: [{ y: 0, color: CSS('--faint'), dash: [4, 4], label: '空宇宙（匀速膨胀）' }], series: resSeries,
         points: [{ xs: obs.sn.map((d) => d.z), ys: resData, es: obs.sn.map((d) => d.sig), color: CSS('--teal') }] });
+      // 读图提示：高红移超新星相对你的模型偏暗还是偏亮；标准尺偏大还是偏小
+      let hiZ = 0, nHi = 0; for (let i = 0; i < obs.sn.length; i++) if (obs.sn[i].z > 0.5 && isFinite(fit0.snModel[i])) { hiZ += (obs.sn[i].mu - fit0.snModel[i]) / obs.sn[i].sig; nHi++; }
+      let rl = 0, nR = 0; for (let i = 0; i < obs.rulers.length; i++) if (isFinite(fit0.rulerModel[i])) { rl += (obs.rulers[i].theta - fit0.rulerModel[i]) / obs.rulers[i].sig; nR++; }
+      const hz = nHi ? hiZ / nHi : 0, rz = nR ? rl / nR : 0, hints = [];
+      if (Math.abs(hz) > 0.6) hints.push(hz > 0 ? 'z > 0.5 的超新星平均比你的模型暗——它们更远，膨胀比你猜的更"加速"（多些 Ω_Λ，或少些 Ω_m）' : 'z > 0.5 的超新星平均比你的模型亮——它们更近，膨胀比你猜的更"减速"（多些 Ω_m，或少些 Ω_Λ）');
+      if (Math.abs(rz) > 0.8) hints.push(rz > 0 ? '标准尺看起来比你的模型大——空间比你猜的更"封闭"（Ω_m + Ω_Λ 的总和要更大）' : '标准尺看起来比你的模型小——空间比你猜的更"开放"（Ω_m + Ω_Λ 的总和要更小）');
+      $('v-hints').textContent = fit0.bad ? '' : hints.join('；');
       // 标准尺图
       const zr = []; for (let z = 0.1; z <= 2.8; z += 0.05) zr.push(+z.toFixed(2));
       const th = zr.map((z) => { const DM = COSMO.distances(m, T, z).DM; return DM > 0 ? PUZZLES.RULER / DM * 180 / Math.PI : NaN; });
       const tys = obs.rulers.map((d) => d.theta);
       chart($('c-ruler'), { xmin: 0, xmax: 2.8, ymin: 0, ymax: Math.max(...tys) * 1.3, xlabel: '红移 z', ylabel: '张角 θ（度）', padL: 44,
-        series: [{ xs: zr, ys: th, color: CSS('--gold') }], points: [{ xs: obs.rulers.map((d) => d.z), ys: tys, es: obs.rulers.map((d) => d.sig), color: CSS('--teal'), r: 3 }] });
+        series: truthTh ? [{ xs: zr, ys: th, color: CSS('--gold') }, { xs: zr, ys: truthTh(zr), color: CSS('--violet'), dash: [6, 4] }] : [{ xs: zr, ys: th, color: CSS('--gold') }], points: [{ xs: obs.rulers.map((d) => d.z), ys: tys, es: obs.rulers.map((d) => d.sig), color: CSS('--teal'), r: 3 }] });
       // 年龄、χ²
       $('v-oldest').textContent = `${obs.oldest.t.toFixed(1)} ± ${obs.oldest.sig.toFixed(1)} Gyr`;
       $('v-model-age').textContent = isFinite(fit0.age) ? fit0.age.toFixed(2) + ' Gyr' : '无大爆炸';
@@ -1239,13 +1264,18 @@ const PUZZLES = (function () {
       const Rp = fit0.R, Ok = 1 - G.Om - PUZZLES.OR - G.OL;
       let fate = Rp.fate === 'crunch' ? `大坍缩（${gyr(Rp.tEnd * COSMO.GYR / G.H0)}后）` : (Rp.fate === 'rip' ? '大撕裂' : (Rp.accelerating ? '永远膨胀，终将加速' : '永远膨胀，一直减速'));
       $('guess-cards').innerHTML = `<div class="k violet"><small>你猜的几何</small><b>${Math.abs(Ok) < 0.08 ? '平坦' : (Ok > 0 ? '开放' : '封闭')}</b><i>Ω_k = ${Ok.toFixed(2)}</i></div><div class="k ${Rp.fate === 'eternal' ? 'teal' : 'coral'}"><small>你猜的命运</small><b>${fate}</b><i>q₀ = ${Rp.q0.toFixed(2)}</i></div>`;
+      if (nlBest) showNoLambda(fit0);
+    }
+    function showNoLambda(now) {
+      const b = nlBest;
+      $('nolambda-out').innerHTML = `Ω_Λ = 0 时最好能做到：H₀ = ${b.H0}，Ω_m = ${b.Om}，χ²/N = <b class="mono">${b.perDof.toFixed(2)}</b>${b.perDof < 1.3 ? ' —— 没有暗能量也解释得通。' : ' —— 怎么调都差，这些数据需要别的东西。'}（你现在的猜测 χ²/N = ${now.perDof.toFixed(2)}）<button class="btn small ghost" id="b-takeb">用这组参数</button>`;
+      $('b-takeb').addEventListener('click', () => { G.H0 = b.H0; G.Om = b.Om; G.OL = 0; sync(); render(); });
     }
     $('b-nolambda').addEventListener('click', () => {
       toast('在 Ω_Λ = 0 的平面上搜索最佳拟合…');
       setTimeout(() => { const b = PUZZLES.bestFitNoLambda(obs), now = PUZZLES.chi2(obs, G);
         if (!b) { $('nolambda-out').textContent = '没找到'; return; }
-        $('nolambda-out').innerHTML = `Ω_Λ = 0 时最好能做到：H₀ = ${b.H0}，Ω_m = ${b.Om}，χ²/N = <b class="mono">${b.perDof.toFixed(2)}</b>${b.perDof < 1.3 ? ' —— 没有暗能量也解释得通。' : ' —— 怎么调都差，这些数据需要别的东西。'}（你现在的猜测 χ²/N = ${now.perDof.toFixed(2)}）<button class="btn small ghost" id="b-takeb">用这组参数</button>`;
-        $('b-takeb').addEventListener('click', () => { G.H0 = b.H0; G.Om = b.Om; G.OL = 0; sync(); render(); });
+        nlBest = b; showNoLambda(now);
       }, 30);
     });
     $('b-lock').addEventListener('click', () => {
@@ -1261,11 +1291,12 @@ const PUZZLES = (function () {
       $('reveal').hidden = false;
       $('reveal').innerHTML = `<div class="reveal"><div class="stars">${'★'.repeat(J.stars)}${'☆'.repeat(3 - J.stars)}</div>
         <p><b style="color:var(--ink)">真相</b>：H₀ = ${t.H0}，Ω_m = ${t.Om}，Ω_Λ = ${t.OL}（${PUZZLES.POOL[hiddenIdx].story}）年龄 ${gyr(Rt.age * gy)}。</p>
-        <p><span class="pill ${J.geomOK ? 'y' : 'n'}">几何：你猜${geomName[J.geomPlayer]}，实为${geomName[J.geomTruth]}</span><span class="pill ${J.fateOK ? 'y' : 'n'}">命运：你猜${fateName(J.Rp)}，实为${fateName(Rt)}</span><span class="pill ${J.precise ? 'y' : 'n'}">参数${J.precise ? '精确' : '有偏差'}</span></p>
+        <p><span class="pill ${J.geomOK ? 'y' : 'n'}">几何：你猜${geomName[J.geomPlayer]}，实为${geomName[J.geomTruth]}</span> <span class="pill ${J.fateOK ? 'y' : 'n'}">命运：你猜${fateName(J.Rp)}，实为${fateName(Rt)}</span> <span class="pill ${J.precise ? 'y' : 'n'}">参数${J.precise ? '精确' : '有偏差'}</span></p>
         <p><b style="color:var(--ink)">数据里的线索</b>：${signal}</p>
         <p class="note">1998 年两支团队就是这样从几十颗高红移超新星里读出加速膨胀的；本关把标准尺和恒星年龄也给了你，真实的宇宙学正是把这几类互相独立的尺子叠在一起定参数。</p>
+        <p class="note">三张图上多了紫色虚线：真相的曲线。现在拖滑杆只是对照，不再计分。</p>
         <p><button class="btn small primary" id="b-again">再来一个隐藏宇宙</button></p></div>`;
-      $('b-again').addEventListener('click', newHidden);
+      $('b-again').addEventListener('click', newHidden); render();
     });
     $('b-new').addEventListener('click', newHidden);
     $('b-csv').addEventListener('click', () => {
@@ -1279,7 +1310,7 @@ const PUZZLES = (function () {
   })();
 
   // 启动
-  show(store.get('hall', 'overview'));
+  show(halls.includes(location.hash.slice(1)) ? location.hash.slice(1) : store.get('hall', 'overview'));
 })();
 
 </script>

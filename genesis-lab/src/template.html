@@ -90,12 +90,14 @@ canvas.pointer{cursor:crosshair}
 .movie{position:relative}
 .movie .hud{position:absolute;left:10px;top:8px;font-size:12px;color:var(--dim);pointer-events:none;text-shadow:0 1px 2px #000}
 .movie .hud b{color:var(--ink);font-weight:500}
-.movie .epoch{position:absolute;right:10px;top:8px;font-size:12px;color:var(--gold);font-weight:600;pointer-events:none;text-shadow:0 1px 2px #000;text-align:right;max-width:60%}
+.movie .hud{background:rgba(6,9,19,0.55);padding:4px 8px;border-radius:6px}
+.epoch-line{margin-top:6px;font-size:13px;color:var(--gold);font-weight:600;min-height:20px}
 .bar{display:flex;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap}
 .bar input[type=range]{flex:1;min-width:160px;accent-color:var(--gold)}
-.timeline{position:relative;height:30px;margin-top:4px}
+.timeline{position:relative;height:44px;margin-top:4px}
 .timeline .mk{position:absolute;top:0;transform:translateX(-50%);font-size:10px;color:var(--dim);white-space:nowrap;text-align:center}
 .timeline .mk::before{content:'';display:block;width:1px;height:8px;background:var(--line2);margin:0 auto 1px}
+.timeline .mk.alt{top:0}.timeline .mk.alt::before{height:22px}
 .diag{list-style:none;margin:0;padding:0;display:grid;gap:8px}
 .diag li{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:9px 11px}
 .diag .lv{width:10px;height:10px;border-radius:50%;margin-top:7px}
@@ -166,9 +168,9 @@ footer{border-top:1px solid var(--line);padding:18px 0 28px;color:var(--faint);f
       </ul></div>
     <div class="card"><h3>这个实验室打算让你看到什么</h3>
       <ul>
-        <li><b style="color:var(--ink)">创世台</b>：随手拨出来的宇宙大多死寂；诊断会告诉你死在哪一步，并给你十一组方程允许、各有性格的宇宙。</li>
-        <li><b style="color:var(--ink)">哥德尔旋转宇宙</b>：精确解里亲手发一束光，看它绕回来；看光锥一点点倾倒，直到可以沿一个圈走回过去。</li>
-        <li><b style="color:var(--ink)">反推台</b>：只给你一个隐藏宇宙的观测数据，你来判断它的形状和命运。</li>
+        <li><a href="#forge" data-go="forge" style="color:var(--teal);font-weight:600">创世台</a>：随手拨出来的宇宙大多死寂；诊断会告诉你死在哪一步，并给你十一组方程允许、各有性格的宇宙。</li>
+        <li><a href="#godel" data-go="godel" style="color:var(--teal);font-weight:600">哥德尔旋转宇宙</a>：精确解里亲手发一束光，看它绕回来；看光锥一点点倾倒，直到可以沿一个圈走回过去。</li>
+        <li><a href="#inverse" data-go="inverse" style="color:var(--teal);font-weight:600">反推台</a>：只给你一个隐藏宇宙的观测数据，你来判断它的形状和命运。</li>
       </ul>
       <p style="margin-top:10px"><button class="btn primary" data-go="forge">开始创世 →</button></p></div>
   </div>
@@ -181,7 +183,7 @@ footer{border-top:1px solid var(--line);padding:18px 0 28px;color:var(--faint);f
     <div>
       <div class="card">
         <h3>创世参数</h3>
-        <p class="note">四个数决定一个均匀各向同性的宇宙（曲率由它们算出）。拨一拨，右边的宇宙会实时重新解方程。</p>
+        <p class="note">四个数决定一个均匀各向同性的宇宙（曲率由它们算出）。拨一拨，旁边的宇宙会实时重新解方程。</p>
         <div class="ctl"><label><span>哈勃常数 H₀</span><b class="mono" id="v-H0"></b></label><input type="range" id="s-H0" min="20" max="120" step="0.5"><div class="sub">今天的膨胀率，km/s/Mpc</div></div>
         <div class="ctl"><label><span>物质 Ω<sub>m</sub></span><b class="mono" id="v-Om"></b></label><input type="range" id="s-Om" min="0" max="4" step="0.005"><div class="sub">普通物质 + 暗物质，占临界密度的比例</div></div>
         <div class="ctl"><label><span>辐射 Ω<sub>r</sub></span><b class="mono" id="v-Or"></b></label><input type="range" id="s-Or" min="-7" max="0" step="0.02"><div class="sub">光子和中微子（对数刻度；最左 = 0）</div></div>
@@ -200,7 +202,8 @@ footer{border-top:1px solid var(--line);padding:18px 0 28px;color:var(--faint);f
       <div class="card">
         <h3>创世影片 <span class="tag sim">模拟</span> <span class="note" style="font-weight:400">共动网格上的星系随尺度因子 a(t) 伸缩；颜色随背景温度变化</span></h3>
         <div class="movie"><canvas id="c-movie" width="900" height="420"></canvas>
-          <div class="hud" id="movie-hud"></div><div class="epoch" id="movie-epoch"></div></div>
+          <div class="hud" id="movie-hud"></div></div>
+        <div class="epoch-line" id="movie-epoch"></div>
         <div class="bar"><button class="btn small" id="b-play">▶ 播放</button><input type="range" id="s-frame" min="0" max="599" step="1" value="300"><span class="note mono" id="v-frame" style="min-width:150px;text-align:right"></span></div>
         <div class="timeline" id="timeline"></div>
       </div>
@@ -227,7 +230,7 @@ footer{border-top:1px solid var(--line);padding:18px 0 28px;color:var(--faint);f
   <div class="grid g-godel" style="margin-top:14px">
     <div class="card">
       <h3>① 你醒来，发现星空在转 <span class="tag sim">模拟</span></h3>
-      <p class="note">你手里有一个陀螺仪（画面以它为准，保持不转）。远处所有星系都在绕着你慢慢转圈。量一量周期——这就是反推这个宇宙的全部线索。</p>
+      <p class="note">你手里有一个陀螺仪（画面以它为准，保持不转）。远处所有星系都在绕着你慢慢转圈。量一量周期——这就是反推这个宇宙的全部线索。按下秒表后，金色标记星系会留下轨迹；它回到出发点就是一圈（影片里约 18 秒）。</p>
       <canvas id="c-sky" width="520" height="360"></canvas>
       <div class="bar"><button class="btn small" id="b-sky-watch">⏱ 秒表：开始</button><button class="btn small ghost" id="b-sky-reset">归零</button><span class="mono note" id="v-sky-watch">0.0 亿年</span><span class="note">（影片加速播放，秒表按宇宙时间走）</span></div>
       <div class="bar" style="margin-top:10px"><label class="note">你量到的周期 T =</label><input class="num" id="i-period" placeholder="亿年" inputmode="decimal"><span class="note">亿年</span><button class="btn small primary" id="b-period">反推这个宇宙</button></div>
@@ -250,7 +253,7 @@ footer{border-top:1px solid var(--line);padding:18px 0 28px;color:var(--faint);f
     </div>
     <div class="card">
       <h3>④ 这个宇宙的创世参数</h3>
-      <p class="note">哥德尔宇宙只有一个旋钮：物质密度 ρ（或等价的转动角速度 ω = √(4πGρ)）。宇宙学常数被方程锁死为 Λ = −ω²，你调不了它。</p>
+      <p class="note">哥德尔宇宙只有一个旋钮：物质密度 ρ（或等价的转动角速度 ω = √(4πGρ)）。宇宙学常数被方程锁死为 Λ = −ω²，你调不了它。这个旋钮是换算器：①里的星空是另一个密度未知的宇宙，②③用坐标单位画，形状和 ω 无关——变的只是它们对应多少光年、多少年。</p>
       <div class="ctl"><label><span>物质密度 ρ / ρ<sub>m,我们</sub></span><b class="mono" id="v-rho"></b></label><input type="range" id="s-rho" min="-2" max="3" step="0.02" value="0"><div class="sub">相对我们宇宙今天的物质密度（对数刻度）</div></div>
       <div class="kv" id="godel-cards"></div>
       <details open><summary>读完你自己的发现之后再看：这个宇宙在说什么</summary>
@@ -267,13 +270,13 @@ footer{border-top:1px solid var(--line);padding:18px 0 28px;color:var(--faint);f
   <p class="lede">第一关 · 命运之谜。实验室随机藏起一个宇宙，只把它的观测数据给你（全部<span class="tag sim">模拟</span>：由隐藏参数算出、加上真实量级的噪声）。请判断：它是开放还是封闭？会永远膨胀、还是终将坍缩？</p>
   <div class="grid g-inv" style="margin-top:14px">
     <div>
-      <div class="card tight"><h3 style="font-size:14px">标准烛光：Ia 型超新星的距离模数 μ(z) <span class="note" style="font-weight:400">烛光已定标，60 颗</span></h3><canvas id="c-sn" width="760" height="300"></canvas>
+      <div class="card tight"><h3 style="font-size:14px">标准烛光：Ia 型超新星的距离模数 μ(z) <span class="note" style="font-weight:400">烛光已定标，60 颗</span></h3><canvas id="c-sn" width="760" height="300" data-minh="230"></canvas>
         <div class="legend"><span><i style="background:var(--gold)"></i>你的模型</span><span><i style="background:var(--faint)"></i>空宇宙（米尔恩）作参照</span><span><i style="background:var(--teal)"></i>数据（1σ 误差棒）</span></div>
-        <h3 style="font-size:14px;margin-top:12px">同一批数据，减去空宇宙的预期：Δμ = μ − μ<sub>空</sub> <span class="note" style="font-weight:400">1998 年的那张图就是这么画的</span></h3><canvas id="c-snres" width="760" height="220"></canvas></div>
+        <h3 style="font-size:14px;margin-top:12px">同一批数据，减去空宇宙的预期：Δμ = μ − μ<sub>空</sub> <span class="note" style="font-weight:400">1998 年的那张图就是这么画的</span></h3><canvas id="c-snres" width="760" height="220" data-minh="190"></canvas></div>
       <div class="grid g2" style="margin-top:14px">
-        <div class="card tight"><h3 style="font-size:14px">标准尺：声学视界（147 Mpc）的张角 θ(z)</h3><canvas id="c-ruler" width="380" height="240"></canvas></div>
+        <div class="card tight"><h3 style="font-size:14px">标准尺：声学视界（147 Mpc）的张角 θ(z)</h3><canvas id="c-ruler" width="380" height="240" data-minh="200"></canvas></div>
         <div class="card tight"><h3 style="font-size:14px">最老的恒星</h3><div class="kv"><div class="k teal"><small>观测到的最老恒星年龄</small><b class="mono" id="v-oldest"></b><i>银河系里最老恒星的年龄不能超过宇宙年龄</i></div><div class="k gold"><small>你的模型给的宇宙年龄</small><b class="mono" id="v-model-age"></b><i id="v-age-ok"></i></div></div>
-          <h3 style="font-size:14px;margin-top:12px">拟合质量 <span class="mono note" id="v-chi2"></span></h3><div class="quality"><i id="q-bar" style="width:0%"></i></div><p class="note" id="v-quality"></p></div>
+          <h3 style="font-size:14px;margin-top:12px">拟合质量 <span class="mono note" id="v-chi2"></span></h3><div class="quality"><i id="q-bar" style="width:0%"></i></div><p class="note" id="v-quality"></p><p class="note" id="v-hints" style="color:var(--teal)"></p></div>
       </div>
     </div>
     <div>

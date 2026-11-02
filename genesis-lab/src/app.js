@@ -20,7 +20,8 @@
   }
   // 画布：按 CSS 宽度和 DPR 设置后备存储，返回 ctx 和逻辑尺寸
   function fit(cv) {
-    const w = cv.clientWidth || +cv.getAttribute('width'), ratio = +cv.getAttribute('height') / +cv.getAttribute('width'), h = Math.round(w * ratio);
+    const w = cv.clientWidth || +cv.getAttribute('width'), ratio = +cv.getAttribute('height') / +cv.getAttribute('width'), minH = +(cv.dataset.minh || 0);
+    const h = Math.round(Math.max(w * ratio, minH)); if (minH && w * ratio < minH) cv.style.height = h + 'px'; else cv.style.height = '';
     const bw = Math.round(w * DPR), bh = Math.round(h * DPR);
     if (cv.width !== bw || cv.height !== bh) { cv.width = bw; cv.height = bh; }
     const ctx = cv.getContext('2d'); ctx.setTransform(DPR, 0, 0, DPR, 0, 0); return { ctx, w, h };
@@ -69,11 +70,12 @@
     if (!halls.includes(hall)) hall = 'overview';
     for (const h of halls) $('hall-' + h).hidden = h !== hall;
     for (const b of document.querySelectorAll('#tabs button')) b.classList.toggle('on', b.dataset.hall === hall);
-    current = hall; store.set('hall', hall);
+    current = hall; store.set('hall', hall); try { if (location.hash !== '#' + hall) history.replaceState(null, '', '#' + hall); } catch (e) { /* 无妨 */ }
     if (hall === 'forge') forge.render(); if (hall === 'godel') godel.enter(); else godel.leave(); if (hall === 'inverse') inverse.render();
   }
   $('tabs').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { show(b.dataset.hall); window.scrollTo({ top: 0 }); } });
-  document.addEventListener('click', (e) => { const b = e.target.closest('[data-go]'); if (b) { show(b.dataset.go); window.scrollTo({ top: 0 }); } });
+  document.addEventListener('click', (e) => { const b = e.target.closest('[data-go]'); if (b) { e.preventDefault(); show(b.dataset.go); window.scrollTo({ top: 0 }); } });
+  window.addEventListener('hashchange', () => { const h = location.hash.slice(1); if (halls.includes(h) && h !== current) show(h); });
 
   // ======================================================================
   // 创世台
@@ -98,7 +100,8 @@
     function applyPreset(id) { const p = PRESETS.find((x) => x.id === id); if (!p) return; Object.assign(S, p.p); presetId = id; markPreset(); syncSliders(); frame = TODAY; solve(); }
     $('b-planck').addEventListener('click', () => applyPreset('planck'));
     $('b-dice').addEventListener('click', () => {
-      const r = Math.random; S.H0 = +(30 + 80 * r()).toFixed(1); S.Om = +(Math.pow(10, -2 + 2.6 * r())).toFixed(3); S.Or = +Math.pow(10, -6 + 5 * r()).toExponential(2); S.OL = +(-1.5 + 3.5 * r()).toFixed(3); S.w = +(-1.7 + 1.5 * r()).toFixed(2);
+      const r = Math.random; S.H0 = +(30 + 80 * r()).toFixed(1); S.Om = +(Math.pow(10, -2.5 + 3.5 * r())).toFixed(3); S.Or = +Math.pow(10, -6 + 5.5 * r()).toExponential(2);
+      S.OL = +((r() < 0.75 ? 1 : -1) * Math.pow(10, -2 + 3.3 * r())).toFixed(3); S.OL = Math.max(-3, Math.min(3, S.OL)); S.w = +(-1.7 + 1.5 * r()).toFixed(2);
       presetId = null; markPreset(); syncSliders(); frame = TODAY; solve(); toast('掷出了一个宇宙——看看它活不活得了');
     });
     // ---- 求解与帧 ----
@@ -185,7 +188,8 @@
       else if (R.origin === 'bounce') marks.push([atT(R.tBounce), '反弹']);
       marks.push([TODAY, '今天']);
       if (R.fate === 'crunch') { marks.push([atT(R.tTurn), '回转']); marks.push([599, '大坍缩']); } else if (R.fate === 'rip') marks.push([599, '大撕裂']); else marks.push([599, 'a = 30']);
-      tl.innerHTML = marks.map(([i, l]) => `<div class="mk" style="left:${(i / 599 * 100).toFixed(1)}%">${l}</div>`).join('');
+      marks.sort((a, b) => a[0] - b[0]);
+      tl.innerHTML = marks.map(([i, l], k) => `<div class="mk${k % 2 ? ' alt' : ''}" style="left:${(i / 599 * 100).toFixed(1)}%">${l}</div>`).join('');
     }
     // ---- 影片 ----
     function makeGalaxies() { const r = mulberry32(7), out = []; for (let i = 0; i < 480; i++) out.push({ x: r() * 2 - 1, y: r() * 2 - 1, z: r() * 2 - 1, s: 0.6 + r() }); return out; }
@@ -273,7 +277,7 @@
     $('s-rho').addEventListener('input', () => { rhoRel = Math.pow(10, +$('s-rho').value); cards(); });
     // ① 星空 + 秒表 + 反推
     const sky = { stars: null, hidden: null, t0: null, watch: { on: false, start: 0, acc: 0 }, raf: 0, marker: 0 };
-    const TURN_SEC = 30; // 影片里转一圈用 30 秒
+    const TURN_SEC = 18; // 影片里转一圈用 18 秒
     function newSky() { const r = mulberry32((Date.now() / 1000 | 0) % 100000); sky.stars = []; for (let i = 0; i < 160; i++) { const d = 0.15 + 0.85 * Math.sqrt(r()); sky.stars.push({ d, a: r() * Math.PI * 2, s: 0.7 + 1.6 * r(), b: 0.4 + 0.6 * r() }); } sky.marker = 0; sky.stars[0] = { d: 0.72, a: -Math.PI / 2, s: 2.6, b: 1 };
       sky.hidden = [0.25, 0.5, 1, 2, 4, 8][Math.floor(r() * 6)]; sky.t0 = performance.now(); sky.watch = { on: false, start: 0, acc: 0 }; $('v-sky-watch').textContent = '0.0 亿年'; $('b-sky-watch').textContent = '⏱ 秒表：开始'; $('godel-puzzle-out').innerHTML = ''; $('i-period').value = ''; }
     function skyTick(now) {
@@ -281,6 +285,13 @@
       const ang = (now - sky.t0) / 1000 / TURN_SEC * 2 * Math.PI; // 转过的角度
       ctx.fillStyle = '#060913'; ctx.fillRect(0, 0, w, h);
       const R0 = Math.min(w, h) * 0.46, cx = w / 2, cy = h / 2;
+      // 秒表开着时，标记星系留下轨迹（起点有个小刻度）
+      if (sky.watch.on || sky.watch.acc > 0) {
+        const s0 = sky.stars[0], secAll = (sky.watch.on ? (now - sky.watch.start) / 1000 : 0) + sky.watch.acc, a0 = s0.a + ang - secAll / TURN_SEC * 2 * Math.PI, a1 = s0.a + ang;
+        ctx.strokeStyle = 'rgba(242,193,78,0.5)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(cx, cy, s0.d * R0, a0, a1, false); ctx.stroke();
+        ctx.strokeStyle = CSS('--gold'); ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(cx + (s0.d * R0 - 10) * Math.cos(a0), cy + (s0.d * R0 - 10) * Math.sin(a0)); ctx.lineTo(cx + (s0.d * R0 + 10) * Math.cos(a0), cy + (s0.d * R0 + 10) * Math.sin(a0)); ctx.stroke();
+        ctx.fillStyle = CSS('--gold'); ctx.font = '11px Space Grotesk'; ctx.textAlign = 'left'; ctx.fillText('出发点', cx + (s0.d * R0 + 14) * Math.cos(a0), cy + (s0.d * R0 + 14) * Math.sin(a0) + 4);
+      }
       for (let i = 0; i < sky.stars.length; i++) { const s = sky.stars[i]; const a = s.a + ang; const x = cx + s.d * R0 * Math.cos(a), y = cy + s.d * R0 * Math.sin(a); ctx.fillStyle = i === 0 ? CSS('--gold') : `rgba(230,236,255,${s.b})`; ctx.beginPath(); ctx.arc(x, y, s.s, 0, Math.PI * 2); ctx.fill(); if (i === 0) { ctx.strokeStyle = CSS('--gold'); ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(x, y, 8, 0, Math.PI * 2); ctx.stroke(); } }
       // 陀螺仪：固定的十字
       ctx.strokeStyle = CSS('--teal'); ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(cx - 14, cy); ctx.lineTo(cx + 14, cy); ctx.moveTo(cx, cy - 14); ctx.lineTo(cx, cy + 14); ctx.stroke();
@@ -319,7 +330,8 @@
       let rMax = 0, back = null, tPast = false, tmax = 0;
       for (const P of paths) for (const p of P) { const r = Math.hypot(p.x[1], p.x[2]); if (r > rMax) rMax = r; if (p.u[0] < 0) tPast = true; if (p.x[0] > tmax) tmax = p.x[0]; }
       if (r0 < 1e-6) { const base = paths[0]; for (const p of base) { const r = Math.hypot(p.x[1], p.x[2]); if (rMax > 0.8 && r < 0.02 && p.lambda > 1) { back = p.x[0]; break; } } }
-      $('light-readout').innerHTML = r0 < 1e-6 ? `光最远到 r = ${rMax.toFixed(3)}（asinh 1 = ${GODEL.R_C.toFixed(3)}），然后折回${back !== null ? `，在 t = ${back.toFixed(2)} 全部回到轴上` : ''}` : `从 r₀ = ${r0.toFixed(2)} 发出：${tPast ? '<span style="color:var(--coral)">有些光子的坐标时在倒退——它们正走向你的过去</span>' : '所有光子的坐标时都在增加'}；最远到 r = ${rMax.toFixed(2)}`;
+      const Pn = physical(rhoRel);
+      $('light-readout').innerHTML = r0 < 1e-6 ? `光最远到 r = ${rMax.toFixed(3)}（asinh 1 = ${GODEL.R_C.toFixed(3)}，按④的密度 = ${sig(Pn.RctcGly, 3)} Gly），然后折回${back !== null ? `，在 t = ${back.toFixed(2)} 全部回到轴上` : ''}` : `从 r₀ = ${r0.toFixed(2)} 发出：${tPast ? '<span style="color:var(--coral)">红色的光子坐标时在倒退——它们正走向你的过去</span>' : '所有光子的坐标时都在增加'}；最远到 r = ${rMax.toFixed(2)}`;
       if (!light.raf) light.raf = requestAnimationFrame(lightTick);
     }
     function lightTick(now) {
@@ -338,7 +350,7 @@
           ctx.beginPath(); let first = true, lastP = null;
           for (const p of P) { if (p.lambda > lam) break; const x = cx + p.x[1] * R0, y = cy + p.x[2] * R0; if (first) { ctx.moveTo(x, y); first = false; } else ctx.lineTo(x, y); lastP = p; }
           ctx.strokeStyle = 'rgba(95,224,207,0.45)'; ctx.lineWidth = 1; ctx.stroke();
-          if (lastP) { const br = clamp(0.35 + 0.65 * lastP.x[0] / maxT, 0.2, 1); ctx.fillStyle = lastP.u[0] < 0 ? CSS('--coral') : `rgba(255,255,255,${br})`; ctx.beginPath(); ctx.arc(cx + lastP.x[1] * R0, cy + lastP.x[2] * R0, 2.2, 0, Math.PI * 2); ctx.fill(); }
+          if (lastP) { const br = clamp(0.35 + 0.65 * lastP.x[0] / maxT, 0.2, 1); const past = lastP.u[0] < 0; ctx.fillStyle = past ? CSS('--coral') : `rgba(255,255,255,${br})`; ctx.beginPath(); ctx.arc(cx + lastP.x[1] * R0, cy + lastP.x[2] * R0, past ? 3.2 : 2.2, 0, Math.PI * 2); ctx.fill(); }
         }
         ctx.fillStyle = CSS('--dim'); ctx.textAlign = 'right'; ctx.fillText('仿射参数 λ = ' + lam.toFixed(2), w - 10, h - 10);
       }
@@ -404,8 +416,8 @@
   // 反推台
   // ======================================================================
   const inverse = (function () {
-    const G = { H0: 70, Om: 0.5, OL: 0 }; let obs = null, locked = false, hiddenIdx = -1;
-    function newHidden() { hiddenIdx = Math.floor(Math.random() * PUZZLES.POOL.length); obs = PUZZLES.observe(PUZZLES.POOL[hiddenIdx], 11 + hiddenIdx); locked = false; $('reveal').hidden = true; $('reveal').innerHTML = ''; $('nolambda-out').textContent = ''; $('b-lock').disabled = false; G.H0 = 70; G.Om = 0.5; G.OL = 0; sync(); render(); }
+    const G = { H0: 70, Om: 0.5, OL: 0 }; let obs = null, locked = false, hiddenIdx = -1, nlBest = null;
+    function newHidden() { hiddenIdx = Math.floor(Math.random() * PUZZLES.POOL.length); obs = PUZZLES.observe(PUZZLES.POOL[hiddenIdx], 11 + hiddenIdx); locked = false; nlBest = null; $('reveal').hidden = true; $('reveal').innerHTML = ''; $('nolambda-out').textContent = ''; $('b-lock').disabled = false; G.H0 = 70; G.Om = 0.5; G.OL = 0; sync(); render(); }
     function sync() { $('ps-H0').value = G.H0; $('ps-Om').value = G.Om; $('ps-OL').value = G.OL; $('pv-H0').textContent = G.H0.toFixed(1); $('pv-Om').textContent = G.Om.toFixed(2); $('pv-OL').textContent = G.OL.toFixed(2); }
     for (const k of ['H0', 'Om', 'OL']) $('ps-' + k).addEventListener('input', () => { G[k] = +$('ps-' + k).value; sync(); render(); });
     function render() {
@@ -415,22 +427,32 @@
       const zs = []; for (let z = 0.01; z <= 1.9; z *= 1.04) zs.push(z);
       const mus = zs.map((z) => COSMO.distances(m, T, z).mu), muM = zs.map((z) => COSMO.distances(milne, Tm, z).mu);
       const ys = obs.sn.map((d) => d.mu); const ymin = Math.min(...ys) - 1, ymax = Math.max(...ys) + 1;
-      chart($('c-sn'), { xmin: 0.01, xmax: 1.9, xlog: true, ymin, ymax, xlabel: '红移 z', ylabel: '距离模数 μ（mag）',
-        series: [{ xs: zs, ys: muM, color: CSS('--faint'), dash: [4, 4], width: 1.5 }, { xs: zs, ys: mus, color: CSS('--gold') }],
+      // 锁定之后把真相叠上去（紫色虚线）
+      let truthSeries = null, truthRes = null, truthTh = null;
+      if (locked) { const mt = COSMO.norm(PUZZLES.model(obs.truth)), Tt = COSMO.chiTable(mt, 3); truthSeries = zs.map((z) => COSMO.distances(mt, Tt, z).mu); truthRes = zs.map((z, i) => truthSeries[i] - muM[i]); truthTh = (zr) => zr.map((z) => { const DM = COSMO.distances(mt, Tt, z).DM; return DM > 0 ? PUZZLES.RULER / DM * 180 / Math.PI : NaN; }); }
+      const snSeries = [{ xs: zs, ys: muM, color: CSS('--faint'), dash: [4, 4], width: 1.5 }, { xs: zs, ys: mus, color: CSS('--gold') }]; if (truthSeries) snSeries.push({ xs: zs, ys: truthSeries, color: CSS('--violet'), dash: [6, 4] });
+      chart($('c-sn'), { xmin: 0.01, xmax: 1.9, xlog: true, ymin, ymax, xlabel: '红移 z', ylabel: '距离模数 μ（mag）', series: snSeries,
         points: [{ xs: obs.sn.map((d) => d.z), ys, es: obs.sn.map((d) => d.sig), color: CSS('--teal') }] });
       // 残差图：减去空宇宙（用玩家的 H₀）
       const resData = obs.sn.map((d) => d.mu - COSMO.distances(milne, Tm, d.z).mu), resModel = zs.map((z, i) => mus[i] - muM[i]);
       const rr = Math.max(0.6, ...resData.map(Math.abs).filter(isFinite));
+      const resSeries = [{ xs: zs, ys: resModel, color: CSS('--gold') }]; if (truthRes) resSeries.push({ xs: zs, ys: truthRes, color: CSS('--violet'), dash: [6, 4] });
       chart($('c-snres'), { xmin: 0.01, xmax: 1.9, xlog: true, ymin: -rr, ymax: rr, xlabel: '红移 z', ylabel: 'Δμ（mag）',
-        hlines: [{ y: 0, color: CSS('--faint'), dash: [4, 4], label: '空宇宙（匀速膨胀）' }],
-        series: [{ xs: zs, ys: resModel, color: CSS('--gold') }],
+        hlines: [{ y: 0, color: CSS('--faint'), dash: [4, 4], label: '空宇宙（匀速膨胀）' }], series: resSeries,
         points: [{ xs: obs.sn.map((d) => d.z), ys: resData, es: obs.sn.map((d) => d.sig), color: CSS('--teal') }] });
+      // 读图提示：高红移超新星相对你的模型偏暗还是偏亮；标准尺偏大还是偏小
+      let hiZ = 0, nHi = 0; for (let i = 0; i < obs.sn.length; i++) if (obs.sn[i].z > 0.5 && isFinite(fit0.snModel[i])) { hiZ += (obs.sn[i].mu - fit0.snModel[i]) / obs.sn[i].sig; nHi++; }
+      let rl = 0, nR = 0; for (let i = 0; i < obs.rulers.length; i++) if (isFinite(fit0.rulerModel[i])) { rl += (obs.rulers[i].theta - fit0.rulerModel[i]) / obs.rulers[i].sig; nR++; }
+      const hz = nHi ? hiZ / nHi : 0, rz = nR ? rl / nR : 0, hints = [];
+      if (Math.abs(hz) > 0.6) hints.push(hz > 0 ? 'z > 0.5 的超新星平均比你的模型暗——它们更远，膨胀比你猜的更"加速"（多些 Ω_Λ，或少些 Ω_m）' : 'z > 0.5 的超新星平均比你的模型亮——它们更近，膨胀比你猜的更"减速"（多些 Ω_m，或少些 Ω_Λ）');
+      if (Math.abs(rz) > 0.8) hints.push(rz > 0 ? '标准尺看起来比你的模型大——空间比你猜的更"封闭"（Ω_m + Ω_Λ 的总和要更大）' : '标准尺看起来比你的模型小——空间比你猜的更"开放"（Ω_m + Ω_Λ 的总和要更小）');
+      $('v-hints').textContent = fit0.bad ? '' : hints.join('；');
       // 标准尺图
       const zr = []; for (let z = 0.1; z <= 2.8; z += 0.05) zr.push(+z.toFixed(2));
       const th = zr.map((z) => { const DM = COSMO.distances(m, T, z).DM; return DM > 0 ? PUZZLES.RULER / DM * 180 / Math.PI : NaN; });
       const tys = obs.rulers.map((d) => d.theta);
       chart($('c-ruler'), { xmin: 0, xmax: 2.8, ymin: 0, ymax: Math.max(...tys) * 1.3, xlabel: '红移 z', ylabel: '张角 θ（度）', padL: 44,
-        series: [{ xs: zr, ys: th, color: CSS('--gold') }], points: [{ xs: obs.rulers.map((d) => d.z), ys: tys, es: obs.rulers.map((d) => d.sig), color: CSS('--teal'), r: 3 }] });
+        series: truthTh ? [{ xs: zr, ys: th, color: CSS('--gold') }, { xs: zr, ys: truthTh(zr), color: CSS('--violet'), dash: [6, 4] }] : [{ xs: zr, ys: th, color: CSS('--gold') }], points: [{ xs: obs.rulers.map((d) => d.z), ys: tys, es: obs.rulers.map((d) => d.sig), color: CSS('--teal'), r: 3 }] });
       // 年龄、χ²
       $('v-oldest').textContent = `${obs.oldest.t.toFixed(1)} ± ${obs.oldest.sig.toFixed(1)} Gyr`;
       $('v-model-age').textContent = isFinite(fit0.age) ? fit0.age.toFixed(2) + ' Gyr' : '无大爆炸';
@@ -443,13 +465,18 @@
       const Rp = fit0.R, Ok = 1 - G.Om - PUZZLES.OR - G.OL;
       let fate = Rp.fate === 'crunch' ? `大坍缩（${gyr(Rp.tEnd * COSMO.GYR / G.H0)}后）` : (Rp.fate === 'rip' ? '大撕裂' : (Rp.accelerating ? '永远膨胀，终将加速' : '永远膨胀，一直减速'));
       $('guess-cards').innerHTML = `<div class="k violet"><small>你猜的几何</small><b>${Math.abs(Ok) < 0.08 ? '平坦' : (Ok > 0 ? '开放' : '封闭')}</b><i>Ω_k = ${Ok.toFixed(2)}</i></div><div class="k ${Rp.fate === 'eternal' ? 'teal' : 'coral'}"><small>你猜的命运</small><b>${fate}</b><i>q₀ = ${Rp.q0.toFixed(2)}</i></div>`;
+      if (nlBest) showNoLambda(fit0);
+    }
+    function showNoLambda(now) {
+      const b = nlBest;
+      $('nolambda-out').innerHTML = `Ω_Λ = 0 时最好能做到：H₀ = ${b.H0}，Ω_m = ${b.Om}，χ²/N = <b class="mono">${b.perDof.toFixed(2)}</b>${b.perDof < 1.3 ? ' —— 没有暗能量也解释得通。' : ' —— 怎么调都差，这些数据需要别的东西。'}（你现在的猜测 χ²/N = ${now.perDof.toFixed(2)}）<button class="btn small ghost" id="b-takeb">用这组参数</button>`;
+      $('b-takeb').addEventListener('click', () => { G.H0 = b.H0; G.Om = b.Om; G.OL = 0; sync(); render(); });
     }
     $('b-nolambda').addEventListener('click', () => {
       toast('在 Ω_Λ = 0 的平面上搜索最佳拟合…');
       setTimeout(() => { const b = PUZZLES.bestFitNoLambda(obs), now = PUZZLES.chi2(obs, G);
         if (!b) { $('nolambda-out').textContent = '没找到'; return; }
-        $('nolambda-out').innerHTML = `Ω_Λ = 0 时最好能做到：H₀ = ${b.H0}，Ω_m = ${b.Om}，χ²/N = <b class="mono">${b.perDof.toFixed(2)}</b>${b.perDof < 1.3 ? ' —— 没有暗能量也解释得通。' : ' —— 怎么调都差，这些数据需要别的东西。'}（你现在的猜测 χ²/N = ${now.perDof.toFixed(2)}）<button class="btn small ghost" id="b-takeb">用这组参数</button>`;
-        $('b-takeb').addEventListener('click', () => { G.H0 = b.H0; G.Om = b.Om; G.OL = 0; sync(); render(); });
+        nlBest = b; showNoLambda(now);
       }, 30);
     });
     $('b-lock').addEventListener('click', () => {
@@ -465,11 +492,12 @@
       $('reveal').hidden = false;
       $('reveal').innerHTML = `<div class="reveal"><div class="stars">${'★'.repeat(J.stars)}${'☆'.repeat(3 - J.stars)}</div>
         <p><b style="color:var(--ink)">真相</b>：H₀ = ${t.H0}，Ω_m = ${t.Om}，Ω_Λ = ${t.OL}（${PUZZLES.POOL[hiddenIdx].story}）年龄 ${gyr(Rt.age * gy)}。</p>
-        <p><span class="pill ${J.geomOK ? 'y' : 'n'}">几何：你猜${geomName[J.geomPlayer]}，实为${geomName[J.geomTruth]}</span><span class="pill ${J.fateOK ? 'y' : 'n'}">命运：你猜${fateName(J.Rp)}，实为${fateName(Rt)}</span><span class="pill ${J.precise ? 'y' : 'n'}">参数${J.precise ? '精确' : '有偏差'}</span></p>
+        <p><span class="pill ${J.geomOK ? 'y' : 'n'}">几何：你猜${geomName[J.geomPlayer]}，实为${geomName[J.geomTruth]}</span> <span class="pill ${J.fateOK ? 'y' : 'n'}">命运：你猜${fateName(J.Rp)}，实为${fateName(Rt)}</span> <span class="pill ${J.precise ? 'y' : 'n'}">参数${J.precise ? '精确' : '有偏差'}</span></p>
         <p><b style="color:var(--ink)">数据里的线索</b>：${signal}</p>
         <p class="note">1998 年两支团队就是这样从几十颗高红移超新星里读出加速膨胀的；本关把标准尺和恒星年龄也给了你，真实的宇宙学正是把这几类互相独立的尺子叠在一起定参数。</p>
+        <p class="note">三张图上多了紫色虚线：真相的曲线。现在拖滑杆只是对照，不再计分。</p>
         <p><button class="btn small primary" id="b-again">再来一个隐藏宇宙</button></p></div>`;
-      $('b-again').addEventListener('click', newHidden);
+      $('b-again').addEventListener('click', newHidden); render();
     });
     $('b-new').addEventListener('click', newHidden);
     $('b-csv').addEventListener('click', () => {
@@ -483,5 +511,5 @@
   })();
 
   // 启动
-  show(store.get('hall', 'overview'));
+  show(halls.includes(location.hash.slice(1)) ? location.hash.slice(1) : store.get('hall', 'overview'));
 })();
