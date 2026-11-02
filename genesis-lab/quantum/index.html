@@ -54,6 +54,7 @@ section.hall{padding:22px 0 40px}
 .g-forge{grid-template-columns:340px 1fr}
 .g-godel{grid-template-columns:1fr 1fr}
 .g-inv{grid-template-columns:1fr 360px}
+.grid>*{min-width:0}
 @media (max-width:960px){.g-forge,.g-godel,.g-inv,.g3,.g2{grid-template-columns:1fr}}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;min-width:0}
 .card.tight{padding:10px 12px}
@@ -91,6 +92,10 @@ canvas.pointer{cursor:crosshair}
 .movie .hud{position:absolute;left:10px;top:8px;font-size:12px;color:var(--dim);pointer-events:none;text-shadow:0 1px 2px #000}
 .movie .hud b{color:var(--ink);font-weight:500}
 .movie .hud{background:rgba(6,9,19,0.55);padding:4px 8px;border-radius:6px}
+@media (max-width:600px){.movie .hud{position:static;background:transparent;padding:4px 0 0;font-size:11px}}
+.sticky-sum{position:fixed;left:0;right:0;bottom:0;z-index:8;display:none;gap:10px;align-items:center;flex-wrap:wrap;padding:6px max(16px,env(safe-area-inset-left,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-right,0px));background:rgba(11,17,36,0.96);border-top:1px solid var(--line2);font-size:12px;color:var(--dim)}
+.sticky-sum span{white-space:nowrap}.sticky-sum a{margin-left:auto;color:var(--teal);font-weight:600;text-decoration:none}
+@media (max-width:960px){.sticky-sum:not([hidden]){display:flex}body{padding-bottom:56px}}
 .epoch-line{margin-top:6px;font-size:13px;color:var(--gold);font-weight:600;min-height:20px}
 .bar{display:flex;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap}
 .bar input[type=range]{flex:1;min-width:160px;accent-color:var(--gold)}
@@ -106,7 +111,7 @@ canvas.pointer{cursor:crosshair}
 .diag span{color:var(--dim);font-size:13px}
 .verdict{display:inline-block;font-weight:700;padding:3px 10px;border-radius:999px;font-size:13px;border:1px solid}
 .verdict.alive{color:var(--ok);border-color:var(--ok)}.verdict.marginal{color:var(--warn);border-color:var(--warn)}.verdict.dead{color:var(--dead);border-color:var(--dead)}
-details{border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin-top:10px;background:var(--bg2)}
+details{border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin-top:10px;background:var(--bg2);min-width:0;max-width:100%}
 details summary{cursor:pointer;color:var(--gold);font-weight:600}
 details p{color:var(--dim);font-size:14px}
 .eq{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--ink);background:#0a0f22;border:1px solid var(--line);border-radius:8px;padding:8px 10px;overflow-x:auto;white-space:nowrap}
@@ -256,9 +261,9 @@ footer{border-top:1px solid var(--line);padding:18px 0 28px;color:var(--faint);f
 <section class="hall" id="hall-early" hidden>
   <p class="lede">创世台的影片按尺度因子均匀走，大爆炸最初的几分钟被压成一帧。这里把时间轴换成对数：从普朗克时间到复合，56 个数量级，每十倍时间播同样长。每一帧的粒子成分、温度、反应速率都按量子统计和弱作用实时算出，用的就是创世台上你拨的那组旋钮。</p>
   <div class="card" style="margin-top:14px">
-    <div class="bar"><button class="btn small primary" id="eb-play">▶ 慢放</button>
+    <div class="bar"><button class="btn small primary" id="eb-play">▶ 慢放</button><button class="btn small" id="eb-next">⏭ 下一个事件</button>
       <label class="note">每十倍时间 <select id="es-speed" class="num" style="width:auto;padding:4px 8px"><option value="0.8">0.8 秒</option><option value="1.5" selected>1.5 秒</option><option value="3">3 秒</option></select></label>
-      <input type="range" id="es-t" min="-43" max="13.2" step="0.005" value="0"><span class="mono" id="ev-t" style="min-width:180px;text-align:right;font-size:18px;color:var(--gold)"></span></div>
+      <input type="range" id="es-t" min="-43" max="13.2" step="0.005" value="0"><span class="mono" id="ev-t" style="text-align:right;font-size:18px;color:var(--gold)"></span></div>
     <div class="timeline" id="e-timeline" style="height:54px"></div>
     <div class="epoch-line" id="ev-epoch"></div>
   </div>
@@ -522,7 +527,7 @@ const COSMO = (function () {
     if (R.origin !== 'bigbang' && !R.quantumBounce) return NaN;
     const { ts, as } = R.past; // 从今天往回 a 单调递减；量子反弹的宇宙只在反弹之前这一段里找
     let lo = 0, hi = as.length - 1;
-    if (R.quantumBounce) { let k = 0; while (k < ts.length - 1 && ts[k + 1] >= R.tBounce) k++; hi = k; }
+    if (R.quantumBounce) { if (a <= R.aMin) return R.tBounce; let k = 0; while (k < ts.length - 1 && ts[k + 1] >= R.tBounce) k++; hi = k; }
     if (a <= as[hi]) return ts[hi];
     while (hi - lo > 1) { const mid = (lo + hi) >> 1; if (as[mid] > a) lo = mid; else hi = mid; }
     const f = (Math.log(as[lo]) - Math.log(a)) / (Math.log(as[lo]) - Math.log(as[hi]));
@@ -617,7 +622,9 @@ const COSMO = (function () {
     } else {
       let why;
       const peak = G.dFirstMax.toPrecision(2);
+      const sc = m.sigScale && m.sigScale.c8 ? m.sigScale.c8 : 1;
       if (m.Om <= 1e-12) why = '宇宙里没有物质：没有东西可以在引力下聚集。';
+      else if (sc < 1 && G.growthMax * SIG_FIRST >= DELTA_C) why = `原初扰动太弱：幅度只有我们宇宙的 ${sc.toPrecision(2)} 倍（A_s 是 ${(sc * sc).toPrecision(2)} 倍），同样的增长下最高的密度峰只到 δ = ${peak}；按我们宇宙的幅度本来可以长到 ${(G.growthMax * SIG_FIRST).toPrecision(2)}。`;
       else if (R.fate === 'crunch') why = `宇宙寿命只有 ${fmtT(R.tEnd + R.age)}，连最高的密度峰也只长到 δ = ${peak} 就被大坍缩压碎了。`;
       else if (R.aEq > 0.01) why = `辐射主导得太久（物质-辐射相等${R.aEq < 1 ? '要到 a = ' + R.aEq.toPrecision(2) : '到今天还没发生'}），辐射压让物质扰动几乎不长（Mészáros 效应），最高的密度峰也只到 δ ≈ ${peak}。` + (m.OL > 0 && m.w < -1 / 3 && R.aLambda < 10 ? `之后暗能量又在 a = ${R.aLambda.toPrecision(2)} 接管，把增长彻底冻住。` : '');
       else if (m.OL > 0 && m.w < -1 / 3) why = `暗能量过早接管（物质-暗能量相等在 a = ${R.aLambda.toPrecision(2)}），增长被冻结：最高的密度峰也只长到 δ = ${peak} < 1.686，永远形不成星系。这正是温伯格 1987 年用来"预言"宇宙学常数不能比我们的大太多的论证。`;
@@ -1013,32 +1020,32 @@ const THERMAL = (function () {
 const BBN = (function () {
   const ME = 0.51099895e-3, Q0 = 1.29333e-3, BD = 2.224575e-3, MN = 0.93891e-3 * 1000, TAU0 = 878.4; // GeV（MN 以 GeV 计 0.939）
   const MN_GEV = 0.93891;
-  function f0(q) { // 相空间积分
+  function f0(q) { // 中子衰变的相空间积分；Q < m_e（q < 1）时衰变被禁止
+    if (q <= 1) return 0;
     const n = 400; let s = 0; for (let i = 0; i <= n; i++) { const e = 1 + (q - 1) * i / n, w = (i === 0 || i === n) ? 1 : (i % 2 ? 4 : 2); s += w * e * Math.sqrt(Math.max(0, e * e - 1)) * (q - e) ** 2; } return s * ((q - 1) / n) / 3;
   }
   const fe = (E, T) => 1 / (Math.exp(Math.min(700, E / T)) + 1); // 费米分布，E、T 以 m_e 为单位
   // 六个过程的速率（乘 A 之前）；Tg、Tn 以 m_e 为单位
   function rates(Tg, Tn, q) {
-    const n = 300, emax = 1 + 40 * Math.max(Tg, Tn) + q; let np = 0, pn = 0;
+    const n = 300, emax = 1 + 40 * Math.max(Tg, Tn) + q, lo = Math.max(1, q); let np = 0, pn = 0;
     const simpson = (lo, hi, fn) => { let s = 0; for (let i = 0; i <= n; i++) { const e = lo + (hi - lo) * i / n, w = (i === 0 || i === n) ? 1 : (i % 2 ? 4 : 2); s += w * fn(e); } return s * ((hi - lo) / n) / 3; };
     const ps = (e) => e * Math.sqrt(Math.max(0, e * e - 1));
     // n ν → p e（ε > q）、p e → n ν
-    np += simpson(q, emax, (e) => ps(e) * (e - q) ** 2 * fe(e - q, Tn) * (1 - fe(e, Tg)));
-    pn += simpson(q, emax, (e) => ps(e) * (e - q) ** 2 * fe(e, Tg) * (1 - fe(e - q, Tn)));
+    np += simpson(lo, emax, (e) => ps(e) * (e - q) ** 2 * fe(e - q, Tn) * (1 - fe(e, Tg)));
+    pn += simpson(lo, emax, (e) => ps(e) * (e - q) ** 2 * fe(e, Tg) * (1 - fe(e - q, Tn)));
     // n e⁺ → p ν̄、p ν̄ → n e⁺
     np += simpson(1, emax, (e) => ps(e) * (e + q) ** 2 * fe(e, Tg) * (1 - fe(e + q, Tn)));
     pn += simpson(1, emax, (e) => ps(e) * (e + q) ** 2 * fe(e + q, Tn) * (1 - fe(e, Tg)));
     // n → p e ν̄（1 < ε < q）、p e ν̄ → n
-    np += simpson(1, q, (e) => ps(e) * (q - e) ** 2 * (1 - fe(e, Tg)) * (1 - fe(q - e, Tn)));
-    pn += simpson(1, q, (e) => ps(e) * (q - e) ** 2 * fe(e, Tg) * fe(q - e, Tn));
+    if (q > 1) { np += simpson(1, q, (e) => ps(e) * (q - e) ** 2 * (1 - fe(e, Tg)) * (1 - fe(q - e, Tn))); pn += simpson(1, q, (e) => ps(e) * (q - e) ** 2 * fe(e, Tg) * fe(q - e, Tn)); }
     return { np, pn };
   }
   let THETA = 0.02565; // 氘瓶颈阈值：用 calibrate() 按标准参数（η=6.1e-10、N_eff=3.044、τ_n=878.4 s）校准到 Y_p = 0.247 得到的值
   // 参数：Q（GeV）、GF（相对标准的倍数）、eta（重子-光子比）、thermal 表（含 N_eff）
   function run(tab, par) {
     par = par || {}; const Q = par.Q || Q0, GF = par.GF || 1, eta = par.eta || 6.1e-10, q = Q / ME, q0 = Q0 / ME;
-    const tauN = TAU0 / (GF * GF) * f0(q0) / f0(q); // 中子寿命随 G_F、Q 变
-    const A = 1 / (tauN * f0(q));
+    const A = GF * GF / (TAU0 * f0(q0)); // 归一化只随 G_F² 变
+    const tauN = f0(q) > 0 ? 1 / (A * f0(q)) : Infinity; // 中子寿命随 G_F、Q 变；Q < m_e 时中子稳定
     // 以温度为步长向下积分；速率远大于膨胀率时用指数积分（精确于常速率）
     const T1 = 10e-3, T2 = 0.02e-3; const n = 900; const out = { Ts: [], ts: [], Xn: [], Xeq: [], tauN, A, eta, Q, GF };
     let X = null, t = tab.atT(T1).t, tPrev = t;
@@ -1059,7 +1066,8 @@ const BBN = (function () {
     out.Tnuc = Tnuc; out.tNuc = tNuc; out.Xnuc = Xnuc; out.Yp = Math.min(1, 2 * Xnuc);
     // 冻结：X_n 离开平衡的温度（|X − X_eq|/X_eq > 10%）
     for (let i = 0; i < out.Ts.length; i++) if (Math.abs(out.Xn[i] - out.Xeq[i]) > 0.1 * out.Xeq[i]) { out.Tfreeze = out.Ts[i]; out.tFreeze = out.ts[i]; out.npFreeze = out.Xn[i] / (1 - out.Xn[i]); break; }
-    out.DH = 2.53e-5 * Math.pow(6.1e-10 / eta, 1.6); // 拟合
+    out.DH = 2.53e-5 * Math.pow(6.1e-10 / eta, 1.6); out.DHvalid = eta > 5e-11 && eta < 3e-9; // 拟合，只在 η₁₀ ≈ 0.5–30 可信
+    out.etaLow = eta < 1e-11; // η 太小：核反应本身跟不上膨胀，Y_p 只是上限
     return out;
   }
   function calibrate(tab) { // 标准参数下 Y_p = 0.247
@@ -1087,26 +1095,34 @@ const RECOMB = (function () {
     // 重子-光子比：n_b0 = Ω_b ρ_crit/m_N，n_γ0 = (2ζ(3)/π²) T0³
     const rhoCrit = 8.0964e-47 * h * h, nb0 = Ob * rhoCrit / 0.93891, ng0 = 2 * ZETA3 / (Math.PI * Math.PI) * T0 ** 3, eta = T0 > 0 ? nb0 / ng0 : Infinity;
     const H0s = m.H0 * 1e5 / MPC_CM; // s⁻¹
-    const out = { eta, zs: [], xe: [], zHalf: NaN, zDec: NaN, xeDec: NaN, rs: NaN, B_eV: B * 1e9 };
+    const out = { eta, zs: [], xe: [], zHalf: NaN, zDec: NaN, xeDec: NaN, rs: NaN, B_eV: B * 1e9, transparentEarly: false, neverDecoupled: false };
     if (!(T0 > 0)) return out;
-    // 在 T 网格上算 x_e；找 x_e=0.5 和 Γ=H
-    let prevG = null;
-    for (let i = 0; i <= 600; i++) {
-      const T = B / 10 * Math.pow(B / 200 / (B / 10), i / 600); // 从 B/10 到 B/200
-      const z = T / T0 - 1; if (z < 0) break;
-      const nH = (1 - Yp) * eta * (2 * ZETA3 / (Math.PI * Math.PI)) * T ** 3;
+    const nGam = (T) => (2 * ZETA3 / (Math.PI * Math.PI)) * T ** 3;
+    const gammaOverH = (z, xe) => { const T = T0 * (1 + z), nH = (1 - Yp) * eta * nGam(T), a = 1 / (1 + z), e2 = COSMO.E2(m, a); if (!(e2 > 0)) return NaN; return xe * nH * GEV3_CM3 * sigT * C_CM / (H0s * Math.sqrt(e2)); };
+    // 从 T = B/10（完全电离）到今天，对数网格算 Saha 电离度，找 x_e = 0.5 和 Γ = H
+    const zTop = Math.max(10, B / (10 * T0) - 1), n = 700; let prevG = null;
+    for (let i = 0; i <= n; i++) {
+      const z = Math.exp(Math.log(1 + zTop) * (1 - i / n)) - 1, T = T0 * (1 + z);
+      const nH = (1 - Yp) * eta * nGam(T);
       const S = Math.pow(me * T / (2 * Math.PI), 1.5) * Math.exp(-B / T) / nH;
       const xe = S > 1e8 ? 1 : (-S + Math.sqrt(S * S + 4 * S)) / 2;
       out.zs.push(z); out.xe.push(xe);
       if (!isFinite(out.zHalf) && xe <= 0.5) out.zHalf = z;
-      const Gamma = xe * nH * GEV3_CM3 * sigT * C_CM, a = 1 / (1 + z), H = H0s * Math.sqrt(COSMO.E2(m, a));
-      const g = Gamma / H; if (prevG !== null && prevG >= 1 && g < 1 && !isFinite(out.zDec)) { out.zDec = z; out.xeDec = xe; }
+      const g = gammaOverH(z, xe);
+      if (prevG !== null && prevG >= 1 && g < 1 && !isFinite(out.zDec)) { out.zDec = z; out.xeDec = xe; }
       prevG = g;
     }
-    if (!isFinite(out.zDec)) { out.zDec = NaN; }
+    // 网格顶端就已经 Γ < H：重子太稀，光子在复合之前就自由了——往更早找 Γ(x_e = 1) = H
+    if (!isFinite(out.zDec) && gammaOverH(zTop, 1) < 1) {
+      let lo = zTop, hi = 1e9; if (gammaOverH(hi, 1) > 1) { for (let k = 0; k < 60; k++) { const mid = Math.sqrt(lo * hi); if (gammaOverH(mid, 1) > 1) lo = mid; else hi = mid; } out.zDec = Math.sqrt(lo * hi); out.xeDec = 1; out.transparentEarly = true; }
+      else { out.zDec = Infinity; out.xeDec = 1; out.transparentEarly = true; }
+    }
+    if (!isFinite(out.zDec)) out.neverDecoupled = true; // 到今天 Γ 仍 > H
+    // 退耦早到正负电子对等离子体还在（T > m_e/3）的时代：那时散射的是热的 e±，本页的氢 Saha 不适用——退耦就定在 e⁺e⁻ 湮灭时
+    const zAnn = 0.17e-3 / T0 - 1; if (out.transparentEarly && out.zDec > zAnn) { out.zDec = zAnn; out.pairPlasma = true; }
     // 声学视界（Mpc）：∫_0^{a_dec} da/(a² E √(3(1+R)))，R = 3Ω_b a/(4Ω_γ)
     const Og = COSMO.OG_H2 * Math.pow(m.T0 / COSMO.T_CMB, 4) / (h * h);
-    if (isFinite(out.zDec) && Og > 0) {
+    if (isFinite(out.zDec) && Og > 0 && !out.transparentEarly) {
       const aDec = 1 / (1 + out.zDec), n = 3000, l1 = Math.log(1e-9), l2 = Math.log(aDec); let s = 0;
       for (let i = 0; i <= n; i++) { const a = Math.exp(l1 + (l2 - l1) * i / n), e2 = COSMO.E2(m, a); if (!(e2 > 0)) continue; const R = 3 * Ob * a / (4 * Og), w = (i === 0 || i === n) ? 1 : (i % 2 ? 4 : 2); s += w / (a * Math.sqrt(e2) * Math.sqrt(3 * (1 + R))); }
       out.rs = s * ((l2 - l1) / n) / 3 * COSMO.CKMS / m.H0; out.aDec = aDec;
@@ -1212,11 +1228,12 @@ const INFLATION = (function () {
     if (!halls.includes(hall)) hall = 'overview';
     for (const h of halls) $('hall-' + h).hidden = h !== hall;
     for (const b of document.querySelectorAll('#tabs button')) b.classList.toggle('on', b.dataset.hall === hall);
-    current = hall; store.set('hall', hall); try { if (location.hash !== '#' + hall) history.replaceState(null, '', '#' + hall); } catch (e) { /* 无妨 */ }
+    current = hall; store.set('hall', hall); { const bar = $('sticky-sum'); if (bar) bar.hidden = hall !== 'forge'; } try { if (location.hash !== '#' + hall) history.replaceState(null, '', '#' + hall); } catch (e) { /* 无妨 */ }
     if (hall === 'forge') forge.render(); if (hall === 'godel') godel.enter(); else godel.leave(); if (hall === 'inverse') inverse.render();
     if (window.GENESIS_Q_HALL) window.GENESIS_Q_HALL(hall);
   }
   $('tabs').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { show(b.dataset.hall); window.scrollTo({ top: 0 }); } });
+  document.addEventListener('click', (e) => { const a = e.target.closest('[data-scroll]'); if (a) { e.preventDefault(); const el = $(a.dataset.scroll); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); } });
   document.addEventListener('click', (e) => { const b = e.target.closest('[data-go]'); if (b) { e.preventDefault(); show(b.dataset.go); window.scrollTo({ top: 0 }); } });
   window.addEventListener('hashchange', () => { const h = location.hash.slice(1); if (halls.includes(h) && h !== current) show(h); });
 
@@ -1289,7 +1306,11 @@ const INFLATION = (function () {
       const ph = R.particleHorizon * COSMO.CKMS / S.H0 / 306.6, eh = R.eventHorizon * COSMO.CKMS / S.H0 / 306.6;
       cards.push({ c: 'gold', k: '视界', v: `${isFinite(ph) ? sig(ph, 3) + ' Gly' : '无'} / ${isFinite(eh) ? sig(eh, 3) + ' Gly' : '无'}`, i: '粒子视界 / 事件视界（共动，今天）' });
       let ep = '';
-      if (R.origin === 'bigbang' || R.quantumBounce) { const tRec = COSMO.tOfA(R, R.aRec) + R.age, tEq = isFinite(R.aEq) && R.aEq < 1 ? COSMO.tOfA(R, R.aEq) + R.age : NaN; ep = `复合 ${isFinite(tRec) && R.aRec > (R.aMin || 0) ? gyr(tRec * g) : '从未'}；物质-辐射相等 ${isFinite(tEq) ? gyr(tEq * g) : '从未'}；物质-暗能量相等 ${isFinite(R.aLambda) ? (R.aLambda <= 1 ? gyr((COSMO.tOfA(R, R.aLambda) + R.age) * g) : '还没发生') : '从未'}`; }
+      if (R.origin === 'bigbang' || R.quantumBounce) {
+        const recOK = isFinite(R.aRec) && R.aRec <= 1 && R.aRec > (R.aMin || 0), tRec = recOK ? COSMO.tOfA(R, R.aRec) + R.age : NaN;
+        const eqOK = isFinite(R.aEq) && R.aEq > 0 && R.aEq < 1 && R.aEq > (R.aMin || 0), tEq = eqOK ? COSMO.tOfA(R, R.aEq) + R.age : NaN;
+        ep = `光子退耦 ${recOK ? gyr(tRec * g) : (R.T0 > 0 ? (R.aRec === Infinity ? '至今没有' : (R.aRec <= (R.aMin || 0) ? '从一开始就透明' : '从未')) : '没有辐射')}；物质-辐射相等 ${eqOK ? gyr(tEq * g) : (R.aEq <= (R.aMin || 0) || R.T0 === 0 ? '一直是物质主导' : '到今天还是辐射主导')}；物质-暗能量相等 ${isFinite(R.aLambda) ? (R.aLambda <= 1 ? gyr((COSMO.tOfA(R, R.aLambda) + R.age) * g) : '还没发生') : '从未'}`;
+      }
       else ep = '没有热的早期，纪元不适用';
       cards.push({ c: 'teal', k: '关键纪元（' + (R.quantumBounce ? '反弹后' : '大爆炸后') + '）', v: R.origin === 'bigbang' || R.quantumBounce ? `T₀ = ${sig(R.T0, 4)} K` : '—', i: ep });
       $('fate-cards').innerHTML = cards.map((c) => `<div class="k ${c.c}"><small>${c.k}</small><b>${c.v}</b><i>${c.i}</i></div>`).join('');
@@ -1318,6 +1339,12 @@ const INFLATION = (function () {
     }
     function diag() {
       const lv = { alive: '可能宜居', marginal: '勉强', dead: '死寂' }; $('verdict').innerHTML = `<span class="verdict ${R.verdict}">${lv[R.verdict]}</span>`;
+      // 手机上旋钮和结果隔着几屏：底部贴一条摘要
+      let bar = $('sticky-sum'); if (!bar) { bar = document.createElement('div'); bar.id = 'sticky-sum'; bar.className = 'sticky-sum'; document.body.appendChild(bar); }
+      const fate = R.fate === 'crunch' ? '大坍缩' : (R.fate === 'rip' ? '大撕裂' : '永远膨胀'), age = R.origin === 'bigbang' || R.quantumBounce ? gyr(R.age * GYR()) : (R.origin === 'bounce' ? '无大爆炸' : '无限');
+      const extra = R.diag.filter((d) => d.key === 'helium').map((d) => d.title.replace('原初氦 ', '氦 ')).join('');
+      bar.innerHTML = `<span class="verdict ${R.verdict}">${lv[R.verdict]}</span><span>${fate}</span><span>年龄 ${age}</span>${extra ? `<span>${extra}</span>` : ''}<a href="#diag" data-scroll="diag">看诊断 ↓</a>`;
+      bar.hidden = current !== 'forge';
       $('diag').innerHTML = R.diag.map((d) => `<li><div class="lv ${d.level}"></div><div><b>${d.title}</b><span>${d.detail}</span></div></li>`).join('');
     }
     function eqs() {
@@ -1330,7 +1357,7 @@ const INFLATION = (function () {
       const tl = $('timeline'), g = GYR(), marks = [];
       const at = (a) => { let best = 0; for (let i = 0; i < frames.length; i++) if (Math.abs(Math.log(frames[i].a) - Math.log(a)) < Math.abs(Math.log(frames[best].a) - Math.log(a))) best = i; return best; };
       const atT = (t) => { let best = 0; for (let i = 0; i < frames.length; i++) if (Math.abs(frames[i].t - t) < Math.abs(frames[best].t - t)) best = i; return best; };
-      if (R.origin === 'bigbang' || R.quantumBounce) { marks.push([0, R.quantumBounce ? '量子反弹' : '大爆炸']); if (R.aRec > (R.aMin || 0)) marks.push([at(R.aRec), '复合']); if (R.growth && isFinite(R.growth.aFirst) && R.growth.aFirst < 1) marks.push([at(R.growth.aFirst), '第一批星系']); }
+      if (R.origin === 'bigbang' || R.quantumBounce) { marks.push([0, R.quantumBounce ? '量子反弹' : '大爆炸']); if (isFinite(R.aRec) && R.aRec <= 1 && R.aRec > (R.aMin || 0)) marks.push([at(R.aRec), '复合']); if (R.growth && isFinite(R.growth.aFirst) && R.growth.aFirst < 1) marks.push([at(R.growth.aFirst), '第一批星系']); }
       else if (R.origin === 'bounce') marks.push([atT(R.tBounce), '反弹']);
       marks.push([TODAY, '今天']);
       if (R.fate === 'crunch') { marks.push([atT(R.tTurn), '回转']); marks.push([599, '大坍缩']); } else if (R.fate === 'rip') marks.push([599, '大撕裂']); else marks.push([599, 'a = 30']);
@@ -1368,8 +1395,8 @@ const INFLATION = (function () {
       const H = aAtH(f) ; const t = f.t * g;
       let epoch; const contracting = R.fate === 'crunch' && f.t > R.tTurn, acc = COSMO.accel(R.m, a) > 0;
       if (contracting) epoch = a < R.aRec ? '大坍缩：重新变成火球，压回奇点' : '收缩中：天空越来越亮，温度回升';
-      else if ((R.origin === 'bigbang' || R.quantumBounce) && a < R.aRec) epoch = '火球：不透明的等离子体，光走不出去';
-      else if ((R.origin === 'bigbang' || R.quantumBounce) && !formed && a < 1) epoch = '黑暗时代：复合之后，第一批星系之前';
+      else if ((R.origin === 'bigbang' || R.quantumBounce) && R.T0 > 0 && a < R.aRec) epoch = R.aRec === Infinity ? '等离子体：光子至今被散射，宇宙一直不透明' : '火球：不透明的等离子体，光走不出去';
+      else if ((R.origin === 'bigbang' || R.quantumBounce) && !formed && a < 1) epoch = R.T0 > 0 ? '黑暗时代：复合之后，第一批星系之前' : '冷的宇宙：没有辐射，扰动还没长成星系';
       else if (R.fate === 'rip' && a > 50) epoch = '大撕裂逼近：先星系团，再星系，再原子';
       else if (isFinite(R.aLambda) && a > R.aLambda && acc) epoch = (f.t > 0 ? '未来 · ' : '') + '暗能量主导：加速膨胀，星系互相远离';
       else if (f.t > 0) epoch = '未来 · ' + (acc ? '加速膨胀' : '减速膨胀') + (formed ? '' : '（还没有星系）');
@@ -1688,9 +1715,9 @@ const INFLATION = (function () {
   }
   function labelsQ() {
     $('qv-T0').textContent = QS.T0 > 0 ? sig(QS.T0, 4) + ' K' : '0（没有辐射）';
-    $('qv-Neff').textContent = QS.Neff.toFixed(2); $('qv-Ob').textContent = sig(QS.Ob, 3); $('qv-As').textContent = QS.As.toExponential(2); $('qv-ns').textContent = QS.ns.toFixed(3); $('qv-r').textContent = sig(QS.r, 2);
+    $('qv-Neff').textContent = QS.Neff.toFixed(2); { const Om = forge.S.Om; $('qv-Ob').textContent = QS.Ob > Om ? sig(Om, 3) + '（夹到 Ω_m）' : sig(QS.Ob, 3); } $('qv-As').textContent = QS.As.toExponential(2); $('qv-ns').textContent = QS.ns.toFixed(3); $('qv-r').textContent = sig(QS.r, 2);
     $('qv-alpha').textContent = QS.alpha.toFixed(3) + '（1/' + sig(137.036 / QS.alpha, 5) + '）'; $('qv-me').textContent = QS.me.toFixed(3); $('qv-Q').textContent = QS.Q.toFixed(3) + ' MeV'; $('qv-GF').textContent = QS.GF.toFixed(3);
-    $('qv-rhoC').textContent = QS.lqc ? ('10^' + QS.rhoC.toFixed(1) + ' ρ_crit' + (QS.rhoC > 121 ? '（普朗克密度量级）' : '')) : '关';
+    $('qv-rhoC').textContent = 'ρ_c = 10^' + QS.rhoC.toFixed(1) + ' ρ_crit' + (QS.rhoC > 121 ? '（普朗克密度量级）' : '') + (QS.lqc ? '' : ' · 未启用'); $('qs-rhoC').disabled = !QS.lqc; $('qs-rhoC').style.opacity = QS.lqc ? '' : '0.4';
   }
   for (const k of KEYS) { const el = $('qs-' + k); if (!el) continue; el.addEventListener('input', () => { const v = +el.value; QS[k] = LOG[k] ? Math.pow(10, v) : v; if (k === 'T0' && v <= +el.min + 1e-9) QS.T0 = 0; labelsQ(); forge.solve(); }); }
   $('qs-lqc').addEventListener('change', () => { QS.lqc = $('qs-lqc').checked; labelsQ(); forge.solve(); });
@@ -1720,22 +1747,25 @@ const INFLATION = (function () {
     if (m.T0 > 0) {
       CUR.eta = RECOMB.eta(m, Ob); CUR.bb = bbnFor(m, CUR.eta);
       CUR.rc = RECOMB.run(m, { Ob, Yp: CUR.bb.Yp, alpha: QS.alpha, me: QS.me });
-      if (CUR.rc.aDec > 0) input.aRec = CUR.rc.aDec;
+      if (CUR.rc.neverDecoupled) input.aRec = Infinity; else if (isFinite(CUR.rc.zDec)) input.aRec = 1 / (1 + CUR.rc.zDec); else input.aRec = 1e-9; // 1e-9：从一开始就透明
     }
     return input;
   });
   // ---------- 求解后：派生卡片与诊断 ----------
   forge.hooks.solved.push((R, S) => {
-    if (R.quantumBounce) { CUR.Tbounce = R.T0 / R.aMin * KB; if (CUR.Tbounce < 10e-3) CUR.bb = null; } // 反弹温度不到 10 MeV：没有核合成
+    if (R.quantumBounce) { CUR.Tbounce = R.T0 / R.aMin * KB; if (CUR.Tbounce < 10e-3) CUR.bb = null; if (R.T0 / R.aMin < COSMO.T_REC) { R.aRec = R.aMin * 1.0001; R.coldBounce = true; } } // 反弹温度不到 10 MeV：没有核合成；不到复合温度：从没有过等离子体
+    forge.labels();
     $('qv-Or').textContent = R.m.Or > 0 ? R.m.Or.toExponential(2) : '0'; $('qv-eta').textContent = isFinite(CUR.eta) ? CUR.eta.toExponential(2) : '—';
     $('qv-tau').textContent = CUR.bb ? sig(CUR.bb.tauN, 3) + ' s' : sig(BBN.TAU0 / (QS.GF * QS.GF), 3) + ' s';
     const cards = [], bb = CUR.bb, rc = CUR.rc, inf = CUR.inf;
     if (bb) {
-      cards.push(['gold', '原初氦丰度 Y_p', (bb.Yp * 100).toFixed(1) + ' %', `核合成在大爆炸后 ${sig(bb.tNuc, 3)} s（T = ${sig(bb.Tnuc * 1e3, 3)} MeV）；n/p 在 T ≈ ${sig(bb.Tfreeze * 1e3, 2)} MeV 开始冻结，中子寿命 ${sig(bb.tauN, 3)} s。半解析，阈值按标准模型校准`]);
-      cards.push(['teal', '氘 D/H', bb.DH.toExponential(2), '经验标度律 ∝ η⁻¹·⁶（拟合）；η = ' + CUR.eta.toExponential(2)]);
+      cards.push(['gold', '原初氦丰度 Y_p', (bb.Yp * 100).toFixed(1) + ' %' + (bb.etaLow ? '（上限）' : ''), `核合成在大爆炸后 ${sig(bb.tNuc, 3)} s（T = ${sig(bb.Tnuc * 1e3, 3)} MeV）；n/p 在 T ≈ ${sig(bb.Tfreeze * 1e3, 2)} MeV 开始冻结，中子寿命 ${isFinite(bb.tauN) ? sig(bb.tauN, 3) + ' s' : '∞（中子稳定）'}。半解析，阈值按标准模型校准` + (bb.etaLow ? '；η 太小，真实的核反应会跟不上膨胀' : '')]);
+      cards.push(['teal', '氘 D/H', bb.DHvalid ? bb.DH.toExponential(2) : '—', bb.DHvalid ? '经验标度律 ∝ η⁻¹·⁶（拟合）；η = ' + CUR.eta.toExponential(2) : 'η = ' + CUR.eta.toExponential(2) + '，超出拟合的可信范围（η₁₀ ≈ 0.5–30）']);
     } else cards.push(['coral', '核合成', '没有', CUR.Tbounce ? `量子反弹时温度只有 ${sig(CUR.Tbounce / KB, 2)} K，从没热到 10 MeV` : '没有辐射就没有热的早期']);
-    if (rc && isFinite(rc.zDec)) cards.push(['violet', '光子退耦 z_dec', sig(rc.zDec, 4), `Saha 平衡近似（比完整计算早约 4%）；那时电离度 x_e = ${rc.xeDec.toExponential(1)}，温度 ${sig(R.T0 * (1 + rc.zDec), 3)} K，电离能 ${rc.B_eV.toFixed(2)} eV`]);
-    else if (rc) cards.push(['coral', '光子退耦', '至今没有', '汤姆孙散射率一直高于膨胀率：宇宙仍不透明']);
+    if (R.coldBounce) cards.push(['violet', '复合', '从没有过等离子体', `反弹时温度 ${sig(R.T0 / R.aMin, 2)} K，低于氢的复合温度：氢（如果有）从一开始就是中性的`]);
+    else if (rc && rc.transparentEarly) cards.push(['violet', '光子退耦', isFinite(rc.zDec) ? 'z = ' + sig(rc.zDec, 3) + '，在复合之前' : '一直透明', `重子太稀（η = ${rc.eta.toExponential(1)}）：电子还全在时散射率就已低于膨胀率，光子早早自由${rc.pairPlasma ? '——退耦定在正负电子湮灭时（T ≈ 0.17 MeV），再早的散射来自 e± 对等离子体' : ''}；复合（Saha 50%）在 z ≈ ${isFinite(rc.zHalf) ? sig(rc.zHalf, 3) : '?'}`]);
+    else if (rc && isFinite(rc.zDec)) cards.push(['violet', '光子退耦 z_dec', sig(rc.zDec, 4), `Saha 平衡近似（比完整计算早约 4%）；那时电离度 x_e = ${rc.xeDec.toExponential(1)}，温度 ${sig(R.T0 * (1 + rc.zDec), 3)} K，电离能 ${rc.B_eV.toFixed(2)} eV`]);
+    else if (rc) cards.push(['coral', '光子退耦', '至今没有', '汤姆孙散射率到今天仍高于膨胀率：宇宙一直不透明']);
     if (rc && isFinite(rc.rs)) cards.push(['teal', '声学视界 r_s', sig(rc.rs, 4) + ' Mpc', '反推台用的那把"标准尺"，这里是算出来的（我们的宇宙 147 Mpc；Saha 近似略小）']);
     cards.push(['gold', '暴胀能标 V^{1/4}', sig(inf.V4, 3) + ' GeV', `由 A_s = ${QS.As.toExponential(2)}、r = ${sig(QS.r, 2)}：H_inf = ${sig(inf.H, 3)} GeV，ε = ${sig(inf.eps, 2)}，慢滚 η = ${sig(inf.eta, 2)}（大统一能标量级 10¹⁶ GeV）`]);
     cards.push(['violet', '暴胀的量子涨落', 'δφ = ' + sig(inf.dphi, 3) + ' GeV', `每个哈勃时间 H/2π；德西特温度 T_GH = ${sig(inf.TGH, 3)} K；${inf.N} 个 e-fold 用时 ${sig(inf.tInf, 2)} s`]);
@@ -1749,8 +1779,10 @@ const INFLATION = (function () {
       else if (bb.Yp > 0.4) items.push({ level: 'warn', key: 'helium', title: `原初氦 ${(bb.Yp * 100).toFixed(0)}%：偏多`, detail: '氢还够用，但类太阳恒星更亮、寿命更短。' });
       else items.push({ level: 'ok', key: 'helium', title: `原初氦 ${(bb.Yp * 100).toFixed(1)}%`, detail: bb.Yp < 0.05 ? '几乎没有原初氦——恒星照常，氦由恒星自己造。' : '和我们的宇宙一样，四分之一的重子进了氦。' });
     }
-    if (rc) {
-      if (!isFinite(rc.zDec)) items.push({ level: 'dead', key: 'recomb', title: '光子从未退耦', detail: '电子一直自由，光子一直被散射：没有 CMB，重子也被辐射压拖着无法坍缩。' });
+    if (QS.Q < 0.511) items.push({ level: 'dead', key: 'hydrogen', title: '氢原子不稳定', detail: `Q = ${QS.Q.toFixed(2)} MeV 小于电子质量 0.511 MeV：中子不再衰变，反而是质子俘获电子变成中子（p + e⁻ → n + ν）。没有稳定的氢，也就没有化学。` });
+    if (rc && !R.coldBounce) {
+      if (rc.neverDecoupled) items.push({ level: 'dead', key: 'recomb', title: '光子从未退耦', detail: '电子一直自由，光子一直被散射：没有 CMB，重子也被辐射压拖着无法坍缩。' });
+      else if (rc.transparentEarly) items.push({ level: 'ok', key: 'recomb', title: '宇宙早早就透明了', detail: '重子太稀，光子在复合之前就已经自由飞行；复合本身照常发生。' });
       else if (R.growth && isFinite(R.growth.aFirst) && 1 / (1 + rc.zDec) > R.growth.aFirst) items.push({ level: 'warn', key: 'recomb', title: '复合晚于第一批星系的坍缩时刻', detail: '重子在那之前还和光子绑在一起，星系形成要等到复合之后才真正开始。' });
       else items.push({ level: 'ok', key: 'recomb', title: `复合在 z ≈ ${sig(rc.zDec, 3)}`, detail: `之后光子自由飞行，重子可以落进暗物质的势阱。` });
     }
@@ -1772,7 +1804,8 @@ const INFLATION = (function () {
     function prepare() {
       if (!ET.dirty && ET.data) return ET.data;
       const R = forge.R, m = R.m, inf = CUR.inf, D = { m, inf, R, noRad: !(m.T0 > 0) };
-      D.Tbounce = CUR.Tbounce;
+      D.Tbounce = CUR.Tbounce; D.coldBounce = !!(D.Tbounce && D.Tbounce < 1e-8);
+      if (D.coldBounce) { ET.data = D; ET.dirty = false; $('e-timeline').innerHTML = ''; $('es-t').min = -43; return D; }
       if (!D.noRad) {
         D.tab = thermalFull(m); D.bb = CUR.bb; D.rc = CUR.rc;
         D.tI = 1 / inf.Hs; D.tE = D.tI * (inf.N + 1); D.Treh = Math.min(inf.Treh, 1e15); D.tRehTab = D.tab.atT(D.Treh).t;
@@ -1786,12 +1819,15 @@ const INFLATION = (function () {
         if (isFinite(R.aEq) && R.aEq < 1) tT(m.T0 * KB / R.aEq, '物质 = 辐射'); if (D.rc && isFinite(D.rc.zDec)) tT(m.T0 * KB * (1 + D.rc.zDec), '复合 · CMB');
         D.events = ev.sort((a, b) => a.t - b.t);
         D.tEnd = Math.min(Math.pow(10, 13.2), D.rc && isFinite(D.rc.zDec) ? D.tOfT(m.T0 * KB * (1 + D.rc.zDec)) * 3 : Math.pow(10, 13.2));
+        D.lo = D.Tbounce ? Math.log10(D.tab.atT(D.Tbounce * 0.999).t) - 0.3 : -43; D.startLog = D.Tbounce ? D.lo + 0.3 : Math.log10(D.tI) + 0.2;
+        $('es-t').min = D.lo;
       }
       ET.data = D; ET.dirty = false; drawTimeline(D); drawCharts(D); return D;
     }
     // 某时刻的状态
     function stateAt(D, t) {
       if (D.noRad) return { mode: 'norad' };
+      if (D.coldBounce) return { mode: 'coldbounce' };
       if (D.Tbounce) { const T = D.TofT(t); if (T > D.Tbounce) return { mode: 'prebounce' }; }
       else { if (t < TPL) return { mode: 'planck' }; if (t < D.tI) return { mode: 'pre' }; }
       if (t < D.tE) { const N = D.inf.Hs * (t - D.tI); return { mode: 'inflation', N, aRel: Math.exp(N - D.inf.N), T: D.inf.TGH * KB, TK: D.inf.TGH, H: D.inf.Hs, t }; }
@@ -1807,16 +1843,19 @@ const INFLATION = (function () {
     }
     function epochText(D, s) {
       if (s.mode === 'norad') return ['这个宇宙没有辐射', '创世台上 T₀ = 0：没有热的早期，这个展区没什么可放的。把 T₀ 拨上去。'];
+      if (s.mode === 'coldbounce') return ['反弹太冷，没有热的早期', `圈量子宇宙学的反弹密度被拉得太低：反弹时温度只有 ${sig(D.Tbounce / KB, 2)} K，连氢的复合温度都不到，更没有核合成和粒子汤。把创世台上的 ρ_c 拉高（真实理论值在最右端），这里才有东西可放。`];
       if (s.mode === 'prebounce') return ['反弹之前', `这是圈量子宇宙学的宇宙：没有奇点，也没有暴胀。在这之前是一个收缩中的前宇宙，密度在反弹时达到 ρ_c，温度 ${sig(D.Tbounce / KB, 2)} K。`];
       if (s.mode === 'planck') return ['普朗克时间之前', '量子引力的领地：这里没有可信的方程。经典时空、甚至"时间"本身都未必有意义。'];
       if (s.mode === 'pre') return ['暴胀之前', '不知道。标准模型只从暴胀开始讲起；更早的事（量子引力、暴胀子怎么来的）是开放问题。'];
       if (s.mode === 'inflation') return ['暴胀：空间指数膨胀', `暴胀子的势能像宇宙学常数一样驱动 a ∝ e^{Ht}，H = ${sig(D.inf.H, 2)} GeV。已经膨胀了 ${s.N.toFixed(1)} 个 e-fold（共 ${D.inf.N}）。德西特温度 ${sig(D.inf.TGH, 2)} K 下，场每个哈勃时间长出 δφ = H/2π 的量子涨落，被拉出视界后冻结——这些就是将来星系的种子，功率 A_s = ${QS.As.toExponential(2)}。`];
       const T = s.T, bb = D.bb, rc = D.rc;
-      if (T > 160) return ['再加热后的粒子汤', `暴胀子衰变成辐射，温度 ${unitT(T)}。所有标准模型粒子都是相对论性的，g* = ${s.gR.toFixed(1)}。希格斯场还没凝结，一切粒子无质量。`];
+      if (T > 1e14) return [D.Tbounce ? '反弹后的粒子汤' : '再加热后的粒子汤', `${D.Tbounce ? '反弹把收缩的能量全部交给辐射' : '暴胀子衰变成辐射'}，温度 ${unitT(T)}。所有标准模型粒子都是相对论性的，g* = ${s.gR.toFixed(1)}。希格斯场还没凝结，一切粒子无质量。`];
+      if (T > 1e4) return ['辐射时期：等待电弱相变', `温度 ${unitT(T)}，a ∝ t^{1/2}，哈勃半径 ${unitLen(s.Rh)}，里面只有 ${unitMass(s.Mh)}。粒子汤的成分在这 ${Math.round(Math.log10(T / 160))} 个数量级里几乎不变（g* = ${s.gR.toFixed(1)}）。重子不对称（每十亿对正反粒子多出一个重子）在这段的某处产生，机制未知——标准模型的 CP 破坏不够。`];
+      if (T > 160) return ['电弱相变前夜', `温度 ${unitT(T)}，离希格斯场凝结（T ≈ 160 GeV）不远。顶夸克、W、Z 还都是无质量的相对论性粒子，g* = ${s.gR.toFixed(1)}。`];
       if (T > THERMAL.T_QCD) return ['电弱相变之后', `希格斯场凝结（T ≈ 160 GeV），W、Z、顶夸克获得质量并陆续湮灭。夸克和胶子仍是自由的等离子体，g* = ${s.gR.toFixed(1)}。`];
       if (T > 5e-3) return ['强子时期', `夸克在 T ≈ 150 MeV 被禁闭进质子、中子和介子；介子、μ 子随温度下降湮灭。g* = ${s.gR.toFixed(1)}。n/p 还在弱作用平衡：${sig(s.Xn / (1 - s.Xn), 2)}。`];
       if (T > 0.17e-3) return ['中微子退耦、中子冻结', `弱作用率 ∝ G_F²T⁵ 追不上膨胀。中微子在 T ≈ ${sig(THERMAL.T_NUDEC * 1e3, 2)} MeV 退耦，n/p 在 T ≈ ${bb ? sig(bb.Tfreeze * 1e3, 2) : '?'} MeV 离开平衡、冻在 ${sig(s.Xn / (1 - s.Xn), 2)}，之后只能靠衰变（τ_n = ${bb ? sig(bb.tauN, 3) : '?'} s）慢慢减少。`];
-      if (bb && !s.bbnDone) return ['氘瓶颈', `e⁺e⁻ 湮灭把光子加热到比中微子高 (11/4)^{1/3}。氘的结合能 ${BBN.BD * 1e3} MeV，但每个重子配 ${sig(1 / CUR.eta, 2)} 个光子，高能尾巴不断把氘打碎；中子在等待中衰变：X_n = ${sig(s.Xn, 2)}。`];
+      if (bb && !s.bbnDone) return ['氘瓶颈', `e⁺e⁻ 湮灭把光子加热到比中微子高 (11/4)^{1/3}。氘的结合能 ${sig(BBN.BD * 1e3, 3)} MeV，但每个重子配 ${sig(1 / CUR.eta, 2)} 个光子，高能尾巴不断把氘打碎；中子在等待中衰变：X_n = ${sig(s.Xn, 2)}。`];
       if (bb && s.bbnDone && s.z > (rc && isFinite(rc.zDec) ? rc.zDec * 1.5 : 0) && T > 1e-9) return ['核合成完成', `T ≈ ${sig(bb.Tnuc * 1e3, 2)} MeV 时氘存活，几分钟内几乎所有中子进了 ⁴He：Y_p = ${(bb.Yp * 100).toFixed(1)}%，D/H ≈ ${bb.DH.toExponential(1)}。此后几十万年是光子和等离子体的世界。`];
       if (rc && !s.decoupled) return ['等离子体时期', `温度 ${sig(s.TK, 3)} K。光子被自由电子不断散射，重子被辐射压拖住。电离度 x_e = ${sig(s.xe, 2)}；电离能 ${rc.B_eV.toFixed(1)} eV，但复合要等到 T ≈ ${sig(rc.B_eV / 50, 2)} eV 量级——光子太多了。`];
       return ['复合之后：光子自由飞行', `电子被束缚进氢原子，汤姆孙散射率掉到膨胀率以下：这一刻的光就是今天的 CMB。重子开始落进暗物质的势阱，黑暗时代开始。`];
@@ -1835,18 +1874,19 @@ const INFLATION = (function () {
     }
     function drawTimeline(D) {
       const tl = $('e-timeline'); if (D.noRad) { tl.innerHTML = ''; return; }
-      const lo = -43, hi = 13.2; const ev = D.events.filter((e) => e.t > 0);
-      tl.innerHTML = ev.map((e, k) => { const x = (Math.log10(e.t) - lo) / (hi - lo) * 100; return `<div class="mk" style="left:${x.toFixed(2)}%;top:${(k % 3) * 17}px">${e.l}</div>`; }).join('');
+      const lo = D.lo, hi = 13.2, narrow = tl.clientWidth < 600, rows = narrow ? 4 : 3; const ev = D.events.filter((e) => e.t > 0);
+      tl.style.height = (rows * 17 + 6) + 'px';
+      tl.innerHTML = ev.map((e, k) => { const x = (Math.log10(e.t) - lo) / (hi - lo) * 100; return `<div class="mk" style="left:${x.toFixed(2)}%;top:${(k % rows) * 17}px;font-size:${narrow ? 9 : 10}px">${e.l}</div>`; }).join('');
     }
     function drawCharts(D) {
-      if (D.noRad) return;
+      if (D.noRad || D.coldBounce) return;
       const tab = D.tab, xs = [], ys = []; for (let i = 0; i <= tab.N; i += 2) { const T = Math.exp(tab.lnT[i]); if (T < 1e-5 || T > 1e5) continue; xs.push(T); ys.push(tab.gR[i]); }
       D.gChart = { xs, ys };
       const bb = D.bb; if (bb) D.xnChart = { ts: bb.Ts.map((T) => D.tOfT(T)), Xn: bb.Xn, Xeq: bb.Xeq, tNuc: D.tOfT(bb.Tnuc) };
       const rc = D.rc; if (rc && rc.zs.length) D.xeChart = { zs: rc.zs, xe: rc.xe };
     }
     function charts(D, s) {
-      if (D.noRad) return;
+      if (D.noRad || D.coldBounce) { for (const id of ['c-gstar', 'c-xn', 'c-xe']) { const { ctx, w, h } = fit($(id)); ctx.clearRect(0, 0, w, h); } $('ev-bbn').textContent = ''; $('ev-rec').textContent = ''; return; }
       const mk = (x, y) => (isFinite(x) && isFinite(y)) ? [{ x, y, color: CSS('--gold') }] : [];
       chart($('c-gstar'), { xmin: 1e-5, xmax: 1e5, xlog: true, ymin: 1, ymax: 120, xlabel: 'T（GeV）', ylabel: 'g*', padL: 40, series: [{ xs: D.gChart.xs, ys: D.gChart.ys, color: CSS('--teal') }], marks: s.mode === 'thermal' && s.T > 1e-5 && s.T < 1e5 ? mk(s.T, s.gR) : [] });
       if (D.xnChart) { const X = D.xnChart; chart($('c-xn'), { xmin: 0.01, xmax: 2000, xlog: true, ymin: 0, ymax: 0.5, xlabel: 't（s）', ylabel: 'X_n', padL: 40, series: [{ xs: X.ts, ys: X.Xeq, color: CSS('--faint'), dash: [4, 4] }, { xs: X.ts, ys: X.Xn, color: CSS('--coral') }], vlines: [{ x: X.tNuc, color: CSS('--gold'), label: '氘瓶颈打开' }], marks: s.mode === 'thermal' && s.Xn !== undefined ? mk(s.t, s.Xn) : [] }); $('ev-bbn').textContent = `虚线是弱作用平衡 e^{−Q/T}/(1+e^{−Q/T})；实线离开它就是冻结。Y_p = 2X_n(氘瓶颈) = ${(D.bb.Yp * 100).toFixed(1)}%。`; }
@@ -1859,10 +1899,10 @@ const INFLATION = (function () {
       if (s.mode !== 'thermal') {
         if (s.mode === 'inflation') { // 视界圆 + 被拉长的量子涨落
           const cx = w / 2, cy = h / 2, Rh = Math.min(w, h) * 0.3; ctx.strokeStyle = CSS('--gold'); ctx.setLineDash([5, 5]); ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(cx, cy, Rh, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
-          ctx.fillStyle = CSS('--dim'); ctx.font = '11px Space Grotesk'; ctx.textAlign = 'center'; ctx.fillText('哈勃视界 1/H（不变）', cx, cy - Rh - 8);
-          const phase = (now / 1000) % 1; for (let k = 0; k < 4; k++) { const lam = Rh * 0.35 * Math.exp(((s.N + k * 1.3 + phase) % 5.2)); const amp = 10, y0 = cy - 60 + k * 40; ctx.strokeStyle = lam > 2 * Rh ? CSS('--coral') : CSS('--teal'); ctx.lineWidth = 1.5; ctx.beginPath(); for (let x = 0; x <= w; x += 3) { const y = y0 + amp * Math.sin(2 * Math.PI * (x - cx) / lam + k); if (x) ctx.lineTo(x, y); else ctx.moveTo(x, y); } ctx.stroke(); if (lam > 2 * Rh) { ctx.fillStyle = CSS('--coral'); ctx.textAlign = 'left'; ctx.fillText('波长 > 视界：冻结成经典扰动', 10, y0 - 14); } }
+          ctx.fillStyle = CSS('--gold'); ctx.font = '11px Space Grotesk'; ctx.textAlign = 'center'; ctx.fillText('哈勃视界 1/H（不变）', cx, cy + Rh + 16);
+          const phase = (now / 1000) % 1; for (let k = 0; k < 4; k++) { const lam = Rh * 0.35 * Math.exp(((s.N + k * 1.3 + phase) % 5.2)); const amp = 9, y0 = cy - 66 + k * 44; const frozen = lam > 2 * Rh; ctx.strokeStyle = frozen ? CSS('--coral') : CSS('--teal'); ctx.lineWidth = 1.5; ctx.beginPath(); for (let x = 0; x <= w; x += 3) { const y = y0 + amp * Math.sin(2 * Math.PI * (x - cx) / lam + k); if (x) ctx.lineTo(x, y); else ctx.moveTo(x, y); } ctx.stroke(); ctx.fillStyle = frozen ? CSS('--coral') : CSS('--teal'); ctx.textAlign = 'right'; ctx.fillText(frozen ? '波长 > 视界：冻结成经典扰动' : '波长 < 视界：还是量子涨落', w - 10, y0 - 12); }
           ctx.fillStyle = CSS('--dim'); ctx.textAlign = 'left'; ctx.fillText('量子涨落 δφ = H/2π 的模式，每个哈勃时间被拉长 e 倍', 10, h - 10);
-        } else { ctx.fillStyle = CSS('--faint'); ctx.font = '14px Space Grotesk'; ctx.textAlign = 'center'; ctx.fillText(s.mode === 'planck' ? '普朗克时期：没有可信的图像' : (s.mode === 'pre' ? '暴胀之前：未知' : (s.mode === 'prebounce' ? '反弹之前：收缩中的前宇宙' : '没有辐射')), w / 2, h / 2); }
+        } else { ctx.fillStyle = CSS('--faint'); ctx.font = '14px Space Grotesk'; ctx.textAlign = 'center'; ctx.fillText(s.mode === 'planck' ? '普朗克时期：没有可信的图像' : (s.mode === 'pre' ? '暴胀之前：未知' : (s.mode === 'prebounce' ? '反弹之前：收缩中的前宇宙' : (s.mode === 'coldbounce' ? '反弹太冷：没有粒子汤' : '没有辐射'))), w / 2, h / 2); }
         return;
       }
       // 相对论性粒子：每种 ∝ 份额
@@ -1872,7 +1912,7 @@ const INFLATION = (function () {
       for (const [name, arr] of ET.dots) for (const d of arr) { if (s.decoupled && name.startsWith('γ')) { d.x += d.vx * 2.2; d.y += d.vy * 2.2; } else { d.x += d.vx + (rnd() - .5) * 2.5; d.y += d.vy + (rnd() - .5) * 2.5; } if (d.x < 0) d.x += w; if (d.x > w) d.x -= w; if (d.y < 0) d.y += h; if (d.y > h) d.y -= h; ctx.fillStyle = d.c; ctx.globalAlpha = 0.85; ctx.beginPath(); ctx.arc(d.x, d.y, 2.2, 0, Math.PI * 2); ctx.fill(); }
       ctx.globalAlpha = 1;
       // 核子（T < 1 GeV 出现）：40 个，中子份额 X_n；核合成后四个一组成 ⁴He；复合后电子绕质子
-      if (s.T < 1 && s.Xn !== undefined) {
+      if (s.T < THERMAL.T_QCD && s.Xn !== undefined) {
         if (!ET.nuc) { ET.nuc = []; for (let i = 0; i < 40; i++) ET.nuc.push({ x: rnd() * w, y: rnd() * h, vx: (rnd() - .5) * .6, vy: (rnd() - .5) * .6 }); }
         const nN = Math.round(40 * s.Xn), heGroups = s.bbnDone ? Math.floor(40 * s.He / 4) : 0;
         for (let i = 0; i < ET.nuc.length; i++) { const d = ET.nuc[i]; d.x += d.vx + (rnd() - .5) * .6; d.y += d.vy + (rnd() - .5) * .6; if (d.x < 0) d.x += w; if (d.x > w) d.x -= w; if (d.y < 0) d.y += h; if (d.y > h) d.y -= h; }
@@ -1880,25 +1920,27 @@ const INFLATION = (function () {
         for (let gI = 0; gI < heGroups; gI++) { const d = ET.nuc[gI]; for (let k = 0; k < 4; k++) { const a = k / 4 * Math.PI * 2; ctx.fillStyle = k < 2 ? '#e9edf9' : '#98a4c7'; ctx.beginPath(); ctx.arc(d.x + 4 * Math.cos(a), d.y + 4 * Math.sin(a), 3.2, 0, Math.PI * 2); ctx.fill(); } ctx.strokeStyle = CSS('--gold'); ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(d.x, d.y, 9, 0, Math.PI * 2); ctx.stroke(); drawn += 4; }
         for (let i = heGroups; i < ET.nuc.length; i++) { if (drawn >= 40) break; const d = ET.nuc[i], isN = !s.bbnDone && (i < heGroups + nN); ctx.fillStyle = isN ? '#98a4c7' : '#e9edf9'; ctx.beginPath(); ctx.arc(d.x, d.y, 3.2, 0, Math.PI * 2); ctx.fill(); drawn++;
           if (s.decoupled && !isN) { const a = now / 300 + i; ctx.fillStyle = CSS('--teal'); ctx.beginPath(); ctx.arc(d.x + 8 * Math.cos(a), d.y + 8 * Math.sin(a), 1.6, 0, Math.PI * 2); ctx.fill(); } }
-        ctx.fillStyle = CSS('--dim'); ctx.font = '11px Space Grotesk'; ctx.textAlign = 'left'; ctx.fillText(s.bbnDone ? (s.decoupled ? '白：质子（氢原子核）；青：束缚电子；金圈：⁴He' : '白：质子；金圈：⁴He（2p2n）') : '白：质子；灰：中子', 10, h - 10);
+        label(ctx, s.bbnDone ? (s.decoupled ? '白：质子（氢原子核）；青：束缚电子；金圈：⁴He' : '白：质子；金圈：⁴He（2p2n）') : '白：质子；灰：中子', 10, h - 10, 'left');
       }
-      ctx.fillStyle = CSS('--dim'); ctx.font = '11px Space Grotesk'; ctx.textAlign = 'right'; ctx.fillText(s.decoupled ? '光子直线飞行：退耦了' : '彩点：相对论性粒子，按能量份额', w - 10, h - 10);
+      label(ctx, s.decoupled ? '光子直线飞行：退耦了' : '彩点：相对论性粒子，按能量份额', w - 10, h - 10, 'right');
     }
+    function label(ctx, text, x, y, align) { ctx.font = '11px Space Grotesk'; const tw = ctx.measureText(text).width; ctx.fillStyle = 'rgba(6,9,19,0.75)'; ctx.fillRect(align === 'right' ? x - tw - 6 : x - 4, y - 12, tw + 10, 16); ctx.fillStyle = CSS('--dim'); ctx.textAlign = align; ctx.fillText(text, x, y); }
     function render(now) {
       const D = prepare(); const t = Math.pow(10, ET.logt); const s = stateAt(D, t);
       $('ev-t').textContent = 't = ' + (ET.logt < -3 ? t.toExponential(2) + ' s' : unitTime(t)); $('es-t').value = ET.logt;
-      const [title, body] = epochText(D, s); $('ev-epoch').textContent = title; $('ev-story').textContent = body;
-      cards(D, s); soup(D, s, now || 0); if (!ET.lastT || Math.abs(ET.logt - ET.lastT) > 0.05 || !ET.chartsDrawn) { charts(D, s); ET.lastT = ET.logt; ET.chartsDrawn = true; }
+      const [title, body] = epochText(D, s); $('ev-epoch').textContent = title; $('ev-story').textContent = body; if (D.coldBounce || D.noRad) { $('e-cards').innerHTML = ''; $('e-chips').innerHTML = ''; }
+      if (!(D.coldBounce || D.noRad)) cards(D, s); soup(D, s, now || 0); if (!ET.lastT || Math.abs(ET.logt - ET.lastT) > 0.05 || !ET.chartsDrawn) { charts(D, s); ET.lastT = ET.logt; ET.chartsDrawn = true; }
     }
     function tick(now) {
       if (!ET.playing) return; const dt = ET.last ? (now - ET.last) / 1000 : 0; ET.last = now;
       ET.logt += dt / (+$('es-speed').value); if (ET.logt >= 13.2) { ET.logt = 13.2; ET.playing = false; $('eb-play').textContent = '▶ 慢放'; }
       render(now); if (ET.playing) ET.raf = requestAnimationFrame(tick);
     }
-    $('eb-play').addEventListener('click', () => { ET.playing = !ET.playing; $('eb-play').textContent = ET.playing ? '⏸ 暂停' : '▶ 慢放'; if (ET.playing) { if (ET.logt >= 13.2) ET.logt = -43; ET.last = 0; ET.raf = requestAnimationFrame(tick); } });
+    $('eb-play').addEventListener('click', () => { ET.playing = !ET.playing; $('eb-play').textContent = ET.playing ? '⏸ 暂停' : '▶ 慢放'; if (ET.playing) { const D = prepare(); if (ET.logt >= 13.2 || ET.logt < (D.startLog || -43)) ET.logt = D.startLog || -43; ET.last = 0; ET.raf = requestAnimationFrame(tick); } });
+    $('eb-next').addEventListener('click', () => { const D = prepare(); if (D.noRad || D.coldBounce) return; const cur = ET.logt + 1e-6; const nx = D.events.map((e) => Math.log10(e.t)).find((l) => l > cur); ET.logt = nx === undefined ? D.startLog : nx; ET.playing = false; $('eb-play').textContent = '▶ 慢放'; render(performance.now()); });
     $('es-t').addEventListener('input', () => { ET.logt = +$('es-t').value; ET.playing = false; $('eb-play').textContent = '▶ 慢放'; render(performance.now()); });
     let idleRaf = 0; function idle(now) { if (!ET.playing && G.current === 'early') render(now); idleRaf = requestAnimationFrame(idle); }
-    function enter() { ET.logt = ET.logt || -37; render(performance.now()); if (!idleRaf) idleRaf = requestAnimationFrame(idle); }
+    function enter() { const D = prepare(); if (!ET.logt || ET.logt < (D.lo || -43) || ET.logt >= 13.2) ET.logt = D.startLog || -37; render(performance.now()); if (!idleRaf) idleRaf = requestAnimationFrame(idle); }
     function leave() { ET.playing = false; $('eb-play').textContent = '▶ 慢放'; }
     window.addEventListener('resize', () => { if (G.current === 'early') { ET.chartsDrawn = false; render(performance.now()); } });
     return { enter, leave, invalidate: () => { ET.dirty = true; ET.chartsDrawn = false; ET.dots.clear(); ET.nuc = null; } };

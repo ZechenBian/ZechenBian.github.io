@@ -149,7 +149,7 @@ const COSMO = (function () {
     if (R.origin !== 'bigbang' && !R.quantumBounce) return NaN;
     const { ts, as } = R.past; // 从今天往回 a 单调递减；量子反弹的宇宙只在反弹之前这一段里找
     let lo = 0, hi = as.length - 1;
-    if (R.quantumBounce) { let k = 0; while (k < ts.length - 1 && ts[k + 1] >= R.tBounce) k++; hi = k; }
+    if (R.quantumBounce) { if (a <= R.aMin) return R.tBounce; let k = 0; while (k < ts.length - 1 && ts[k + 1] >= R.tBounce) k++; hi = k; }
     if (a <= as[hi]) return ts[hi];
     while (hi - lo > 1) { const mid = (lo + hi) >> 1; if (as[mid] > a) lo = mid; else hi = mid; }
     const f = (Math.log(as[lo]) - Math.log(a)) / (Math.log(as[lo]) - Math.log(as[hi]));
@@ -244,7 +244,9 @@ const COSMO = (function () {
     } else {
       let why;
       const peak = G.dFirstMax.toPrecision(2);
+      const sc = m.sigScale && m.sigScale.c8 ? m.sigScale.c8 : 1;
       if (m.Om <= 1e-12) why = '宇宙里没有物质：没有东西可以在引力下聚集。';
+      else if (sc < 1 && G.growthMax * SIG_FIRST >= DELTA_C) why = `原初扰动太弱：幅度只有我们宇宙的 ${sc.toPrecision(2)} 倍（A_s 是 ${(sc * sc).toPrecision(2)} 倍），同样的增长下最高的密度峰只到 δ = ${peak}；按我们宇宙的幅度本来可以长到 ${(G.growthMax * SIG_FIRST).toPrecision(2)}。`;
       else if (R.fate === 'crunch') why = `宇宙寿命只有 ${fmtT(R.tEnd + R.age)}，连最高的密度峰也只长到 δ = ${peak} 就被大坍缩压碎了。`;
       else if (R.aEq > 0.01) why = `辐射主导得太久（物质-辐射相等${R.aEq < 1 ? '要到 a = ' + R.aEq.toPrecision(2) : '到今天还没发生'}），辐射压让物质扰动几乎不长（Mészáros 效应），最高的密度峰也只到 δ ≈ ${peak}。` + (m.OL > 0 && m.w < -1 / 3 && R.aLambda < 10 ? `之后暗能量又在 a = ${R.aLambda.toPrecision(2)} 接管，把增长彻底冻住。` : '');
       else if (m.OL > 0 && m.w < -1 / 3) why = `暗能量过早接管（物质-暗能量相等在 a = ${R.aLambda.toPrecision(2)}），增长被冻结：最高的密度峰也只长到 δ = ${peak} < 1.686，永远形不成星系。这正是温伯格 1987 年用来"预言"宇宙学常数不能比我们的大太多的论证。`;

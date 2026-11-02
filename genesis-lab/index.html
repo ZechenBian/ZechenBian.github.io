@@ -54,6 +54,7 @@ section.hall{padding:22px 0 40px}
 .g-forge{grid-template-columns:340px 1fr}
 .g-godel{grid-template-columns:1fr 1fr}
 .g-inv{grid-template-columns:1fr 360px}
+.grid>*{min-width:0}
 @media (max-width:960px){.g-forge,.g-godel,.g-inv,.g3,.g2{grid-template-columns:1fr}}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;min-width:0}
 .card.tight{padding:10px 12px}
@@ -91,6 +92,10 @@ canvas.pointer{cursor:crosshair}
 .movie .hud{position:absolute;left:10px;top:8px;font-size:12px;color:var(--dim);pointer-events:none;text-shadow:0 1px 2px #000}
 .movie .hud b{color:var(--ink);font-weight:500}
 .movie .hud{background:rgba(6,9,19,0.55);padding:4px 8px;border-radius:6px}
+@media (max-width:600px){.movie .hud{position:static;background:transparent;padding:4px 0 0;font-size:11px}}
+.sticky-sum{position:fixed;left:0;right:0;bottom:0;z-index:8;display:none;gap:10px;align-items:center;flex-wrap:wrap;padding:6px max(16px,env(safe-area-inset-left,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-right,0px));background:rgba(11,17,36,0.96);border-top:1px solid var(--line2);font-size:12px;color:var(--dim)}
+.sticky-sum span{white-space:nowrap}.sticky-sum a{margin-left:auto;color:var(--teal);font-weight:600;text-decoration:none}
+@media (max-width:960px){.sticky-sum:not([hidden]){display:flex}body{padding-bottom:56px}}
 .epoch-line{margin-top:6px;font-size:13px;color:var(--gold);font-weight:600;min-height:20px}
 .bar{display:flex;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap}
 .bar input[type=range]{flex:1;min-width:160px;accent-color:var(--gold)}
@@ -106,7 +111,7 @@ canvas.pointer{cursor:crosshair}
 .diag span{color:var(--dim);font-size:13px}
 .verdict{display:inline-block;font-weight:700;padding:3px 10px;border-radius:999px;font-size:13px;border:1px solid}
 .verdict.alive{color:var(--ok);border-color:var(--ok)}.verdict.marginal{color:var(--warn);border-color:var(--warn)}.verdict.dead{color:var(--dead);border-color:var(--dead)}
-details{border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin-top:10px;background:var(--bg2)}
+details{border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin-top:10px;background:var(--bg2);min-width:0;max-width:100%}
 details summary{cursor:pointer;color:var(--gold);font-weight:600}
 details p{color:var(--dim);font-size:14px}
 .eq{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--ink);background:#0a0f22;border:1px solid var(--line);border-radius:8px;padding:8px 10px;overflow-x:auto;white-space:nowrap}
@@ -459,7 +464,7 @@ const COSMO = (function () {
     if (R.origin !== 'bigbang' && !R.quantumBounce) return NaN;
     const { ts, as } = R.past; // 从今天往回 a 单调递减；量子反弹的宇宙只在反弹之前这一段里找
     let lo = 0, hi = as.length - 1;
-    if (R.quantumBounce) { let k = 0; while (k < ts.length - 1 && ts[k + 1] >= R.tBounce) k++; hi = k; }
+    if (R.quantumBounce) { if (a <= R.aMin) return R.tBounce; let k = 0; while (k < ts.length - 1 && ts[k + 1] >= R.tBounce) k++; hi = k; }
     if (a <= as[hi]) return ts[hi];
     while (hi - lo > 1) { const mid = (lo + hi) >> 1; if (as[mid] > a) lo = mid; else hi = mid; }
     const f = (Math.log(as[lo]) - Math.log(a)) / (Math.log(as[lo]) - Math.log(as[hi]));
@@ -554,7 +559,9 @@ const COSMO = (function () {
     } else {
       let why;
       const peak = G.dFirstMax.toPrecision(2);
+      const sc = m.sigScale && m.sigScale.c8 ? m.sigScale.c8 : 1;
       if (m.Om <= 1e-12) why = '宇宙里没有物质：没有东西可以在引力下聚集。';
+      else if (sc < 1 && G.growthMax * SIG_FIRST >= DELTA_C) why = `原初扰动太弱：幅度只有我们宇宙的 ${sc.toPrecision(2)} 倍（A_s 是 ${(sc * sc).toPrecision(2)} 倍），同样的增长下最高的密度峰只到 δ = ${peak}；按我们宇宙的幅度本来可以长到 ${(G.growthMax * SIG_FIRST).toPrecision(2)}。`;
       else if (R.fate === 'crunch') why = `宇宙寿命只有 ${fmtT(R.tEnd + R.age)}，连最高的密度峰也只长到 δ = ${peak} 就被大坍缩压碎了。`;
       else if (R.aEq > 0.01) why = `辐射主导得太久（物质-辐射相等${R.aEq < 1 ? '要到 a = ' + R.aEq.toPrecision(2) : '到今天还没发生'}），辐射压让物质扰动几乎不长（Mészáros 效应），最高的密度峰也只到 δ ≈ ${peak}。` + (m.OL > 0 && m.w < -1 / 3 && R.aLambda < 10 ? `之后暗能量又在 a = ${R.aLambda.toPrecision(2)} 接管，把增长彻底冻住。` : '');
       else if (m.OL > 0 && m.w < -1 / 3) why = `暗能量过早接管（物质-暗能量相等在 a = ${R.aLambda.toPrecision(2)}），增长被冻结：最高的密度峰也只长到 δ = ${peak} < 1.686，永远形不成星系。这正是温伯格 1987 年用来"预言"宇宙学常数不能比我们的大太多的论证。`;
@@ -902,11 +909,12 @@ const PUZZLES = (function () {
     if (!halls.includes(hall)) hall = 'overview';
     for (const h of halls) $('hall-' + h).hidden = h !== hall;
     for (const b of document.querySelectorAll('#tabs button')) b.classList.toggle('on', b.dataset.hall === hall);
-    current = hall; store.set('hall', hall); try { if (location.hash !== '#' + hall) history.replaceState(null, '', '#' + hall); } catch (e) { /* 无妨 */ }
+    current = hall; store.set('hall', hall); { const bar = $('sticky-sum'); if (bar) bar.hidden = hall !== 'forge'; } try { if (location.hash !== '#' + hall) history.replaceState(null, '', '#' + hall); } catch (e) { /* 无妨 */ }
     if (hall === 'forge') forge.render(); if (hall === 'godel') godel.enter(); else godel.leave(); if (hall === 'inverse') inverse.render();
     if (window.GENESIS_Q_HALL) window.GENESIS_Q_HALL(hall);
   }
   $('tabs').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { show(b.dataset.hall); window.scrollTo({ top: 0 }); } });
+  document.addEventListener('click', (e) => { const a = e.target.closest('[data-scroll]'); if (a) { e.preventDefault(); const el = $(a.dataset.scroll); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); } });
   document.addEventListener('click', (e) => { const b = e.target.closest('[data-go]'); if (b) { e.preventDefault(); show(b.dataset.go); window.scrollTo({ top: 0 }); } });
   window.addEventListener('hashchange', () => { const h = location.hash.slice(1); if (halls.includes(h) && h !== current) show(h); });
 
@@ -979,7 +987,11 @@ const PUZZLES = (function () {
       const ph = R.particleHorizon * COSMO.CKMS / S.H0 / 306.6, eh = R.eventHorizon * COSMO.CKMS / S.H0 / 306.6;
       cards.push({ c: 'gold', k: '视界', v: `${isFinite(ph) ? sig(ph, 3) + ' Gly' : '无'} / ${isFinite(eh) ? sig(eh, 3) + ' Gly' : '无'}`, i: '粒子视界 / 事件视界（共动，今天）' });
       let ep = '';
-      if (R.origin === 'bigbang' || R.quantumBounce) { const tRec = COSMO.tOfA(R, R.aRec) + R.age, tEq = isFinite(R.aEq) && R.aEq < 1 ? COSMO.tOfA(R, R.aEq) + R.age : NaN; ep = `复合 ${isFinite(tRec) && R.aRec > (R.aMin || 0) ? gyr(tRec * g) : '从未'}；物质-辐射相等 ${isFinite(tEq) ? gyr(tEq * g) : '从未'}；物质-暗能量相等 ${isFinite(R.aLambda) ? (R.aLambda <= 1 ? gyr((COSMO.tOfA(R, R.aLambda) + R.age) * g) : '还没发生') : '从未'}`; }
+      if (R.origin === 'bigbang' || R.quantumBounce) {
+        const recOK = isFinite(R.aRec) && R.aRec <= 1 && R.aRec > (R.aMin || 0), tRec = recOK ? COSMO.tOfA(R, R.aRec) + R.age : NaN;
+        const eqOK = isFinite(R.aEq) && R.aEq > 0 && R.aEq < 1 && R.aEq > (R.aMin || 0), tEq = eqOK ? COSMO.tOfA(R, R.aEq) + R.age : NaN;
+        ep = `光子退耦 ${recOK ? gyr(tRec * g) : (R.T0 > 0 ? (R.aRec === Infinity ? '至今没有' : (R.aRec <= (R.aMin || 0) ? '从一开始就透明' : '从未')) : '没有辐射')}；物质-辐射相等 ${eqOK ? gyr(tEq * g) : (R.aEq <= (R.aMin || 0) || R.T0 === 0 ? '一直是物质主导' : '到今天还是辐射主导')}；物质-暗能量相等 ${isFinite(R.aLambda) ? (R.aLambda <= 1 ? gyr((COSMO.tOfA(R, R.aLambda) + R.age) * g) : '还没发生') : '从未'}`;
+      }
       else ep = '没有热的早期，纪元不适用';
       cards.push({ c: 'teal', k: '关键纪元（' + (R.quantumBounce ? '反弹后' : '大爆炸后') + '）', v: R.origin === 'bigbang' || R.quantumBounce ? `T₀ = ${sig(R.T0, 4)} K` : '—', i: ep });
       $('fate-cards').innerHTML = cards.map((c) => `<div class="k ${c.c}"><small>${c.k}</small><b>${c.v}</b><i>${c.i}</i></div>`).join('');
@@ -1008,6 +1020,12 @@ const PUZZLES = (function () {
     }
     function diag() {
       const lv = { alive: '可能宜居', marginal: '勉强', dead: '死寂' }; $('verdict').innerHTML = `<span class="verdict ${R.verdict}">${lv[R.verdict]}</span>`;
+      // 手机上旋钮和结果隔着几屏：底部贴一条摘要
+      let bar = $('sticky-sum'); if (!bar) { bar = document.createElement('div'); bar.id = 'sticky-sum'; bar.className = 'sticky-sum'; document.body.appendChild(bar); }
+      const fate = R.fate === 'crunch' ? '大坍缩' : (R.fate === 'rip' ? '大撕裂' : '永远膨胀'), age = R.origin === 'bigbang' || R.quantumBounce ? gyr(R.age * GYR()) : (R.origin === 'bounce' ? '无大爆炸' : '无限');
+      const extra = R.diag.filter((d) => d.key === 'helium').map((d) => d.title.replace('原初氦 ', '氦 ')).join('');
+      bar.innerHTML = `<span class="verdict ${R.verdict}">${lv[R.verdict]}</span><span>${fate}</span><span>年龄 ${age}</span>${extra ? `<span>${extra}</span>` : ''}<a href="#diag" data-scroll="diag">看诊断 ↓</a>`;
+      bar.hidden = current !== 'forge';
       $('diag').innerHTML = R.diag.map((d) => `<li><div class="lv ${d.level}"></div><div><b>${d.title}</b><span>${d.detail}</span></div></li>`).join('');
     }
     function eqs() {
@@ -1020,7 +1038,7 @@ const PUZZLES = (function () {
       const tl = $('timeline'), g = GYR(), marks = [];
       const at = (a) => { let best = 0; for (let i = 0; i < frames.length; i++) if (Math.abs(Math.log(frames[i].a) - Math.log(a)) < Math.abs(Math.log(frames[best].a) - Math.log(a))) best = i; return best; };
       const atT = (t) => { let best = 0; for (let i = 0; i < frames.length; i++) if (Math.abs(frames[i].t - t) < Math.abs(frames[best].t - t)) best = i; return best; };
-      if (R.origin === 'bigbang' || R.quantumBounce) { marks.push([0, R.quantumBounce ? '量子反弹' : '大爆炸']); if (R.aRec > (R.aMin || 0)) marks.push([at(R.aRec), '复合']); if (R.growth && isFinite(R.growth.aFirst) && R.growth.aFirst < 1) marks.push([at(R.growth.aFirst), '第一批星系']); }
+      if (R.origin === 'bigbang' || R.quantumBounce) { marks.push([0, R.quantumBounce ? '量子反弹' : '大爆炸']); if (isFinite(R.aRec) && R.aRec <= 1 && R.aRec > (R.aMin || 0)) marks.push([at(R.aRec), '复合']); if (R.growth && isFinite(R.growth.aFirst) && R.growth.aFirst < 1) marks.push([at(R.growth.aFirst), '第一批星系']); }
       else if (R.origin === 'bounce') marks.push([atT(R.tBounce), '反弹']);
       marks.push([TODAY, '今天']);
       if (R.fate === 'crunch') { marks.push([atT(R.tTurn), '回转']); marks.push([599, '大坍缩']); } else if (R.fate === 'rip') marks.push([599, '大撕裂']); else marks.push([599, 'a = 30']);
@@ -1058,8 +1076,8 @@ const PUZZLES = (function () {
       const H = aAtH(f) ; const t = f.t * g;
       let epoch; const contracting = R.fate === 'crunch' && f.t > R.tTurn, acc = COSMO.accel(R.m, a) > 0;
       if (contracting) epoch = a < R.aRec ? '大坍缩：重新变成火球，压回奇点' : '收缩中：天空越来越亮，温度回升';
-      else if ((R.origin === 'bigbang' || R.quantumBounce) && a < R.aRec) epoch = '火球：不透明的等离子体，光走不出去';
-      else if ((R.origin === 'bigbang' || R.quantumBounce) && !formed && a < 1) epoch = '黑暗时代：复合之后，第一批星系之前';
+      else if ((R.origin === 'bigbang' || R.quantumBounce) && R.T0 > 0 && a < R.aRec) epoch = R.aRec === Infinity ? '等离子体：光子至今被散射，宇宙一直不透明' : '火球：不透明的等离子体，光走不出去';
+      else if ((R.origin === 'bigbang' || R.quantumBounce) && !formed && a < 1) epoch = R.T0 > 0 ? '黑暗时代：复合之后，第一批星系之前' : '冷的宇宙：没有辐射，扰动还没长成星系';
       else if (R.fate === 'rip' && a > 50) epoch = '大撕裂逼近：先星系团，再星系，再原子';
       else if (isFinite(R.aLambda) && a > R.aLambda && acc) epoch = (f.t > 0 ? '未来 · ' : '') + '暗能量主导：加速膨胀，星系互相远离';
       else if (f.t > 0) epoch = '未来 · ' + (acc ? '加速膨胀' : '减速膨胀') + (formed ? '' : '（还没有星系）');

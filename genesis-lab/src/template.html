@@ -54,6 +54,7 @@ section.hall{padding:22px 0 40px}
 .g-forge{grid-template-columns:340px 1fr}
 .g-godel{grid-template-columns:1fr 1fr}
 .g-inv{grid-template-columns:1fr 360px}
+.grid>*{min-width:0}
 @media (max-width:960px){.g-forge,.g-godel,.g-inv,.g3,.g2{grid-template-columns:1fr}}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;min-width:0}
 .card.tight{padding:10px 12px}
@@ -91,6 +92,10 @@ canvas.pointer{cursor:crosshair}
 .movie .hud{position:absolute;left:10px;top:8px;font-size:12px;color:var(--dim);pointer-events:none;text-shadow:0 1px 2px #000}
 .movie .hud b{color:var(--ink);font-weight:500}
 .movie .hud{background:rgba(6,9,19,0.55);padding:4px 8px;border-radius:6px}
+@media (max-width:600px){.movie .hud{position:static;background:transparent;padding:4px 0 0;font-size:11px}}
+.sticky-sum{position:fixed;left:0;right:0;bottom:0;z-index:8;display:none;gap:10px;align-items:center;flex-wrap:wrap;padding:6px max(16px,env(safe-area-inset-left,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-right,0px));background:rgba(11,17,36,0.96);border-top:1px solid var(--line2);font-size:12px;color:var(--dim)}
+.sticky-sum span{white-space:nowrap}.sticky-sum a{margin-left:auto;color:var(--teal);font-weight:600;text-decoration:none}
+@media (max-width:960px){.sticky-sum:not([hidden]){display:flex}body{padding-bottom:56px}}
 .epoch-line{margin-top:6px;font-size:13px;color:var(--gold);font-weight:600;min-height:20px}
 .bar{display:flex;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap}
 .bar input[type=range]{flex:1;min-width:160px;accent-color:var(--gold)}
@@ -106,7 +111,7 @@ canvas.pointer{cursor:crosshair}
 .diag span{color:var(--dim);font-size:13px}
 .verdict{display:inline-block;font-weight:700;padding:3px 10px;border-radius:999px;font-size:13px;border:1px solid}
 .verdict.alive{color:var(--ok);border-color:var(--ok)}.verdict.marginal{color:var(--warn);border-color:var(--warn)}.verdict.dead{color:var(--dead);border-color:var(--dead)}
-details{border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin-top:10px;background:var(--bg2)}
+details{border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin-top:10px;background:var(--bg2);min-width:0;max-width:100%}
 details summary{cursor:pointer;color:var(--gold);font-weight:600}
 details p{color:var(--dim);font-size:14px}
 .eq{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--ink);background:#0a0f22;border:1px solid var(--line);border-radius:8px;padding:8px 10px;overflow-x:auto;white-space:nowrap}

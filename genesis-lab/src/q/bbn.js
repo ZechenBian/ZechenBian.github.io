@@ -10,32 +10,32 @@
 const BBN = (function () {
   const ME = 0.51099895e-3, Q0 = 1.29333e-3, BD = 2.224575e-3, MN = 0.93891e-3 * 1000, TAU0 = 878.4; // GeV（MN 以 GeV 计 0.939）
   const MN_GEV = 0.93891;
-  function f0(q) { // 相空间积分
+  function f0(q) { // 中子衰变的相空间积分；Q < m_e（q < 1）时衰变被禁止
+    if (q <= 1) return 0;
     const n = 400; let s = 0; for (let i = 0; i <= n; i++) { const e = 1 + (q - 1) * i / n, w = (i === 0 || i === n) ? 1 : (i % 2 ? 4 : 2); s += w * e * Math.sqrt(Math.max(0, e * e - 1)) * (q - e) ** 2; } return s * ((q - 1) / n) / 3;
   }
   const fe = (E, T) => 1 / (Math.exp(Math.min(700, E / T)) + 1); // 费米分布，E、T 以 m_e 为单位
   // 六个过程的速率（乘 A 之前）；Tg、Tn 以 m_e 为单位
   function rates(Tg, Tn, q) {
-    const n = 300, emax = 1 + 40 * Math.max(Tg, Tn) + q; let np = 0, pn = 0;
+    const n = 300, emax = 1 + 40 * Math.max(Tg, Tn) + q, lo = Math.max(1, q); let np = 0, pn = 0;
     const simpson = (lo, hi, fn) => { let s = 0; for (let i = 0; i <= n; i++) { const e = lo + (hi - lo) * i / n, w = (i === 0 || i === n) ? 1 : (i % 2 ? 4 : 2); s += w * fn(e); } return s * ((hi - lo) / n) / 3; };
     const ps = (e) => e * Math.sqrt(Math.max(0, e * e - 1));
     // n ν → p e（ε > q）、p e → n ν
-    np += simpson(q, emax, (e) => ps(e) * (e - q) ** 2 * fe(e - q, Tn) * (1 - fe(e, Tg)));
-    pn += simpson(q, emax, (e) => ps(e) * (e - q) ** 2 * fe(e, Tg) * (1 - fe(e - q, Tn)));
+    np += simpson(lo, emax, (e) => ps(e) * (e - q) ** 2 * fe(e - q, Tn) * (1 - fe(e, Tg)));
+    pn += simpson(lo, emax, (e) => ps(e) * (e - q) ** 2 * fe(e, Tg) * (1 - fe(e - q, Tn)));
     // n e⁺ → p ν̄、p ν̄ → n e⁺
     np += simpson(1, emax, (e) => ps(e) * (e + q) ** 2 * fe(e, Tg) * (1 - fe(e + q, Tn)));
     pn += simpson(1, emax, (e) => ps(e) * (e + q) ** 2 * fe(e + q, Tn) * (1 - fe(e, Tg)));
     // n → p e ν̄（1 < ε < q）、p e ν̄ → n
-    np += simpson(1, q, (e) => ps(e) * (q - e) ** 2 * (1 - fe(e, Tg)) * (1 - fe(q - e, Tn)));
-    pn += simpson(1, q, (e) => ps(e) * (q - e) ** 2 * fe(e, Tg) * fe(q - e, Tn));
+    if (q > 1) { np += simpson(1, q, (e) => ps(e) * (q - e) ** 2 * (1 - fe(e, Tg)) * (1 - fe(q - e, Tn))); pn += simpson(1, q, (e) => ps(e) * (q - e) ** 2 * fe(e, Tg) * fe(q - e, Tn)); }
     return { np, pn };
   }
   let THETA = 0.02565; // 氘瓶颈阈值：用 calibrate() 按标准参数（η=6.1e-10、N_eff=3.044、τ_n=878.4 s）校准到 Y_p = 0.247 得到的值
   // 参数：Q（GeV）、GF（相对标准的倍数）、eta（重子-光子比）、thermal 表（含 N_eff）
   function run(tab, par) {
     par = par || {}; const Q = par.Q || Q0, GF = par.GF || 1, eta = par.eta || 6.1e-10, q = Q / ME, q0 = Q0 / ME;
-    const tauN = TAU0 / (GF * GF) * f0(q0) / f0(q); // 中子寿命随 G_F、Q 变
-    const A = 1 / (tauN * f0(q));
+    const A = GF * GF / (TAU0 * f0(q0)); // 归一化只随 G_F² 变
+    const tauN = f0(q) > 0 ? 1 / (A * f0(q)) : Infinity; // 中子寿命随 G_F、Q 变；Q < m_e 时中子稳定
     // 以温度为步长向下积分；速率远大于膨胀率时用指数积分（精确于常速率）
     const T1 = 10e-3, T2 = 0.02e-3; const n = 900; const out = { Ts: [], ts: [], Xn: [], Xeq: [], tauN, A, eta, Q, GF };
     let X = null, t = tab.atT(T1).t, tPrev = t;
@@ -56,7 +56,8 @@ const BBN = (function () {
     out.Tnuc = Tnuc; out.tNuc = tNuc; out.Xnuc = Xnuc; out.Yp = Math.min(1, 2 * Xnuc);
     // 冻结：X_n 离开平衡的温度（|X − X_eq|/X_eq > 10%）
     for (let i = 0; i < out.Ts.length; i++) if (Math.abs(out.Xn[i] - out.Xeq[i]) > 0.1 * out.Xeq[i]) { out.Tfreeze = out.Ts[i]; out.tFreeze = out.ts[i]; out.npFreeze = out.Xn[i] / (1 - out.Xn[i]); break; }
-    out.DH = 2.53e-5 * Math.pow(6.1e-10 / eta, 1.6); // 拟合
+    out.DH = 2.53e-5 * Math.pow(6.1e-10 / eta, 1.6); out.DHvalid = eta > 5e-11 && eta < 3e-9; // 拟合，只在 η₁₀ ≈ 0.5–30 可信
+    out.etaLow = eta < 1e-11; // η 太小：核反应本身跟不上膨胀，Y_p 只是上限
     return out;
   }
   function calibrate(tab) { // 标准参数下 Y_p = 0.247
