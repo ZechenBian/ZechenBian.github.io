@@ -72,7 +72,9 @@
     cards.push(['violet', '暴胀的量子涨落', 'δφ = ' + sig(inf.dphi, 3) + ' GeV', `每个哈勃时间 H/2π；德西特温度 T_GH = ${sig(inf.TGH, 3)} K；${inf.N} 个 e-fold 用时 ${sig(inf.tInf, 2)} s`]);
     if (R.fate === 'eternal' && R.accelerating && R.m.w === -1 && R.m.OL > 0) { const Hinf = R.m.H0 * 1e5 / 3.0857e24 * Math.sqrt(R.m.OL); cards.push(['teal', '终态的德西特温度', sig(INFLATION.deSitterT(Hinf), 3) + ' K', '永远加速的宇宙最终只剩这个温度的热辐射（Gibbons–Hawking）']); }
     if (R.quantumBounce) cards.push(['coral', '量子反弹', 'a_min = ' + R.aMin.toExponential(2), `反弹在 ${gyr(-R.tBounce * COSMO.GYR / R.m.H0)}前；那时密度 ρ_c = 10^${QS.rhoC.toFixed(1)} ρ_crit，温度 ${sig(R.T0 / R.aMin, 3)} K`]);
-    $('q-cards').innerHTML = cards.map(([c, k, v, i]) => `<div class="k ${c}"><small>${k}</small><b class="mono" style="font-size:16px">${v}</b><i>${i}</i></div>`).join('');
+    const QG = { '原初氦丰度 Y_p': 'Yp', '核合成': 'Yp', '氘 D/H': 'DH', '光子退耦 z_dec': 'zdec', '光子退耦': 'zdec', '复合': 'zdec', '声学视界 r_s': 'rs', '暴胀能标 V^{1/4}': 'Vinf', '暴胀的量子涨落': 'dphi', '终态的德西特温度': 'TdS', '量子反弹': 'lqc' };
+    $('q-cards').innerHTML = cards.map(([c, k, v, i]) => `<div class="k ${c}"><small${QG[k] ? ` data-g="${QG[k]}"` : ''}>${k.replace('Y_p', '$Y_p$').replace('z_dec', '$z_{dec}$').replace('r_s', '$r_s$').replace('V^{1/4}', '$V^{1/4}$')}</small><b class="mono" style="font-size:16px">${v}</b><i>${i}</i></div>`).join('');
+    if (G.decorate) { G.decorate($('q-cards')); G.tex($('q-cards')); }
     // 诊断加两关
     const items = R.diag;
     if (bb) {
@@ -170,8 +172,11 @@
         if (s.Xn !== undefined) K.push(['coral', '中子 / 质子', sig(s.Xn / (1 - s.Xn), 3), s.bbnDone ? `已进 ⁴He：Y_p = ${(s.He * 100).toFixed(1)}%` : `X_n = ${sig(s.Xn, 3)}`]);
         if (s.xe !== undefined && s.T < 1e-6) K.push([s.decoupled ? 'teal' : 'coral', '电离度 x_e', sig(s.xe, 3), s.decoupled ? '光子已退耦' : '光子仍被散射']);
       } else if (s.mode === 'inflation') { K.push(['gold', 'e-fold 数', s.N.toFixed(2) + ' / ' + D.inf.N, '相对暴胀结束 a = ' + s.aRel.toExponential(2)]); K.push(['violet', 'H_inf', sig(D.inf.H, 3) + ' GeV', '哈勃时间 ' + sig(1 / D.inf.Hs, 2) + ' s']); K.push(['teal', '德西特温度', sig(D.inf.TGH, 3) + ' K', 'δφ = ' + sig(D.inf.dphi, 3) + ' GeV']); }
-      $('e-cards').innerHTML = K.map(([c, k, v, i]) => `<div class="k ${c}"><small>${k}</small><b class="mono" style="font-size:17px">${v}</b><i>${i}</i></div>`).join('');
-      $('e-chips').innerHTML = s.species ? s.species.filter((p) => p.frac > 0.004).map((p) => `<span class="pill" style="border-color:${p.color};color:${p.color}">${p.name} ${(p.frac * 100).toFixed(1)}%</span>`).join('') : '';
+      const EG = { '尺度因子 a': 'scale', '膨胀率 H': 'H0', '哈勃半径 c/H': 'hubble', '有效自由度 g*': 'gstar', 'T_ν/T_γ': 'annihilation', '中子 / 质子': 'Xn', '电离度 x_e': 'xe', 'e-fold 数': 'inflation', 'H_inf': 'Vinf', '德西特温度': 'dphi' };
+      const html = K.map(([c, k, v, i]) => `<div class="k ${c}"><small${EG[k] ? ` data-g="${EG[k]}"` : ''}>${k}</small><b class="mono" style="font-size:17px">${v}</b><i>${i}</i></div>`).join('');
+      if (html !== ET.lastCards) { $('e-cards').innerHTML = html; ET.lastCards = html; if (G.decorate) G.decorate($('e-cards')); } // 只在内容变了才重画，不然 ? 按钮点不到
+      const chips = s.species ? s.species.filter((p) => p.frac > 0.004).map((p) => `<span class="pill" style="border-color:${p.color};color:${p.color}">${p.name} ${(p.frac * 100).toFixed(1)}%</span>`).join('') : '';
+      if (chips !== ET.lastChips) { $('e-chips').innerHTML = chips; ET.lastChips = chips; }
     }
     function drawTimeline(D) {
       const tl = $('e-timeline'); if (D.noRad) { tl.innerHTML = ''; return; }
@@ -248,6 +253,7 @@
   })();
   window.GENESIS_Q_HALL = (hall) => { G.current = hall; if (hall === 'early') { if (!forge.R) forge.solve(); early.enter(); } else early.leave(); };
 
+  window.GENESIS_QSTATE = () => ({ T0_K: QS.T0, Neff: QS.Neff, Ob: QS.Ob, As: QS.As, ns: QS.ns, r: QS.r, alpha_rel: QS.alpha, me_rel: QS.me, Q_MeV: QS.Q, GF_rel: QS.GF, LQC: QS.lqc ? 'ρ_c = 10^' + QS.rhoC + ' ρ_crit' : 'off' });
   syncQ();
   G.start();
 })();

@@ -7,6 +7,9 @@
     "build": "node build.js",
     "test": "node test/cosmo.test.js && node test/godel.test.js && node test/q.test.js"
   },
+  "devDependencies": {
+    "katex": "0.16.47"
+  },
   "license": "SEE LICENSE IN ../LICENSE",
   "author": "Zechen Bian"
 }

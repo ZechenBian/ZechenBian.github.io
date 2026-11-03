@@ -7,7 +7,26 @@
 const fs = require('fs'), path = require('path');
 const src = (p) => fs.readFileSync(path.join(__dirname, 'src', p), 'utf8');
 const strip = (code) => code.replace(/\nif \(typeof module !== 'undefined'\) module\.exports = \w+;\n/, '\n');
-function build(q) {
+// KaTeX（MIT）：样式、字体和脚本全部内联，断网也能排公式。发行文件从 node_modules 取（npm install），或者 KATEX_DIR 指向 katex/dist。
+function katexDir() {
+  for (const d of [process.env.KATEX_DIR, path.join(__dirname, 'node_modules/katex/dist'), path.join(__dirname, '../strategy-lab/node_modules/katex/dist'), '/opt/npm-tools/node_modules/katex/dist'])
+    if (d && fs.existsSync(path.join(d, 'katex.min.js'))) return d;
+  throw new Error('找不到 KaTeX：在 genesis-lab/ 里 npm install，或设置 KATEX_DIR=…/katex/dist');
+}
+const KATEX = katexDir(), KATEX_VER = JSON.parse(fs.readFileSync(path.join(KATEX, '../package.json'), 'utf8')).version;
+function katexCss() {
+  let css = fs.readFileSync(path.join(KATEX, 'katex.min.css'), 'utf8'), n = 0;
+  css = css.replace(/src:url\(fonts\/([A-Za-z0-9_-]+)\.woff2\) format\("woff2"\),url\(fonts\/[^)]+\.woff\) format\("woff"\),url\(fonts\/[^)]+\.ttf\) format\("truetype"\)/g, (m, name) => { n++; return 'src:url(data:font/woff2;base64,' + fs.readFileSync(path.join(KATEX, 'fonts', name + '.woff2')).toString('base64') + ') format("woff2")'; });
+  if (n !== 20 || css.includes('url(fonts/')) throw new Error('KaTeX 字体内联失败：' + n);
+  return css;
+}
+const KATEX_CSS = '<style>\n/* KaTeX ' + KATEX_VER + ' 的样式，字体内联。KaTeX: MIT License, (c) Khan Academy and other contributors; 字体: SIL Open Font License 1.1。全文见 THIRD-PARTY-NOTICES.md */\n' + katexCss() + '\n</style>';
+const katexJs = fs.readFileSync(path.join(KATEX, 'katex.min.js'), 'utf8'), autoJs = fs.readFileSync(path.join(KATEX, 'contrib/auto-render.min.js'), 'utf8');
+if (/<\/script/i.test(katexJs + autoJs)) throw new Error('KaTeX 脚本里有 </script>');
+const KATEX_JS = '<script>\n/* KaTeX ' + KATEX_VER + ' — MIT License, (c) Khan Academy and other contributors. https://github.com/KaTeX/KaTeX */\n' + katexJs + '\n' + autoJs + '\n</script>\n<script>if (window.GENESIS && GENESIS.tex) { GENESIS.tex(document.body); }</script>';
+// 问 AI 的接口模块和策略实验室共用一份（使用者自带密钥，只存在本机浏览器）；Artifact 变体里不需要它（用页面自己的 sample 能力）
+const QLAI = fs.readFileSync(path.join(__dirname, '../strategy-lab/src/ai.js'), 'utf8').replace(/\nif \(typeof module !== "undefined" && module\.exports\) module\.exports = QLAI;\n/, '\n');
+function build(q, artifact) {
   let t = src('template.html');
   const fill = (slot, text) => { if (!t.includes(slot)) throw new Error('template.html 里缺少占位符 ' + slot); t = t.replace(slot, () => text); };
   fill('__TITLE__', q ? '创世实验室 · 量子版' : '创世实验室 · Genesis Lab');
@@ -22,6 +41,8 @@ function build(q) {
   fill('__GODEL__', strip(src('godel.js'))); fill('__PRESETS__', strip(src('presets.js'))); fill('__PUZZLES__', strip(src('puzzles.js')));
   fill('__Q_ENGINES__', q ? ['q/thermal.js', 'q/bbn.js', 'q/recomb.js', 'q/inflation.js'].map((f) => strip(src(f))).join('\n') : '');
   fill('__APP__', strip(src('app.js'))); fill('__Q_APP__', q ? strip(src('q/app_q.js')) : '');
+  fill('__GLOSS__', strip(src('gloss.js'))); fill('__QLAI__', artifact ? '' : QLAI); fill('__HELP__', strip(src('help.js')));
+  fill('__KATEX_CSS__', KATEX_CSS); fill('__KATEX_JS__', KATEX_JS);
   return t;
 }
 const pages = [['index.html', false], ['quantum/index.html', true]];
@@ -34,5 +55,5 @@ function artifact(t, title) {
   return '<!-- Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。 -->\n' + a.replace(/^\s+/, '');
 }
 for (const [flag, q, title] of [['--artifact', false, '创世实验室 · Genesis Lab'], ['--artifact-q', true, '创世实验室 · 量子版']]) {
-  const i = process.argv.indexOf(flag); if (i > 0 && process.argv[i + 1]) { const a = artifact(build(q), title); fs.writeFileSync(process.argv[i + 1], a); console.log('artifact variant written to', process.argv[i + 1], a.length, 'bytes'); }
+  const i = process.argv.indexOf(flag); if (i > 0 && process.argv[i + 1]) { const a = artifact(build(q, true), title); fs.writeFileSync(process.argv[i + 1], a); console.log('artifact variant written to', process.argv[i + 1], a.length, 'bytes'); }
 }

@@ -17,6 +17,7 @@
 <link rel="license" href="https://github.com/ZechenBian/zechenbian.github.io/blob/main/LICENSE">
 <title>__TITLE__</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+__KATEX_CSS__
 <style>
 :root{
   --bg:#070b17; --bg2:#0b1124; --panel:#111a33; --panel2:#162044; --line:#243256; --line2:#34467a;
@@ -136,6 +137,21 @@ footer{border-top:1px solid var(--line);padding:18px 0 28px;color:var(--faint);f
 .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--gold);color:#1a1200;font-weight:600;padding:8px 14px;border-radius:999px;box-shadow:0 6px 24px #0008;opacity:0;transition:opacity .25s;pointer-events:none;z-index:9}
 .toast.show{opacity:1}
 .sr{position:absolute;left:-9999px}
+.qb{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;margin-left:6px;border-radius:50%;border:1px solid var(--line2);background:var(--panel2);color:var(--teal);font:600 11px/1 'Space Grotesk',sans-serif;cursor:pointer;vertical-align:middle;padding:0}
+.qb:hover{border-color:var(--teal)}.qb:focus-visible{outline:2px solid var(--teal);outline-offset:1px}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(440px,100%);background:var(--panel);border-left:1px solid var(--line2);z-index:20;display:flex;flex-direction:column;box-shadow:-12px 0 32px #0009;padding-top:env(safe-area-inset-top,0px)}
+.drawer-head{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px max(16px,env(safe-area-inset-right,0px)) 12px 16px;border-bottom:1px solid var(--line)}
+.drawer-head b{font-size:16px}
+.drawer-body{padding:12px max(16px,env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) 16px;overflow:auto;flex:1;min-height:0;font-size:14px}
+.drawer-body p{margin:.5em 0}.gloss-s{color:var(--gold);font-weight:600}
+#chat-fab{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:9;border-radius:999px;box-shadow:0 6px 24px #0008;padding:10px 16px}
+@media (max-width:960px){#chat-fab{bottom:calc(64px + env(safe-area-inset-bottom,0px))}}
+.chat-log{display:flex;flex-direction:column;gap:8px;min-height:120px}
+.msg{padding:8px 11px;border-radius:10px;max-width:96%;line-height:1.5;overflow-wrap:anywhere}.msg.user{align-self:flex-end;background:var(--panel2)}.msg.assistant{background:var(--bg2);border:1px solid var(--line)}
+.msg p{margin:.3em 0}.msg ul,.msg ol{margin:.3em 0;padding-left:20px}.msg code{font-family:'JetBrains Mono',monospace;font-size:12px;background:#0a0f22;padding:1px 4px;border-radius:4px}
+.chat-form{margin-top:10px}.chat-form textarea{width:100%;font:inherit;font-size:14px;color:var(--ink);background:#0a0f22;border:1px solid var(--line2);border-radius:8px;padding:8px 10px;resize:vertical}
+.katex-display{overflow-x:auto;overflow-y:hidden;padding:2px 0}.katex{font-size:1.04em}
+.eqtex{overflow-x:auto;max-width:100%}
 @media (max-width:600px){h1{font-size:24px}.kv .k b{font-size:17px}}
 </style>
 </head>
@@ -189,12 +205,12 @@ footer{border-top:1px solid var(--line);padding:18px 0 28px;color:var(--faint);f
       <div class="card">
         <h3>创世参数</h3>
         <p class="note">四个数决定一个均匀各向同性的宇宙（曲率由它们算出）。拨一拨，旁边的宇宙会实时重新解方程。</p>
-        <div class="ctl"><label><span>哈勃常数 H₀</span><b class="mono" id="v-H0"></b></label><input type="range" id="s-H0" min="20" max="120" step="0.5"><div class="sub">今天的膨胀率，km/s/Mpc</div></div>
-        <div class="ctl"><label><span>物质 Ω<sub>m</sub></span><b class="mono" id="v-Om"></b></label><input type="range" id="s-Om" min="0" max="4" step="0.005"><div class="sub">普通物质 + 暗物质，占临界密度的比例</div></div>
-        <div class="ctl"><label><span>辐射 Ω<sub>r</sub></span><b class="mono" id="v-Or"></b></label><input type="range" id="s-Or" min="-7" max="0" step="0.02"><div class="sub">光子和中微子（对数刻度；最左 = 0）</div></div>
-        <div class="ctl"><label><span>暗能量 Ω<sub>Λ</sub></span><b class="mono" id="v-OL"></b></label><input type="range" id="s-OL" min="-3" max="3" step="0.005"><div class="sub">宇宙学常数，可以为负</div></div>
-        <div class="ctl"><label><span>暗能量状态方程 w</span><b class="mono" id="v-w"></b></label><input type="range" id="s-w" min="-2" max="0" step="0.01"><div class="sub">p = wρ；w = −1 就是 Λ，w &lt; −1 是幻影能量</div></div>
-        <div class="ctl"><label><span>曲率 Ω<sub>k</sub> = 1 − Ω<sub>m</sub> − Ω<sub>r</sub> − Ω<sub>Λ</sub></span><b class="mono" id="v-Ok"></b></label><div class="sub" id="v-Okword"></div></div>
+        <div class="ctl"><label><span data-g="H0">哈勃常数 $H_0$</span><b class="mono" id="v-H0"></b></label><input type="range" id="s-H0" min="20" max="120" step="0.5"><div class="sub">今天的膨胀率，km/s/Mpc</div></div>
+        <div class="ctl"><label><span data-g="Om">物质 $\Omega_m$</span><b class="mono" id="v-Om"></b></label><input type="range" id="s-Om" min="0" max="4" step="0.005"><div class="sub">普通物质 + 暗物质，占临界密度的比例</div></div>
+        <div class="ctl"><label><span data-g="Or">辐射 $\Omega_r$</span><b class="mono" id="v-Or"></b></label><input type="range" id="s-Or" min="-7" max="0" step="0.02"><div class="sub">光子和中微子（对数刻度；最左 = 0）</div></div>
+        <div class="ctl"><label><span data-g="OL">暗能量 $\Omega_\Lambda$</span><b class="mono" id="v-OL"></b></label><input type="range" id="s-OL" min="-3" max="3" step="0.005"><div class="sub">宇宙学常数，可以为负</div></div>
+        <div class="ctl"><label><span data-g="w">暗能量状态方程 $w$</span><b class="mono" id="v-w"></b></label><input type="range" id="s-w" min="-2" max="0" step="0.01"><div class="sub">$p = w\rho$；$w=-1$ 就是 $\Lambda$，$w<-1$ 是幻影能量</div></div>
+        <div class="ctl"><label><span data-g="Ok">曲率 $\Omega_k = 1-\Omega_m-\Omega_r-\Omega_\Lambda$</span><b class="mono" id="v-Ok"></b></label><div class="sub" id="v-Okword"></div></div>
         <div class="bar"><button class="btn" id="b-dice">🎲 掷骰子创世</button><button class="btn ghost small" id="b-planck">回到我们的宇宙</button></div>
       </div>__Q_PANEL__
       <div class="card" style="margin-top:14px">
@@ -205,7 +221,7 @@ footer{border-top:1px solid var(--line);padding:18px 0 28px;color:var(--faint);f
     </div>
     <div>
       <div class="card">
-        <h3>创世影片 <span class="tag sim">模拟</span> <span class="note" style="font-weight:400">共动网格上的星系随尺度因子 a(t) 伸缩；颜色随背景温度变化</span></h3>
+        <h3><span data-g="movie">创世影片</span> <span class="tag sim">模拟</span> <span class="note" style="font-weight:400">共动网格上的星系随尺度因子 a(t) 伸缩；颜色随背景温度变化</span></h3>
         <div class="movie"><canvas id="c-movie" width="900" height="420"></canvas>
           <div class="hud" id="movie-hud"></div></div>
         <div class="epoch-line" id="movie-epoch"></div>
@@ -214,14 +230,14 @@ footer{border-top:1px solid var(--line);padding:18px 0 28px;color:var(--faint);f
       </div>
       <div class="kv" id="fate-cards" style="margin-top:14px"></div>__Q_CARDS__
       <div class="grid g2" style="margin-top:14px">
-        <div class="card tight"><h3 style="font-size:14px">尺度因子 a(t) <span class="note" style="font-weight:400">今天 = 0</span></h3><canvas id="c-a" width="520" height="300"></canvas>
+        <div class="card tight"><h3 style="font-size:14px"><span data-g="scale">尺度因子 $a(t)$</span> <span class="note" style="font-weight:400">今天 = 0</span></h3><canvas id="c-a" width="520" height="300"></canvas>
           <div class="bar"><button class="btn small" id="b-alog">对数刻度</button></div></div>
-        <div class="card tight"><h3 style="font-size:14px">结构能不能长出来：线性扰动 δ(a)</h3><canvas id="c-growth" width="520" height="300"></canvas>
+        <div class="card tight"><h3 style="font-size:14px"><span data-g="growth">结构能不能长出来：线性扰动 $\delta(a)$</span></h3><canvas id="c-growth" width="520" height="300"></canvas>
           <div class="legend"><span><i style="background:var(--coral)"></i>第一批星系（10⁸ M☉ 的 3σ 峰）</span><span><i style="background:var(--teal)"></i>典型星系（10¹² M☉，1σ）</span><span><i style="background:var(--violet)"></i>星系团（8 h⁻¹Mpc，1σ）</span><span><i style="background:var(--gold)"></i>坍缩阈值 1.686</span></div></div>
       </div>
       <div class="card" style="margin-top:14px">
-        <h3>宜居诊断（粗略） <span id="verdict"></span></h3>
-        <p class="note">三道关：有没有热的开端、扰动能不能长成星系、星系形成后恒星还有多少时间。假设各宇宙在 a = 10⁻⁵ 时的原初扰动幅度和我们的一样。</p>
+        <h3><span data-g="diag">宜居诊断（粗略）</span> <span id="verdict"></span></h3>
+        <p class="note">三道关：有没有热的开端、扰动能不能长成星系、星系形成后恒星还有多少时间。假设各宇宙在 $a = 10^{-5}$ 时的原初扰动幅度和我们的一样。</p>
         <ul class="diag" id="diag"></ul>
         <details><summary>方程里现在填的数</summary><div id="eqs"></div></details>
       </div>
@@ -235,7 +251,7 @@ __Q_HALL__
   <p class="lede">1949 年，哥德尔送给爱因斯坦一份生日礼物：爱因斯坦方程的一个精确解。在这个宇宙里，物质整体在旋转。下面所有画面都是从这份度规直接数值积分出来的——先玩，再读解释。</p>
   <div class="grid g-godel" style="margin-top:14px">
     <div class="card">
-      <h3>① 你醒来，发现星空在转 <span class="tag sim">模拟</span></h3>
+      <h3><span data-g="omega">① 你醒来，发现星空在转</span> <span class="tag sim">模拟</span></h3>
       <p class="note">你手里有一个陀螺仪（画面以它为准，保持不转）。远处所有星系都在绕着你慢慢转圈。量一量周期——这就是反推这个宇宙的全部线索。按下秒表后，金色标记星系会留下轨迹；它回到出发点就是一圈（影片里约 18 秒）。</p>
       <canvas id="c-sky" width="520" height="360"></canvas>
       <div class="bar"><button class="btn small" id="b-sky-watch">⏱ 秒表：开始</button><button class="btn small ghost" id="b-sky-reset">归零</button><span class="mono note" id="v-sky-watch">0.0 亿年</span><span class="note">（影片加速播放，秒表按宇宙时间走）</span></div>
@@ -243,7 +259,7 @@ __Q_HALL__
       <div id="godel-puzzle-out" class="note" style="margin-top:8px"></div>
     </div>
     <div class="card">
-      <h3>② 发一束光，看它去哪 <span class="tag sim">模拟</span></h3>
+      <h3><span data-g="geodesic">② 发一束光，看它去哪</span> <span class="tag sim">模拟</span></h3>
       <p class="note">你站在轴上（画面中心），按下闪光。每个方向的光子都按零测地线方程走。俯视图；颜色越亮，坐标时 t 越晚。</p>
       <canvas id="c-light" width="520" height="360" class="pointer"></canvas>
       <div class="bar"><button class="btn small primary" id="b-flash">✦ 闪光</button><label class="note">发光点半径 r₀ <input type="range" id="s-r0" min="0" max="1.6" step="0.05" value="0" style="width:120px;vertical-align:middle;accent-color:var(--gold)"> <b class="mono" id="v-r0">0</b></label><button class="btn small ghost" id="b-light-clear">清空</button></div>
@@ -252,14 +268,14 @@ __Q_HALL__
   </div>
   <div class="grid g-godel" style="margin-top:14px">
     <div class="card">
-      <h3>③ 光锥在倾倒 <span class="tag sim">模拟</span></h3>
+      <h3><span data-g="ctc">③ 光锥在倾倒</span> <span class="tag sim">模拟</span></h3>
       <p class="note">每个点的光锥（未来一半）按度规算出。拖动旋转视角。离轴越远，光锥越向转动方向倾倒；越过金色的圈（sinh r = 1），绕轴一圈的路线整个落进光锥里——沿着它走，你会回到出发的那一刻。</p>
       <canvas id="c-cones" width="520" height="400" class="pointer"></canvas>
       <div class="bar"><label class="note">看哪个半径的圈 r = <input type="range" id="s-ring" min="0.2" max="1.6" step="0.02" value="1.2" style="width:140px;vertical-align:middle;accent-color:var(--gold)"> <b class="mono" id="v-ring">1.20</b></label><span class="note mono" id="ring-readout"></span></div>
     </div>
     <div class="card">
-      <h3>④ 这个宇宙的创世参数</h3>
-      <p class="note">哥德尔宇宙只有一个旋钮：物质密度 ρ（或等价的转动角速度 ω = √(4πGρ)）。宇宙学常数被方程锁死为 Λ = −ω²，你调不了它。这个旋钮是换算器：①里的星空是另一个密度未知的宇宙，②③用坐标单位画，形状和 ω 无关——变的只是它们对应多少光年、多少年。</p>
+      <h3><span data-g="godel">④ 这个宇宙的创世参数</span></h3>
+      <p class="note">哥德尔宇宙只有一个旋钮：物质密度 $\rho$（或等价的转动角速度 $\omega = \sqrt{4\pi G\rho}$）。宇宙学常数被方程锁死为 $\Lambda = -\omega^2$，你调不了它。这个旋钮是换算器：①里的星空是另一个密度未知的宇宙，②③用坐标单位画，形状和 $\omega$ 无关——变的只是它们对应多少光年、多少年。</p>
       <div class="ctl"><label><span>物质密度 ρ / ρ<sub>m,我们</sub></span><b class="mono" id="v-rho"></b></label><input type="range" id="s-rho" min="-2" max="3" step="0.02" value="0"><div class="sub">相对我们宇宙今天的物质密度（对数刻度）</div></div>
       <div class="kv" id="godel-cards"></div>
       <details open><summary>读完你自己的发现之后再看：这个宇宙在说什么</summary>
@@ -276,13 +292,13 @@ __Q_HALL__
   <p class="lede">第一关 · 命运之谜。实验室随机藏起一个宇宙，只把它的观测数据给你（全部<span class="tag sim">模拟</span>：由隐藏参数算出、加上真实量级的噪声）。请判断：它是开放还是封闭？会永远膨胀、还是终将坍缩？</p>
   <div class="grid g-inv" style="margin-top:14px">
     <div>
-      <div class="card tight"><h3 style="font-size:14px">标准烛光：Ia 型超新星的距离模数 μ(z) <span class="note" style="font-weight:400">烛光已定标，60 颗</span></h3><canvas id="c-sn" width="760" height="300" data-minh="230"></canvas>
+      <div class="card tight"><h3 style="font-size:14px"><span data-g="candle">标准烛光：Ia 型超新星的距离模数 $\mu(z)$</span> <span class="note" style="font-weight:400">烛光已定标，60 颗</span></h3><canvas id="c-sn" width="760" height="300" data-minh="230"></canvas>
         <div class="legend"><span><i style="background:var(--gold)"></i>你的模型</span><span><i style="background:var(--faint)"></i>空宇宙（米尔恩）作参照</span><span><i style="background:var(--teal)"></i>数据（1σ 误差棒）</span></div>
-        <h3 style="font-size:14px;margin-top:12px">同一批数据，减去空宇宙的预期：Δμ = μ − μ<sub>空</sub> <span class="note" style="font-weight:400">1998 年的那张图就是这么画的</span></h3><canvas id="c-snres" width="760" height="220" data-minh="190"></canvas></div>
+        <h3 style="font-size:14px;margin-top:12px"><span data-g="residual">同一批数据，减去空宇宙的预期：$\Delta\mu = \mu - \mu_{\text{空}}$</span> <span class="note" style="font-weight:400">1998 年的那张图就是这么画的</span></h3><canvas id="c-snres" width="760" height="220" data-minh="190"></canvas></div>
       <div class="grid g2" style="margin-top:14px">
-        <div class="card tight"><h3 style="font-size:14px">标准尺：声学视界（147 Mpc）的张角 θ(z)</h3><canvas id="c-ruler" width="380" height="240" data-minh="200"></canvas></div>
-        <div class="card tight"><h3 style="font-size:14px">最老的恒星</h3><div class="kv"><div class="k teal"><small>观测到的最老恒星年龄</small><b class="mono" id="v-oldest"></b><i>银河系里最老恒星的年龄不能超过宇宙年龄</i></div><div class="k gold"><small>你的模型给的宇宙年龄</small><b class="mono" id="v-model-age"></b><i id="v-age-ok"></i></div></div>
-          <h3 style="font-size:14px;margin-top:12px">拟合质量 <span class="mono note" id="v-chi2"></span></h3><div class="quality"><i id="q-bar" style="width:0%"></i></div><p class="note" id="v-quality"></p><p class="note" id="v-hints" style="color:var(--teal)"></p></div>
+        <div class="card tight"><h3 style="font-size:14px"><span data-g="ruler">标准尺：声学视界（147 Mpc）的张角 $\theta(z)$</span></h3><canvas id="c-ruler" width="380" height="240" data-minh="200"></canvas></div>
+        <div class="card tight"><h3 style="font-size:14px"><span data-g="oldest">最老的恒星</span></h3><div class="kv"><div class="k teal"><small>观测到的最老恒星年龄</small><b class="mono" id="v-oldest"></b><i>银河系里最老恒星的年龄不能超过宇宙年龄</i></div><div class="k gold"><small>你的模型给的宇宙年龄</small><b class="mono" id="v-model-age"></b><i id="v-age-ok"></i></div></div>
+          <h3 style="font-size:14px;margin-top:12px"><span data-g="chi2">拟合质量</span> <span class="mono note" id="v-chi2"></span></h3><div class="quality"><i id="q-bar" style="width:0%"></i></div><p class="note" id="v-quality"></p><p class="note" id="v-hints" style="color:var(--teal)"></p></div>
       </div>
     </div>
     <div>
@@ -292,7 +308,7 @@ __Q_HALL__
         <div class="ctl"><label><span>Ω<sub>m</sub></span><b class="mono" id="pv-Om"></b></label><input type="range" id="ps-Om" min="0" max="2.5" step="0.01" value="0.5"></div>
         <div class="ctl"><label><span>Ω<sub>Λ</sub></span><b class="mono" id="pv-OL"></b></label><input type="range" id="ps-OL" min="-1" max="2" step="0.01" value="0"></div>
         <div class="kv" id="guess-cards"></div>
-        <div class="bar" style="margin-top:12px"><button class="btn small" id="b-nolambda">检验假设：Ω<sub>Λ</sub> = 0 能解释这些数据吗？</button></div>
+        <div class="bar" style="margin-top:12px"><button class="btn small" id="b-nolambda">检验假设：$\Omega_\Lambda = 0$ 能解释这些数据吗？</button> <span data-g="nolambda"></span></div>
         <div class="note" id="nolambda-out" style="margin-top:6px"></div>
         <div class="bar" style="margin-top:12px"><button class="btn primary" id="b-lock">锁定答案</button><button class="btn ghost small" id="b-new">换一个隐藏宇宙</button><button class="btn ghost small" id="b-csv">下载数据 CSV</button></div>
         <div id="reveal" hidden></div>
@@ -310,7 +326,7 @@ __Q_HALL__
 </section>
 
 </main>
-<footer><div class="wrap">© 2026 Zechen Bian · All rights reserved · 保留所有权利 · 创世实验室 Genesis Lab · 所有画面由本页实时积分方程生成</div></footer>
+<footer><div class="wrap">© 2026 Zechen Bian · All rights reserved · 保留所有权利 · 创世实验室 Genesis Lab · 所有画面由本页实时积分方程生成 · 公式排版 KaTeX（MIT）</div></footer>
 <div class="toast" id="toast"></div>
 <script>
 __COSMO__
@@ -318,8 +334,12 @@ __GODEL__
 __PRESETS__
 __PUZZLES__
 __Q_ENGINES__
+__GLOSS__
+__QLAI__
 __APP__
 __Q_APP__
+__HELP__
 </script>
+__KATEX_JS__
 </body>
 </html>

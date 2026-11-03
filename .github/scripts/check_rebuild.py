@@ -8,7 +8,7 @@
 在本地跑，它检查的是"磁盘上的页面和磁盘上的源码一致"；不一致时构建已经把页面更新了，把它们一起提交即可。
 
 用法（仓库根目录）：python3 .github/scripts/check_rebuild.py
-策略实验室的构建要 KaTeX 和 acorn：先在 strategy-lab/ 里 npm install；天下棋局的地图要 d3-geo：先在 tianxia/_source/ 里 npm install。
+策略实验室的构建要 KaTeX 和 acorn：先在 strategy-lab/ 里 npm install；创世实验室也要 KaTeX：在 genesis-lab/ 里 npm install；天下棋局的地图要 d3-geo：先在 tianxia/_source/ 里 npm install。
 """
 import hashlib, pathlib, subprocess, sys
 

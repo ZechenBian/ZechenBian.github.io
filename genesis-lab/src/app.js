@@ -136,17 +136,17 @@
     function fateCards() {
       const g = GYR(), m = R.m, cards = [];
       const age = R.origin === 'bigbang' || R.quantumBounce ? gyr(R.age * g) : (R.origin === 'bounce' ? '无大爆炸' : '无限');
-      cards.push({ c: 'gold', k: '年龄', v: age, i: R.origin === 'bigbang' ? '从奇点到今天' : (R.quantumBounce ? `从量子反弹（a = ${R.aMin.toExponential(1)}）到今天` : (R.origin === 'bounce' ? `在 a = ${sig(R.aMin, 2)} 反弹，${gyr(R.tBounce * g)}前` : '密度不发散，没有奇点')) });
+      cards.push({ g: 'age', c: 'gold', k: '年龄', v: age, i: R.origin === 'bigbang' ? '从奇点到今天' : (R.quantumBounce ? `从量子反弹（a = ${R.aMin.toExponential(1)}）到今天` : (R.origin === 'bounce' ? `在 a = ${sig(R.aMin, 2)} 反弹，${gyr(R.tBounce * g)}前` : '密度不发散，没有奇点')) });
       let fate, fi;
       if (R.fate === 'crunch') { fate = '大坍缩'; fi = `${gyr(R.tEnd * g)}后压回奇点；先膨胀到 a = ${sig(R.aMax, 3)}（${gyr(R.tTurn * g)}后回转）`; }
       else if (R.fate === 'rip') { fate = '大撕裂'; fi = `${gyr(R.tEnd * g)}后 a → ∞`; }
       else { fate = R.accelerating ? '永远膨胀（加速）' : '永远膨胀（减速或匀速）'; fi = R.accelerating ? '暗能量主导，走向 de Sitter 式的空寂' : '没有事件视界'; }
-      cards.push({ c: R.fate === 'eternal' ? 'teal' : 'coral', k: '命运', v: fate, i: fi });
+      cards.push({ g: 'fate', c: R.fate === 'eternal' ? 'teal' : 'coral', k: '命运', v: fate, i: fi });
       const Rc = R.curvRadius * COSMO.CKMS / S.H0 / 1000;
-      cards.push({ c: 'violet', k: '几何', v: R.geometry === 'flat' ? '平坦' : (R.geometry === 'open' ? '开放' : '封闭'), i: R.geometry === 'flat' ? (isFinite(Rc) ? `|Ω_k| < 0.002，曲率半径 > ${sig(Rc, 2)} Gpc` : '曲率半径无穷大') : `曲率半径 ${sig(Rc, 3)} Gpc` });
-      cards.push({ c: R.q0 < 0 ? 'teal' : 'coral', k: '减速参数 q₀', v: sig(R.q0, 3), i: R.q0 < 0 ? '现在正在加速' : '现在正在减速' });
+      cards.push({ g: 'Ok', c: 'violet', k: '几何', v: R.geometry === 'flat' ? '平坦' : (R.geometry === 'open' ? '开放' : '封闭'), i: R.geometry === 'flat' ? (isFinite(Rc) ? `|Ω_k| < 0.002，曲率半径 > ${sig(Rc, 2)} Gpc` : '曲率半径无穷大') : `曲率半径 ${sig(Rc, 3)} Gpc` });
+      cards.push({ g: 'q0', c: R.q0 < 0 ? 'teal' : 'coral', k: '减速参数 $q_0$', v: sig(R.q0, 3), i: R.q0 < 0 ? '现在正在加速' : '现在正在减速' });
       const ph = R.particleHorizon * COSMO.CKMS / S.H0 / 306.6, eh = R.eventHorizon * COSMO.CKMS / S.H0 / 306.6;
-      cards.push({ c: 'gold', k: '视界', v: `${isFinite(ph) ? sig(ph, 3) + ' Gly' : '无'} / ${isFinite(eh) ? sig(eh, 3) + ' Gly' : '无'}`, i: '粒子视界 / 事件视界（共动，今天）' });
+      cards.push({ g: 'horizons', c: 'gold', k: '视界', v: `${isFinite(ph) ? sig(ph, 3) + ' Gly' : '无'} / ${isFinite(eh) ? sig(eh, 3) + ' Gly' : '无'}`, i: '粒子视界 / 事件视界（共动，今天）' });
       let ep = '';
       if (R.origin === 'bigbang' || R.quantumBounce) {
         const recOK = isFinite(R.aRec) && R.aRec <= 1 && R.aRec > (R.aMin || 0), tRec = recOK ? COSMO.tOfA(R, R.aRec) + R.age : NaN;
@@ -154,8 +154,9 @@
         ep = `光子退耦 ${recOK ? gyr(tRec * g) : (R.T0 > 0 ? (R.aRec === Infinity ? '至今没有' : (R.aRec <= (R.aMin || 0) ? '从一开始就透明' : '从未')) : '没有辐射')}；物质-辐射相等 ${eqOK ? gyr(tEq * g) : (R.aEq <= (R.aMin || 0) || R.T0 === 0 ? '一直是物质主导' : '到今天还是辐射主导')}；物质-暗能量相等 ${isFinite(R.aLambda) ? (R.aLambda <= 1 ? gyr((COSMO.tOfA(R, R.aLambda) + R.age) * g) : '还没发生') : '从未'}`;
       }
       else ep = '没有热的早期，纪元不适用';
-      cards.push({ c: 'teal', k: '关键纪元（' + (R.quantumBounce ? '反弹后' : '大爆炸后') + '）', v: R.origin === 'bigbang' || R.quantumBounce ? `T₀ = ${sig(R.T0, 4)} K` : '—', i: ep });
-      $('fate-cards').innerHTML = cards.map((c) => `<div class="k ${c.c}"><small>${c.k}</small><b>${c.v}</b><i>${c.i}</i></div>`).join('');
+      cards.push({ g: 'epochs', c: 'teal', k: '关键纪元（' + (R.quantumBounce ? '反弹后' : '大爆炸后') + '）', v: R.origin === 'bigbang' || R.quantumBounce ? `T₀ = ${sig(R.T0, 4)} K` : '—', i: ep });
+      $('fate-cards').innerHTML = cards.map((c) => `<div class="k ${c.c}"><small${c.g ? ` data-g="${c.g}"` : ''}>${c.k}</small><b>${c.v}</b><i>${c.i}</i></div>`).join('');
+      if (window.GENESIS.decorate) { window.GENESIS.decorate($('fate-cards')); window.GENESIS.tex($('fate-cards')); }
     }
     function drawA() {
       const g = GYR(), cv = $('c-a'); const ts = [], as = [];
@@ -187,13 +188,17 @@
       const extra = R.diag.filter((d) => d.key === 'helium').map((d) => d.title.replace('原初氦 ', '氦 ')).join('');
       bar.innerHTML = `<span class="verdict ${R.verdict}">${lv[R.verdict]}</span><span>${fate}</span><span>年龄 ${age}</span>${extra ? `<span>${extra}</span>` : ''}<a href="#diag" data-scroll="diag">看诊断 ↓</a>`;
       bar.hidden = current !== 'forge';
-      $('diag').innerHTML = R.diag.map((d) => `<li><div class="lv ${d.level}"></div><div><b>${d.title}</b><span>${d.detail}</span></div></li>`).join('');
+      const DG = { origin: 'age', galaxies: 'growth', stars: 'diag', helium: 'Yp', recomb: 'zdec', hydrogen: 'Q' };
+      $('diag').innerHTML = R.diag.map((d) => `<li><div class="lv ${d.level}"></div><div><b${DG[d.key] ? ` data-g="${DG[d.key]}"` : ''}>${d.title}</b><span>${d.detail}</span></div></li>`).join('');
+      if (window.GENESIS.decorate) { window.GENESIS.decorate($('diag')); window.GENESIS.tex($('diag')); }
     }
     function eqs() {
-      const m = R.m, n = (v) => `<span class="n">${sig(v, 4)}</span>`;
-      $('eqs').innerHTML = `<div class="eq">H²/H₀² = ${n(m.Or)}·a⁻⁴ + ${n(m.Om)}·a⁻³ + (${n(m.Ok)})·a⁻² + (${n(m.OL)})·a^(${sig(-3 * (1 + m.w), 3)})</div>
-        <div class="eq" style="margin-top:6px">ä/a = −H₀²[ ${n(m.Or)}·a⁻⁴ + ½·${n(m.Om)}·a⁻³ + ½(1+3·${sig(m.w, 3)})·(${n(m.OL)})·a^(${sig(-3 * (1 + m.w), 3)}) ]</div>
-        <p class="note" style="margin-top:6px">H₀ = ${S.H0} km/s/Mpc → 1/H₀ = ${sig(GYR(), 4)} Gyr，c/H₀ = ${sig(COSMO.CKMS / S.H0, 4)} Mpc。页面从今天（a = 1，ȧ = H₀）出发，用四阶龙格–库塔向过去和未来各积一遍加速度方程，并和 ∫da/(aE) 的数值积分互相核对。</p>`;
+      const m = R.m, n = (v) => `\\textcolor{#f2c14e}{${sig(v, 4).replace(/e([+-]?\d+)/, '\\times10^{$1}')}}`, pw = sig(-3 * (1 + m.w), 3);
+      const lqc = m.rhoC ? `\\Big(1 - \\tfrac{\\rho}{\\rho_c}\\Big)` : '';
+      $('eqs').innerHTML = `<div class="eqtex">$$\\frac{H^2}{H_0^2} = \\Big[${n(m.Or)}\\,a^{-4} + ${n(m.Om)}\\,a^{-3} + ${n(m.OL)}\\,a^{${pw}}\\Big]${lqc} + ${n(m.Ok)}\\,a^{-2}$$</div>
+        <div class="eqtex">$$\\frac{\\ddot a}{a} = -\\frac{H_0^2}{2}\\Big[\\rho + 3p\\Big]${m.rhoC ? '_{\\text{LQC}}' : ''},\\qquad \\rho = ${n(m.Or)}\\,a^{-4} + ${n(m.Om)}\\,a^{-3} + ${n(m.OL)}\\,a^{${pw}},\\quad p = \\tfrac13\\,${n(m.Or)}\\,a^{-4} + (${sig(m.w, 3)})\\,${n(m.OL)}\\,a^{${pw}}$$</div>
+        <p class="note" style="margin-top:6px">$H_0 = ${S.H0}$ km/s/Mpc → $1/H_0 = ${sig(GYR(), 4)}$ Gyr，$c/H_0 = ${sig(COSMO.CKMS / S.H0, 4)}$ Mpc。页面从今天（$a=1$，$\\dot a = H_0$）出发，用四阶龙格–库塔向过去和未来各积一遍加速度方程，并和 $\\int da/(aE)$ 的数值积分互相核对。黄色是你现在填的数。</p>`;
+      if (window.GENESIS.tex) window.GENESIS.tex($('eqs'));
     }
     function timeline() {
       const tl = $('timeline'), g = GYR(), marks = [];
