@@ -172,6 +172,9 @@ footer{border-top:1px solid var(--line);padding:18px 0 28px;color:var(--faint);f
       <button data-hall="godel">哥德尔旋转宇宙</button>
       <button data-hall="mix">Mixmaster</button>
       <button data-hall="ltb">空洞宇宙</button>
+      <button data-hall="bubble">泡泡宇宙</button>
+      <button data-hall="topo">多连通宇宙</button>
+      <button data-hall="g21">2+1 维引力</button>
       <button data-hall="inverse">反推台</button>
     </nav>
   </div>
@@ -202,6 +205,9 @@ footer{border-top:1px solid var(--line);padding:18px 0 28px;color:var(--faint);f
         <li><a href="#godel" data-go="godel" style="color:var(--teal);font-weight:600">哥德尔旋转宇宙</a>：精确解里亲手发一束光，看它绕回来；看光锥一点点倾倒，直到可以沿一个圈走回过去。</li>
         <li><a href="#mix" data-go="mix" style="color:var(--teal);font-weight:600">Mixmaster</a>：放弃各向同性，看三根轴在奇点附近混沌地跳无穷多次，并亲手核对 BKL 的跳法规则。</li>
         <li><a href="#ltb" data-go="ltb" style="color:var(--teal);font-weight:600">空洞宇宙</a>：放弃均匀性，住进一个几十亿光年的空洞中心——没有暗能量也能骗过超新星，再看它怎么被戳穿。</li>
+        <li><a href="#bubble" data-go="bubble" style="color:var(--teal);font-weight:600">泡泡宇宙</a>：放弃"只有一个宇宙"，看永恒暴胀的泡沫怎么按成核率长出来、你被哪个泡吞没、抽到的 Λ 能不能长出星系。</li>
+        <li><a href="#topo" data-go="topo" style="color:var(--teal);font-weight:600">多连通宇宙</a>：放弃"空间无限"，住进一个有限无边的三维环面——鬼像、天上的匹配圆、被截断的大角度功率，全从一个周期随机场里采出来。</li>
+        <li><a href="#g21" data-go="g21" style="color:var(--teal);font-weight:600">2+1 维引力</a>：少一个空间维度，引力消失了，却还有锥形的双像、BTZ 黑洞的温度和熵、不减速的尘埃宇宙。</li>
         <li><a href="#inverse" data-go="inverse" style="color:var(--teal);font-weight:600">反推台</a>：只给你一个隐藏宇宙的观测数据，你来判断它的形状和命运。</li>
       </ul>
       <p style="margin-top:10px"><button class="btn primary" data-go="forge">开始创世 →</button></p></div>
@@ -424,6 +430,141 @@ footer{border-top:1px solid var(--line);padding:18px 0 28px;color:var(--faint);f
       <p><b style="color:var(--ink)">它留下了什么。</b>小一点的"局部空洞"（$r_0\sim 300$ Mpc、密度低 20%）今天仍被认真讨论——它能把本地测到的 $H_0$ 抬高几个百分点，是解释哈勃常数张力的候选之一（④里试试"小空洞"）。还有一个教训：反推宇宙时，"均匀各向同性"是输入进去的假设，不是观测结论；要用不同类型的观测互相钳制，才能把它反推出来。</p>
       <p class="note">标签：剖面、光线、距离、拟合全是方程算的（模拟）；偶极用的是准牛顿估计 $\Delta T/T \approx [H(d) - H_{out}]\,d/c$（近似）；kSZ 的数字引自文献，本页没有算。</p>
     </details>
+  </div>
+</section>
+
+<!-- Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。 -->
+<!-- ================= 泡泡宇宙（永恒暴胀） ================= -->
+<section class="hall" id="hall-bubble" hidden>
+  <p class="lede">放弃"只有一个宇宙"：暴胀的假真空是 de Sitter 空间，每一刻都有真空泡随机成核、以光速扩张（Coleman–De Luccia 1980），每个泡里面是一个开放的 FLRW 宇宙。只要成核太慢，泡永远追不上空间的膨胀——暴胀永不结束，泡泡无穷无尽（Guth 1981；Vilenkin 1983；Linde 1986）。下面的泡沫由方程的速率实时生成。</p>
+  <div class="grid g-godel" style="margin-top:14px">
+    <div class="card">
+      <h3><span data-g="foam">① 永恒暴胀的泡沫</span> <span class="tag sim">模拟</span></h3>
+      <p class="note">一个固定物理大小的窗口（边长 24/H），画面中心是你所在的共动点。泡按单位面积、单位时间的速率 λ 成核，物理半径按 $R = (e^{H\Delta t}-1)/H$ 长；两泡相遇画出碰撞线。按播放，看空间里永远有新泡冒出来、老泡被推走，而你迟早会被某个泡吞没。</p>
+      <canvas id="c-bub-foam" width="520" height="440"></canvas>
+      <div class="bar"><button class="btn small primary" id="bub-play">▶ 播放</button><button class="btn small" id="bub-reset">⟲ 重来</button><button class="btn small" id="bub-move" hidden>✦ 换一个还在假真空的点</button><span class="note mono" id="bub-t"></span></div>
+      <div class="ctl" style="margin-top:8px"><label><span data-g="foam">成核率 $\lambda/H^3$（二维切片）</span><b class="mono" id="bub-v-lam"></b></label><input type="range" id="bub-lam" min="-2" max="0.2" step="0.01" value="-1"><div class="sub">对数刻度；超过 2/π ≈ 0.64 泡就会填满空间，暴胀结束（三维的阈值是 9/4π ≈ 0.72）</div></div>
+      <div class="bar"><label class="note"><input type="checkbox" id="bub-land" checked style="accent-color:var(--gold)"> 景观：每个泡随机抽一个宇宙学常数 Λ（颜色 = 能不能长出星系）</label></div>
+      <div class="kv" id="bub-hud" style="margin-top:8px"></div>
+    </div>
+    <div class="card">
+      <h3><span data-g="eternal">② 假真空的命运</span> <span class="tag sim">模拟</span></h3>
+      <p class="note">一个共动点到 $Ht$ 还没被吞的概率 $p(t)$：解析式对模拟里量到的假真空面积份额。假真空的物理面积 $\propto e^{2Ht}p(t)$，指数 $2 - \pi\lambda/H^3$ 决定暴胀永恒还是终止。</p>
+      <canvas id="c-bub-surv" width="520" height="280"></canvas>
+      <div class="legend"><span><i style="background:var(--gold)"></i>解析 p(t)</span><span><i style="background:var(--teal)"></i>模拟量到的假真空份额</span></div>
+      <div class="kv" id="bub-fate" style="margin-top:10px"></div>
+    </div>
+  </div>
+  <div class="grid g-godel" style="margin-top:14px">
+    <div class="card">
+      <h3><span data-g="bubbleinside">③ 泡泡里面：你的宇宙</span> <span class="tag sim">模拟</span></h3>
+      <p class="note">CDL 泡的内部是一个 $k=-1$ 的开放 FLRW 宇宙，一开始曲率占满。泡里再暴胀 $N$ 个 e-fold，把曲率压到今天的 $\Omega_k \approx e^{-2(N-N_*)}$（$N_*\approx 60$，粗略）。被吞没后这张卡会告诉你：你的泡抽到了什么样的 Λ，能不能长出星系。</p>
+      <div class="ctl"><label><span>泡里的暴胀 e-fold 数 $N$</span><b class="mono" id="bub-v-N"></b></label><input type="range" id="bub-N" min="50" max="75" step="0.1" value="62"></div>
+      <div class="kv" id="bub-inside"></div>
+      <div class="bar"><button class="btn small" id="bub-forge">把这个泡里的宇宙装进创世台 →</button><span class="note" id="bub-forge-note"></span></div>
+    </div>
+    <div class="card">
+      <h3><span data-g="landscape">④ 景观与温伯格的彩票</span> <span class="tag sim">模拟</span></h3>
+      <p class="note">如果每个泡的 Λ 是从一个平坦的先验里抽的（弦景观的说法），那么绝大多数泡的 Λ 大到星系长不出来。下面按创世台的宜居诊断给每个 Λ 判一次（物质密度和原初扰动幅度取我们的）。</p>
+      <canvas id="c-bub-land" width="520" height="260"></canvas>
+      <div class="kv" id="bub-landcards" style="margin-top:10px"></div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <details><summary>读完你自己的发现之后再看：这个宇宙在说什么</summary>
+      <p><b style="color:var(--ink)">成核与膨胀的赛跑。</b>假真空里 $a = e^{Ht}$。$t_n$ 成核的泡，共动半径 $r = (1-e^{-H(t-t_n)})/(Ha_n)$：它永远长不过 $1/(Ha_n)$——空间在它外面跑得更快。一个共动点到 $t$ 还在假真空里的概率是 $$p(t) = \exp\Big[-\tfrac{4\pi}{3}\tfrac{\lambda}{H^4}\int_0^{Ht}(1-e^{-x})^3dx\Big]\to\exp\Big[-\tfrac{4\pi}{3}\tfrac{\lambda}{H^4}\big(Ht-\tfrac{11}{6}\big)\Big],$$ 而假真空的物理体积 $\propto e^{3Ht}p(t)$。指数 $3 - \tfrac{4\pi}{3}\lambda/H^4$ 为正就永恒：$\lambda/H^4 < 9/4\pi$（Guth &amp; Weinberg 1983）。画面是二维切片，对应的条件是 $\lambda_2/H^3 < 2/\pi$。慢滚暴胀也有同样的事（Vilenkin 1983；Linde 1986）：量子涨落让有些区域的场爬回去，那些区域的体积增长压过了衰变。</p>
+      <p><b style="color:var(--ink)">泡里面。</b>Coleman–De Luccia 的泡内部，从泡壁看是一个开放宇宙（$k = -1$）——泡壁本身就是这个宇宙的"大爆炸"面。于是"宇宙为什么这么平"要靠泡里再暴胀几十个 e-fold；反过来，如果只多暴胀了 60 个左右，今天就该测到一点点负曲率（$\Omega_k\sim10^{-3}$ 量级，Planck 的上限是 0.002）。泡与泡相撞在我们的 CMB 上留下圆盘状的温度斑（Aguirre, Johnson &amp; Kleban 2007）；Planck 数据里没找到（Feeney 等 2011）。</p>
+      <p><b style="color:var(--ink)">温伯格的彩票。</b>1987 年温伯格指出：若 Λ 从一个光滑的先验里抽，只有 $\Lambda\lesssim 100\Lambda_{\text{obs}}$ 的宇宙长得出星系，所以观察者看到的 Λ 应该在这个范围里而且不会太小——这在 1998 年前就预言了一个不为零的小 Λ。④里每个泡的判决用的是创世台同一套宜居诊断。它是不是科学？争议点在"测度问题"：无穷多个泡里怎么数比例，至今没有公认答案。</p>
+      <p class="note">标签：泡沫、碰撞、份额、曲率全由方程算（模拟）；Λ 的先验是假设（平坦）；碰撞的 CMB 印记和 Planck 的结果引自文献。</p>
+    </details>
+  </div>
+</section>
+
+<!-- Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。 -->
+<!-- ================= 多连通宇宙 ================= -->
+<section class="hall" id="hall-topo" hidden>
+  <p class="lede">放弃"空间无限"：弗里德曼方程只管局部几何，管不了整体形状。一个平坦的宇宙可以是有限的三维环面——走出一边就从对面回来，没有边界、没有中心。光绕回来，同一个星系在天上出现好几次；最后散射面和自己相交，CMB 上会有两两匹配的圆。下面的天图和圆都是从一个周期的随机场里实时算出来的。</p>
+  <div class="grid g-godel" style="margin-top:14px">
+    <div class="card">
+      <h3><span data-g="torus">① 有限但无边</span> <span class="tag sim">模拟</span></h3>
+      <p class="note">一个二维切片：方框是基本胞腔（边长 $L$，以最后散射面的共动半径 $\chi$ 为单位），里面几个星系；大圆是你能看到的范围。拨 $L$，看每个星系在圆里出现多少次。把鼠标放到任何一个像上，看它是谁、离你多远、你看到的是它多久以前的样子。</p>
+      <canvas id="c-topo-cell" width="520" height="440" style="cursor:crosshair"></canvas>
+      <div class="note mono" id="topo-ghost" style="min-height:40px;font-size:12px;margin-top:6px"></div>
+    </div>
+    <div class="card">
+      <h3><span data-g="circles">② 天上的圈</span> <span class="tag sim">模拟</span></h3>
+      <p class="note">CMB 全天图（Sachs–Wolfe 近似：温度 ∝ 周期随机场在最后散射面上的值）。最后散射面被平移 $v$ 后和自己相交于一个圆，圆心在 $\pm\hat v$，角半径 $\alpha = \arccos(|v|/2\chi)$；每一对同色的圆上温度逐点相同。把鼠标放到一对圆上，下面画出沿两个圆的温度。</p>
+      <canvas id="c-topo-sky" width="720" height="360" style="cursor:crosshair"></canvas>
+      <canvas id="c-topo-match" width="720" height="160"></canvas>
+      <div class="kv" id="topo-sky-cards" style="margin-top:8px"></div>
+    </div>
+  </div>
+  <div class="grid g-godel" style="margin-top:14px">
+    <div class="card">
+      <h3><span data-g="lowell">③ 最长的波只能有胞腔那么长</span> <span class="tag sim">模拟</span></h3>
+      <p class="note">胞腔里放不下比 $L$ 更长的波，所以胞腔小于视界时，CMB 的大角度功率被截断——四极 $C_2$ 首先被压低。按"扫一遍"，对一串 $L$ 各生成几个随机场，算 $C_2$、$C_3$。</p>
+      <div class="bar"><button class="btn small" id="topo-scan">扫一遍 L = 0.4 … 4</button><span class="note" id="topo-scan-note"></span></div>
+      <canvas id="c-topo-cl" width="520" height="260"></canvas>
+      <div class="legend"><span><i style="background:var(--gold)"></i>C₂（四极）</span><span><i style="background:var(--teal)"></i>C₃（八极）</span><span><i style="background:var(--coral)"></i>当前的 L</span></div>
+    </div>
+    <div class="card">
+      <h3><span data-g="torus">④ 创世参数</span></h3>
+      <p class="note">形状：三维环面 $T^3$（三个方向都周期）、烟囱 $T^2\times\mathbb R$、板 $T^1\times\mathbb R^2$。大小：胞腔边长 $L$ 对最后散射面半径 $\chi$（今天 $\chi\approx 14$ Gpc）。</p>
+      <div class="chips" id="topo-presets"></div>
+      <div class="bar" style="margin-top:10px"><label class="note">形状 <select id="topo-shape" class="num" style="width:auto;padding:4px 8px"><option value="t3">三维环面 T³</option><option value="chimney">烟囱 T²×R</option><option value="slab">板 T¹×R²</option></select></label><button class="btn small" id="topo-reseed">⟲ 换一个随机场</button></div>
+      <div class="ctl"><label><span>胞腔边长 $L/\chi$</span><b class="mono" id="topo-v-L"></b></label><input type="range" id="topo-L" min="0.3" max="2.6" step="0.01" value="1.2"><div class="sub">$L < 2\chi$ 才有匹配圆；Planck 的搜索把 $L$ 压到 ≳ 1.9χ</div></div>
+      <div class="kv" id="topo-cards" style="margin-top:10px"></div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <details><summary>读完你自己的发现之后再看：这个宇宙在说什么</summary>
+      <p><b style="color:var(--ink)">几何和拓扑是两回事。</b>爱因斯坦方程是局部的：它告诉你每一小块空间怎么弯，不告诉你这些小块怎么拼成整体。平坦空间可以拼成无限的 $\mathbb R^3$，也可以拼成有限的三维环面 $T^3$——把一个盒子的对面粘起来——还有另外十七种平坦的拼法（Bieberbach 群）。正曲率的有限空间更多（庞加莱十二面体空间是其中最出名的，2003 年曾被提出来解释低四极）。弗里德曼方程对它们一视同仁。</p>
+      <p><b style="color:var(--ink)">怎么看出来。</b>(1) 鬼像：同一个星系在不同方向、不同距离出现，而且每个像都是它在不同年代的样子——要认出来并不容易，星系会演化。(2) 天上的圈（Cornish、Spergel、Starkman 1998）：最后散射面是半径 $\chi$ 的球，平移 $v$ 的像球和它相交于一个圆，两个圆上的温度逐点相同；$|v| < 2\chi$ 才有。Planck 2015 找遍了所有半径 $> 15°$ 的圆对：没有。这把最小的平移压到了 $\gtrsim 0.94\times 2\chi$，也就是 $L\gtrsim 1.9\chi$（Planck 2015 XVIII）。(3) 大角度功率被截断：胞腔里没有比 $L$ 长的波，四极先被压低。我们的 CMB 四极确实偏低（只有 ΛCDM 预期的四分之一左右），这曾是拓扑猜想的动机——但匹配圆没找到，这条路基本关上了；低四极大概率只是统计涨落（宇宙方差）。</p>
+      <p><b style="color:var(--ink)">本页怎么算。</b>在基本胞腔上生成一个周期的高斯随机场（功率 $\propto k^{-3}$，固定不随 $L$ 变，外加 3° 的平滑），温度取它在半径 $\chi$ 的球上的值（Sachs–Wolfe 近似，$\Delta T/T = \Phi/3$）。周期性不是画上去的：天图里的重复花样、圆对上一模一样的温度曲线、小胞腔时消失的大角度功率，都是从这个场里直接采样出来的。没算的是声学峰（它们在小角度上，和拓扑无关）。</p>
+      <p class="note">标签：天图、圆、多极功率全是算出来的（模拟）；Planck 的结论引自文献。</p>
+    </details>
+  </div>
+</section>
+
+<!-- Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。 -->
+<!-- ================= 2+1 维引力 ================= -->
+<section class="hall" id="hall-g21" hidden>
+  <p class="lede">放弃一个空间维度：两维空间加一维时间里的广义相对论。这里 Riemann 张量完全由 Ricci 张量决定——真空处处局部平坦，没有引力波，也没有牛顿式的吸引。可它一点也不无聊：质点把平面剪掉一个角，光绕过它会出现双像；Λ &lt; 0 时有真正的黑洞（BTZ），有温度、有熵；尘埃宇宙不减速。下面全部按 2+1 维的方程算。</p>
+  <div class="grid g-godel" style="margin-top:14px">
+    <div class="card">
+      <h3><span data-g="cone">① 质点是一个锥：双像，但不弯</span> <span class="tag sim">模拟</span></h3>
+      <p class="note">左图是"剪开的平面"：质点（中心）的全部效应就是去掉一个角 $\delta = 8\pi G m$ 并把两条边粘上，光线是直线。右图是粘起来之后你看到的样子。拖动光源（金点），看它在质点正后方时怎么分成两个像——两像夹角恰好是 $\delta$，和距离无关。</p>
+      <div class="grid g2"><canvas id="c-g21-cut" width="300" height="300" style="cursor:grab;touch-action:none"></canvas><canvas id="c-g21-glue" width="300" height="300"></canvas></div>
+      <div class="ctl" style="margin-top:8px"><label><span data-g="cone">亏角 $\delta = 8\pi G m$</span><b class="mono" id="g21-v-delta"></b></label><input type="range" id="g21-delta" min="0" max="2.6" step="0.01" value="0.6"><div class="sub">弧度；质量越大，剪掉的角越大；总亏角到 $2\pi$ 空间就闭合成球</div></div>
+      <div class="kv" id="g21-cone-cards"></div>
+    </div>
+    <div class="card">
+      <h3><span data-g="btz">② BTZ 黑洞：没有牛顿引力也有黑洞</span> <span class="tag sim">模拟</span></h3>
+      <p class="note">$\Lambda = -1/\ell^2$ 时，$ds^2 = -f\,dt^2 + dr^2/f + r^2d\varphi^2$，$f = r^2/\ell^2 - M$。视界 $r_+ = \ell\sqrt M$，外面局部就是 AdS₃。放一个粒子（或一束光），给它能量 $E$ 和角动量 $L$，看它的轨道：AdS 像一口井，什么都飞不远；而 BTZ 里没有稳定圆轨道，有质量的东西最后都掉进去。</p>
+      <canvas id="c-g21-orbit" width="520" height="360"></canvas>
+      <div class="bar"><label class="note"><input type="radio" name="g21-kind" value="massive" checked style="accent-color:var(--gold)"> 有质量的粒子</label><label class="note"><input type="radio" name="g21-kind" value="photon" style="accent-color:var(--gold)"> 光</label><button class="btn small" id="g21-shoot">✦ 发射</button><span class="note mono" id="g21-fate"></span></div>
+      <div class="ctl"><label><span>黑洞质量 $M$</span><b class="mono" id="g21-v-M"></b></label><input type="range" id="g21-M" min="0.1" max="4" step="0.05" value="1"></div>
+      <div class="ctl"><label><span>能量 $E$</span><b class="mono" id="g21-v-E"></b></label><input type="range" id="g21-E" min="0.5" max="12" step="0.05" value="5"></div>
+      <div class="ctl"><label><span>角动量 $L$</span><b class="mono" id="g21-v-L"></b></label><input type="range" id="g21-L" min="0" max="4" step="0.05" value="1.5"></div>
+      <canvas id="c-g21-pot" width="520" height="200"></canvas>
+      <div class="kv" id="g21-btz-cards" style="margin-top:8px"></div>
+    </div>
+  </div>
+  <div class="grid g-godel" style="margin-top:14px">
+    <div class="card">
+      <h3><span data-g="flrw21">③ 2+1 维的宇宙学</span> <span class="tag sim">模拟</span></h3>
+      <p class="note">2+1 维的弗里德曼方程：$H^2 + k/a^2 = 8\pi G\rho$，$\ddot a/a = -8\pi G p$。减速只来自压强：尘埃（$p=0$）的宇宙匀速膨胀，像根本没有引力；辐射才减速，Λ 才加速。</p>
+      <canvas id="c-g21-flrw" width="520" height="280"></canvas>
+      <div class="legend"><span><i style="background:var(--gold)"></i>只有尘埃</span><span><i style="background:var(--teal)"></i>只有辐射</span><span><i style="background:var(--violet)"></i>只有 Λ</span><span><i style="background:var(--coral)"></i>3+1 维的尘埃宇宙（对照）</span></div>
+    </div>
+    <div class="card">
+      <h3><span data-g="btz">④ 读完你自己的发现之后再看：这个宇宙在说什么</span></h3>
+      <p><b style="color:var(--ink)">为什么没有引力。</b>三维时空里 Riemann 张量有 6 个独立分量，Ricci 张量也是 6 个：爱因斯坦方程 $R_{\mu\nu} - \tfrac12 g_{\mu\nu}R + \Lambda g_{\mu\nu} = 8\pi G T_{\mu\nu}$ 把曲率完全钉死在物质所在处，真空里曲率为零（或等于 Λ 给的常曲率）。没有传播的自由度：没有引力波，两个质点之间也没有力——它们各自只是一个锥。</p>
+      <p><b style="color:var(--ink)">锥。</b>质点 $m$ 的时空是 $ds^2 = -dt^2 + dr^2 + (1-4Gm)^2r^2d\varphi^2$：绕一圈只有 $2\pi(1-4Gm)$，亏角 $\delta = 8\pi Gm$（Deser、Jackiw、't Hooft 1984）。光走直线，但从质点两侧绕过的两条直线在粘合后都到你眼睛：双像，夹角 $\delta$。质量总和到 $1/4G$（亏角 $2\pi$）时平面闭合成球面——这就是 2+1 维的"封闭宇宙"。宇宙弦在 3+1 维里也是这样的锥。</p>
+      <p><b style="color:var(--ink)">BTZ。</b>1992 年 Bañados、Teitelboim、Zanelli 发现 Λ &lt; 0 时有黑洞解。它局部就是 AdS₃（没有曲率奇点），整体是 AdS₃ 的商空间，却有视界、霍金温度 $T = r_+/2\pi\ell^2$、熵 $S = 2\pi r_+/4G$。它成了量子引力的最佳试验场：Strominger 1998 年用 Brown–Henneaux 的边界中心荷 $c = 3\ell/2G$ 和 Cardy 公式算出了同一个熵——全息对偶最早的硬证据之一。</p>
+      <p><b style="color:var(--ink)">宇宙学。</b>2+1 维里 $G_{tt} = (\dot a/a)^2 + k/a^2$ 只有一项，$\ddot a/a = -8\pi G p$：尘埃不减速，这是"没有引力吸引"的宇宙学版本。③里对照的 3+1 维尘埃宇宙则按 $\ddot a/a = -4\pi G\rho/3$ 减速。</p>
+      <p class="note">标签：双像、轨道、势、膨胀全是方程算的（模拟）；BTZ 的熵与 Cardy 公式的对应引自文献。</p>
+    </div>
   </div>
 </section>
 
@@ -1236,6 +1377,39 @@ const GLOSS = {
   ltbdipole: { t: '偏离中心的偶极', s: '不在正中心的观察者相对远处的 CMB 有速度 $\\approx[H(d)-H_{out}]\\,d$，看到额外的温度偶极。',
     d: '准牛顿估计：空洞里的尘埃相对外面多出的膨胀速度是 $[H(d) - H_{out}]\\,d$，偶极 $\\Delta T/T = v/c$。观测到的整个偶极 $1.23\\times10^{-3}$ 通常全归给太阳系相对 CMB 的运动（370 km/s）；要让空洞的贡献藏进去，我们得离一个几十亿光年大的空洞的中心不到十几 Mpc——体积占比 $10^{-6}$ 的巧合。这就是人们说"空洞模型违反哥白尼原理"的意思。Alnes &amp; Amarzguioui 2006 用完整的光线追踪得到同一量级。',
     try: '把 d 拖到 100 Mpc。' },
+  // ---------- 泡泡宇宙 ----------
+  foam: { t: '永恒暴胀的泡沫', s: '假真空是 de Sitter 空间；真空泡随机成核、以光速扩张，但只要成核够慢，空间膨胀得更快，泡永远填不满。',
+    d: '$t_n$ 成核的泡共动半径 $r = (1-e^{-H(t-t_n)})/(Ha_n)$，永远长不过 $1/(Ha_n)$。物理半径 $R = (e^{H(t-t_n)}-1)/H$。画面是固定物理大小的窗口：新泡按物理速率 $\\lambda$ 不停冒出，老泡被膨胀推出窗口，所以画面在统计上是定常的——这正是"永恒"的意思。泡的成核率由 Coleman–De Luccia 的隧穿作用量决定，$\\lambda\\propto e^{-S_E}$，页面把它当旋钮。',
+    try: '把成核率拨过 2/π，看泡填满画面。' },
+  eternal: { t: '永恒暴胀的条件', s: '一个共动点到 $Ht$ 还在假真空的概率 $p(t)$ 指数衰减，但空间体积 $e^{3Ht}$ 指数增长：谁快谁赢。',
+    d: '$$p(t) = \\exp\\Big[-\\tfrac{4\\pi}{3}\\tfrac{\\lambda}{H^4}\\int_0^{Ht}(1-e^{-x})^3dx\\Big],$$ 假真空的物理体积 $\\propto e^{3Ht}p(t)$，指数 $3-\\tfrac{4\\pi}{3}\\lambda/H^4$。正则永恒：$\\lambda/H^4 < 9/4\\pi\\approx0.72$（Guth &amp; Weinberg 1983）。二维切片把 3 换成 2、$4\\pi/3$ 换成 $\\pi$，阈值 $2/\\pi$。②里金线是解析式，青点是模拟量到的份额——单次模拟涨落大，因为早成核的一个大泡就能吃掉一大片。',
+    try: '让它播到 Ht ≈ 6，比较青点和金线。' },
+  bubbleinside: { t: '泡泡里面是什么', s: 'Coleman–De Luccia 泡的内部是一个 $k=-1$ 的开放 FLRW 宇宙，泡壁就是它的"大爆炸"面；再暴胀 N 个 e-fold 才能变平。',
+    d: '泡内一开始曲率占满（$\\Omega_k\\approx1$），慢滚暴胀 $N$ 个 e-fold 后 $\\Omega_k\\approx e^{-2(N-N_*)}$，$N_*\\approx60$ 是把曲率尺度拉到今天哈勃尺度所需的量（本页取粗略值）。这就是"开放暴胀"：如果泡里只多暴胀了六十几个 e-fold，今天就该测到一点点负曲率。Planck 的上限 $|\\Omega_k| < 0.002$ 要求 $N\\gtrsim 63$。',
+    try: '拖 N 到 61，看 Ω_k 超出 Planck 上限。' },
+  landscape: { t: '景观与温伯格的彩票', s: '如果各泡的 Λ 从平坦先验里抽，绝大多数泡 Λ 太大、星系长不出来；观察者只会出现在 Λ 小的那一小段里。',
+    d: '温伯格 1987：$\\Lambda$ 若比观测值大百倍，线性扰动在被 Λ 冻住之前长不到 1.686，不会有星系——所以观察者看到的 Λ 应该不为零但很小。本页对每个 Λ 用创世台同一套宜居诊断判决，物质密度和原初扰动幅度取我们的（保持平坦：$\\Omega_m\' = 0.315/(0.315+0.685x)$，$H_0\' = 67.4\\sqrt{0.315+0.685x}$）。负的 Λ 过大则宇宙在长到今天的物质密度之前就坍缩。"测度问题"——无穷多个泡怎么数——是这套推理最大的争议。',
+    try: '按几次"换一个点"，数数要抽多少次才落进活的泡。' },
+  // ---------- 多连通宇宙 ----------
+  torus: { t: '多连通宇宙（三维环面）', s: '平坦空间可以是有限的：把一个盒子的对面粘起来就是三维环面 $T^3$，局部几何和无限的平坦空间一模一样。',
+    d: '爱因斯坦方程是局部的，管不了整体拓扑。平坦的紧致三维流形有 18 种（Bieberbach），最简单的是 $T^3$。在里面直走会从对面回来，所以每个天体都有无穷多个像 $x + n\\cdot L$，在最后散射面之内的像数约 $\\tfrac{4\\pi}{3}\\chi^3/L^3$（二维切片里 $\\pi\\chi^2/L^2$），而且每个像是它在不同年代的样子。',
+    try: '把 L 拨到 0.5，再把鼠标放到任何一个像上。' },
+  circles: { t: '天上的圈', s: '最后散射面是半径 $\\chi$ 的球；平移 $v$ 的像球和它相交于一个圆，圆心在 $\\pm\\hat v$，角半径 $\\arccos(|v|/2\\chi)$，两圆上温度逐点相同。',
+    d: 'Cornish、Spergel、Starkman 1998 的检验：如果空间多连通，天上就有两两匹配的圆对。要 $|v| < 2\\chi$ 才相交。Planck 2015（论文 XVIII）搜遍了半径大于 15° 的圆对，一对也没有，于是最短的平移 $\\gtrsim 0.94\\times2\\chi$——基本胞腔至少和可观测宇宙一样大。本页天图里的圆不是画上去的：它们是周期随机场在球面上自然重复的地方，鼠标放上去画出的两条温度曲线完全重合。',
+    try: '选"Planck 的边界"，看圆缩到 18°。' },
+  lowell: { t: '大角度功率的截断', s: '胞腔里放不下比 $L$ 长的波，所以胞腔小于视界时 CMB 的四极、八极被压低。',
+    d: '周期盒子里允许的波矢是 $2\\pi n/L$，最长的波就是 $L$。我们的 CMB 四极确实只有 ΛCDM 预期的四分之一左右（WMAP、Planck 都看到），这曾是 2003 年"庞加莱十二面体空间"等拓扑猜想的动机。但匹配圆没找到，而且低四极也可以只是宇宙方差（我们只有一个天空可看，$\\ell = 2$ 只有 5 个独立的数）。',
+    try: '按"扫一遍"，看 C₂ 在 L < χ 时怎么掉。' },
+  // ---------- 2+1 维引力 ----------
+  cone: { t: '锥形亏角', s: '2+1 维里质点 $m$ 的全部引力效应：把平面剪掉一个角 $\\delta = 8\\pi Gm$ 再粘上。光走直线，却能出现两个像。',
+    d: '度规 $ds^2 = -dt^2 + dr^2 + (1-4Gm)^2r^2d\\varphi^2$（Deser、Jackiw、\'t Hooft 1984）：绕质点一圈只有 $2\\pi(1-4Gm)$。真空里曲率为零，没有力；只有整体的"剪一刀"。从质点两侧绕过的两条直线粘合后都到你眼里，夹角正好是 $\\delta$，和光源距离无关（远处极限）。3+1 维里的宇宙弦也是这样的锥。总亏角到 $2\\pi$（质量总和 $1/4G$），平面闭合成球面。',
+    try: '把金色光源拖到质点正后方。' },
+  btz: { t: 'BTZ 黑洞', s: '$\\Lambda = -1/\\ell^2$ 时 2+1 维也有黑洞：$f = r^2/\\ell^2 - M$，视界 $r_+ = \\ell\\sqrt M$，温度 $r_+/2\\pi\\ell^2$，熵 $2\\pi r_+/4G$。',
+    d: 'Bañados、Teitelboim、Zanelli 1992。它局部就是 AdS₃——没有曲率奇点——整体是 AdS₃ 对一个离散群的商，却有视界和热力学。测地线：$\\dot r^2 = E^2 - f(\\kappa + L^2/r^2)$，有效势单调上升，所以没有稳定圆轨道：有质量的粒子升到 $V = E^2$ 处就折回、掉进视界；光若 $E^2 > L^2/\\ell^2$ 则飞到 AdS 边界（有限坐标时间）再被反射。Strominger 1998 用边界共形场论的 Cardy 公式（中心荷 $c = 3\\ell/2G$，Brown–Henneaux 1986）算出同一个熵——全息对偶最早的硬证据之一。',
+    try: '把 L 拨到 0，看它直直掉进去；把 E 拨大，看它飞多远。' },
+  flrw21: { t: '2+1 维的弗里德曼方程', s: '$H^2 + k/a^2 = 8\\pi G\\rho$，$\\ddot a/a = -8\\pi Gp$：减速只来自压强，尘埃宇宙匀速膨胀。',
+    d: '3+1 维里是 $\\ddot a/a = -\\tfrac{4\\pi G}{3}(\\rho + 3p)$，密度本身就减速；2+1 维里密度项不见了——这正是"没有引力吸引"的宇宙学版本。辐射（$p = \\rho/2$）才减速，Λ 才加速。密度随膨胀的稀释也不同：尘埃 $\\rho\\propto a^{-2}$，辐射 $\\rho\\propto a^{-3}$。',
+    try: '对照红色虚线（3+1 维的尘埃宇宙）。' },
   // ---------- 哥德尔 ----------
   godel: { t: '哥德尔宇宙', s: '爱因斯坦方程的一个精确解（1949）：物质整体旋转，里面存在回到过去的路线。',
     d: '柱坐标度规 $$ds^2 = 4a^2\\big[-dt^2 + dr^2 + dz^2 - (\\sinh^4 r - \\sinh^2 r)\\,d\\varphi^2 + 2\\sqrt2\\,\\sinh^2 r\\,d\\varphi\\,dt\\big].$$ 物质是静止在坐标上的尘埃，相对局部惯性系以 $\\omega = 1/(\\sqrt2 a)$ 转动。爱因斯坦方程要求 $\\Lambda = -\\omega^2$、$4\\pi G\\rho = \\omega^2$：只有一个自由参数。$g_{\\varphi\\varphi} < 0$ 当 $\\sinh r > 1$——绕轴一圈的曲线变成类时的：闭合类时曲线。',
@@ -2230,7 +2404,8 @@ var QLAI = (function () {
     const saved = store.get('forge', null); if (saved && typeof saved.H0 === 'number') { Object.assign(S, saved); presetId = PRESETS.find((p) => ids.every((k) => Math.abs(p.p[k] - S[k]) < 1e-9)) ? PRESETS.find((p) => ids.every((k) => Math.abs(p.p[k] - S[k]) < 1e-9)).id : null; }
     syncSliders(); markPreset();
     window.addEventListener('beforeunload', () => store.set('forge', S));
-    return { render: () => { if (!R) solve(); else render(); }, S, hooks, solve, syncSliders, labels, markPreset, get R() { return R; }, get frames() { return frames; } };
+    function setParams(obj) { Object.assign(S, obj); presetId = null; markPreset(); syncSliders(); frame = TODAY; solve(); } // 其他展区把一组参数装进创世台
+    return { render: () => { if (!R) solve(); else render(); }, S, hooks, solve, syncSliders, labels, markPreset, setParams, get R() { return R; }, get frames() { return frames; } };
   })();
   window.GENESIS = { forge, show: (h) => show(h), halls };
 
@@ -3044,6 +3219,497 @@ const LTB = (function () {
 
 // Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
 // Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
+// 泡泡宇宙（永恒暴胀 + 真空泡成核）引擎。
+//   假真空是 de Sitter 空间，a(t) = e^{Ht}；真空泡以单位四维体积速率 λ 随机成核（Coleman–De Luccia），泡壁几乎以光速扩张：
+//   t_n 成核的泡在 t 时的共动半径 r = (1 − e^{−H(t−t_n)})/(H a_n)，物理半径 R = (e^{H(t−t_n)} − 1)/H。
+//   一个共动点到 t 还在假真空里的概率（三维）p(t) = exp[−(4π/3)(λ/H⁴)∫₀^{Ht}(1−e^{−x})³dx] → exp[−(4π/3)(λ/H⁴)(Ht − 11/6)]，
+//   假真空的物理体积 ∝ e^{3Ht}p(t)：指数 3 − (4π/3)λ/H⁴ > 0 即永恒暴胀（Guth–Weinberg：λ/H⁴ < 9/4π ≈ 0.716）。
+//   画面用二维切片：成核率 λ₂（单位物理面积、单位时间），p(t) = exp[−π(λ₂/H³)(Ht − 3/2)]，永恒条件 λ₂/H³ < 2/π。
+//   泡内是开放的 FLRW（CDL 泡的内部是 k = −1 的 FLRW）；再暴胀 N 个 e-fold 后今天的曲率 Ω_k ≈ e^{−2(N − N_*)}，N_* ≈ 60（粗略）。
+//   泡与泡相撞：两泡壁相遇；碰撞留在我们泡里的印记是 CMB 上一个圆盘（Aguirre–Johnson–Kleban）。
+// 单位：H = 1（假真空的哈勃率），c = 1。
+const BUBBLE = (function () {
+  function mulberry32(a) { return function () { a |= 0; a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+  // ∫₀^x (1−e^{−u})³ du = x − 3(1−e^{−x}) + (3/2)(1−e^{−2x}) − (1/3)(1−e^{−3x})
+  function surv3Int(x) { return x - 3 * (1 - Math.exp(-x)) + 1.5 * (1 - Math.exp(-2 * x)) - (1 - Math.exp(-3 * x)) / 3; }
+  function surv2Int(x) { return x - 2 * (1 - Math.exp(-x)) + 0.5 * (1 - Math.exp(-2 * x)); } // ∫₀^x (1−e^{−u})² du
+  // 三维：假真空概率、物理体积增长指数、是否永恒
+  function survival3(lam4, Ht) { return Math.exp(-4 * Math.PI / 3 * lam4 * surv3Int(Ht)); }
+  function eternal3(lam4) { return { exponent: 3 - 4 * Math.PI / 3 * lam4, eternal: lam4 < 9 / (4 * Math.PI), critical: 9 / (4 * Math.PI) }; }
+  // 二维切片
+  function survival2(lam2, Ht) { return Math.exp(-Math.PI * lam2 * surv2Int(Ht)); }
+  function eternal2(lam2) { return { exponent: 2 - Math.PI * lam2, eternal: lam2 < 2 / Math.PI, critical: 2 / Math.PI }; }
+  // 泡内：N 个 e-fold 后今天的曲率（粗略：Ω_k ≈ e^{−2(N − N*)}，上限 1）
+  function interiorCurvature(N, Nstar) { Nstar = Nstar || 60; return Math.min(1, Math.exp(-2 * (N - Nstar))); }
+  // 二维泡沫模拟：固定物理窗口（边长 W，以 1/H 计）、观察者在中心的共动点上；泡在窗口内按物理速率 λ₂ 成核（只在假真空处）
+  class Foam2D {
+    constructor(o) {
+      o = o || {}; this.lam = o.lam2 === undefined ? 0.1 : o.lam2; this.W = o.W || 24; this.t = 0; this.rnd = mulberry32(o.seed || 1); this.bubbles = []; this.collisions = []; this.engulfed = null; this.nNuc = 0; this.lamSampler = o.lamSampler || null;
+      this.obs = { x: 0, y: 0 }; // 观察者的共动坐标（a = 1 时）
+    }
+    a(t) { return Math.exp(t === undefined ? this.t : t); }
+    // 物理坐标（相对观察者，窗口内）：x_phys = a (x − x_obs)
+    phys(b, t) { const a = this.a(t); return { x: a * (b.x - this.obs.x), y: a * (b.y - this.obs.y), R: Math.exp((t === undefined ? this.t : t) - b.tn) - 1 }; }
+    inBubble(x, y, t) { // 共动点 (x, y) 在 t 时是否已在某个泡里
+      const a = this.a(t); for (const b of this.bubbles) { const r = (1 - Math.exp(-((t === undefined ? this.t : t) - b.tn))) / Math.exp(b.tn); const dx = x - b.x, dy = y - b.y; if (dx * dx + dy * dy < r * r) return b; } return null;
+    }
+    step(dt) {
+      const t0 = this.t, t1 = t0 + dt, a1 = this.a(t1); this.t = t1;
+      // 成核：窗口内（物理面积 W²）的期望个数 λ₂ W² dt；位置均匀，落在假真空才算
+      const n = poisson(this.rnd, this.lam * this.W * this.W * dt);
+      for (let k = 0; k < n; k++) {
+        const px = (this.rnd() - 0.5) * this.W, py = (this.rnd() - 0.5) * this.W; const x = this.obs.x + px / a1, y = this.obs.y + py / a1;
+        if (this.inBubble(x, y, t1)) continue;
+        const b = { x, y, tn: t1, id: this.nNuc++, lam: this.lamSampler ? this.lamSampler(this.rnd) : 0, hit: new Set() }; this.bubbles.push(b);
+      }
+      // 碰撞：两泡的物理半径之和 ≥ 中心距离
+      const bs = this.bubbles;
+      for (let i = 0; i < bs.length; i++) for (let j = i + 1; j < bs.length; j++) { const A = bs[i], B = bs[j]; if (A.hit.has(B.id)) continue; const RA = Math.exp(t1 - A.tn) - 1, RB = Math.exp(t1 - B.tn) - 1, d = a1 * Math.hypot(A.x - B.x, A.y - B.y); if (RA + RB >= d) { A.hit.add(B.id); B.hit.add(A.id); this.collisions.push({ a: A.id, b: B.id, t: t1 }); } }
+      // 观察者被吞没？
+      if (!this.engulfed) { const b = this.inBubble(this.obs.x, this.obs.y, t1); if (b) this.engulfed = { bubble: b, t: t1 }; }
+      // 清理：物理上离开窗口太远的泡（近边 > 1.5 W）
+      this.bubbles = bs.filter((b) => { const p = this.phys(b, t1); return Math.hypot(p.x, p.y) - p.R < 1.5 * this.W; });
+      return n;
+    }
+    // 窗口内假真空面积的份额（蒙特卡洛）
+    falseFraction(samples) { samples = samples || 2000; let f = 0; const a = this.a(); for (let k = 0; k < samples; k++) { const px = (this.rnd() - 0.5) * this.W, py = (this.rnd() - 0.5) * this.W; if (!this.inBubble(this.obs.x + px / a, this.obs.y + py / a)) f++; } return f / samples; }
+    // 换一个还在假真空里的观察点（窗口内随机找）
+    relocate() { const a = this.a(); for (let k = 0; k < 500; k++) { const px = (this.rnd() - 0.5) * this.W, py = (this.rnd() - 0.5) * this.W; const x = this.obs.x + px / a, y = this.obs.y + py / a; if (!this.inBubble(x, y)) { this.obs = { x, y }; this.engulfed = null; return true; } } return false; }
+  }
+  function poisson(rnd, mu) { if (mu > 50) { return Math.max(0, Math.round(mu + Math.sqrt(mu) * gauss(rnd))); } const L = Math.exp(-mu); let k = 0, p = 1; do { k++; p *= rnd(); } while (p > L); return k - 1; }
+  function gauss(rnd) { let u = 0; while (!u) u = rnd(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * rnd()); }
+  // 我们泡的过去光锥里期望的碰撞数（粗略）：N ≈ (4π/3)(λ/H_F⁴)(H_F/H_I)²·(1/Ω_k 的量级因子略去)，只给数量级
+  function expectedCollisions(lam4, HFoverHI) { return 4 * Math.PI / 3 * lam4 * HFoverHI * HFoverHI; }
+  return { survival3, eternal3, survival2, eternal2, surv3Int, surv2Int, interiorCurvature, Foam2D, poisson, expectedCollisions, mulberry32 };
+})();
+
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
+// 泡泡宇宙展区的页面逻辑：引擎在 bubble.js；这里管泡沫动画、假真空份额图、泡内宇宙、景观彩票。
+(function () {
+  const G = window.GENESIS, $ = G.$, chart = G.chart, fit = G.fit, sig = G.sig, CSS = G.CSS, toast = G.toast;
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const st = { lam: 0.1, land: true, foam: null, playing: false, raf: 0, last: 0, N: 62, hist: [], lastFrac: null, seed: 1, lamCache: new Map(), tries: 0, flashes: [] };
+  // 景观：每个泡的 Λ（相对我们的）从平坦先验 [−5, 300] 抽
+  const lamSampler = (rnd) => -5 + 305 * rnd();
+  // Λ 相对倍数 x → 宜居判决（物质密度和原初幅度取我们的；保持平坦：Ω_m' = 0.315/(0.315+0.685x)，H₀' = 67.4√(0.315+0.685x)）
+  function verdictFor(x) {
+    const key = Math.round(Math.log(Math.abs(x) + 1e-3) * 10) * Math.sign(x || 1); if (st.lamCache.has(key)) return st.lamCache.get(key);
+    const S = 0.315 + 0.685 * x; let v;
+    if (S <= 0.03) v = { verdict: 'dead', why: 'Λ 太负：还没长到今天的物质密度就坍缩了' };
+    else { try { const R = COSMO.solve({ H0: 67.4 * Math.sqrt(S), Om: 0.315 / S, OL: 0.685 * x / S, Or: 9e-5 / S, w: -1 }, { lite: true }), g = R.growth;
+      // 温伯格式的判决看星系尺度（10¹² M☉）：1σ 峰能坍缩 = 星系像我们这里一样常见；只有 3σ 峰能 = 星系稀有；都不能 = 没有星系
+      if (R.verdict === 'dead' || !g) { const d = R.diag.find((q) => q.level === 'bad'); v = { verdict: 'dead', why: d ? d.title : '死寂' }; }
+      else if (g.dGalMax >= COSMO.DELTA_C) v = { verdict: 'alive', why: '典型星系（1σ 峰）能形成，星系遍地' };
+      else if (3 * g.dGalMax >= COSMO.DELTA_C) v = { verdict: 'marginal', why: '只有稀有的 3σ 峰来得及坍缩成星系，然后 Λ 把一切冻住' };
+      else v = { verdict: 'dead', why: 'Λ 太大：连 3σ 峰都没长到坍缩阈值' }; } catch (e) { v = { verdict: 'dead', why: '解不出' }; } }
+    st.lamCache.set(key, v); return v;
+  }
+  const VCOL = { alive: '#f2c14e', marginal: '#9a7b2e', dead: '#5a5f78' };
+  function reset() { st.foam = new BUBBLE.Foam2D({ lam2: st.lam, W: 24, seed: st.seed, lamSampler: st.land ? lamSampler : null }); st.hist = []; st.lastFrac = null; st.flashes = []; $('bub-move').hidden = true; render(); }
+  function labels() { $('bub-v-lam').textContent = sig(st.lam, 3) + (st.lam < 2 / Math.PI ? '（永恒）' : '（会终止）'); $('bub-v-N').textContent = st.N.toFixed(1); }
+  function render() { drawFoam(); hud(); drawSurv(); inside(); landscape(); }
+  function drawFoam() {
+    const cv = $('c-bub-foam'), { ctx, w, h } = fit(cv), F = st.foam; ctx.fillStyle = '#060913'; ctx.fillRect(0, 0, w, h);
+    const sc = Math.min(w, h) / F.W, cx = w / 2, cy = h / 2;
+    // 假真空底色：淡紫（de Sitter）
+    ctx.fillStyle = 'rgba(176,140,255,0.10)'; ctx.fillRect(0, 0, w, h);
+    const bs = F.bubbles.slice().sort((a, b) => a.tn - b.tn); // 老泡先画
+    for (const b of bs) { const p = F.phys(b); const x = cx + p.x * sc, y = cy + p.y * sc, R = p.R * sc; if (R < 0.3) continue;
+      const v = st.land ? verdictFor(b.lam) : null; const col = v ? VCOL[v.verdict] : '#5fe0cf';
+      ctx.fillStyle = v ? (v.verdict === 'dead' ? 'rgba(10,12,24,0.95)' : 'rgba(30,26,10,0.95)') : 'rgba(8,20,24,0.95)'; ctx.beginPath(); ctx.arc(x, y, R, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = col; ctx.lineWidth = 1.5; ctx.stroke();
+      if (st.land && R > 26) { ctx.fillStyle = col; ctx.font = '11px JetBrains Mono, monospace'; ctx.textAlign = 'center'; ctx.fillText(`Λ = ${sig(b.lam, 2)}×`, x, y + 4); } }
+    // 碰撞线（最近的）
+    const now = F.t; st.flashes = st.flashes.filter((f) => now - f.t < 1.2);
+    for (const f of st.flashes) { const A = F.bubbles.find((b) => b.id === f.a), B = F.bubbles.find((b) => b.id === f.b); if (!A || !B) continue; const pa = F.phys(A), pb = F.phys(B); const d = Math.hypot(pb.x - pa.x, pb.y - pa.y); if (d < 1e-9) continue; const aa = (pa.R * pa.R - pb.R * pb.R + d * d) / (2 * d), hh2 = pa.R * pa.R - aa * aa; if (hh2 <= 0) continue; const hh = Math.sqrt(hh2), ux = (pb.x - pa.x) / d, uy = (pb.y - pa.y) / d, mx = pa.x + ux * aa, my = pa.y + uy * aa;
+      ctx.strokeStyle = `rgba(255,255,255,${0.9 * (1 - (now - f.t) / 1.2)})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(cx + (mx - uy * hh) * sc, cy + (my + ux * hh) * sc); ctx.lineTo(cx + (mx + uy * hh) * sc, cy + (my - ux * hh) * sc); ctx.stroke(); }
+    // 你
+    ctx.fillStyle = F.engulfed ? CSS('--coral') : '#fff'; ctx.beginPath(); ctx.arc(cx, cy, 4, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#fff'; ctx.font = '600 12px Space Grotesk, sans-serif'; ctx.textAlign = 'center'; ctx.fillText(F.engulfed ? '你（已在泡里）' : '你（假真空）', cx, cy - 9);
+    // 哈勃半径比例尺
+    ctx.strokeStyle = CSS('--gold'); ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(12, h - 14); ctx.lineTo(12 + sc, h - 14); ctx.stroke(); ctx.fillStyle = CSS('--gold'); ctx.font = '11px Space Grotesk, sans-serif'; ctx.textAlign = 'left'; ctx.fillText('1/H（哈勃半径）', 12, h - 20);
+    ctx.fillStyle = CSS('--dim'); ctx.textAlign = 'right'; ctx.fillText(st.land ? '亮金 = 星系遍地　暗金 = 只有稀有星系　灰 = 没有星系' : '青 = 真空泡（里面是开放宇宙）', w - 10, h - 8);
+  }
+  function hud() {
+    const F = st.foam, p = BUBBLE.survival2(st.lam, F.t), e = BUBBLE.eternal2(st.lam);
+    $('bub-t').textContent = `Ht = ${F.t.toFixed(2)}`;
+    const K = [['gold', '窗口里的泡', String(F.bubbles.length), `累计成核 ${F.nNuc}，碰撞 ${F.collisions.length} 次`], ['teal', '假真空份额', st.lastFrac === null ? '—' : (st.lastFrac * 100).toFixed(0) + '%', `解析 p(t) = ${(p * 100).toFixed(0)}%；单次模拟涨落大`], [e.eternal ? 'violet' : 'coral', '假真空的物理面积', `∝ e^{${e.exponent.toFixed(2)}·Ht}`, e.eternal ? '指数为正：暴胀永恒，泡永远填不满' : '指数为负：泡会填满空间，暴胀终止']];
+    if (F.engulfed) { const b = F.engulfed.bubble, v = st.land ? verdictFor(b.lam) : null; K.push([v ? (v.verdict === 'alive' ? 'gold' : (v.verdict === 'marginal' ? 'violet' : 'coral')) : 'teal', '你被吞没了', `Ht = ${F.engulfed.t.toFixed(2)}${st.land ? `，这个泡的 Λ = ${sig(b.lam, 2)}× 我们的` : ''}`, v ? (v.verdict === 'alive' ? '运气好：' + v.why : (v.verdict === 'marginal' ? '勉强：' + v.why : `死寂：${v.why}`)) : '这里暴胀结束，一个开放宇宙开始']); $('bub-move').hidden = false; }
+    $('bub-hud').innerHTML = K.map(([c, k, v, i]) => `<div class="k ${c}"><small>${k}</small><b class="mono" style="font-size:15px">${v}</b><i>${i}</i></div>`).join('');
+  }
+  function drawSurv() {
+    const cv = $('c-bub-surv'), T = Math.max(6, st.foam.t + 0.5), xs = [], ys = []; for (let i = 0; i <= 100; i++) { const t = T * i / 100; xs.push(t); ys.push(BUBBLE.survival2(st.lam, t)); }
+    chart(cv, { xmin: 0, xmax: T, ymin: 0, ymax: 1.05, xlabel: 'Ht', ylabel: '还在假真空的概率', padL: 44, series: [{ xs, ys, color: CSS('--gold') }], points: st.hist.length ? [{ xs: st.hist.map((h) => h[0]), ys: st.hist.map((h) => h[1]), color: CSS('--teal'), r: 2.5 }] : [], vlines: [{ x: st.foam.t, color: CSS('--dim'), label: '现在' }] });
+    const e2 = BUBBLE.eternal2(st.lam);
+    $('bub-fate').innerHTML = [[e2.eternal ? 'violet' : 'coral', '二维切片', `2 − πλ/H³ = ${e2.exponent.toFixed(2)}`, `阈值 λ/H³ = 2/π = ${e2.critical.toFixed(3)}`], ['violet', '三维的同一条规则', '3 − (4π/3)λ/H⁴', `阈值 λ/H⁴ = 9/4π = ${(9 / (4 * Math.PI)).toFixed(3)}（Guth & Weinberg 1983）`]].map(([c, k, v, i]) => `<div class="k ${c}"><small>${k}</small><b class="mono" style="font-size:15px">${v}</b><i>${i}</i></div>`).join('');
+  }
+  function inside() {
+    const F = st.foam, Ok = BUBBLE.interiorCurvature(st.N), Rc = Ok > 0 ? 1 / Math.sqrt(Ok) * 299792.458 / 67.4 / 1000 : Infinity; const K = [];
+    K.push(['teal', '今天的曲率 Ω_k', Ok >= 1 ? '≈ 1（曲率主导，没长出结构）' : sig(Ok, 2), Ok >= 1 ? '泡里暴胀太短' : `开放宇宙，曲率半径 ≈ ${sig(Rc, 2)} Gpc；Planck 的上限 |Ω_k| < 0.002 ${Ok < 0.002 ? '✓' : '✗（会被测到）'}`]);
+    if (F.engulfed) { const b = F.engulfed.bubble; if (st.land) { const v = verdictFor(b.lam); K.push([v.verdict === 'alive' ? 'gold' : (v.verdict === 'marginal' ? 'violet' : 'coral'), '你的泡抽到的 Λ', `${sig(b.lam, 2)} × 我们的`, v.verdict === 'alive' ? '星系遍地——第 ' + st.tries + ' 个泡才抽到' : (v.verdict === 'marginal' ? `只有稀有星系（已经试了 ${st.tries} 个泡）` : `死寂：${v.why}（已经试了 ${st.tries} 个泡）`)]); } K.push(['violet', '这个泡撞过别的泡', `${b.hit.size} 次`, b.hit.size ? 'CMB 上会有圆盘状的温度斑（AJK 2007）' : '没有碰撞印记']); }
+    else K.push(['gold', '你还在假真空里', '等着被吞', '或者按播放']);
+    $('bub-inside').innerHTML = K.map(([c, k, v, i]) => `<div class="k ${c}"><small>${k}</small><b class="mono" style="font-size:15px">${v}</b><i>${i}</i></div>`).join('');
+  }
+  function landscape() {
+    const cv = $('c-bub-land'), { ctx, w, h } = fit(cv); ctx.fillStyle = '#060913'; ctx.fillRect(0, 0, w, h);
+    if (!st.land) { ctx.fillStyle = CSS('--dim'); ctx.font = '13px Space Grotesk'; ctx.textAlign = 'center'; ctx.fillText('勾上①里的"景观"再看', w / 2, h / 2); $('bub-landcards').innerHTML = ''; return; }
+    // 先验 [−5, 300]：按 x 分 60 格，每格判一次（缓存）
+    const n = 120, padL = 40, padB = 30, pw = w - padL - 12, ph = h - 16 - padB; let alive = 0, marg = 0, firstBad = null, firstMarg = null;
+    for (let i = 0; i < n; i++) { const x = -5 + 305 * (i + 0.5) / n, v = verdictFor(x); if (v.verdict === 'alive') alive++; else if (v.verdict === 'marginal') marg++; if (x > 1 && v.verdict === 'dead' && firstBad === null) firstBad = x; if (x > 1 && v.verdict !== 'alive' && firstMarg === null) firstMarg = x; ctx.fillStyle = VCOL[v.verdict]; ctx.fillRect(padL + pw * i / n, 16, pw / n + 0.5, ph); }
+    ctx.fillStyle = CSS('--dim'); ctx.font = '11px JetBrains Mono, monospace'; ctx.textAlign = 'center'; for (const x of [0, 50, 100, 150, 200, 250, 300]) ctx.fillText(String(x), padL + pw * (x + 5) / 305, h - padB + 14);
+    ctx.font = '12px Space Grotesk, sans-serif'; ctx.fillText('Λ / Λ_我们（平坦先验 −5 … 300）', padL + pw / 2, h - 4);
+    const xo = padL + pw * 6 / 305; ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(xo, 10); ctx.lineTo(xo, 16 + ph); ctx.stroke(); ctx.fillStyle = '#fff'; ctx.textAlign = 'left'; ctx.fillText('我们 (1×)', xo + 4, 12);
+    // 泡的样本直方（当前窗口里的泡）
+    const F = st.foam; ctx.fillStyle = 'rgba(255,255,255,0.8)'; for (const b of F.bubbles) { const u = (b.lam + 5) / 305; ctx.fillRect(padL + pw * u, 16 + ph - 6, 2, 6); }
+    $('bub-landcards').innerHTML = [['gold', '有星系的 Λ', firstBad !== null ? `Λ ≲ ${sig(firstBad, 2)} × 我们的` : '整条先验都行', `温伯格 1987 年的估计是 ~100×；星系像我们这里一样遍地则要 Λ ≲ ${firstMarg !== null ? sig(firstMarg, 2) : '?'}×`], ['coral', '彩票中奖率', `${(alive / n * 100).toFixed(0)}% / ${((alive + marg) / n * 100).toFixed(0)}%`, `星系遍地 / 至少有稀有星系；画面里的泡：${F.bubbles.filter((b) => verdictFor(b.lam).verdict === 'alive').length} 遍地、${F.bubbles.filter((b) => verdictFor(b.lam).verdict === 'marginal').length} 稀有、${F.bubbles.filter((b) => verdictFor(b.lam).verdict === 'dead').length} 死寂`]].map(([c, k, v, i]) => `<div class="k ${c}"><small>${k}</small><b class="mono" style="font-size:15px">${v}</b><i>${i}</i></div>`).join('');
+  }
+  function tick(now) {
+    if (!st.playing || G.current !== 'bubble') { st.playing = false; $('bub-play').textContent = '▶ 播放'; return; }
+    const dt = st.last ? Math.min(0.05, (now - st.last) / 1000) : 0; st.last = now; const F = st.foam, before = F.collisions.length, wasEng = !!F.engulfed;
+    F.step(dt * 0.6); for (let k = before; k < F.collisions.length; k++) st.flashes.push(F.collisions[k]);
+    if (!wasEng && F.engulfed) { st.tries++; toast('你被一个真空泡吞没了——这里暴胀结束'); }
+    if (Math.floor(F.t * 4) !== Math.floor((F.t - dt * 0.6) * 4)) { st.lastFrac = F.falseFraction(1500); st.hist.push([F.t, st.lastFrac]); drawSurv(); inside(); landscape(); }
+    drawFoam(); hud(); st.raf = requestAnimationFrame(tick);
+  }
+  $('bub-play').addEventListener('click', () => { st.playing = !st.playing; $('bub-play').textContent = st.playing ? '⏸ 暂停' : '▶ 播放'; if (st.playing) { st.last = 0; st.raf = requestAnimationFrame(tick); } });
+  $('bub-reset').addEventListener('click', () => { st.seed = (st.seed * 13 + 5) % 1009 + 1; st.tries = 0; reset(); });
+  $('bub-move').addEventListener('click', () => { if (st.foam.relocate()) { $('bub-move').hidden = true; render(); toast('换到了一个还在假真空的点'); } else toast('窗口里已经没有假真空了：按重来'); });
+  $('bub-lam').addEventListener('input', () => { st.lam = Math.pow(10, +$('bub-lam').value); labels(); st.foam.lam = st.lam; drawSurv(); hud(); });
+  $('bub-land').addEventListener('change', () => { st.land = $('bub-land').checked; reset(); });
+  $('bub-N').addEventListener('input', () => { st.N = +$('bub-N').value; labels(); inside(); });
+  $('bub-forge').addEventListener('click', () => { // 装进创世台：Ω_m : Ω_Λ = 0.315 : 0.685x，Ω_m + Ω_Λ = 1 − Ω_k
+    const Ok = BUBBLE.interiorCurvature(st.N), F = st.foam, x = F.engulfed && st.land ? F.engulfed.bubble.lam : 1, S0 = 0.315 + 0.685 * x; if (S0 <= 0.03) { toast('这个泡的 Λ 太负，创世台上装不下（早就坍缩了）'); return; }
+    const tot = 1 - Math.min(Ok, 0.999), Om = +(0.315 / S0 * tot).toFixed(4), OL = +(0.685 * x / S0 * tot).toFixed(4);
+    G.forge.setParams({ H0: 67.4, Om, OL, Or: 9e-5, w: -1 }); $('bub-forge-note').textContent = `已装入：Ω_m = ${Om}，Ω_Λ = ${OL}，Ω_k ≈ ${Ok.toExponential(1)}`; G.show('forge'); window.scrollTo({ top: 0 }); });
+  window.addEventListener('resize', () => { if (G.current === 'bubble') render(); });
+  function enter() { if (!st.foam) { labels(); reset(); } else render(); }
+  function leave() { st.playing = false; $('bub-play').textContent = '▶ 播放'; }
+  window.GENESIS_HALLS = window.GENESIS_HALLS || []; window.GENESIS_HALLS.push((hall) => { G.current = hall; if (hall === 'bubble') enter(); else leave(); });
+})();
+
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
+// 多连通宇宙（宇宙拓扑）引擎：空间是平坦的三维环面 T³（或只有一两个方向周期的"烟囱"、"板"），局部和 FLRW 一模一样，整体有限无边。
+//   光绕回来：同一个星系在天上出现多次（鬼像），距离 |x + n·L|，n 是整数向量。
+//   最后散射面是半径 χ 的球；平移 v 后的像球和原球相交于一个圆：两个背靠背的圆心在 ±v̂，角半径 α = arccos(|v|/2χ)
+//   （Cornish–Spergel–Starkman 1998 的"天上的圈"），|v| < 2χ 才有。沿这对圆的 CMB 温度一模一样。
+//   CMB 用 Sachs–Wolfe 近似：ΔT/T ∝ Φ，Φ 是基本胞腔上的周期高斯随机场（P_Φ ∝ k^{−3}，标度不变），FFT 生成；
+//   天图把 χ 球上的点按周期折回胞腔，三线性插值——所以周期性、鬼像、匹配圆都是"真的"而不是画上去的。
+// 单位：长度以最后散射面的共动半径 χ 为 1。
+const TOPO = (function () {
+  function mulberry32(a) { return function () { a |= 0; a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+  function fft1(re, im, n, inv) {
+    for (let i = 1, j = 0; i < n; i++) { let bit = n >> 1; for (; j & bit; bit >>= 1) j ^= bit; j ^= bit; if (i < j) { let t = re[i]; re[i] = re[j]; re[j] = t; t = im[i]; im[i] = im[j]; im[j] = t; } }
+    for (let len = 2; len <= n; len <<= 1) { const ang = 2 * Math.PI / len * (inv ? 1 : -1), wr = Math.cos(ang), wi = Math.sin(ang); for (let i = 0; i < n; i += len) { let cr = 1, ci = 0; for (let j = 0; j < len / 2; j++) { const a = i + j, b = a + len / 2; const xr = re[b] * cr - im[b] * ci, xi = re[b] * ci + im[b] * cr; re[b] = re[a] - xr; im[b] = im[a] - xi; re[a] += xr; im[a] += xi; const t = cr * wr - ci * wi; ci = cr * wi + ci * wr; cr = t; } } }
+    if (inv) for (let i = 0; i < n; i++) { re[i] /= n; im[i] /= n; }
+  }
+  function fft3(re, im, n, inv) { // 三个方向各做一次
+    const tr = new Float64Array(n), ti = new Float64Array(n);
+    for (let ax = 0; ax < 3; ax++) { const s = [1, n, n * n][ax]; for (let a = 0; a < n; a++) for (let b = 0; b < n; b++) { const base = ax === 0 ? a * n + b * n * n : (ax === 1 ? a + b * n * n : a + b * n); for (let k = 0; k < n; k++) { tr[k] = re[base + k * s]; ti[k] = im[base + k * s]; } fft1(tr, ti, n, inv); for (let k = 0; k < n; k++) { re[base + k * s] = tr[k]; im[base + k * s] = ti[k]; } } }
+  }
+  // 基本胞腔上的周期高斯场：胞腔边长 L = [Lx, Ly, Lz]（以 χ 为单位），网格 n³；P(k) ∝ k^{−3}（k ≥ k_min），归一化到单位方差
+  const C0 = 4.2, SIG = 0.06; // C0：让 L = 4χ 的天图均方根 ≈ 1（n = 64）
+  function field(L, n, seed) {
+    n = n || 64; { let p = 1; while (p * 2 <= n) p *= 2; n = p; } // FFT 是基 2 的
+    const rnd = mulberry32(seed || 1), re = new Float64Array(n * n * n), im = new Float64Array(n * n * n);
+    for (let kz = 0; kz < n; kz++) for (let ky = 0; ky < n; ky++) for (let kx = 0; kx < n; kx++) {
+      const ix = kx <= n / 2 ? kx : kx - n, iy = ky <= n / 2 ? ky : ky - n, iz = kz <= n / 2 ? kz : kz - n;
+      const k = 2 * Math.PI * Math.hypot(ix / L[0], iy / L[1], iz / L[2]); const idx = kx + ky * n + kz * n * n; if (k === 0) continue;
+      // 功率谱固定（不随胞腔大小重新归一）：离散模的幅度 ∝ n³ √(P/V)，常数 C0 让 L → ∞ 时天图的均方根 ≈ 1
+      const P = Math.pow(k, -3) * Math.exp(-k * k * SIG * SIG); // 固定的物理平滑（σ = 0.06χ ≈ 3.4°），让结果不依赖网格分辨率
+      let u = 0; while (!u) u = rnd(); const g = Math.sqrt(-2 * Math.log(u)), th = 2 * Math.PI * rnd(), amp = C0 * Math.sqrt(P / 2) * g * n * n * n / Math.sqrt(L[0] * L[1] * L[2]);
+      re[idx] = amp * Math.cos(th); im[idx] = amp * Math.sin(th);
+    }
+    fft3(re, im, n, true);
+    const f = new Float32Array(re.length); for (let i = 0; i < re.length; i++) f[i] = re[i];
+    return { f, n, L };
+  }
+  // 三线性插值：x 以 χ 为单位（任意实数），按周期折回
+  function sample(F, x, y, z) {
+    const n = F.n, L = F.L; const u = ((x / L[0]) % 1 + 1) % 1 * n, v = ((y / L[1]) % 1 + 1) % 1 * n, w = ((z / L[2]) % 1 + 1) % 1 * n;
+    const i0 = Math.floor(u) % n, j0 = Math.floor(v) % n, k0 = Math.floor(w) % n, i1 = (i0 + 1) % n, j1 = (j0 + 1) % n, k1 = (k0 + 1) % n, fu = u - Math.floor(u), fv = v - Math.floor(v), fw = w - Math.floor(w), f = F.f;
+    const c = (i, j, k) => f[i + j * n + k * n * n];
+    return (1 - fw) * ((1 - fv) * ((1 - fu) * c(i0, j0, k0) + fu * c(i1, j0, k0)) + fv * ((1 - fu) * c(i0, j1, k0) + fu * c(i1, j1, k0))) + fw * ((1 - fv) * ((1 - fu) * c(i0, j0, k1) + fu * c(i1, j0, k1)) + fv * ((1 - fu) * c(i0, j1, k1) + fu * c(i1, j1, k1)));
+  }
+  // 全天图：观察者在原点，看半径 χ = 1 的球；等距柱状投影 W×H，方向 n = (sinθcosψ, sinθsinψ, cosθ)
+  function sky(F, W, H, out) {
+    out = out || new Float32Array(W * H);
+    for (let j = 0; j < H; j++) { const th = (j + 0.5) * Math.PI / H, st = Math.sin(th), ct = Math.cos(th); for (let i = 0; i < W; i++) { const ps = -Math.PI + (i + 0.5) * 2 * Math.PI / W; out[j * W + i] = sample(F, st * Math.cos(ps), st * Math.sin(ps), ct); } }
+    return out;
+  }
+  // 匹配圆：所有 |v| < 2 的平移向量 v = (nx Lx, ny Ly, nz Lz)（成对只算一次：取 v 和 −v 中字典序正的那个）
+  function circles(L, nmax) {
+    nmax = nmax || 2; const out = [];
+    for (let a = -nmax; a <= nmax; a++) for (let b = -nmax; b <= nmax; b++) for (let c = -nmax; c <= nmax; c++) {
+      if (!a && !b && !c) continue; if (a < 0 || (a === 0 && b < 0) || (a === 0 && b === 0 && c < 0)) continue;
+      const v = [a * L[0], b * L[1], c * L[2]], d = Math.hypot(v[0], v[1], v[2]); if (!(d < 2) || !isFinite(d)) continue;
+      out.push({ n: [a, b, c], v, d, alpha: Math.acos(d / 2), dir: v.map((q) => q / d) });
+    }
+    return out.sort((p, q) => p.d - q.d);
+  }
+  // 一对匹配圆上的点：圆心方向 ±dir，角半径 α；参数 φ ∈ [0, 2π)。两个圆上对应点在三维里相差 v（所以温度相同）
+  function circlePoints(c, m) {
+    const d = c.dir, up = Math.abs(d[2]) < 0.9 ? [0, 0, 1] : [1, 0, 0]; const e1 = cross(d, up), n1 = norm(e1), e2 = cross(d, n1); const A = [], B = [];
+    for (let k = 0; k < m; k++) { const ph = 2 * Math.PI * k / m, ca = Math.cos(c.alpha), sa = Math.sin(c.alpha); const p = [0, 1, 2].map((i) => ca * d[i] + sa * (Math.cos(ph) * n1[i] + Math.sin(ph) * e2[i])); A.push(p); B.push([p[0] - c.v[0], p[1] - c.v[1], p[2] - c.v[2]]); }
+    return { A, B }; // A 在原球上（|p| = 1），B = A − v 也在原球上（|A − v| = 1），方向是对面那个圆
+  }
+  function cross(a, b) { return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]; }
+  function norm(a) { const l = Math.hypot(a[0], a[1], a[2]) || 1; return a.map((v) => v / l); }
+  // 鬼像（二维环面示意）：星系 (x, y) 的像 (x + iLx, y + jLy)，取距离 < χ 的
+  function ghosts(gal, L, chi) {
+    const out = []; const imax = Math.ceil(chi / L[0]) + 1, jmax = Math.ceil(chi / L[1]) + 1;
+    for (const g of gal) for (let i = -imax; i <= imax; i++) for (let j = -jmax; j <= jmax; j++) { const x = g.x + i * L[0], y = g.y + j * L[1], d = Math.hypot(x, y); if (d < chi) out.push({ x, y, d, g, i, j, direct: i === 0 && j === 0 }); }
+    return out;
+  }
+  // 低阶多极：全天图在实球谐函数 ℓ = 1, 2, 3 上的功率 C_ℓ = Σ_m a_ℓm²/(2ℓ+1)（胞腔小于视界时大角度功率被截断）
+  function lowMultipoles(S, W, H) {
+    const Y = (th, ph) => { const c = Math.cos(th), s = Math.sin(th); return [
+      [Math.sqrt(3 / (4 * Math.PI)) * c, Math.sqrt(3 / (4 * Math.PI)) * s * Math.cos(ph), Math.sqrt(3 / (4 * Math.PI)) * s * Math.sin(ph)],
+      [Math.sqrt(5 / (16 * Math.PI)) * (3 * c * c - 1), Math.sqrt(15 / (4 * Math.PI)) * s * c * Math.cos(ph), Math.sqrt(15 / (4 * Math.PI)) * s * c * Math.sin(ph), Math.sqrt(15 / (16 * Math.PI)) * s * s * Math.cos(2 * ph), Math.sqrt(15 / (16 * Math.PI)) * s * s * Math.sin(2 * ph)],
+      [Math.sqrt(7 / (16 * Math.PI)) * (5 * c * c * c - 3 * c), Math.sqrt(21 / (32 * Math.PI)) * s * (5 * c * c - 1) * Math.cos(ph), Math.sqrt(21 / (32 * Math.PI)) * s * (5 * c * c - 1) * Math.sin(ph), Math.sqrt(105 / (16 * Math.PI)) * s * s * c * Math.cos(2 * ph), Math.sqrt(105 / (16 * Math.PI)) * s * s * c * Math.sin(2 * ph), Math.sqrt(35 / (32 * Math.PI)) * s * s * s * Math.cos(3 * ph), Math.sqrt(35 / (32 * Math.PI)) * s * s * s * Math.sin(3 * ph)]]; };
+    const a = [[0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]], dO = (2 * Math.PI / W) * (Math.PI / H); let mean = 0, tot = 0;
+    for (let j = 0; j < H; j++) { const th = (j + 0.5) * Math.PI / H, w = Math.sin(th) * dO; for (let i = 0; i < W; i++) { mean += S[j * W + i] * w; tot += w; } } mean /= tot;
+    for (let j = 0; j < H; j++) { const th = (j + 0.5) * Math.PI / H, w = Math.sin(th) * dO; for (let i = 0; i < W; i++) { const ph = -Math.PI + (i + 0.5) * 2 * Math.PI / W, y = Y(th, ph), v = (S[j * W + i] - mean) * w; for (let l = 0; l < 3; l++) for (let m = 0; m < a[l].length; m++) a[l][m] += v * y[l][m]; } }
+    return { C1: a[0].reduce((s, v) => s + v * v, 0) / 3, C2: a[1].reduce((s, v) => s + v * v, 0) / 5, C3: a[2].reduce((s, v) => s + v * v, 0) / 7 };
+  }
+  return { field, sample, sky, circles, circlePoints, ghosts, lowMultipoles, fft3, mulberry32 };
+})();
+
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
+// 多连通宇宙展区的页面逻辑：引擎在 topo.js；这里管胞腔与鬼像、CMB 天图与匹配圆、低阶多极扫描。
+(function () {
+  const G = window.GENESIS, $ = G.$, chart = G.chart, fit = G.fit, sig = G.sig, CSS = G.CSS, gyr = G.gyr, toast = G.toast;
+  const W = 360, H = 180, BIG = 60; // 天图分辨率；非周期方向的"无限"胞腔边长
+  const st = { L: 1.2, shape: 't3', seed: 7, F: null, sky: null, circles: [], hoverC: -1, hoverG: null, gal: null, img: null, timer: null, scan: null, zchi: null };
+  const PAL = ['#f2c14e', '#5fe0cf', '#ff6f87', '#b08cff', '#8fd65a', '#ff9f6f', '#6fb5ff', '#ffd1dc', '#d9a066', '#7fffd4'];
+  const PRESETS = [{ id: 'small', name: '小环面', sub: 'L = 0.7χ：鬼像满天、大圆对', L: 0.7, shape: 't3' }, { id: 'mid', name: '中等', sub: 'L = 1.2χ：九对圆', L: 1.2, shape: 't3' }, { id: 'planck', name: 'Planck 的边界', sub: 'L = 1.9χ：圆只剩 18°', L: 1.9, shape: 't3' }, { id: 'big', name: '比视界大', sub: 'L = 2.4χ：什么都看不出', L: 2.4, shape: 't3' }, { id: 'slab', name: '板', sub: '只有一个方向周期', L: 0.9, shape: 'slab' }];
+  function Lvec() { return st.shape === 't3' ? [st.L, st.L, st.L] : (st.shape === 'chimney' ? [st.L, st.L, BIG] : [st.L, BIG, BIG]); }
+  // χ(z) 表：把以 χ_LSS 为单位的共动距离换成红移和回看时间（Planck 宇宙）
+  function zchi() {
+    if (st.zchi) return st.zchi; const m = COSMO.norm(COSMO.FIDUCIAL), T = COSMO.chiTable(m, 1100, 6000), R = COSMO.solve(COSMO.FIDUCIAL), chiLSS = COSMO.chiAt(T, 1090); const zs = [], cs = [], tl = [];
+    for (let i = 0; i <= 400; i++) { const z = Math.pow(1090, i / 400) - 1; const c = COSMO.chiAt(T, z) / chiLSS; zs.push(z); cs.push(c); tl.push(-COSMO.tOfA(R, 1 / (1 + z)) * COSMO.GYR / m.H0); }
+    return (st.zchi = { zs, cs, tl, chiGpc: chiLSS * COSMO.CKMS / m.H0 / 1000, age: R.age * COSMO.GYR / m.H0 });
+  }
+  function lookback(d) { const Z = zchi(); if (d >= 1) return { z: 1090, t: Z.age }; let i = 0; while (i < Z.cs.length - 1 && Z.cs[i + 1] < d) i++; const u = (d - Z.cs[i]) / (Z.cs[i + 1] - Z.cs[i] || 1); return { z: Z.zs[i] + (Z.zs[i + 1] - Z.zs[i]) * u, t: Z.tl[i] + (Z.tl[i + 1] - Z.tl[i]) * u }; }
+  function galaxies() { if (st.gal) return st.gal; const r = TOPO.mulberry32(11); st.gal = []; for (let i = 0; i < 9; i++) st.gal.push({ x: (r() - 0.5) * 0.9, y: (r() - 0.5) * 0.9, c: PAL[i % PAL.length], name: '星系 ' + String.fromCharCode(65 + i) }); return st.gal; }
+  function build() { st.F = TOPO.field(Lvec(), 64, st.seed); st.sky = TOPO.sky(st.F, W, H); st.circles = TOPO.circles(Lvec(), 2); st.img = null; render(); }
+  function labels() { $('topo-v-L').textContent = st.L.toFixed(2) + ' χ'; for (const b of document.querySelectorAll('#topo-presets .chip')) { const p = PRESETS.find((q) => q.id === b.dataset.id); b.classList.toggle('on', !!p && Math.abs(p.L - st.L) < 1e-9 && p.shape === st.shape); } }
+  function render() { drawCell(); drawSky(); drawMatch(); drawCl(); cards(); }
+  // ① 胞腔与鬼像（二维：用 x、y 的周期）
+  function drawCell() {
+    const cv = $('c-topo-cell'), { ctx, w, h } = fit(cv); ctx.fillStyle = '#060913'; ctx.fillRect(0, 0, w, h);
+    const Lx = st.L, Ly = st.shape === 'slab' ? BIG : st.L, sc = Math.min(w, h) * 0.46, cx = w / 2, cy = h / 2, X = (x) => cx + x * sc, Y = (y) => cy - y * sc;
+    const gal = galaxies(), gh = TOPO.ghosts(gal, [Lx, Ly], 1); st.ghosts = gh;
+    // 胞腔网格
+    ctx.strokeStyle = 'rgba(152,164,199,0.35)'; ctx.lineWidth = 1; const imax = Math.ceil(1.2 / Lx) + 1;
+    for (let i = -imax; i <= imax; i++) { const x = (i + 0.5) * Lx; if (Math.abs(x) > 1.25) continue; ctx.beginPath(); ctx.moveTo(X(x), 0); ctx.lineTo(X(x), h); ctx.stroke(); }
+    if (st.shape !== 'slab') for (let j = -imax; j <= imax; j++) { const y = (j + 0.5) * Ly; if (Math.abs(y) > 1.25) continue; ctx.beginPath(); ctx.moveTo(0, Y(y)); ctx.lineTo(w, Y(y)); ctx.stroke(); }
+    ctx.strokeStyle = CSS('--gold'); ctx.lineWidth = 2; ctx.strokeRect(X(-Lx / 2), Y(Ly / 2), Lx * sc, Math.min(Ly, 3) * sc);
+    ctx.strokeStyle = 'rgba(233,237,249,0.6)'; ctx.setLineDash([5, 5]); ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(cx, cy, sc, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
+    // 像
+    const hovName = st.hoverG;
+    for (const q of gh) { const on = hovName === q.g.name; ctx.globalAlpha = hovName && !on ? 0.25 : 1; ctx.fillStyle = q.g.c; ctx.beginPath(); ctx.arc(X(q.x), Y(q.y), q.direct ? 6 : 4, 0, Math.PI * 2); ctx.fill(); if (!q.direct) { ctx.strokeStyle = '#060913'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(X(q.x), Y(q.y), 2, 0, Math.PI * 2); ctx.stroke(); } if (on) { ctx.strokeStyle = q.g.c; ctx.lineWidth = 1; ctx.setLineDash([2, 3]); ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(X(q.x), Y(q.y)); ctx.stroke(); ctx.setLineDash([]); } }
+    ctx.globalAlpha = 1; ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(cx, cy, 4, 0, Math.PI * 2); ctx.fill(); ctx.font = '600 12px Space Grotesk, sans-serif'; ctx.textAlign = 'center'; ctx.fillText('你', cx, cy - 9);
+    ctx.fillStyle = CSS('--dim'); ctx.font = '11px Space Grotesk, sans-serif'; ctx.textAlign = 'left'; ctx.fillText(w < 420 ? `金框 = 胞腔 L = ${st.L.toFixed(2)}χ　大点本尊，小点鬼像` : `金框 = 基本胞腔 L = ${st.L.toFixed(2)}χ　虚线圆 = 最后散射面（χ）　大点 = 本尊，小点 = 鬼像`, 10, h - 10);
+    ctx.textAlign = 'right'; ctx.fillText(`圆内共 ${gh.length} 个像 / ${gal.length} 个星系`, w - 10, 12);
+  }
+  // ② 天图
+  function drawSky() {
+    const cv = $('c-topo-sky'), { ctx, w, h } = fit(cv); ctx.fillStyle = '#060913'; ctx.fillRect(0, 0, w, h);
+    if (!st.img) { st.img = document.createElement('canvas'); st.img.width = W; st.img.height = H; const ic = st.img.getContext('2d'), im = ic.createImageData(W, H), d = im.data; for (let p = 0; p < W * H; p++) { const v = Math.max(-1, Math.min(1, st.sky[p] / 2.2)); const o = p * 4; if (v < 0) { d[o] = 40 + 40 * (1 + v); d[o + 1] = 80 + 120 * (1 + v); d[o + 2] = 220; } else { d[o] = 220; d[o + 1] = 200 - 160 * v; d[o + 2] = 200 - 180 * v; } d[o + 3] = 255; } ic.putImageData(im, 0, 0); }
+    ctx.imageSmoothingEnabled = true; ctx.drawImage(st.img, 0, 0, w, h);
+    // 匹配圆
+    const X = (ps) => (ps + Math.PI) / (2 * Math.PI) * w, Y = (th) => th / Math.PI * h;
+    st.circles.forEach((c, k) => { const col = PAL[k % PAL.length], on = st.hoverC === k; ctx.strokeStyle = col; ctx.lineWidth = on ? 3 : 1.5; ctx.globalAlpha = st.hoverC >= 0 && !on ? 0.35 : 0.95; const cp = TOPO.circlePoints(c, 120);
+      for (const arr of [cp.A, cp.B]) { ctx.beginPath(); let prev = null; for (const p of arr) { const th = Math.acos(Math.max(-1, Math.min(1, p[2]))), ps = Math.atan2(p[1], p[0]); const x = X(ps), y = Y(th); if (prev && Math.abs(x - prev) > w / 2) ctx.moveTo(x, y); else if (prev === null) ctx.moveTo(x, y); else ctx.lineTo(x, y); prev = x; } ctx.stroke(); } });
+    ctx.globalAlpha = 1; ctx.fillStyle = 'rgba(233,237,249,0.85)'; ctx.font = '11px Space Grotesk, sans-serif'; ctx.textAlign = 'left'; ctx.fillText('ψ = −180°', 4, h - 6); ctx.textAlign = 'right'; ctx.fillText('+180°', w - 4, h - 6); ctx.textAlign = 'left'; ctx.fillText(st.circles.length ? `${st.circles.length} 对匹配圆（同色一对）` : '没有匹配圆：胞腔比最后散射面的直径还大', 4, 12);
+  }
+  function drawMatch() {
+    const cv = $('c-topo-match'), k = st.hoverC; if (k < 0 || !st.circles[k]) { const { ctx, w, h } = fit(cv); ctx.clearRect(0, 0, w, h); ctx.fillStyle = CSS('--dim'); ctx.font = '12px Space Grotesk'; ctx.textAlign = 'center'; ctx.fillText(st.circles.length ? '把鼠标放到一对圆上：画出沿两个圆的温度' : '', w / 2, h / 2); return; }
+    const c = st.circles[k], cp = TOPO.circlePoints(c, 180), xs = [], a = [], b = []; for (let i = 0; i < 180; i++) { xs.push(i * 2); a.push(TOPO.sample(st.F, cp.A[i][0], cp.A[i][1], cp.A[i][2])); b.push(TOPO.sample(st.F, cp.B[i][0], cp.B[i][1], cp.B[i][2])); }
+    const ymax = Math.max(1, ...a.map(Math.abs));
+    chart(cv, { xmin: 0, xmax: 360, ymin: -ymax, ymax, xlabel: `沿圆的角度 φ（圆对 ${k + 1}：平移 ${c.n.join(',')}，角半径 ${(c.alpha * 180 / Math.PI).toFixed(1)}°）`, ylabel: 'ΔT', padL: 40, series: [{ xs, ys: a, color: PAL[k % PAL.length], width: 3 }, { xs, ys: b, color: '#fff', width: 1, dash: [4, 3] }] });
+  }
+  function drawCl() {
+    const cv = $('c-topo-cl'); if (!st.scan) { const { ctx, w, h } = fit(cv); ctx.clearRect(0, 0, w, h); ctx.fillStyle = CSS('--dim'); ctx.font = '13px Space Grotesk'; ctx.textAlign = 'center'; ctx.fillText('按"扫一遍"', w / 2, h / 2); return; }
+    const S = st.scan; chart(cv, { xmin: 0.3, xmax: 4.2, ymin: 1e-3, ymax: 2, ylog: true, xlabel: 'L / χ', ylabel: 'C_ℓ（相对 L = 4）', padL: 48, series: [{ xs: S.Ls, ys: S.C2, color: CSS('--gold') }, { xs: S.Ls, ys: S.C3, color: CSS('--teal') }], vlines: [{ x: st.L, color: CSS('--coral'), label: '当前 L' }] });
+  }
+  function cards() {
+    const cs = st.circles, amax = cs.length ? cs[0].alpha * 180 / Math.PI : 0, amin = cs.length ? cs[cs.length - 1].alpha * 180 / Math.PI : 0, Z = zchi();
+    const excluded = cs.length && amax > 15;
+    $('topo-sky-cards').innerHTML = [[excluded ? 'coral' : 'teal', 'Planck 的匹配圆搜索', cs.length ? `最大的圆对半径 ${amax.toFixed(1)}°` : '没有圆', excluded ? '半径 > 15° 的圆对 Planck 2015 都没找到：这个胞腔被排除 ✗' : (cs.length ? '圆太小，搜索看不到：还活着' : '胞腔比最后散射面直径大：拓扑看不出来')]].map(([c, k, v, i]) => `<div class="k ${c}"><small>${k}</small><b class="mono" style="font-size:15px">${v}</b><i>${i}</i></div>`).join('');
+    $('topo-cards').innerHTML = [['gold', '胞腔的实际大小', `${(st.L * Z.chiGpc).toFixed(1)} Gpc`, `χ_LSS ≈ ${Z.chiGpc.toFixed(1)} Gpc（Planck 宇宙的共动距离）`], ['teal', '匹配圆对', String(cs.length), cs.length ? `角半径 ${amin.toFixed(0)}°–${amax.toFixed(0)}°` : 'L ≥ 2χ 时为零'], ['violet', '切片里的鬼像', String(st.ghosts ? st.ghosts.length : 0), '最后散射面之内，每个星系的像数 ≈ πχ²/L²']].map(([c, k, v, i]) => `<div class="k ${c}"><small>${k}</small><b class="mono" style="font-size:15px">${v}</b><i>${i}</i></div>`).join('');
+  }
+  // ---- 交互 ----
+  const cell = $('c-topo-cell');
+  cell.addEventListener('pointermove', (ev) => { const r = cell.getBoundingClientRect(), w = r.width, h = r.height, sc = Math.min(w, h) * 0.46; const x = (ev.clientX - r.left - w / 2) / sc, y = -(ev.clientY - r.top - h / 2) / sc; let best = null; for (const q of (st.ghosts || [])) { const d = Math.hypot(q.x - x, q.y - y); if (d < 0.05 && (!best || d < best.d)) best = { q, d }; }
+    const name = best ? best.q.g.name : null; if (name !== st.hoverG) { st.hoverG = name; drawCell(); if (best) { const q = best.q, all = st.ghosts.filter((z) => z.g.name === name).sort((p, s) => p.d - s.d); $('topo-ghost').innerHTML = `<b style="color:${q.g.c}">${name}</b>：圆内 ${all.length} 个像。` + all.slice(0, 6).map((z) => { const lb = lookback(z.d); return `距离 ${z.d.toFixed(2)}χ = ${(z.d * zchi().chiGpc).toFixed(1)} Gpc（z ≈ ${sig(lb.z, 2)}，${gyr(lb.t)} 前的样子）${z.direct ? '【本尊】' : ''}`; }).join('；') + (all.length > 6 ? '…' : ''); } else $('topo-ghost').textContent = ''; } });
+  cell.addEventListener('pointerleave', () => { st.hoverG = null; drawCell(); $('topo-ghost').textContent = ''; });
+  const skyc = $('c-topo-sky');
+  skyc.addEventListener('pointermove', (ev) => { const r = skyc.getBoundingClientRect(); const ps = -Math.PI + (ev.clientX - r.left) / r.width * 2 * Math.PI, th = (ev.clientY - r.top) / r.height * Math.PI; const n = [Math.sin(th) * Math.cos(ps), Math.sin(th) * Math.sin(ps), Math.cos(th)]; let best = -1, bd = 0.06;
+    st.circles.forEach((c, k) => { for (const s of [1, -1]) { const cosang = s * (n[0] * c.dir[0] + n[1] * c.dir[1] + n[2] * c.dir[2]); const d = Math.abs(Math.acos(Math.max(-1, Math.min(1, cosang))) - c.alpha); if (d < bd) { bd = d; best = k; } } });
+    if (best !== st.hoverC) { st.hoverC = best; drawSky(); drawMatch(); } });
+  skyc.addEventListener('pointerleave', () => { st.hoverC = -1; drawSky(); drawMatch(); });
+  const chips = $('topo-presets'); for (const p of PRESETS) { const b = document.createElement('button'); b.className = 'chip'; b.dataset.id = p.id; b.innerHTML = `${p.name}<small>${p.sub}</small>`; b.addEventListener('click', () => { st.L = p.L; st.shape = p.shape; $('topo-L').value = p.L; $('topo-shape').value = p.shape; labels(); build(); }); chips.appendChild(b); }
+  $('topo-L').addEventListener('input', () => { st.L = +$('topo-L').value; labels(); clearTimeout(st.timer); st.timer = setTimeout(build, 200); drawCell(); });
+  $('topo-shape').addEventListener('change', () => { st.shape = $('topo-shape').value; labels(); build(); });
+  $('topo-reseed').addEventListener('click', () => { st.seed = (st.seed * 7 + 3) % 1000 + 1; build(); });
+  $('topo-scan').addEventListener('click', () => { $('topo-scan-note').textContent = '计算中…'; setTimeout(() => { const Ls = [0.4, 0.6, 0.8, 1, 1.3, 1.6, 2, 2.5, 3, 4], C2 = [], C3 = []; for (const L of Ls) { let c2 = 0, c3 = 0; for (const seed of [1, 2, 3]) { const S = TOPO.sky(TOPO.field([L, L, L], 64, seed), 180, 90), m = TOPO.lowMultipoles(S, 180, 90); c2 += m.C2 / 3; c3 += m.C3 / 3; } C2.push(c2); C3.push(c3); } const n2 = C2[C2.length - 1], n3 = C3[C3.length - 1]; st.scan = { Ls, C2: C2.map((v) => v / n2), C3: C3.map((v) => v / n3) }; $('topo-scan-note').textContent = `每个 L 三个随机场平均；L = 0.6χ 时 C₂ 只剩 ${(st.scan.C2[1] * 100).toFixed(0)}%`; drawCl(); }, 30); });
+  window.addEventListener('resize', () => { if (G.current === 'topo') render(); });
+  function enter() { if (!st.F) { labels(); build(); } else render(); }
+  window.GENESIS_HALLS = window.GENESIS_HALLS || []; window.GENESIS_HALLS.push((hall) => { G.current = hall; if (hall === 'topo') enter(); });
+})();
+
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
+// 2+1 维引力引擎：两维空间 + 一维时间里的广义相对论。
+//   这里 Riemann 张量完全由 Ricci 张量决定：真空处处局部平坦（Λ = 0）或局部 (A)dS——没有引力波、没有牛顿引力。
+//   质点 m 只把平面剪掉一个角 δ = 8πGm 再粘上（锥形亏角，Deser–Jackiw–'t Hooft 1984）：光线在剪开的图上是直线，
+//   粘起来后从质点两侧绕过的两条直线都能到观察者——两个像，夹角正好是 δ，和距离无关。总亏角到 2π 空间就闭合（球面）。
+//   Λ < 0 时有 BTZ 黑洞（Bañados–Teitelboim–Zanelli 1992）：ds² = −f dt² + dr²/f + r²dφ²，f = r²/ℓ² − M，
+//   视界 r₊ = ℓ√M，霍金温度 T = r₊/(2πℓ²)，熵 S = 2πr₊/(4G)（"面积"就是周长）。测地线：E、L 守恒，ṙ² = E² − f(κ + L²/r²)，κ = 1 有质量、0 光。
+//   2+1 维的弗里德曼方程：H² + k/a² = 8πGρ，ä/a = −8πGp：尘埃（p = 0）不减速——没有引力吸引。
+// 单位：G = c = 1（2+1 维里 G 无量纲？不：这里 8πG = 1 的单位把亏角写成 δ = m）。
+const GRAVITY21 = (function () {
+  // ---------- 锥 ----------
+  // 剪开的图：去掉以 +x 轴为中心、张角 δ 的楔；点的极角 φ ∈ (δ/2, 2π − δ/2) 才在图上
+  function inChart(x, y, delta) { let ph = Math.atan2(y, x); if (ph < 0) ph += 2 * Math.PI; return ph > delta / 2 && ph < 2 * Math.PI - delta / 2; }
+  function rot(p, a) { const c = Math.cos(a), s = Math.sin(a); return [c * p[0] - s * p[1], s * p[0] + c * p[1]]; }
+  // 线段 P→Q 是否整段在图上（不穿过楔）
+  function segmentOK(P, Q, delta) { for (let i = 0; i <= 200; i++) { const u = i / 200, x = P[0] + (Q[0] - P[0]) * u, y = P[1] + (Q[1] - P[1]) * u; if (Math.hypot(x, y) < 1e-9) continue; if (!inChart(x, y, delta)) return false; } return true; }
+  // 观察者 O、光源 S（都在图上）：像 = 到 S 或它的副本 R(±δ)S 的直线，条件是这条直线"正确地"穿过粘合边：
+  //   直线绕顶点扫过的极角是单调的（|Δφ| < π），从 O 的极角出发，终点极角 φ_end：
+  //   k = 0 直接：φ_end 落在图上 (δ/2, 2π − δ/2)；k = +1：向下扫过边 e₊（φ_end < δ/2）；k = −1：向上扫过边 e₋（φ_end > 2π − δ/2）
+  function images(O, S, delta) {
+    const out = []; let phO = Math.atan2(O[1], O[0]); if (phO < 0) phO += 2 * Math.PI;
+    for (const [k, T] of [[0, S], [1, rot(S, delta)], [-1, rot(S, -delta)]]) {
+      const sweep = Math.atan2(O[0] * T[1] - O[1] * T[0], O[0] * T[0] + O[1] * T[1]), phEnd = phO + sweep; // 连续扫角
+      const valid = k === 0 ? (phEnd > delta / 2 && phEnd < 2 * Math.PI - delta / 2) : (k === 1 ? (phEnd < delta / 2 && phEnd > -delta / 2) : (phEnd > 2 * Math.PI - delta / 2 && phEnd < 2 * Math.PI + delta / 2));
+      if (!valid) continue; const dx = T[0] - O[0], dy = T[1] - O[1]; out.push({ copy: k, target: T, dir: Math.atan2(dy, dx), dist: Math.hypot(dx, dy), sweep });
+    }
+    return out;
+  }
+  // 粘起来的锥：把图上的极角 φ ∈ [δ/2, 2π − δ/2] 均匀拉到 [0, 2π]（画面坐标）
+  function glue(x, y, delta) { const r = Math.hypot(x, y); let ph = Math.atan2(y, x); if (ph < 0) ph += 2 * Math.PI; const ph2 = (ph - delta / 2) * 2 * Math.PI / (2 * Math.PI - delta); return [r * Math.cos(ph2), r * Math.sin(ph2)]; }
+  // ---------- BTZ ----------
+  function btz(M, ell) { const rp = ell * Math.sqrt(Math.max(M, 0)); return { M, ell, rp, f: (r) => r * r / (ell * ell) - M, T: rp / (2 * Math.PI * ell * ell), S: 2 * Math.PI * rp / 4, centralCharge: 3 * ell / 2 }; }
+  // 测地线：状态 (r, ṙ, φ, t)，仿射参数 λ；κ = 1 有质量（λ 是固有时）、0 光
+  function geodesic(B, o) {
+    const E = o.E, L = o.L, kap = o.massive ? 1 : 0, f = B.f, dl = o.dl || 0.01, lMax = o.lambdaMax || 60; const fp = (r) => 2 * r / (B.ell * B.ell);
+    const V = (r) => f(r) * (kap + L * L / (r * r)), Vp = (r) => fp(r) * (kap + L * L / (r * r)) - f(r) * 2 * L * L / (r * r * r);
+    let r = o.r0, v2 = E * E - V(r); if (v2 < 0) return { ok: false, why: 'E 太小：这里不允许' }; let v = (o.outward === false ? -1 : 1) * Math.sqrt(v2), ph = o.phi0 || 0, t = 0, lam = 0; const out = { r: [r], phi: [ph], t: [0], lam: [0], ok: true, fate: null };
+    let n = 0;
+    while (lam < lMax && n++ < 200000) {
+      const a = (r) => -0.5 * Vp(r);
+      const k1r = v, k1v = a(r), r2 = r + 0.5 * dl * k1r, k2r = v + 0.5 * dl * k1v, k2v = a(r2), r3 = r + 0.5 * dl * k2r, k3r = v + 0.5 * dl * k2v, k3v = a(r3), r4 = r + dl * k3r, k4r = v + dl * k3v, k4v = a(r4);
+      const nr = r + dl / 6 * (k1r + 2 * k2r + 2 * k3r + k4r); v += dl / 6 * (k1v + 2 * k2v + 2 * k3v + k4v); ph += dl * L / (r * r); const fr = f(r); t += dl * E / Math.max(fr, 1e-6); r = nr; lam += dl;
+      out.r.push(r); out.phi.push(ph); out.t.push(t); out.lam.push(lam);
+      if (r <= B.rp * 1.001) { out.fate = 'horizon'; break; }
+      if (r > 30 * B.ell && v > 0) { v = -v; out.bounces = (out.bounces || 0) + 1; } // AdS 边界：光在有限坐标时间到达无穷远并被反射（这里在 r = 30ℓ 处翻转径向速度作近似）
+    }
+    if (!out.fate) out.fate = out.bounces ? 'bounce' : 'orbit';
+    // 核对 E：ṙ² + V = E²
+    out.rmin = Math.min(...out.r); out.rmax = Math.max(...out.r); out.energyErr = Math.abs(v * v + V(r) - E * E) / (E * E);
+    return out;
+  }
+  // 有效势的转折点：E² = V(r) 的根（画轨道范围用）
+  function turning(B, E, L, massive) { const kap = massive ? 1 : 0, V = (r) => B.f(r) * (kap + L * L / (r * r)); const roots = []; let prev = null; for (let i = 1; i <= 4000; i++) { const r = B.rp * 1.0001 + (40 * B.ell - B.rp) * i / 4000, g = E * E - V(r); if (prev !== null && prev * g <= 0) roots.push(r); prev = g; } return roots; }
+  // ---------- 2+1 维 FLRW ----------
+  // H² + k/a² = 8πGρ，ä/a = −8πGp；8πG = 1。成分：尘埃 ρ_d ∝ a⁻²（p=0）、辐射 ρ_r ∝ a⁻³（p = ρ/2）、Λ（ρ = Λ，p = −Λ）
+  function flrw21(o) {
+    const Od = o.dust || 0, Or = o.rad || 0, OL = o.lambda || 0, k = o.k || 0, dt = 0.002, tMax = o.tMax || 6; // 以今天 a = 1、H₀ = 1 定标：Ω_d + Ω_r + Ω_Λ − k = 1
+    let a = 1, v = 1, t = 0; const out = { ts: [0], as: [1] }; const acc = (a) => a * (-(Or / (2 * a * a * a)) + OL); // ä/a = −p：辐射 p = ρ_r/2，Λ p = −Λ
+    for (let dir of [-1, 1]) { a = 1; v = 1; t = 0; const ts = [], as = []; let n = 0; while (n++ < 20000) { const h = dir * dt; const k1 = [v, acc(a)], a2 = a + 0.5 * h * k1[0], v2 = v + 0.5 * h * k1[1], k2 = [v2, acc(a2)], a3 = a + 0.5 * h * k2[0], v3 = v + 0.5 * h * k2[1], k3 = [v3, acc(a3)], a4 = a + h * k3[0], v4 = v + h * k3[1], k4 = [v4, acc(a4)]; a += h / 6 * (k1[0] + 2 * k2[0] + 2 * k3[0] + k4[0]); v += h / 6 * (k1[1] + 2 * k2[1] + 2 * k3[1] + k4[1]); t += h; if (a <= 1e-4 || a > 40 || Math.abs(t) > tMax) break; ts.push(t); as.push(a); } if (dir < 0) { out.ts = ts.reverse().concat(out.ts); out.as = as.reverse().concat(out.as); } else { out.ts = out.ts.concat(ts); out.as = out.as.concat(as); } }
+    return out;
+  }
+  return { inChart, rot, segmentOK, images, glue, btz, geodesic, turning, flrw21 };
+})();
+
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
+// 2+1 维引力展区的页面逻辑：引擎在 gravity21.js；这里管锥的双像（剪开/粘上两张图）、BTZ 轨道与有效势、2+1 维宇宙学曲线。
+(function () {
+  const G = window.GENESIS, $ = G.$, chart = G.chart, fit = G.fit, sig = G.sig, CSS = G.CSS;
+  const st = { delta: 0.6, src: [5.5, 0.9], O: [-3, 0], drag: false, M: 1, ell: 1, E: 5, L: 1.5, kind: 'massive', orbit: null, anim: 0, raf: 0, flrw: null };
+  function labels() { $('g21-v-delta').textContent = st.delta.toFixed(2) + ' rad = ' + (st.delta * 180 / Math.PI).toFixed(0) + '°'; $('g21-v-M').textContent = st.M.toFixed(2); $('g21-v-E').textContent = st.E.toFixed(2); $('g21-v-L').textContent = st.L.toFixed(2); }
+  // ---- ① 锥 ----
+  function cone() {
+    const d = st.delta, O = st.O; let S = st.src; // 光源必须在图上：不在就推到最近的边外一点
+    if (!GRAVITY21.inChart(S[0], S[1], d)) { const r = Math.hypot(S[0], S[1]); let ph = Math.atan2(S[1], S[0]); if (ph < 0) ph += 2 * Math.PI; ph = ph < Math.PI ? d / 2 + 0.01 : 2 * Math.PI - d / 2 - 0.01; S = [r * Math.cos(ph), r * Math.sin(ph)]; st.src = S; }
+    const im = GRAVITY21.images(O, S, d); drawCut(im); drawGlue(im);
+    const sep = im.length === 2 ? Math.abs(im[0].dir - im[1].dir) : 0;
+    $('g21-cone-cards').innerHTML = [[im.length === 2 ? 'gold' : 'teal', '你看到几个像', String(im.length), im.length === 2 ? `两像夹角 ${(sep * 180 / Math.PI).toFixed(1)}°（远处光源 → δ = ${(d * 180 / Math.PI).toFixed(0)}°）` : '光源不在质点背后：只有一个像'], ['violet', '质量', `m = δ/8πG = ${(d / (8 * Math.PI)).toFixed(3)} /G`, `这样的质点 ${(2 * Math.PI / d).toFixed(1)} 个就把空间闭合成球`]].map(([c, k, v, i]) => `<div class="k ${c}"><small>${k}</small><b class="mono" style="font-size:15px">${v}</b><i>${i}</i></div>`).join('');
+  }
+  function drawCut(im) {
+    const cv = $('c-g21-cut'), { ctx, w, h } = fit(cv), d = st.delta, sc = Math.min(w, h) / 14, cx = w / 2, cy = h / 2, X = (p) => cx + p[0] * sc, Y = (p) => cy - p[1] * sc;
+    ctx.fillStyle = '#060913'; ctx.fillRect(0, 0, w, h);
+    // 楔（去掉的部分）
+    ctx.fillStyle = 'rgba(255,111,135,0.18)'; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, w, -d / 2, d / 2); ctx.closePath(); ctx.fill(); ctx.strokeStyle = CSS('--coral'); ctx.setLineDash([4, 4]); ctx.lineWidth = 1; for (const s of [1, -1]) { ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + w * Math.cos(s * d / 2), cy - w * Math.sin(s * d / 2)); ctx.stroke(); } ctx.setLineDash([]);
+    // 光线：直线 O→像的目标
+    for (const q of im) { ctx.strokeStyle = q.copy === 0 ? CSS('--gold') : CSS('--teal'); ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(X(st.O), Y(st.O)); ctx.lineTo(X(q.target), Y(q.target)); ctx.stroke(); if (q.copy !== 0) { ctx.fillStyle = CSS('--teal'); ctx.globalAlpha = 0.6; ctx.beginPath(); ctx.arc(X(q.target), Y(q.target), 5, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1; } }
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(cx, cy, 4, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = CSS('--gold'); ctx.beginPath(); ctx.arc(X(st.src), Y(st.src), 6, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = CSS('--violet'); ctx.beginPath(); ctx.arc(X(st.O), Y(st.O), 5, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = CSS('--dim'); ctx.font = '11px Space Grotesk, sans-serif'; ctx.textAlign = 'left'; ctx.fillText('剪开的平面：红楔去掉，两条虚线粘在一起；光是直线', 6, 14); ctx.fillText('紫 = 你　金 = 光源（拖）　青 = 光源的副本', 6, h - 8);
+  }
+  function drawGlue(im) {
+    const cv = $('c-g21-glue'), { ctx, w, h } = fit(cv), d = st.delta, sc = Math.min(w, h) / 14, cx = w / 2, cy = h / 2, P = (p) => { const g = GRAVITY21.glue(p[0], p[1], d); return [cx + g[0] * sc, cy - g[1] * sc]; };
+    ctx.fillStyle = '#060913'; ctx.fillRect(0, 0, w, h);
+    // 网格圆 + 径向线，显示"粘合"后的样子
+    ctx.strokeStyle = 'rgba(152,164,199,0.2)'; ctx.lineWidth = 1; for (let r = 2; r <= 8; r += 2) { ctx.beginPath(); ctx.arc(cx, cy, r * sc, 0, Math.PI * 2); ctx.stroke(); }
+    for (const q of im) { ctx.strokeStyle = q.copy === 0 ? CSS('--gold') : CSS('--teal'); ctx.lineWidth = 2; ctx.beginPath(); for (let i = 0; i <= 120; i++) { const u = i / 120; const x = st.O[0] + (q.target[0] - st.O[0]) * u, y = st.O[1] + (q.target[1] - st.O[1]) * u; // 副本的点折回图上：旋回 −kδ
+        const r = GRAVITY21.rot([x, y], -q.copy * d * (GRAVITY21.inChart(x, y, d) ? 0 : 1)); const p = P(r); if (i) ctx.lineTo(p[0], p[1]); else ctx.moveTo(p[0], p[1]); } ctx.stroke(); }
+    const s = P(st.src), o = P(st.O); ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(cx, cy, 4, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = CSS('--gold'); ctx.beginPath(); ctx.arc(s[0], s[1], 6, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = CSS('--violet'); ctx.beginPath(); ctx.arc(o[0], o[1], 5, 0, Math.PI * 2); ctx.fill();
+    // 观察者看到的方向
+    for (const q of im) { const a = P([st.O[0] + 1.2 * Math.cos(q.dir), st.O[1] + 1.2 * Math.sin(q.dir)]); ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(o[0], o[1]); ctx.lineTo(a[0], a[1]); ctx.stroke(); }
+    ctx.fillStyle = CSS('--dim'); ctx.font = '11px Space Grotesk, sans-serif'; ctx.textAlign = 'left'; ctx.fillText('粘起来的锥（从上面看）：同样的光线看起来弯了', 6, 14); ctx.fillText(im.length === 2 ? '两条光线、两个像' : '一条光线、一个像', 6, h - 8);
+  }
+  const cut = $('c-g21-cut');
+  const toWorld = (ev) => { const r = cut.getBoundingClientRect(), sc = Math.min(r.width, r.height) / 14; return [(ev.clientX - r.left - r.width / 2) / sc, -(ev.clientY - r.top - r.height / 2) / sc]; };
+  cut.addEventListener('pointerdown', (ev) => { st.drag = true; cut.setPointerCapture(ev.pointerId); st.src = toWorld(ev); cone(); });
+  cut.addEventListener('pointermove', (ev) => { if (!st.drag) return; const p = toWorld(ev); if (Math.hypot(p[0], p[1]) < 0.4) return; st.src = p; cone(); });
+  cut.addEventListener('pointerup', () => { st.drag = false; }); cut.addEventListener('pointercancel', () => { st.drag = false; });
+  $('g21-delta').addEventListener('input', () => { st.delta = +$('g21-delta').value; labels(); cone(); });
+  // ---- ② BTZ ----
+  function shoot() {
+    const B = GRAVITY21.btz(st.M, st.ell), kap = st.kind === 'massive'; const r0 = 2 * B.ell + B.rp;
+    st.orbit = GRAVITY21.geodesic(B, { E: st.E, L: st.L, massive: kap, r0, phi0: 0, outward: true, lambdaMax: kap ? 40 : 60, dl: 0.005 }); st.anim = 0; cancelAnimationFrame(st.raf); st.raf = requestAnimationFrame(orbitTick); drawPot();
+    if (!st.orbit.ok) { $('g21-fate').textContent = '这组 E、L 在出发点不允许（E² < V）：把 E 调大'; drawOrbit(); return; }
+    const o = st.orbit; $('g21-fate').textContent = o.fate === 'horizon' ? (o.bounces ? `到 AdS 边界反射 ${o.bounces} 次后掉进视界` : '掉进视界') : (o.fate === 'bounce' ? `在 AdS 边界反射了 ${o.bounces} 次（AdS 是一口井）` : '绕着');
+  }
+  function orbitTick() { if (!st.orbit || !st.orbit.ok) return; st.anim = Math.min(st.orbit.r.length - 1, st.anim + Math.max(2, Math.round(st.orbit.r.length / 240))); drawOrbit(); if (st.anim < st.orbit.r.length - 1 && G.current === 'g21') st.raf = requestAnimationFrame(orbitTick); }
+  function drawOrbit() {
+    const cv = $('c-g21-orbit'), { ctx, w, h } = fit(cv), B = GRAVITY21.btz(st.M, st.ell); ctx.fillStyle = '#060913'; ctx.fillRect(0, 0, w, h);
+    // 共形压缩：画面半径 ρ = (2/π) arctan(r/ℓ)，AdS 的无穷远（边界）就是外圈
+    const R0 = Math.min(w, h) * 0.47, cx = w / 2, cy = h / 2, P = (r, ph) => { const rho = R0 * 2 / Math.PI * Math.atan(r / B.ell); return [cx + rho * Math.cos(ph), cy - rho * Math.sin(ph)]; };
+    ctx.fillStyle = 'rgba(176,140,255,0.06)'; ctx.beginPath(); ctx.arc(cx, cy, R0, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = CSS('--violet'); ctx.setLineDash([4, 4]); ctx.lineWidth = 1.5; ctx.stroke(); ctx.setLineDash([]);
+    ctx.strokeStyle = 'rgba(152,164,199,0.2)'; ctx.lineWidth = 1; for (const r of [1, 2, 4, 8]) { const rho = R0 * 2 / Math.PI * Math.atan(r * B.ell / B.ell); ctx.beginPath(); ctx.arc(cx, cy, rho, 0, Math.PI * 2); ctx.stroke(); }
+    const rh = R0 * 2 / Math.PI * Math.atan(B.rp / B.ell); ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(cx, cy, rh, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = CSS('--coral'); ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.fillStyle = CSS('--coral'); ctx.font = '11px Space Grotesk, sans-serif'; ctx.textAlign = 'center'; ctx.fillText(`视界 r₊ = ${B.rp.toFixed(2)}`, cx, cy - rh - 6); ctx.fillStyle = CSS('--violet'); ctx.fillText('AdS 边界（r = ∞）', cx, cy - R0 + 14);
+    if (st.orbit && st.orbit.ok) { const o = st.orbit, n = st.anim; ctx.strokeStyle = st.kind === 'massive' ? CSS('--gold') : CSS('--teal'); ctx.lineWidth = 1.8; ctx.beginPath(); for (let i = 0; i <= n; i++) { const p = P(o.r[i], o.phi[i]); if (i) ctx.lineTo(p[0], p[1]); else ctx.moveTo(p[0], p[1]); } ctx.stroke(); const p = P(o.r[n], o.phi[n]); ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(p[0], p[1], 4, 0, Math.PI * 2); ctx.fill(); }
+    ctx.fillStyle = CSS('--dim'); ctx.textAlign = 'left'; ctx.fillText(`AdS 半径 ℓ = ${st.ell}；画面按 (2/π)arctan(r/ℓ) 压缩，灰圈 r = 1, 2, 4, 8`, 8, h - 8);
+  }
+  function drawPot() {
+    const cv = $('c-g21-pot'), B = GRAVITY21.btz(st.M, st.ell), kap = st.kind === 'massive' ? 1 : 0, xs = [], ys = []; const rmax = 8 * B.ell;
+    for (let i = 0; i <= 200; i++) { const r = B.rp + (rmax - B.rp) * i / 200; xs.push(r); ys.push(B.f(r) * (kap + st.L * st.L / (r * r))); }
+    chart(cv, { xmin: 0, xmax: rmax, ymin: Math.min(0, ...ys) - 1, ymax: Math.max(st.E * st.E * 1.3, ...ys.slice(0, 150)), xlabel: 'r', ylabel: 'V(r) 与 E²', padL: 44, series: [{ xs, ys, color: CSS('--violet') }], hlines: [{ y: st.E * st.E, color: CSS('--gold'), label: 'E²' }], vlines: [{ x: B.rp, color: CSS('--coral'), label: 'r₊' }] });
+    $('g21-btz-cards').innerHTML = [['coral', '霍金温度', `T = r₊/2πℓ² = ${sig(B.T, 3)}`, 'ℏ = k_B = 1'], ['gold', '熵', `S = 2πr₊/4G = ${sig(B.S, 3)}`, '"面积"在 2+1 维里是周长'], ['violet', '边界中心荷', `c = 3ℓ/2G = ${sig(B.centralCharge, 3)}`, 'Brown–Henneaux 1986；Cardy 公式给出同一个 S']].map(([c, k, v, i]) => `<div class="k ${c}"><small>${k}</small><b class="mono" style="font-size:15px">${v}</b><i>${i}</i></div>`).join('');
+  }
+  for (const r of document.querySelectorAll('input[name=g21-kind]')) r.addEventListener('change', () => { if (r.checked) { st.kind = r.value; shoot(); } });
+  $('g21-shoot').addEventListener('click', shoot);
+  for (const [id, k] of [['g21-M', 'M'], ['g21-E', 'E'], ['g21-L', 'L']]) $(id).addEventListener('input', () => { st[k] = +$(id).value; labels(); drawPot(); drawOrbit(); });
+  // ---- ③ 2+1 维 FLRW ----
+  function drawFlrw() {
+    const cv = $('c-g21-flrw'); if (!st.flrw) { const d = GRAVITY21.flrw21({ dust: 1 }), r = GRAVITY21.flrw21({ rad: 1 }), L = GRAVITY21.flrw21({ lambda: 1 }); const R = COSMO.solve({ H0: 67.4, Om: 1, OL: 0, Or: 0, w: -1 }); const ts = [], as = []; for (let i = R.past.ts.length - 1; i >= 0; i--) { ts.push(R.past.ts[i]); as.push(R.past.as[i]); } for (let i = 1; i < R.fut.ts.length; i++) { ts.push(R.fut.ts[i]); as.push(R.fut.as[i]); } st.flrw = { d, r, L, eds: { ts, as } }; }
+    const F = st.flrw; chart(cv, { xmin: -1.2, xmax: 3, ymin: 0, ymax: 5, xlabel: '时间（1/H₀，今天 = 0）', ylabel: '尺度因子 a', padL: 44, series: [{ xs: F.d.ts, ys: F.d.as, color: CSS('--gold') }, { xs: F.r.ts, ys: F.r.as, color: CSS('--teal') }, { xs: F.L.ts, ys: F.L.as, color: CSS('--violet') }, { xs: F.eds.ts, ys: F.eds.as, color: CSS('--coral'), dash: [4, 4] }], vlines: [{ x: 0, color: CSS('--dim'), label: '今天' }] });
+  }
+  window.addEventListener('resize', () => { if (G.current === 'g21') { cone(); drawOrbit(); drawPot(); drawFlrw(); } });
+  let entered = false;
+  function enter() { if (!entered) { labels(); cone(); shoot(); drawFlrw(); entered = true; } else { cone(); drawOrbit(); drawPot(); drawFlrw(); } }
+  window.GENESIS_HALLS = window.GENESIS_HALLS || []; window.GENESIS_HALLS.push((hall) => { G.current = hall; if (hall === 'g21') enter(); });
+})();
+
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 // 看不懂时的两层帮助：
 //   1. 术语卡（离线）：页面上每个带 data-g 的标题、滑杆、卡片旁有一个 ? 按钮，点开右侧抽屉，内容来自 gloss.js，公式用 KaTeX 渲染。
 //   2. 问 AI（对话框）：把当前展区、参数、卡片上的数和你正在看的术语一起发给 AI。Claude Artifact 里用页面的 sample 能力；
@@ -3097,13 +3763,19 @@ const LTB = (function () {
     function hide() { box.hidden = true; }
     function open() { box.hidden = false; drawer.hidden = true; input.focus(); }
     function snapshot() {
-      const hall = G.current, parts = ['当前展区：' + ({ overview: '总览', forge: '创世台', early: '最初三分钟', godel: '哥德尔旋转宇宙', inverse: '反推台' }[hall] || hall)];
+      const hall = G.current, parts = ['当前展区：' + ({ overview: '总览', forge: '创世台', early: '最初三分钟', godel: '哥德尔旋转宇宙', inverse: '反推台', mix: 'Mixmaster（Bianchi IX）', ltb: '空洞宇宙（LTB）', bubble: '泡泡宇宙（永恒暴胀）', topo: '多连通宇宙', g21: '2+1 维引力' }[hall] || hall)];
       const S = G.forge.S; parts.push(`创世参数：H0=${S.H0} km/s/Mpc, Ωm=${S.Om}, Ωr=${S.Or}, ΩΛ=${S.OL}, w=${S.w}` + (window.GENESIS_QSTATE ? '；量子旋钮：' + JSON.stringify(window.GENESIS_QSTATE()) : ''));
       const txt = (id) => { const el = $(id); return el && !el.hidden && el.offsetParent !== null ? el.innerText.replace(/\s+/g, ' ').slice(0, 1500) : ''; };
       if (hall === 'forge') { parts.push('命运卡：' + txt('fate-cards')); if ($('q-cards')) parts.push('量子卡：' + txt('q-cards')); parts.push('诊断：' + txt('diag')); }
       if (hall === 'early') { parts.push('时刻：' + txt('ev-t') + ' ' + txt('ev-epoch') + '；读数：' + txt('e-cards') + '；叙述：' + txt('ev-story')); }
       if (hall === 'godel') parts.push('哥德尔参数卡：' + txt('godel-cards') + '；发光读数：' + txt('light-readout') + '；圈读数：' + txt('ring-readout'));
       if (hall === 'inverse') parts.push('猜测：' + txt('guess-cards') + '；拟合：' + txt('v-chi2') + ' ' + txt('v-quality') + '；提示：' + txt('v-hints') + '；最老恒星：' + txt('v-oldest') + '；假设检验：' + txt('nolambda-out'));
+      if (hall === 'godel' && $('as-read')) parts.push('全天图读数：' + txt('as-read'));
+      if (hall === 'mix') parts.push('Mixmaster 读数：' + txt('mix-hud') + '；时代表：' + txt('mix-epochs') + '；参数卡：' + txt('mix-cards'));
+      if (hall === 'ltb') parts.push('拟合卡：' + txt('ltb-fit') + '；戳穿它：' + txt('ltb-tests') + '；偶极：' + txt('ltb-dipole') + '；参数卡：' + txt('ltb-cards'));
+      if (hall === 'bubble') parts.push('泡沫读数：' + txt('bub-hud') + '；泡内：' + txt('bub-inside') + '；景观：' + txt('bub-landcards'));
+      if (hall === 'topo') parts.push('鬼像：' + txt('topo-ghost') + '；匹配圆：' + txt('topo-sky-cards') + '；参数卡：' + txt('topo-cards'));
+      if (hall === 'g21') parts.push('锥：' + txt('g21-cone-cards') + '；BTZ：' + txt('g21-fate') + ' ' + txt('g21-btz-cards'));
       if (curG && GLOSS[curG]) parts.push('读者刚打开的术语卡：' + GLOSS[curG].t + '——' + GLOSS[curG].s);
       return parts.join('\n');
     }

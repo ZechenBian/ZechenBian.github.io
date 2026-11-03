@@ -44,14 +44,15 @@ function build(q, artifact) {
   fill('__Q_ENGINES__', q ? ['q/thermal.js', 'q/bbn.js', 'q/recomb.js', 'q/inflation.js'].map((f) => strip(src(f))).join('\n') : '');
   fill('__APP__', strip(src('app.js'))); fill('__Q_APP__', q ? strip(src('q/app_q.js')) : '');
   // 其他展区：每个展区一个引擎（src/*.js，可在 Node 里测）+ 一个页面模块和一段 HTML（src/halls/）
-  fill('__MIX_HALL__', src('halls/mixmaster.html')); fill('__LTB_HALL__', src('halls/ltb.html'));
-  fill('__HALLS__', [strip(src('mixmaster.js')), strip(src('halls/mixmaster.js')), strip(src('ltb.js')), strip(src('halls/ltb.js'))].join('\n'));
+  for (const [slot, f] of [['__MIX_HALL__', 'mixmaster'], ['__LTB_HALL__', 'ltb'], ['__BUBBLE_HALL__', 'bubble'], ['__TOPO_HALL__', 'topo'], ['__G21_HALL__', 'g21']]) fill(slot, src('halls/' + f + '.html'));
+  fill('__HALLS__', ['mixmaster.js', 'halls/mixmaster.js', 'ltb.js', 'halls/ltb.js', 'bubble.js', 'halls/bubble.js', 'topo.js', 'halls/topo.js', 'gravity21.js', 'halls/g21.js'].map((f) => strip(src(f))).join('\n'));
   fill('__GLOSS__', strip(src('gloss.js'))); fill('__QLAI__', artifact ? '' : QLAI); fill('__HELP__', strip(src('help.js')));
   fill('__KATEX_CSS__', KATEX_CSS); fill('__KATEX_JS__', KATEX_JS);
   return t;
 }
 const pages = [['index.html', false], ['quantum/index.html', true]];
-for (const [out, q] of pages) { const t = build(q); const f = path.join(__dirname, out); fs.mkdirSync(path.dirname(f), { recursive: true }); fs.writeFileSync(f, t); console.log(out, 'written,', t.length, 'bytes'); }
+const OUT_DIR = process.env.GENESIS_OUT || __dirname; // GENESIS_OUT：把页面构建到别的目录（本地试玩时不动仓库里的产物）
+for (const [out, q] of pages) { const t = build(q); const f = path.join(OUT_DIR, out); fs.mkdirSync(path.dirname(f), { recursive: true }); fs.writeFileSync(f, t); console.log(out, 'written,', t.length, 'bytes'); }
 // 可选：Artifact 变体（Artifact 自带文档骨架，去掉 doctype/html/head/body；下载按钮改为显示文本）
 function artifact(t, title) {
   let a = t.replace(/<!doctype html>\s*<!--[\s\S]*?-->\s*/i, '').replace(/<html[^>]*>|<\/html>|<head>|<\/head>|<body>|<\/body>/g, '').replace(/<meta name="viewport"[^>]*>\s*/, '');

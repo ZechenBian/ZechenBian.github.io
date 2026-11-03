@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "build": "node build.js",
-    "test": "node test/cosmo.test.js && node test/godel.test.js && node test/q.test.js && node test/nbody.test.js && node test/mixmaster.test.js && node test/ltb.test.js"
+    "test": "node test/cosmo.test.js && node test/godel.test.js && node test/q.test.js && node test/nbody.test.js && node test/mixmaster.test.js && node test/ltb.test.js && node test/bubble.test.js && node test/topo.test.js && node test/gravity21.test.js"
   },
   "devDependencies": {
     "katex": "0.16.47"

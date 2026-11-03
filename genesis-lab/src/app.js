@@ -464,7 +464,8 @@
     const saved = store.get('forge', null); if (saved && typeof saved.H0 === 'number') { Object.assign(S, saved); presetId = PRESETS.find((p) => ids.every((k) => Math.abs(p.p[k] - S[k]) < 1e-9)) ? PRESETS.find((p) => ids.every((k) => Math.abs(p.p[k] - S[k]) < 1e-9)).id : null; }
     syncSliders(); markPreset();
     window.addEventListener('beforeunload', () => store.set('forge', S));
-    return { render: () => { if (!R) solve(); else render(); }, S, hooks, solve, syncSliders, labels, markPreset, get R() { return R; }, get frames() { return frames; } };
+    function setParams(obj) { Object.assign(S, obj); presetId = null; markPreset(); syncSliders(); frame = TODAY; solve(); } // 其他展区把一组参数装进创世台
+    return { render: () => { if (!R) solve(); else render(); }, S, hooks, solve, syncSliders, labels, markPreset, setParams, get R() { return R; }, get frames() { return frames; } };
   })();
   window.GENESIS = { forge, show: (h) => show(h), halls };
 

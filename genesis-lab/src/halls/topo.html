@@ -1,0 +1,45 @@
+<!-- Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。 -->
+<!-- ================= 多连通宇宙 ================= -->
+<section class="hall" id="hall-topo" hidden>
+  <p class="lede">放弃"空间无限"：弗里德曼方程只管局部几何，管不了整体形状。一个平坦的宇宙可以是有限的三维环面——走出一边就从对面回来，没有边界、没有中心。光绕回来，同一个星系在天上出现好几次；最后散射面和自己相交，CMB 上会有两两匹配的圆。下面的天图和圆都是从一个周期的随机场里实时算出来的。</p>
+  <div class="grid g-godel" style="margin-top:14px">
+    <div class="card">
+      <h3><span data-g="torus">① 有限但无边</span> <span class="tag sim">模拟</span></h3>
+      <p class="note">一个二维切片：方框是基本胞腔（边长 $L$，以最后散射面的共动半径 $\chi$ 为单位），里面几个星系；大圆是你能看到的范围。拨 $L$，看每个星系在圆里出现多少次。把鼠标放到任何一个像上，看它是谁、离你多远、你看到的是它多久以前的样子。</p>
+      <canvas id="c-topo-cell" width="520" height="440" style="cursor:crosshair"></canvas>
+      <div class="note mono" id="topo-ghost" style="min-height:40px;font-size:12px;margin-top:6px"></div>
+    </div>
+    <div class="card">
+      <h3><span data-g="circles">② 天上的圈</span> <span class="tag sim">模拟</span></h3>
+      <p class="note">CMB 全天图（Sachs–Wolfe 近似：温度 ∝ 周期随机场在最后散射面上的值）。最后散射面被平移 $v$ 后和自己相交于一个圆，圆心在 $\pm\hat v$，角半径 $\alpha = \arccos(|v|/2\chi)$；每一对同色的圆上温度逐点相同。把鼠标放到一对圆上，下面画出沿两个圆的温度。</p>
+      <canvas id="c-topo-sky" width="720" height="360" style="cursor:crosshair"></canvas>
+      <canvas id="c-topo-match" width="720" height="160"></canvas>
+      <div class="kv" id="topo-sky-cards" style="margin-top:8px"></div>
+    </div>
+  </div>
+  <div class="grid g-godel" style="margin-top:14px">
+    <div class="card">
+      <h3><span data-g="lowell">③ 最长的波只能有胞腔那么长</span> <span class="tag sim">模拟</span></h3>
+      <p class="note">胞腔里放不下比 $L$ 更长的波，所以胞腔小于视界时，CMB 的大角度功率被截断——四极 $C_2$ 首先被压低。按"扫一遍"，对一串 $L$ 各生成几个随机场，算 $C_2$、$C_3$。</p>
+      <div class="bar"><button class="btn small" id="topo-scan">扫一遍 L = 0.4 … 4</button><span class="note" id="topo-scan-note"></span></div>
+      <canvas id="c-topo-cl" width="520" height="260"></canvas>
+      <div class="legend"><span><i style="background:var(--gold)"></i>C₂（四极）</span><span><i style="background:var(--teal)"></i>C₃（八极）</span><span><i style="background:var(--coral)"></i>当前的 L</span></div>
+    </div>
+    <div class="card">
+      <h3><span data-g="torus">④ 创世参数</span></h3>
+      <p class="note">形状：三维环面 $T^3$（三个方向都周期）、烟囱 $T^2\times\mathbb R$、板 $T^1\times\mathbb R^2$。大小：胞腔边长 $L$ 对最后散射面半径 $\chi$（今天 $\chi\approx 14$ Gpc）。</p>
+      <div class="chips" id="topo-presets"></div>
+      <div class="bar" style="margin-top:10px"><label class="note">形状 <select id="topo-shape" class="num" style="width:auto;padding:4px 8px"><option value="t3">三维环面 T³</option><option value="chimney">烟囱 T²×R</option><option value="slab">板 T¹×R²</option></select></label><button class="btn small" id="topo-reseed">⟲ 换一个随机场</button></div>
+      <div class="ctl"><label><span>胞腔边长 $L/\chi$</span><b class="mono" id="topo-v-L"></b></label><input type="range" id="topo-L" min="0.3" max="2.6" step="0.01" value="1.2"><div class="sub">$L < 2\chi$ 才有匹配圆；Planck 的搜索把 $L$ 压到 ≳ 1.9χ</div></div>
+      <div class="kv" id="topo-cards" style="margin-top:10px"></div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <details><summary>读完你自己的发现之后再看：这个宇宙在说什么</summary>
+      <p><b style="color:var(--ink)">几何和拓扑是两回事。</b>爱因斯坦方程是局部的：它告诉你每一小块空间怎么弯，不告诉你这些小块怎么拼成整体。平坦空间可以拼成无限的 $\mathbb R^3$，也可以拼成有限的三维环面 $T^3$——把一个盒子的对面粘起来——还有另外十七种平坦的拼法（Bieberbach 群）。正曲率的有限空间更多（庞加莱十二面体空间是其中最出名的，2003 年曾被提出来解释低四极）。弗里德曼方程对它们一视同仁。</p>
+      <p><b style="color:var(--ink)">怎么看出来。</b>(1) 鬼像：同一个星系在不同方向、不同距离出现，而且每个像都是它在不同年代的样子——要认出来并不容易，星系会演化。(2) 天上的圈（Cornish、Spergel、Starkman 1998）：最后散射面是半径 $\chi$ 的球，平移 $v$ 的像球和它相交于一个圆，两个圆上的温度逐点相同；$|v| < 2\chi$ 才有。Planck 2015 找遍了所有半径 $> 15°$ 的圆对：没有。这把最小的平移压到了 $\gtrsim 0.94\times 2\chi$，也就是 $L\gtrsim 1.9\chi$（Planck 2015 XVIII）。(3) 大角度功率被截断：胞腔里没有比 $L$ 长的波，四极先被压低。我们的 CMB 四极确实偏低（只有 ΛCDM 预期的四分之一左右），这曾是拓扑猜想的动机——但匹配圆没找到，这条路基本关上了；低四极大概率只是统计涨落（宇宙方差）。</p>
+      <p><b style="color:var(--ink)">本页怎么算。</b>在基本胞腔上生成一个周期的高斯随机场（功率 $\propto k^{-3}$，固定不随 $L$ 变，外加 3° 的平滑），温度取它在半径 $\chi$ 的球上的值（Sachs–Wolfe 近似，$\Delta T/T = \Phi/3$）。周期性不是画上去的：天图里的重复花样、圆对上一模一样的温度曲线、小胞腔时消失的大角度功率，都是从这个场里直接采样出来的。没算的是声学峰（它们在小角度上，和拓扑无关）。</p>
+      <p class="note">标签：天图、圆、多极功率全是算出来的（模拟）；Planck 的结论引自文献。</p>
+    </details>
+  </div>
+</section>

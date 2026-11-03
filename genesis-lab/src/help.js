@@ -53,13 +53,19 @@
     function hide() { box.hidden = true; }
     function open() { box.hidden = false; drawer.hidden = true; input.focus(); }
     function snapshot() {
-      const hall = G.current, parts = ['当前展区：' + ({ overview: '总览', forge: '创世台', early: '最初三分钟', godel: '哥德尔旋转宇宙', inverse: '反推台' }[hall] || hall)];
+      const hall = G.current, parts = ['当前展区：' + ({ overview: '总览', forge: '创世台', early: '最初三分钟', godel: '哥德尔旋转宇宙', inverse: '反推台', mix: 'Mixmaster（Bianchi IX）', ltb: '空洞宇宙（LTB）', bubble: '泡泡宇宙（永恒暴胀）', topo: '多连通宇宙', g21: '2+1 维引力' }[hall] || hall)];
       const S = G.forge.S; parts.push(`创世参数：H0=${S.H0} km/s/Mpc, Ωm=${S.Om}, Ωr=${S.Or}, ΩΛ=${S.OL}, w=${S.w}` + (window.GENESIS_QSTATE ? '；量子旋钮：' + JSON.stringify(window.GENESIS_QSTATE()) : ''));
       const txt = (id) => { const el = $(id); return el && !el.hidden && el.offsetParent !== null ? el.innerText.replace(/\s+/g, ' ').slice(0, 1500) : ''; };
       if (hall === 'forge') { parts.push('命运卡：' + txt('fate-cards')); if ($('q-cards')) parts.push('量子卡：' + txt('q-cards')); parts.push('诊断：' + txt('diag')); }
       if (hall === 'early') { parts.push('时刻：' + txt('ev-t') + ' ' + txt('ev-epoch') + '；读数：' + txt('e-cards') + '；叙述：' + txt('ev-story')); }
       if (hall === 'godel') parts.push('哥德尔参数卡：' + txt('godel-cards') + '；发光读数：' + txt('light-readout') + '；圈读数：' + txt('ring-readout'));
       if (hall === 'inverse') parts.push('猜测：' + txt('guess-cards') + '；拟合：' + txt('v-chi2') + ' ' + txt('v-quality') + '；提示：' + txt('v-hints') + '；最老恒星：' + txt('v-oldest') + '；假设检验：' + txt('nolambda-out'));
+      if (hall === 'godel' && $('as-read')) parts.push('全天图读数：' + txt('as-read'));
+      if (hall === 'mix') parts.push('Mixmaster 读数：' + txt('mix-hud') + '；时代表：' + txt('mix-epochs') + '；参数卡：' + txt('mix-cards'));
+      if (hall === 'ltb') parts.push('拟合卡：' + txt('ltb-fit') + '；戳穿它：' + txt('ltb-tests') + '；偶极：' + txt('ltb-dipole') + '；参数卡：' + txt('ltb-cards'));
+      if (hall === 'bubble') parts.push('泡沫读数：' + txt('bub-hud') + '；泡内：' + txt('bub-inside') + '；景观：' + txt('bub-landcards'));
+      if (hall === 'topo') parts.push('鬼像：' + txt('topo-ghost') + '；匹配圆：' + txt('topo-sky-cards') + '；参数卡：' + txt('topo-cards'));
+      if (hall === 'g21') parts.push('锥：' + txt('g21-cone-cards') + '；BTZ：' + txt('g21-fate') + ' ' + txt('g21-btz-cards'));
       if (curG && GLOSS[curG]) parts.push('读者刚打开的术语卡：' + GLOSS[curG].t + '——' + GLOSS[curG].s);
       return parts.join('\n');
     }

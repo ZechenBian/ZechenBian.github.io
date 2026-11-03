@@ -1,0 +1,46 @@
+<!-- Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。 -->
+<!-- ================= 泡泡宇宙（永恒暴胀） ================= -->
+<section class="hall" id="hall-bubble" hidden>
+  <p class="lede">放弃"只有一个宇宙"：暴胀的假真空是 de Sitter 空间，每一刻都有真空泡随机成核、以光速扩张（Coleman–De Luccia 1980），每个泡里面是一个开放的 FLRW 宇宙。只要成核太慢，泡永远追不上空间的膨胀——暴胀永不结束，泡泡无穷无尽（Guth 1981；Vilenkin 1983；Linde 1986）。下面的泡沫由方程的速率实时生成。</p>
+  <div class="grid g-godel" style="margin-top:14px">
+    <div class="card">
+      <h3><span data-g="foam">① 永恒暴胀的泡沫</span> <span class="tag sim">模拟</span></h3>
+      <p class="note">一个固定物理大小的窗口（边长 24/H），画面中心是你所在的共动点。泡按单位面积、单位时间的速率 λ 成核，物理半径按 $R = (e^{H\Delta t}-1)/H$ 长；两泡相遇画出碰撞线。按播放，看空间里永远有新泡冒出来、老泡被推走，而你迟早会被某个泡吞没。</p>
+      <canvas id="c-bub-foam" width="520" height="440"></canvas>
+      <div class="bar"><button class="btn small primary" id="bub-play">▶ 播放</button><button class="btn small" id="bub-reset">⟲ 重来</button><button class="btn small" id="bub-move" hidden>✦ 换一个还在假真空的点</button><span class="note mono" id="bub-t"></span></div>
+      <div class="ctl" style="margin-top:8px"><label><span data-g="foam">成核率 $\lambda/H^3$（二维切片）</span><b class="mono" id="bub-v-lam"></b></label><input type="range" id="bub-lam" min="-2" max="0.2" step="0.01" value="-1"><div class="sub">对数刻度；超过 2/π ≈ 0.64 泡就会填满空间，暴胀结束（三维的阈值是 9/4π ≈ 0.72）</div></div>
+      <div class="bar"><label class="note"><input type="checkbox" id="bub-land" checked style="accent-color:var(--gold)"> 景观：每个泡随机抽一个宇宙学常数 Λ（颜色 = 能不能长出星系）</label></div>
+      <div class="kv" id="bub-hud" style="margin-top:8px"></div>
+    </div>
+    <div class="card">
+      <h3><span data-g="eternal">② 假真空的命运</span> <span class="tag sim">模拟</span></h3>
+      <p class="note">一个共动点到 $Ht$ 还没被吞的概率 $p(t)$：解析式对模拟里量到的假真空面积份额。假真空的物理面积 $\propto e^{2Ht}p(t)$，指数 $2 - \pi\lambda/H^3$ 决定暴胀永恒还是终止。</p>
+      <canvas id="c-bub-surv" width="520" height="280"></canvas>
+      <div class="legend"><span><i style="background:var(--gold)"></i>解析 p(t)</span><span><i style="background:var(--teal)"></i>模拟量到的假真空份额</span></div>
+      <div class="kv" id="bub-fate" style="margin-top:10px"></div>
+    </div>
+  </div>
+  <div class="grid g-godel" style="margin-top:14px">
+    <div class="card">
+      <h3><span data-g="bubbleinside">③ 泡泡里面：你的宇宙</span> <span class="tag sim">模拟</span></h3>
+      <p class="note">CDL 泡的内部是一个 $k=-1$ 的开放 FLRW 宇宙，一开始曲率占满。泡里再暴胀 $N$ 个 e-fold，把曲率压到今天的 $\Omega_k \approx e^{-2(N-N_*)}$（$N_*\approx 60$，粗略）。被吞没后这张卡会告诉你：你的泡抽到了什么样的 Λ，能不能长出星系。</p>
+      <div class="ctl"><label><span>泡里的暴胀 e-fold 数 $N$</span><b class="mono" id="bub-v-N"></b></label><input type="range" id="bub-N" min="50" max="75" step="0.1" value="62"></div>
+      <div class="kv" id="bub-inside"></div>
+      <div class="bar"><button class="btn small" id="bub-forge">把这个泡里的宇宙装进创世台 →</button><span class="note" id="bub-forge-note"></span></div>
+    </div>
+    <div class="card">
+      <h3><span data-g="landscape">④ 景观与温伯格的彩票</span> <span class="tag sim">模拟</span></h3>
+      <p class="note">如果每个泡的 Λ 是从一个平坦的先验里抽的（弦景观的说法），那么绝大多数泡的 Λ 大到星系长不出来。下面按创世台的宜居诊断给每个 Λ 判一次（物质密度和原初扰动幅度取我们的）。</p>
+      <canvas id="c-bub-land" width="520" height="260"></canvas>
+      <div class="kv" id="bub-landcards" style="margin-top:10px"></div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <details><summary>读完你自己的发现之后再看：这个宇宙在说什么</summary>
+      <p><b style="color:var(--ink)">成核与膨胀的赛跑。</b>假真空里 $a = e^{Ht}$。$t_n$ 成核的泡，共动半径 $r = (1-e^{-H(t-t_n)})/(Ha_n)$：它永远长不过 $1/(Ha_n)$——空间在它外面跑得更快。一个共动点到 $t$ 还在假真空里的概率是 $$p(t) = \exp\Big[-\tfrac{4\pi}{3}\tfrac{\lambda}{H^4}\int_0^{Ht}(1-e^{-x})^3dx\Big]\to\exp\Big[-\tfrac{4\pi}{3}\tfrac{\lambda}{H^4}\big(Ht-\tfrac{11}{6}\big)\Big],$$ 而假真空的物理体积 $\propto e^{3Ht}p(t)$。指数 $3 - \tfrac{4\pi}{3}\lambda/H^4$ 为正就永恒：$\lambda/H^4 < 9/4\pi$（Guth &amp; Weinberg 1983）。画面是二维切片，对应的条件是 $\lambda_2/H^3 < 2/\pi$。慢滚暴胀也有同样的事（Vilenkin 1983；Linde 1986）：量子涨落让有些区域的场爬回去，那些区域的体积增长压过了衰变。</p>
+      <p><b style="color:var(--ink)">泡里面。</b>Coleman–De Luccia 的泡内部，从泡壁看是一个开放宇宙（$k = -1$）——泡壁本身就是这个宇宙的"大爆炸"面。于是"宇宙为什么这么平"要靠泡里再暴胀几十个 e-fold；反过来，如果只多暴胀了 60 个左右，今天就该测到一点点负曲率（$\Omega_k\sim10^{-3}$ 量级，Planck 的上限是 0.002）。泡与泡相撞在我们的 CMB 上留下圆盘状的温度斑（Aguirre, Johnson &amp; Kleban 2007）；Planck 数据里没找到（Feeney 等 2011）。</p>
+      <p><b style="color:var(--ink)">温伯格的彩票。</b>1987 年温伯格指出：若 Λ 从一个光滑的先验里抽，只有 $\Lambda\lesssim 100\Lambda_{\text{obs}}$ 的宇宙长得出星系，所以观察者看到的 Λ 应该在这个范围里而且不会太小——这在 1998 年前就预言了一个不为零的小 Λ。④里每个泡的判决用的是创世台同一套宜居诊断。它是不是科学？争议点在"测度问题"：无穷多个泡里怎么数比例，至今没有公认答案。</p>
+      <p class="note">标签：泡沫、碰撞、份额、曲率全由方程算（模拟）；Λ 的先验是假设（平坦）；碰撞的 CMB 印记和 Planck 的结果引自文献。</p>
+    </details>
+  </div>
+</section>
