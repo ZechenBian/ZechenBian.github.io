@@ -26,7 +26,7 @@
         <div><canvas id="c-mix-kasner" width="300" height="300"></canvas></div>
         <div id="mix-epochs" class="note" style="font-size:12px"></div>
       </div>
-      <div class="bar"><button class="btn small" id="mix-chaos">🎲 混沌检验：u 改一百万分之一再算一遍</button><span class="note" id="mix-chaos-out"></span></div>
+      <div class="bar"><button class="btn small" id="mix-chaos">🎲 混沌检验：u 改一百万分之一再算一遍</button><span class="note" id="mix-chaos-out">结果会接在上面的时代表底下</span></div>
     </div>
     <div class="card">
       <h3><span data-g="mixmaster">④ 创世参数</span></h3>
@@ -48,7 +48,7 @@
       <p><b style="color:var(--ink)">Kasner 时代。</b>离奇点足够近时墙可以忽略，$\alpha' $ 等都是常数：$a\propto t^{p_1}$、$b\propto t^{p_2}$、$c\propto t^{p_3}$，$\Sigma p_i = \Sigma p_i^2 = 1$（Kasner 1921）。总有一个指数是负的——往奇点走时那根轴反而在变长。它一长，对应的墙 $a^4$ 就起来了，把它弹回去：新的时代，新的指数。</p>
       <p><b style="color:var(--ink)">混沌。</b>BKL 证明每次反弹的指数变化只由 $u$ 决定：$u\to u-1$；到 $1<u<2$ 时 $u\to 1/(u-1)$。写成连分数 $u = k_0 + 1/(k_1 + 1/(k_2+\cdots))$，一个"纪元"就是 $k_i$ 次反弹，纪元之间按高斯映射跳。高斯映射是混沌的：两个 $u$ 相差 $10^{-6}$，六七个纪元之后序列就完全不同——③里的按钮会让你亲眼看到。于是"初始条件决定一切"在这里变成"初始条件的第十位小数决定第十个纪元"。</p>
       <p><b style="color:var(--ink)">它为什么重要。</b>Misner 1969 年提出 Mixmaster，本想用"搅拌"解释宇宙为什么各向同性（视界问题）；结果发现搅拌得并不够，视界问题最后由暴胀解决。但 BKL 猜想——一般的时空奇点附近都是这种振荡——至今仍是广义相对论最深的未解问题之一，数值相对论在 2000 年后才在一般情形下看到它的迹象。装上足够大的 $\Lambda$（④里拨正），膨胀把各向异性抹平：这就是"宇宙无毛"定理（Wald 1983），暴胀抹平初始各向异性的原型。</p>
-      <p class="note">标签：三根轴、指数、时代序列全是方程的数值解（模拟）；椭球只是形状的示意（真实的空间是一个被各向异性拉扯的三维球面），轴长用了对数压缩，不然靠近奇点的比例是 $e^{100}$。</p>
+      <p class="note">标签：三根轴、指数、时代序列全是方程的数值解（模拟）；椭球只是形状的示意（真实的空间是一个被各向异性拉扯的三维球面），轴长用了对数压缩（指数差 300 只画成 1 : 13），不然靠近奇点的比例是 $e^{100}$，画出来只剩一条线；"尘埃 / Λ"的宇宙离奇点远时三根轴被均匀减速，Σp² ≠ 1 但并不是在反弹。时代表只数跨 ln T > 5 的 Kasner 段，两次反弹之间的过渡不算。</p>
     </details>
   </div>
 </section>

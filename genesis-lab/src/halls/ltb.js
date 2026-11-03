@@ -36,8 +36,8 @@
     ctx.strokeStyle = CSS('--gold'); ctx.setLineDash([5, 5]); ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(cx, cy, P.r0 * sc, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
     ctx.fillStyle = CSS('--gold'); ctx.font = '11px Space Grotesk, sans-serif'; ctx.textAlign = 'left'; ctx.fillText(`r₀ = ${(P.r0 / 1000).toFixed(2)} Gpc`, cx + P.r0 * sc * 0.72 + 4, cy - P.r0 * sc * 0.72);
     ctx.fillStyle = CSS('--coral'); ctx.beginPath(); ctx.arc(cx, cy, 4, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.font = '600 12px Space Grotesk, sans-serif'; ctx.fillText('你', cx, cy - 9);
-    ctx.fillStyle = CSS('--dim'); ctx.font = '11px Space Grotesk, sans-serif'; ctx.textAlign = 'left'; ctx.fillText(`中心密度是远处的 ${(m.rhoRel(1) * 100).toFixed(0)}%　·　H₀：中心 ${m.Hkms(0).toFixed(1)}，远处 ${P.Hout.toFixed(1)} km/s/Mpc`, 10, h - 10);
-    ctx.textAlign = 'right'; ctx.fillText(`方框半宽 ${(Rmax / 1000).toFixed(1)} Gpc`, w - 10, h - 10);
+    ctx.fillStyle = CSS('--dim'); ctx.font = '11px Space Grotesk, sans-serif'; ctx.textAlign = 'left'; const l1 = `中心密度是远处的 ${(m.rhoRel(1) * 100).toFixed(0)}%　·　H₀：中心 ${m.Hkms(0).toFixed(1)}，远处 ${P.Hout.toFixed(1)} km/s/Mpc`, l2 = `方框半宽 ${(Rmax / 1000).toFixed(1)} Gpc`;
+    if (ctx.measureText(l1).width + ctx.measureText(l2).width + 30 > w) { ctx.fillText(l1, 10, h - 24); ctx.fillText(l2, 10, h - 10); } else { ctx.fillText(l1, 10, h - 10); ctx.textAlign = 'right'; ctx.fillText(l2, w - 10, h - 10); } // 窄屏分两行
   }
   function drawProf() {
     const cv = $('c-ltb-prof'), m = st.m, Rmax = Math.max(1.6 * P.r0 + 2 * P.dr, 1200), xs = [], om = [], hp = [], hr = [];
@@ -57,9 +57,9 @@
       hlines: [{ y: 0, color: CSS('--dim'), label: 'EdS（无空洞、无 Λ，取中心的 H₀）' }], vlines: [{ x: 0.02, color: CSS('--faint') }, { x: 1.2, color: CSS('--faint'), label: '拟合区间' }] });
   }
   function fitCards() {
-    const fr = st.fitR, m = st.m, trap = fr.OL > 0.3;
+    const fr = st.fitR, m = st.m, trap = fr.OL > 0.3, uniform = Math.abs(P.Oin - P.Oout) < 1e-9;
     $('ltb-fit').innerHTML = [
-      [trap ? 'coral' : 'teal', '按平坦 FLRW 拟合这条哈勃图', `Ω_Λ = ${fr.OL.toFixed(2)}，H₀ = ${fr.H0.toFixed(1)}`, `z ∈ [0.02, 1.2]，残差 rms ${fr.rms.toFixed(3)} 星等（超新星本身的散布约 0.15）${trap ? '——没有一点暗能量，却"测"出了 Ω_Λ' : '——这个空洞骗不了人'}`],
+      [trap ? 'coral' : 'teal', '按平坦 FLRW 拟合这条哈勃图', `Ω_Λ = ${fr.OL.toFixed(2)}，H₀ = ${fr.H0.toFixed(1)}`, `z ∈ [0.02, 1.2]，残差 rms ${fr.rms.toFixed(3)} 星等（超新星本身的散布约 0.15）${trap ? (uniform ? '——处处一样的开放宇宙也减速得比 EdS 慢（曲率顶了一部分 Λ 的位置）：硬按平坦模型拟合就会"测"出一些 Ω_Λ，但 Ω_Λ ≈ 0.7 的加速它给不出' : '——没有一点暗能量，却"测"出了 Ω_Λ') : (uniform ? '——处处一样，没有空洞可言' : '——这个空洞骗不了人')}`],
       ['gold', '真相', `Ω_Λ = 0，Ω_M：中心 ${P.Oin.toFixed(2)} → 远处 ${P.Oout.toFixed(2)}`, `中心 H₀ = ${m.Hkms(0).toFixed(1)}，远处 ${P.Hout.toFixed(1)} km/s/Mpc；年龄 ${m.t0Gyr.toFixed(2)} Gyr（处处一样）`],
     ].map(([c, k, v, i]) => `<div class="k ${c}"><small>${k}</small><b class="mono" style="font-size:15px">${v}</b><i>${i}</i></div>`).join('');
   }
@@ -76,13 +76,14 @@
   }
   function dipole() {
     const m = st.m, d = st.d, dt = LTB.dipole(m, d), obs = 1.23e-3, vkms = dt * LTB.CKMS;
-    $('ltb-dipole').innerHTML = `偏离中心 ${sig(d, 3)} Mpc：相对远处 CMB 的速度 ≈ (H(d) − H_out)·d = <b class="mono">${sig(vkms, 3)} km/s</b>，偶极 ΔT/T ≈ <b class="mono">${dt.toExponential(2)}</b>（观测到的整个偶极 1.23×10⁻³，通常全归给太阳系的运动）。${dt > 0.3 * obs ? '<b style="color:var(--coral)">这么大的额外偶极藏不住：你必须离中心更近。</b>' : '藏在太阳系运动的偶极里还不会露馅——但这要求我们离这个几十亿光年大的空洞的中心不到 ' + sig(d, 2) + ' Mpc：按体积算是 10⁻⁶ 级的巧合（哥白尼原理）。'}`;
+    const noVoid = Math.abs(P.Oin - P.Oout) < 1e-9, frac = Math.pow(d / P.r0, 3), size = P.r0 >= 1000 ? `${(P.r0 / 1000).toFixed(1)} Gpc（${(P.r0 * 3.26 / 1000).toFixed(0)} 亿光年）` : `${P.r0} Mpc（${(P.r0 * 3.26 / 100).toFixed(1)} 亿光年）`;
+    $('ltb-dipole').innerHTML = noVoid ? `这组参数处处一样（没有空洞），偏离"中心"没有意义：速度 = 0，偶极 = 0。` : `偏离中心 ${sig(d, 3)} Mpc：相对远处 CMB 的速度 ≈ (H(d) − H_out)·d = <b class="mono">${sig(vkms, 3)} km/s</b>，偶极 ΔT/T ≈ <b class="mono">${dt.toExponential(2)}</b>（观测到的整个偶极 1.23×10⁻³，通常全归给太阳系的运动）。${dt > 0.3 * obs ? '<b style="color:var(--coral)">这么大的额外偶极藏不住：你必须离中心更近。</b>' : `藏在太阳系运动的偶极里还不会露馅——但这要求我们离这个半径 ${size} 的空洞的中心不到 ${sig(d, 2)} Mpc：按体积算是 (d/r₀)³ ≈ ${frac.toExponential(0)} 的巧合（哥白尼原理）。`}`;
   }
   function cards() {
     const m = st.m, ry = st.ry;
     $('ltb-cards').innerHTML = [
       ['gold', '中心的 H₀', `${m.Hkms(0).toFixed(1)} km/s/Mpc`, '由同时大爆炸定出：Ω 越小的壳层，同样的年龄要求越大的 H'],
-      ['teal', '空洞边缘的红移', `z(r₀) = ${LTB.interp(ry.r, ry.z, P.r0).toFixed(3)}`, '超新星样本里最远的 z ≈ 1–2：空洞必须大到这个尺度才骗得过'],
+      Math.abs(P.Oin - P.Oout) < 1e-9 ? ['teal', '空洞边缘', '—', '处处一样：没有边缘'] : ['teal', '空洞边缘的红移', `z(r₀) = ${LTB.interp(ry.r, ry.z, P.r0).toFixed(3)}`, '超新星样本里最远的 z ≈ 1–2：空洞必须大到这个尺度才骗得过'],
       ['violet', '中心密度', `远处的 ${(m.rhoRel(1) * 100).toFixed(0)}%`, '8πGρ = 2M′/(R²R′)'],
     ].map(([c, k, v, i]) => `<div class="k ${c}"><small>${k}</small><b class="mono" style="font-size:15px">${v}</b><i>${i}</i></div>`).join('');
   }

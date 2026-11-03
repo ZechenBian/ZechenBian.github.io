@@ -31,12 +31,15 @@ const NBODY = (function () {
 
   class PM2D {
     // o: { N 网格（取为 2 的幂）, np 每边粒子数, L 盒长 h⁻¹Mpc, seed, Om, Ob, h, ns, aInit,
-    //      amp: a_init 时 8 h⁻¹Mpc 平滑后的 δ 均方根（给了就用它；否则 sigma8 × Dratio），E: a→E(a), aOf: t→a, tOf: a→t }
+    //      amp: a_init 时 8 h⁻¹Mpc 平滑后的 δ 均方根（给了就用它；否则 sigma8 × Dratio），f: a_init 时的增长率 dlnD/dlna（默认 1），E: a→E(a), aOf: t→a, tOf: a→t }
     constructor(o) {
       this.o = o; const N = this.N = pow2(o.N || 256), np = this.np = o.np || 160, n = this.n = np * np;
       this.L = o.L || 300; this.x = new Float64Array(n); this.y = new Float64Array(n); this.px = new Float64Array(n); this.py = new Float64Array(n);
       this.rho = new Float64Array(N * N); this.fx = new Float64Array(N * N); this.fy = new Float64Array(N * N);
       this.re = new Float64Array(N * N); this.im = new Float64Array(N * N);
+      // 8 h⁻¹Mpc 高斯窗的 W_k²（给 forces 顺手算 σ₈ 用：Parseval，省一对 FFT）
+      this.w8 = new Float32Array(N * N); { const kf = 2 * Math.PI / this.L, R = 8; for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) { const kx = (i <= N / 2 ? i : i - N) * kf, ky = (j <= N / 2 ? j : j - N) * kf; this.w8[j * N + i] = Math.exp(-(kx * kx + ky * ky) * R * R); } }
+      this.s8 = NaN;
       this.init();
     }
     init() {
@@ -68,7 +71,7 @@ const NBODY = (function () {
         psx[idx] = kx * dki[idx] / k2; psxi[idx] = -kx * dk[idx] / k2; psy[idx] = ky * dki[idx] / k2; psyi[idx] = -ky * dk[idx] / k2;
       }
       fft2(psx, psxi, N, true); fft2(psy, psyi, N, true); // 单位 h⁻¹Mpc
-      const a0 = o.aInit || 0.02, E0 = o.E(a0), f = 1; // 早期物质主导 f = dlnD/dlna ≈ 1
+      const a0 = o.aInit || 0.02, E0 = o.E(a0), f = o.f === undefined ? 1 : o.f; // 增长率 f = dlnD/dlna：物质主导时 ≈ 1，辐射期里小得多（页面按线性增长表传进来）
       for (let j = 0; j < np; j++) for (let i = 0; i < np; i++) {
         const q = j * np + i, qx = (i + 0.5) / np, qy = (j + 0.5) / np; // 格点（盒子单位）
         const gx = Math.floor(qx * N), gy = Math.floor(qy * N), g = gy * N + gx; const dx = psx[g] / L, dy = psy[g] / L; // 位移（盒子单位；δ 已含 D(a_i)）
@@ -88,6 +91,7 @@ const NBODY = (function () {
     forces() { // ∇²φ = (3/2) Ω_m δ / a（盒子单位，H0 = 1）→ φ_k = −(3/2 Ω_m/a) δ_k / k²；力 = −∇φ（中心差分）
       const N = this.N, re = this.re, im = this.im, L = this.L; for (let k = 0; k < N * N; k++) { re[k] = this.rho[k] - 1; im[k] = 0; }
       fft2(re, im, N, false); const kf = 2 * Math.PI, C = -1.5 * this.o.Om / this.a; // k 以盒子单位（2π/L 的倍数 → 这里 L = 1）
+      { const w8 = this.w8; let s2 = 0; for (let k = 0; k < N * N; k++) s2 += (re[k] * re[k] + im[k] * im[k]) * w8[k]; this.s8 = Math.sqrt(s2) / (N * N); } // σ₈ = ‖δ⊛W‖ 的均方根，由 Parseval 直接在 k 空间求和
       for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) { const kx = (i <= N / 2 ? i : i - N) * kf, ky = (j <= N / 2 ? j : j - N) * kf, k2 = kx * kx + ky * ky, idx = j * N + i; if (k2 === 0) { re[idx] = 0; im[idx] = 0; continue; } const s = C / k2; re[idx] *= s; im[idx] *= s; }
       fft2(re, im, N, true); // re = φ（盒子单位）
       const h = 1 / N, fx = this.fx, fy = this.fy;

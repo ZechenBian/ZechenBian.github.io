@@ -54,10 +54,10 @@ const MIXMASTER = (function () {
     let y = y0.slice(), tau = 0, n = 0; const out = { tau: [0], y: [y.slice()], cerr: [constraint(y, M, L).err], stop: null };
     const f = (y) => rhs(y, M, L);
     while (n++ < maxSteps) {
-      // 步长：每步 |Δα| ≤ 0.03（势能墙 e^{4α} 每步最多变 e^{0.12}）；墙已经起作用时再细到 |Δα| ≤ 0.004；Kasner 长段里步子放大
+      // 步长：每步 |Δα| ≤ 0.03（势能墙 e^{4α} 每步最多变 e^{0.12}）；墙已经起作用时再细到 |Δα| ≤ 0.002（反弹处的误差会随后来越来越小的速度被放大，所以这里要细）；Kasner 长段里步子放大
       const k1 = f(y); const vel = Math.max(1e-6, Math.abs(y[3]), Math.abs(y[4]), Math.abs(y[5])), acc = Math.max(Math.abs(k1[3]), Math.abs(k1[4]), Math.abs(k1[5]));
       const wall = acc > 1e-7 * vel * vel, sa = Math.sqrt(acc);
-      const h = dir * Math.min(o.hMax || 0.5, 0.03 / vel, 0.05 / Math.max(sa, 1e-9), wall ? Math.min(0.004 / vel, 0.01 / Math.max(sa, 1e-9)) : Infinity);
+      const h = dir * Math.min(o.hMax || 0.5, 0.03 / vel, 0.05 / Math.max(sa, 1e-9), wall ? Math.min(0.002 / vel, 0.005 / Math.max(sa, 1e-9)) : Infinity);
       const y2 = y.map((v, i) => v + 0.5 * h * k1[i]), k2 = f(y2), y3 = y.map((v, i) => v + 0.5 * h * k2[i]), k3 = f(y3), y4 = y.map((v, i) => v + h * k3[i]), k4 = f(y4);
       const ny = y.map((v, i) => v + h / 6 * (k1[i] + 2 * k2[i] + 2 * k3[i] + k4[i]));
       if (!ny.every(isFinite)) { out.stop = 'overflow'; break; }
@@ -84,7 +84,10 @@ const MIXMASTER = (function () {
     const R = { tau, y: Y, cerr, y0, pastStop: past.stop, futStop: fut.stop, M: o.M || 0, L: o.L || 0 };
     // 宇宙时：t(τ=0) = 0；大爆炸时刻 tBang = past 端的 t（负），大坍缩 tCrunch = fut 端的 t；体积已缩到 e^{−60} 以下就当作到了奇点（剩下的时间可忽略）
     const lnVend = (br) => { const y = br.y[br.y.length - 1]; return y[0] + y[1] + y[2]; };
-    const pastSing = past.stop === 'singularity' || lnVend(past) < -60, futSing = fut.stop === 'singularity' || lnVend(fut) < -60;
+    // 各向同性（或接近）的尘埃宇宙在 τ 上走不到奇点（τ → ∞），但体积已缩到 e⁻¹⁵ 以下、还在缩：剩下的宇宙时可以忽略，也当作到了奇点
+    const shrinking = (br, sign) => { const y = br.y[br.y.length - 1]; return sign * (y[3] + y[4] + y[5]) > 0; };
+    const pastSing = past.stop === 'singularity' || lnVend(past) < -60 || (past.stop === 'tauMax' && lnVend(past) < -15 && shrinking(past, 1)), futSing = fut.stop === 'singularity' || lnVend(fut) < -60 || (fut.stop === 'tauMax' && lnVend(fut) < -15 && shrinking(fut, -1));
+    R.pastApprox = pastSing && past.stop === 'tauMax'; R.futApprox = futSing && fut.stop === 'tauMax';
     R.tBang = pastSing ? past.y[past.y.length - 1][6] : NaN; R.tCrunch = futSing ? fut.y[fut.y.length - 1][6] : NaN;
     // 离奇点的时间 T（从大爆炸算起）和 T'（到大坍缩）：从奇点那一端把 abc 累加回来，每个值都是正项之和，不会相消（能一路算到 e^{−500}）
     const n = tau.length, abc = Y.map((y) => Math.exp(y[0] + y[1] + y[2])); R.Tbang = new Float64Array(n); R.Tcrunch = new Float64Array(n);
@@ -115,8 +118,8 @@ const MIXMASTER = (function () {
     }
     if (cur) list.push(cur);
     const T = crunch ? R.Tcrunch : R.Tbang;
-    // 一个时代至少要跨 ln T 的 0.5（排除反弹中的过渡点）
-    const out = list.map((e) => { const l0 = Math.log(T[e.iStart]), l1 = Math.log(T[e.iEnd]); return { iStart: Math.min(e.iStart, e.iEnd), iEnd: Math.max(e.iStart, e.iEnd), p: e.p, u: uFromKasner(e.p), growing: e.p.indexOf(Math.max(...e.p)), shrinking: e.p.indexOf(Math.min(...e.p)), lnt0: Math.min(l0, l1), lnt1: Math.max(l0, l1), n: e.n }; }).filter((e) => e.n >= 8 && e.lnt1 - e.lnt0 > 2);
+    // 一个时代至少要跨 ln T 的 5（并且有 12 个以上采样点）：两次反弹之间指数恰好路过 Σp² ≈ 1 的过渡段只跨 2–3，不算时代
+    const out = list.map((e) => { const l0 = Math.log(T[e.iStart]), l1 = Math.log(T[e.iEnd]); return { iStart: Math.min(e.iStart, e.iEnd), iEnd: Math.max(e.iStart, e.iEnd), p: e.p, u: uFromKasner(e.p), growing: e.p.indexOf(Math.max(...e.p)), shrinking: e.p.indexOf(Math.min(...e.p)), lnt0: Math.min(l0, l1), lnt1: Math.max(l0, l1), n: e.n }; }).filter((e) => e.n >= 12 && e.lnt1 - e.lnt0 > 5);
     return out;
   }
   return { kasnerFromU, uFromKasner, bklMap, rhs, constraint, initial, initialKasner, integrate, solve, velocityExponents, exponents, epochs };

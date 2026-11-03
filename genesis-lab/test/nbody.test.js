@@ -15,4 +15,7 @@ function run(model, aEnd, sig0) {
 { const r = run({ H0: 70, Om: 1, Or: 0, OL: 0 }, 0.2, 0.01); const ratio = r.s1 / r.s0; ok('EdS small-amplitude growth ≈ D(a) ∝ a', Math.abs(ratio / r.Dgrow - 1) < 0.08, `rms grew ×${ratio.toFixed(3)}, D grew ×${r.Dgrow.toFixed(3)} (a=${r.a.toFixed(3)}, ${r.steps} steps)`); }
 { const r = run(C.FIDUCIAL, 0.3, 0.01); const ratio = r.s1 / r.s0; ok('ΛCDM small-amplitude growth ≈ D(a)', Math.abs(ratio / r.Dgrow - 1) < 0.08, `×${ratio.toFixed(3)} vs ×${r.Dgrow.toFixed(3)}`); }
 { const r = run(C.FIDUCIAL, 1.0, 0.81); ok('ΛCDM full amplitude at a=1 (64² test grid, resolution-limited)', r.s1 > 0.55, `σ8(sim) = ${r.s1.toFixed(2)} (linear 0.81)`); }
+{ const R = C.solve(C.FIDUCIAL), m = R.m; const aOf = (t) => { const br = t <= 0 ? R.past : R.fut, { ts, as } = br, dec = t <= 0; let lo = 0, hi = ts.length - 1; while (hi - lo > 1) { const mid = (lo + hi) >> 1; if (dec ? ts[mid] >= t : ts[mid] <= t) lo = mid; else hi = mid; } const f = (t - ts[lo]) / (ts[hi] - ts[lo]); return as[lo] + (as[hi] - as[lo]) * f; };
+  const sim = new NB.PM2D({ N: 64, np: 64, L: 300, seed: 5, Om: m.Om, Ob: 0.049, h: m.H0 / 100, ns: 0.965, aInit: 0.05, amp: 0.05, E: (a) => Math.sqrt(Math.max(1e-12, C.E2(m, a))), aOf, tOf: (a) => C.tOfA(R, a) }); for (let i = 0; i < 30; i++) sim.step(0.05);
+  ok('σ8 from Parseval in forces() equals the real-space σ8', Math.abs(sim.s8 / sim.sigma8() - 1) < 1e-9, `${sim.s8.toFixed(6)} vs ${sim.sigma8().toFixed(6)}`); }
 console.log(`\n全部通过 / all ${n} checks passed`);

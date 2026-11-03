@@ -30,6 +30,8 @@
     tex(drawer); drawer.hidden = false; chat.hide();
   }
   $('gloss-close').addEventListener('click', () => { drawer.hidden = true; });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !drawer.hidden) drawer.hidden = true; }); // Esc 关抽屉
+  document.addEventListener('pointerdown', (e) => { if (drawer.hidden || drawer.contains(e.target) || e.target.closest('.qb')) return; drawer.hidden = true; }, true); // 点抽屉外面也关
   $('gloss-ask').addEventListener('click', () => { const g = GLOSS[curG]; drawer.hidden = true; chat.open(); chat.ask('请解释"' + g.t.replace(/\$/g, '') + '"：它在这个页面上现在的数值意味着什么？我该怎么理解它？'); });
   // ? 按钮：给每个带 data-g 的元素补一个
   function decorate(root) {
@@ -115,7 +117,7 @@
         <div class="ctl"><label><span>模型（可留空用默认）</span></label><input id="ai-model" class="num" style="width:100%" value="${(u.model || '').replace(/"/g, '&quot;')}" placeholder="默认"></div>
         <div class="ctl" id="ai-base-row" hidden><label><span>接口地址</span></label><input id="ai-base" class="num" style="width:100%" value="${(u.base || '').replace(/"/g, '&quot;')}" placeholder="https://…/v1"></div>
         <div class="bar"><button class="btn small primary" type="button" id="ai-save">保存并测试</button><button class="btn small ghost" type="button" id="ai-cancel">取消</button><span class="note" id="ai-status"></span></div></div>`;
-      const hint = () => { const P = QLAI.preset($('ai-p').value); $('ai-hint').textContent = (P && P.hint) || ''; $('ai-base-row').hidden = !(P && P.id === 'custom'); };
+      const hint = () => { const P = QLAI.preset($('ai-p').value); $('ai-hint').textContent = ((P && P.hint) || '').replace(/接的是 Claude 时，机器学习实验室[^。]*。/, ''); $('ai-base-row').hidden = !(P && P.id === 'custom'); }; // 去掉只和别的实验室有关的那句
       $('ai-p').addEventListener('change', hint); hint();
       $('ai-cancel').addEventListener('click', () => { p.hidden = true; });
       $('ai-save').addEventListener('click', async () => {
@@ -131,7 +133,7 @@
     $('chat-close').addEventListener('click', hide); $('chat-setup').addEventListener('click', showSetup);
     fab.addEventListener('click', () => { if (box.hidden) { open(); ensure(); } else hide(); });
     if (typeof QLAI !== 'undefined') QLAI.onChange(() => { sampler = null; mode = 'none'; ensure(); });
-    $('chat-hint').textContent = window.GENESIS_ARTIFACT ? '第一次提问时页面会请你允许它使用 AI' : (typeof QLAI !== 'undefined' ? '需要你自己的 API 密钥（和策略实验室共用同一处设置）' : '');
+    $('chat-hint').textContent = window.GENESIS_ARTIFACT ? '第一次提问时页面会请你允许它使用 AI' : (typeof QLAI !== 'undefined' ? '需要你自己的 API 密钥（只存在本机浏览器；本站的几个实验室共用这一处设置）' : '');
     ensure();
     return { open, hide, ask };
   })();

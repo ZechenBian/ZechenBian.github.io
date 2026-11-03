@@ -49,7 +49,7 @@
     ctx.globalAlpha = 1; ctx.fillStyle = 'rgba(233,237,249,0.85)'; ctx.font = '11px Space Grotesk, sans-serif'; ctx.textAlign = 'left'; ctx.fillText('ψ = −180°', 4, h - 6); ctx.textAlign = 'right'; ctx.fillText('+180°', w - 4, h - 6); ctx.textAlign = 'left'; ctx.fillText(st.circles.length ? `${st.circles.length} 对匹配圆（同色一对）` : '没有匹配圆：胞腔比最后散射面的直径还大', 4, 12);
   }
   function drawMatch() {
-    const cv = $('c-topo-match'), k = st.hoverC; if (k < 0 || !st.circles[k]) { const { ctx, w, h } = fit(cv); ctx.clearRect(0, 0, w, h); ctx.fillStyle = CSS('--dim'); ctx.font = '12px Space Grotesk'; ctx.textAlign = 'center'; ctx.fillText(st.circles.length ? '把鼠标放到一对圆上：画出沿两个圆的温度' : '', w / 2, h / 2); return; }
+    const cv = $('c-topo-match'), k = st.hoverC; if (k < 0 || !st.circles[k]) { const { ctx, w, h } = fit(cv); ctx.clearRect(0, 0, w, h); ctx.fillStyle = CSS('--dim'); ctx.font = '12px Space Grotesk'; ctx.textAlign = 'center'; ctx.fillText(st.circles.length ? '指到（或点一下）一对圆：画出沿两个圆的温度' : '', w / 2, h / 2); return; }
     const c = st.circles[k], cp = TOPO.circlePoints(c, 180), xs = [], a = [], b = []; for (let i = 0; i < 180; i++) { xs.push(i * 2); a.push(TOPO.sample(st.F, cp.A[i][0], cp.A[i][1], cp.A[i][2])); b.push(TOPO.sample(st.F, cp.B[i][0], cp.B[i][1], cp.B[i][2])); }
     const ymax = Math.max(1, ...a.map(Math.abs));
     chart(cv, { xmin: 0, xmax: 360, ymin: -ymax, ymax, xlabel: `沿圆的角度 φ（圆对 ${k + 1}：平移 ${c.n.join(',')}，角半径 ${(c.alpha * 180 / Math.PI).toFixed(1)}°）`, ylabel: 'ΔT', padL: 40, series: [{ xs, ys: a, color: PAL[k % PAL.length], width: 3 }, { xs, ys: b, color: '#fff', width: 1, dash: [4, 3] }] });
@@ -66,14 +66,16 @@
   }
   // ---- 交互 ----
   const cell = $('c-topo-cell');
-  cell.addEventListener('pointermove', (ev) => { const r = cell.getBoundingClientRect(), w = r.width, h = r.height, sc = Math.min(w, h) * 0.46; const x = (ev.clientX - r.left - w / 2) / sc, y = -(ev.clientY - r.top - h / 2) / sc; let best = null; for (const q of (st.ghosts || [])) { const d = Math.hypot(q.x - x, q.y - y); if (d < 0.05 && (!best || d < best.d)) best = { q, d }; }
-    const name = best ? best.q.g.name : null; if (name !== st.hoverG) { st.hoverG = name; drawCell(); if (best) { const q = best.q, all = st.ghosts.filter((z) => z.g.name === name).sort((p, s) => p.d - s.d); $('topo-ghost').innerHTML = `<b style="color:${q.g.c}">${name}</b>：圆内 ${all.length} 个像。` + all.slice(0, 6).map((z) => { const lb = lookback(z.d); return `距离 ${z.d.toFixed(2)}χ = ${(z.d * zchi().chiGpc).toFixed(1)} Gpc（z ≈ ${sig(lb.z, 2)}，${gyr(lb.t)} 前的样子）${z.direct ? '【本尊】' : ''}`; }).join('；') + (all.length > 6 ? '…' : ''); } else $('topo-ghost').textContent = ''; } });
-  cell.addEventListener('pointerleave', () => { st.hoverG = null; drawCell(); $('topo-ghost').textContent = ''; });
+  const onCell = (ev) => { const r = cell.getBoundingClientRect(), w = r.width, h = r.height, sc = Math.min(w, h) * 0.46; const x = (ev.clientX - r.left - w / 2) / sc, y = -(ev.clientY - r.top - h / 2) / sc; let best = null; for (const q of (st.ghosts || [])) { const d = Math.hypot(q.x - x, q.y - y); if (d < 0.05 && (!best || d < best.d)) best = { q, d }; }
+    const name = best ? best.q.g.name : null; if (name !== st.hoverG) { st.hoverG = name; drawCell(); if (best) { const q = best.q, all = st.ghosts.filter((z) => z.g.name === name).sort((p, s) => p.d - s.d); $('topo-ghost').innerHTML = `<b style="color:${q.g.c}">${name}</b>：圆内 ${all.length} 个像。` + all.slice(0, 6).map((z) => { const lb = lookback(z.d); return `距离 ${z.d.toFixed(2)}χ = ${(z.d * zchi().chiGpc).toFixed(1)} Gpc（z ≈ ${sig(lb.z, 2)}，${gyr(lb.t)} 前的样子）${z.direct ? '【本尊】' : ''}`; }).join('；') + (all.length > 6 ? '…' : ''); } else $('topo-ghost').textContent = ''; } };
+  cell.addEventListener('pointermove', (ev) => { if (ev.pointerType !== 'touch') onCell(ev); }); cell.addEventListener('pointerdown', onCell); // 触屏点一下
+  cell.addEventListener('pointerleave', (ev) => { if (ev.pointerType === 'touch') return; st.hoverG = null; drawCell(); $('topo-ghost').textContent = ''; });
   const skyc = $('c-topo-sky');
-  skyc.addEventListener('pointermove', (ev) => { const r = skyc.getBoundingClientRect(); const ps = -Math.PI + (ev.clientX - r.left) / r.width * 2 * Math.PI, th = (ev.clientY - r.top) / r.height * Math.PI; const n = [Math.sin(th) * Math.cos(ps), Math.sin(th) * Math.sin(ps), Math.cos(th)]; let best = -1, bd = 0.06;
+  const onSky = (ev) => { const r = skyc.getBoundingClientRect(); const ps = -Math.PI + (ev.clientX - r.left) / r.width * 2 * Math.PI, th = (ev.clientY - r.top) / r.height * Math.PI; const n = [Math.sin(th) * Math.cos(ps), Math.sin(th) * Math.sin(ps), Math.cos(th)]; let best = -1, bd = 0.06;
     st.circles.forEach((c, k) => { for (const s of [1, -1]) { const cosang = s * (n[0] * c.dir[0] + n[1] * c.dir[1] + n[2] * c.dir[2]); const d = Math.abs(Math.acos(Math.max(-1, Math.min(1, cosang))) - c.alpha); if (d < bd) { bd = d; best = k; } } });
-    if (best !== st.hoverC) { st.hoverC = best; drawSky(); drawMatch(); } });
-  skyc.addEventListener('pointerleave', () => { st.hoverC = -1; drawSky(); drawMatch(); });
+    if (best !== st.hoverC) { st.hoverC = best; drawSky(); drawMatch(); } };
+  skyc.addEventListener('pointermove', (ev) => { if (ev.pointerType !== 'touch') onSky(ev); }); skyc.addEventListener('pointerdown', onSky);
+  skyc.addEventListener('pointerleave', (ev) => { if (ev.pointerType === 'touch') return; st.hoverC = -1; drawSky(); drawMatch(); });
   const chips = $('topo-presets'); for (const p of PRESETS) { const b = document.createElement('button'); b.className = 'chip'; b.dataset.id = p.id; b.innerHTML = `${p.name}<small>${p.sub}</small>`; b.addEventListener('click', () => { st.L = p.L; st.shape = p.shape; $('topo-L').value = p.L; $('topo-shape').value = p.shape; labels(); build(); }); chips.appendChild(b); }
   $('topo-L').addEventListener('input', () => { st.L = +$('topo-L').value; labels(); clearTimeout(st.timer); st.timer = setTimeout(build, 200); drawCell(); });
   $('topo-shape').addEventListener('change', () => { st.shape = $('topo-shape').value; labels(); build(); });

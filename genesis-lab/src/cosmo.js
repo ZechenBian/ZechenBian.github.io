@@ -225,7 +225,8 @@ const COSMO = (function () {
   function diagnose(R) {
     const m = R.m, gyr = GYR / m.H0, items = [];
     const G = R.growth;
-    const fmtT = (t) => (t * gyr).toPrecision(3) + ' Gyr';
+    const num = (v, n) => { if (!isFinite(v)) return v > 0 ? '∞' : '—'; const a = Math.abs(v); if (a !== 0 && (a >= 1e5 || a < 1e-3)) return v.toExponential(n - 1).replace('e+', 'e'); return String(+v.toPrecision(n)); }; // 1e-3 ~ 1e5 之间不用科学计数
+    const fmtT = (t) => { const v = t * gyr; return v >= 1e4 ? num(v / 1e3, 3) + ' Tyr' : num(v, 3) + ' Gyr'; };
     // 1 起点
     if (R.origin === 'bigbang') {
       if (m.Or > 1e-12) items.push({ level: 'ok', key: 'origin', title: '热大爆炸', detail: `从奇点算起 ${fmtT(R.age)}。今天的背景温度 ${m.T0.toPrecision(3)} K，往回追溯足够热，有核合成和 CMB。` });
@@ -242,7 +243,7 @@ const COSMO = (function () {
     if (!G) items.push({ level: 'dead', key: 'galaxies', title: '结构形成：不适用', detail: '没有热大爆炸就没有原初扰动的常规剧本，这里不做判断。' });
     else if (isFinite(G.tFirst)) {
       const T = m.T0 / G.aFirst;
-      let d = `10⁸ M☉ 的 3σ 高峰在 a = ${G.aFirst.toPrecision(2)}（背景温度 ${T.toPrecision(2)} K）越过坍缩阈值 δ = 1.686。`;
+      let d = `10⁸ M☉ 的 3σ 高峰在 a = ${num(G.aFirst, 2)}（背景温度 ${num(T, 2)} K）越过坍缩阈值 δ = 1.686。`;
       d += isFinite(G.tGal) ? ` 像银河系那样的典型星系（10¹² M☉ 的 1σ 涨落）在 ${G.aGal <= 1 ? '大爆炸后 ' + fmtT(G.tGal + R.age) : '今天之后 ' + fmtT(G.tGal)}坍缩；` : ' 典型星系尺度（10¹² M☉ 的 1σ）永远到不了阈值；';
       d += isFinite(G.tCluster) ? `星系团尺度（8 h⁻¹Mpc 的 1σ）在 ${G.aCluster <= 1 ? '大爆炸后 ' + fmtT(G.tCluster + R.age) : '今天之后 ' + fmtT(G.tCluster)}坍缩。` : '星系团尺度（8 h⁻¹Mpc 的 1σ）永远到不了阈值——真实的星系团是 2–3σ 的稀有高峰。';
       items.push({ level: 'ok', key: 'galaxies', title: `第一批星系在${R.quantumBounce ? '反弹' : '大爆炸'}后 ${fmtT(G.tFirst + R.age)} 形成`, detail: d });
@@ -252,7 +253,7 @@ const COSMO = (function () {
       const sc = m.sigScale && m.sigScale.c8 ? m.sigScale.c8 : 1;
       if (m.Om <= 1e-12) why = '宇宙里没有物质：没有东西可以在引力下聚集。';
       else if (sc < 1 && G.growthMax * SIG_FIRST >= DELTA_C) why = `原初扰动太弱：幅度只有我们宇宙的 ${sc.toPrecision(2)} 倍（A_s 是 ${(sc * sc).toPrecision(2)} 倍），同样的增长下最高的密度峰只到 δ = ${peak}；按我们宇宙的幅度本来可以长到 ${(G.growthMax * SIG_FIRST).toPrecision(2)}。`;
-      else if (R.fate === 'crunch') why = `宇宙寿命只有 ${fmtT(R.tEnd + R.age)}，连最高的密度峰也只长到 δ = ${peak} 就被大坍缩压碎了。`;
+      else if (R.fate === 'crunch') why = `宇宙在大爆炸后 ${fmtT(R.tEnd + R.age)} 就大坍缩了，到那时最高的密度峰也只长到 δ = ${peak}，没来得及坍缩成星系就被压碎了。`;
       else if (R.aEq > 0.01) why = `辐射主导得太久（物质-辐射相等${R.aEq < 1 ? '要到 a = ' + R.aEq.toPrecision(2) : '到今天还没发生'}），辐射压让物质扰动几乎不长（Mészáros 效应），最高的密度峰也只到 δ ≈ ${peak}。` + (m.OL > 0 && m.w < -1 / 3 && R.aLambda < 10 ? `之后暗能量又在 a = ${R.aLambda.toPrecision(2)} 接管，把增长彻底冻住。` : '');
       else if (m.OL > 0 && m.w < -1 / 3) why = `暗能量过早接管（物质-暗能量相等在 a = ${R.aLambda.toPrecision(2)}），增长被冻结：最高的密度峰也只长到 δ = ${peak} < 1.686，永远形不成星系。这正是温伯格 1987 年用来"预言"宇宙学常数不能比我们的大太多的论证。`;
       else why = `密度峰最多长到 δ = ${peak}，不够坍缩（开放宇宙的曲率让膨胀太快，增长在 a ≈ Ω_m/|Ω_k| 后冻结）。`;

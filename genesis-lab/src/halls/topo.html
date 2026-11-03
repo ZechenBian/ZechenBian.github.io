@@ -5,13 +5,13 @@
   <div class="grid g-godel" style="margin-top:14px">
     <div class="card">
       <h3><span data-g="torus">① 有限但无边</span> <span class="tag sim">模拟</span></h3>
-      <p class="note">一个二维切片：方框是基本胞腔（边长 $L$，以最后散射面的共动半径 $\chi$ 为单位），里面几个星系；大圆是你能看到的范围。拨 $L$，看每个星系在圆里出现多少次。把鼠标放到任何一个像上，看它是谁、离你多远、你看到的是它多久以前的样子。</p>
+      <p class="note">一个二维切片：方框是基本胞腔（边长 $L$，以最后散射面的共动半径 $\chi$ 为单位），里面几个星系；大圆是你能看到的范围。拨 $L$，看每个星系在圆里出现多少次。指到（或点一下）任何一个像，看它是谁、离你多远、你看到的是它多久以前的样子。</p>
       <canvas id="c-topo-cell" width="520" height="440" style="cursor:crosshair"></canvas>
       <div class="note mono" id="topo-ghost" style="min-height:40px;font-size:12px;margin-top:6px"></div>
     </div>
     <div class="card">
       <h3><span data-g="circles">② 天上的圈</span> <span class="tag sim">模拟</span></h3>
-      <p class="note">CMB 全天图（Sachs–Wolfe 近似：温度 ∝ 周期随机场在最后散射面上的值）。最后散射面被平移 $v$ 后和自己相交于一个圆，圆心在 $\pm\hat v$，角半径 $\alpha = \arccos(|v|/2\chi)$；每一对同色的圆上温度逐点相同。把鼠标放到一对圆上，下面画出沿两个圆的温度。</p>
+      <p class="note">CMB 全天图（Sachs–Wolfe 近似：温度 ∝ 周期随机场在最后散射面上的值）。最后散射面被平移 $v$ 后和自己相交于一个圆，圆心在 $\pm\hat v$，角半径 $\alpha = \arccos(|v|/2\chi)$；每一对同色的圆上温度逐点相同。指到（或点一下）一对圆，下面画出沿两个圆的温度。</p>
       <canvas id="c-topo-sky" width="720" height="360" style="cursor:crosshair"></canvas>
       <canvas id="c-topo-match" width="720" height="160"></canvas>
       <div class="kv" id="topo-sky-cards" style="margin-top:8px"></div>

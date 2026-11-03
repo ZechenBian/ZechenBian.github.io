@@ -51,7 +51,9 @@ const RECOMB = (function () {
     // 声波的历史（给"声波"面板）：R(a)、声速 c_s/c、r_s(a) 的累积表（Mpc，共动），一直算到退耦（没退耦就算到今天）
     out.R = (a) => 3 * Ob * a / (4 * Og); out.cs = (a) => 1 / Math.sqrt(3 * (1 + out.R(a)));
     if (Og > 0) {
-      const aEnd = isFinite(out.zDec) ? 1 / (1 + out.zDec) : 1, n = 2000, l1 = Math.log(1e-10), l2 = Math.log(aEnd), dl = (l2 - l1) / n, tab = { as: [], rs: [] }; let cum = 0, fPrev = null;
+      const aEnd = isFinite(out.zDec) ? 1 / (1 + out.zDec) : 1, n = 2000, l1 = Math.log(1e-10), l2 = Math.log(aEnd), dl = (l2 - l1) / n, tab = { as: [], rs: [] };
+      // 表从 a = 10⁻¹⁰（t ≈ 0.2 s）起算，之前的那段按辐射主导的解析结果补上：c_s/(aH) ∝ a，所以 ∫₀^{a₁} … d ln a = f(a₁)
+      const e1 = COSMO.E2(m, Math.exp(l1)); let cum = e1 > 0 ? out.cs(Math.exp(l1)) / (Math.exp(l1) * Math.sqrt(e1)) : 0, fPrev = null;
       for (let i = 0; i <= n; i++) { const a = Math.exp(l1 + dl * i), e2 = COSMO.E2(m, a); const f = e2 > 0 ? out.cs(a) / (a * Math.sqrt(e2)) : 0; if (fPrev !== null) cum += 0.5 * (f + fPrev) * dl; fPrev = f; if (i % 10 === 0 || i === n) { tab.as.push(a); tab.rs.push(cum * COSMO.CKMS / m.H0); } }
       out.rsTab = tab; out.rsOf = (a) => { const as = tab.as, rs = tab.rs; if (a <= as[0]) return rs[0] * a / as[0]; if (a >= as[as.length - 1]) return rs[rs.length - 1]; let lo = 0, hi = as.length - 1; while (hi - lo > 1) { const mid = (lo + hi) >> 1; if (as[mid] <= a) lo = mid; else hi = mid; } const u = (Math.log(a) - Math.log(as[lo])) / (Math.log(as[hi]) - Math.log(as[lo])); return rs[lo] + (rs[hi] - rs[lo]) * u; };
     }

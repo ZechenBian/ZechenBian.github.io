@@ -58,6 +58,9 @@ section.hall{padding:22px 0 40px}
 .g-allsky{grid-template-columns:1fr 300px}
 .grid>*{min-width:0}
 @media (max-width:960px){.g-forge,.g-godel,.g-inv,.g-allsky,.g3,.g2{grid-template-columns:1fr}}
+.as-scroll{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}
+.mix-tbl{overflow-x:auto}.mix-tbl td{padding:1px 8px 1px 0;white-space:nowrap}
+@media (max-width:600px){.as-scroll canvas{min-width:640px}}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;min-width:0}
 .card.tight{padding:10px 12px}
 .card h3{margin-bottom:8px}
@@ -95,8 +98,8 @@ canvas.pointer{cursor:crosshair}
 .movie .hud{position:absolute;left:10px;top:8px;font-size:12px;color:var(--dim);pointer-events:none;text-shadow:0 1px 2px #000}
 .movie .hud b{color:var(--ink);font-weight:500}
 .movie .hud{background:rgba(6,9,19,0.55);padding:4px 8px;border-radius:6px}
-.movie.nb .hud{left:auto;right:8px;max-width:150px;line-height:1.45}
-@media (max-width:600px){.movie .hud{position:static;background:transparent;padding:4px 0 0;font-size:11px}}
+.movie.nb .hud{left:auto;right:8px;max-width:200px;line-height:1.45;font-size:11px;white-space:nowrap}
+@media (max-width:600px){.movie .hud{position:static;background:transparent;padding:4px 0 0;font-size:11px}.movie.nb .hud{max-width:none;white-space:normal}}
 .sticky-sum{position:fixed;left:0;right:0;bottom:0;z-index:8;display:none;gap:10px;align-items:center;flex-wrap:wrap;padding:6px max(16px,env(safe-area-inset-left,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-right,0px));background:rgba(11,17,36,0.96);border-top:1px solid var(--line2);font-size:12px;color:var(--dim)}
 .sticky-sum span{white-space:nowrap}.sticky-sum a{margin-left:auto;color:var(--teal);font-weight:600;text-decoration:none}
 @media (max-width:960px){.sticky-sum:not([hidden]){display:flex}body{padding-bottom:56px}}
@@ -105,7 +108,7 @@ canvas.pointer{cursor:crosshair}
 .bar input[type=range]{flex:1;min-width:160px;accent-color:var(--gold)}
 .timeline{position:relative;height:44px;margin-top:4px}
 .timeline .mk{position:absolute;top:0;transform:translateX(-50%);font-size:10px;color:var(--dim);white-space:nowrap;text-align:center}
-.timeline .mk::before{content:'';display:block;width:1px;height:8px;background:var(--line2);margin:0 auto 1px}
+.timeline .mk::before{content:'';display:block;width:1px;height:8px;background:var(--line2);margin:0 auto 1px;transform:translateX(var(--tk,0px))}
 .timeline .mk.alt{top:0}.timeline .mk.alt::before{height:22px}
 .diag{list-style:none;margin:0;padding:0;display:grid;gap:8px}
 .diag li{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:9px 11px}
@@ -149,6 +152,7 @@ footer{border-top:1px solid var(--line);padding:18px 0 28px;color:var(--faint);f
 .drawer-body p{margin:.5em 0}.gloss-s{color:var(--gold);font-weight:600}
 #chat-fab{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:9;border-radius:999px;box-shadow:0 6px 24px #0008;padding:10px 16px}
 @media (max-width:960px){#chat-fab{bottom:calc(64px + env(safe-area-inset-bottom,0px))}}
+@media (max-width:600px){#chat-fab{padding:6px 11px;font-size:12px;opacity:.85;right:8px}}
 .chat-log{display:flex;flex-direction:column;gap:8px;min-height:120px}
 .msg{padding:8px 11px;border-radius:10px;max-width:96%;line-height:1.5;overflow-wrap:anywhere}.msg.user{align-self:flex-end;background:var(--panel2)}.msg.assistant{background:var(--bg2);border:1px solid var(--line)}
 .msg p{margin:.3em 0}.msg ul,.msg ol{margin:.3em 0;padding-left:20px}.msg code{font-family:'JetBrains Mono',monospace;font-size:12px;background:#0a0f22;padding:1px 4px;border-radius:4px}
@@ -235,7 +239,7 @@ footer{border-top:1px solid var(--line);padding:18px 0 28px;color:var(--faint);f
     <div>
       <div class="card">
         <h3><span data-g="movie">创世影片</span> <span class="tag sim">模拟</span> <span class="note" style="font-weight:400" id="movie-sub">共动网格上的星系随尺度因子 a(t) 伸缩；颜色随背景温度变化</span></h3>
-        <div class="bar" style="margin:4px 0 8px"><span class="note">画法</span><button class="btn small on" id="nb-off">共动点阵</button><button class="btn small" id="nb-on">真引力 N 体</button><span data-g="nbody"></span><span id="nb-bar" hidden><button class="btn small" id="nb-run">▶ 从头长出结构</button><button class="btn small" id="nb-reseed">⟲ 换随机相位</button></span></div>
+        <div class="bar" style="margin:4px 0 8px"><span class="note">画法</span><button class="btn small on" id="nb-off">共动点阵</button><button class="btn small" id="nb-on">真引力 N 体</button><span data-g="nbody"></span><span id="nb-bar" hidden><button class="btn small" id="nb-run">▶ 从头播放（a = aᵢ 起）</button><button class="btn small" id="nb-reseed">⟲ 换随机相位</button></span></div>
         <div class="movie"><canvas id="c-movie" width="900" height="420"></canvas>
           <div class="hud" id="movie-hud"></div></div>
         <div class="epoch-line" id="movie-epoch"></div>
@@ -257,7 +261,7 @@ footer{border-top:1px solid var(--line);padding:18px 0 28px;color:var(--faint);f
             <div class="bar" style="margin-top:0"><label class="note">图层 <select id="pmap-layer" class="num" style="width:auto;padding:4px 8px"><option value="fate">命运 × 宜居</option><option value="age">年龄</option><option value="first">第一批星系何时出现</option></select></label><span class="note mono" id="pmap-status"></span></div>
             <div class="legend" id="pmap-legend" style="margin-top:8px"></div>
             <div class="kv" id="pmap-read" style="margin-top:10px"></div>
-            <p class="note" style="margin-top:10px">白虚线是平坦（$\Omega_k = 0$），点线是 $q_0 = 0$（今天恰好不加速也不减速）。灰色区没有大爆炸：往回追溯会在某个 $a_{\min}$ 反弹。小圆点是内置的宇宙，十字是你现在的参数。</p>
+            <p class="note" style="margin-top:10px">白虚线是平坦（$\Omega_k = 0$），点线是 $q_0 = 0$（今天恰好不加速也不减速）。灰色区没有大爆炸：往回追溯会在某个 $a_{\min}$ 反弹。小圆点是内置的宇宙（空心 = 它的 $w$ 或 $\Omega_r$ 和这张图不同，位置仅供参考），十字是你现在的参数。触屏上点一下看读数，再点同一格装入。</p>
           </div>
         </div>
       </div>
@@ -292,15 +296,6 @@ __Q_HALL__
       <div class="note mono" id="light-readout" style="margin-top:6px"></div>
     </div>
   </div>
-  <div class="card" style="margin-top:14px">
-    <h3><span data-g="allsky">⑤ 站在轴上看整个天空</span> <span class="tag sim">模拟</span> <span class="note" style="font-weight:400">每个像素一条零测地线，从你眼睛倒着追到星系；没有红移，面亮度守恒</span></h3>
-    <p class="note">全天图（横轴方位角 ψ，纵轴和转轴的夹角 θ，像地图一样摊开）。星系按坐标固定在旋转的尘埃上；每一束光都按②里的方程往回追，光绕回轴几次都算上。把鼠标放到天上的任何一点，右边会画出那束光走过的路。</p>
-    <div class="grid g-allsky">
-      <div><canvas id="c-allsky" width="720" height="360" style="cursor:crosshair;touch-action:pan-y"></canvas>
-        <div class="bar"><label class="note">追踪 <select id="as-returns" class="num" style="width:auto;padding:4px 8px"><option value="1">1 个来回</option><option value="2" selected>2 个来回</option><option value="3">3 个来回</option></select></label><label class="note"><input type="checkbox" id="as-home" checked style="accent-color:var(--gold)"> 把你自己的星系也画上</label><button class="btn small" id="as-reseed">⟲ 重新布置星系</button><span class="note mono" id="as-status"></span></div></div>
-      <div><canvas id="c-allsky-map" width="300" height="300"></canvas><div class="note mono" id="as-read" style="margin-top:6px;min-height:60px;font-size:12px"></div></div>
-    </div>
-  </div>
   <div class="grid g-godel" style="margin-top:14px">
     <div class="card">
       <h3><span data-g="ctc">③ 光锥在倾倒</span> <span class="tag sim">模拟</span></h3>
@@ -318,6 +313,15 @@ __Q_HALL__
         <p><b style="color:var(--ink)">为什么光回来了？</b>从轴发出的光，角动量为零，径向速度在 sinh r = 1 处被拖到零，然后折回，在坐标时 t ≈ 1.29（哥德尔单位）全部重新聚焦到轴上。轴上的观察者永远看不到 r_c 之外——这是哥德尔宇宙的"视界"。</p>
         <p><b style="color:var(--ink)">它是我们的宇宙吗？</b>不是：它不膨胀，Λ 还是负的。但它是合法的解。观测上，CMB 的各向同性把今天宇宙的整体转动压到极小：Planck 数据给出与涡度相关的各向异性 (σ<sub>V</sub>/H)<sub>0</sub> &lt; 4.7×10⁻¹¹（95%，Saadeh 等 2016）。如果我们的宇宙是哥德尔式的、物质密度就是今天的 ρ<sub>m</sub>，星空每 <span id="godel-ours-T">…</span> 转一圈，而时间机器的圈在 <span id="godel-ours-R">…</span> 之外。</p>
       </details>
+    </div>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <h3><span data-g="allsky">⑤ 站在轴上看整个天空</span> <span class="tag sim">模拟</span> <span class="note" style="font-weight:400">每个像素一条零测地线，从你眼睛倒着追到星系；没有红移，面亮度守恒</span></h3>
+    <p class="note">全天图（横轴方位角 ψ，纵轴和转轴的夹角 θ，像地图一样摊开）。星系按坐标固定在旋转的尘埃上；每一束光都按②里的方程往回追，光绕回轴几次都算上。指到（或点一下）天上的任何一点，右边会画出那束光走过的路。"来回数"只决定追多远：大多数像在第一个来回里就出现了，所以 2 和 3 个来回看到的星系数常常一样。</p>
+    <div class="grid g-allsky">
+      <div><div class="as-scroll"><canvas id="c-allsky" width="720" height="360" style="cursor:crosshair;touch-action:pan-x pan-y"></canvas></div>
+        <div class="bar"><label class="note">追踪 <select id="as-returns" class="num" style="width:auto;padding:4px 8px"><option value="1">1 个来回</option><option value="2" selected>2 个来回</option><option value="3">3 个来回</option></select></label><label class="note"><input type="checkbox" id="as-home" checked style="accent-color:var(--gold)"> 把你自己的星系也画上</label><button class="btn small" id="as-reseed">⟲ 重新布置星系</button><span class="note mono" id="as-status"></span></div></div>
+      <div><canvas id="c-allsky-map" width="300" height="300"></canvas><div class="note mono" id="as-read" style="margin-top:6px;min-height:60px;font-size:12px"></div></div>
     </div>
   </div>
 </section>

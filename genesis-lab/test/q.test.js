@@ -21,6 +21,7 @@ ok('more N_eff → more helium', BBN.run(TH.build({ Neff: 6 }), {}).Yp > b.Yp); 
 const m = COSMO.norm(COSMO.FIDUCIAL), rc = RC.run(m, { Ob: 0.0493, Yp: 0.247 });
 close('η = 6.1e-10', rc.eta, 6.1e-10, 0.01); close('z_dec (Saha) ≈ 1130', rc.zDec, 1130, 0.02); close('r_s ≈ 141 Mpc (Saha z_dec)', rc.rs, 141, 0.02);
 ok('smaller α → later recombination', RC.run(m, { Ob: 0.0493, Yp: 0.247, alpha: 0.5 }).zDec < rc.zDec / 2);
+{ const r1 = rc.rsOf(1e-10), r2 = rc.rsOf(1e-9), rEnd = rc.rsOf(rc.aDec); ok('r_s(a) table starts nonzero at a = 1e-10 (t ≈ 0.2 s) and grows ∝ a in the radiation era', r1 > 0 && Math.abs(r2 / r1 / 10 - 1) < 0.02, `${r1.toExponential(2)}, ${r2.toExponential(2)} Mpc`); close('r_s table reaches r_s at decoupling', rEnd, rc.rs, 0.005); }
 const inf = INF.derive(2.1e-9, 0.965, 0.01); close('V^{1/4}(r=0.01) ≈ 1.0e16 GeV', inf.V4, 1.0e16, 0.03); ok('T_GH ~ 1e26 K', inf.TGH > 1e25 && inf.TGH < 1e28, inf.TGH.toExponential(2));
 close('de Sitter T today ~ 2.2e-30 K', INF.deSitterT(67.4 * 1e5 / 3.0857e24 * Math.sqrt(0.685)), 2.2e-30, 0.05);
 console.log(`\n全部通过 / all ${n} checks passed`);

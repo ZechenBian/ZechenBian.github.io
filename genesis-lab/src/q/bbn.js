@@ -56,6 +56,8 @@ const BBN = (function () {
     out.Tnuc = Tnuc; out.tNuc = tNuc; out.Xnuc = Xnuc; out.Yp = Math.min(1, 2 * Xnuc);
     // 冻结：X_n 离开平衡的温度（|X − X_eq|/X_eq > 10%）
     for (let i = 0; i < out.Ts.length; i++) if (Math.abs(out.Xn[i] - out.Xeq[i]) > 0.1 * out.Xeq[i]) { out.Tfreeze = out.Ts[i]; out.tFreeze = out.ts[i]; out.npFreeze = out.Xn[i] / (1 - out.Xn[i]); break; }
+    // 冻透：弱作用率/膨胀率的最低点（之后比值回升只是因为自由中子衰变 1/τ_n 相对 H 越来越大），n/p 从这里起不再跟着温度走——教科书里"冻在 ≈ 1/6"指的是这个值
+    { let im = -1, best = Infinity; for (let i = 0; i < out.Ts.length; i++) { const r = (out.lnp[i] + out.lpn[i]) / out.Hs[i]; if (r < best) { best = r; im = i; } } if (im >= 0) { out.Tfrozen = out.Ts[im]; out.npFrozen = out.Xn[im] / (1 - out.Xn[im]); } }
     out.DH = 2.53e-5 * Math.pow(6.1e-10 / eta, 1.6); out.DHvalid = eta > 5e-11 && eta < 3e-9; // 拟合，只在 η₁₀ ≈ 0.5–30 可信
     out.etaLow = eta < 1e-11; // η 太小：核反应本身跟不上膨胀，Y_p 只是上限
     return out;

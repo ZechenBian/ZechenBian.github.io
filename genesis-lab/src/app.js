@@ -18,6 +18,7 @@
     if (a < 1e-6) return s + sig(a * 1e9, 3) + ' 年'; if (a < 1e-3) return s + sig(a * 1e6, 3) + ' 千年'; if (a < 1) return s + sig(a * 1e3, 3) + ' Myr';
     if (a < 1e4) return s + sig(a, 3) + ' Gyr'; return s + sig(a / 1e3, 3) + ' Tyr';
   }
+  function when(tGyr) { return Math.abs(tGyr) < 1e-9 ? '<b>今天</b>' : (tGyr < 0 ? `<b>${gyr(-tGyr)}</b> 前` : `<b>${gyr(tGyr)}</b> 后`); } // 距今的时刻
   // 画布：按 CSS 宽度和 DPR 设置后备存储，返回 ctx 和逻辑尺寸
   function fit(cv) {
     const w = cv.clientWidth || +cv.getAttribute('width'), ratio = +cv.getAttribute('height') / +cv.getAttribute('width'), minH = +(cv.dataset.minh || 0);
@@ -58,7 +59,7 @@
       ctx.strokeStyle = p.color; ctx.fillStyle = p.color; ctx.lineWidth = 1;
       for (let i = 0; i < p.xs.length; i++) { const x = X(p.xs[i]), y = Y(p.ys[i]); if (p.es) { const e = p.es[i]; ctx.beginPath(); ctx.moveTo(x, Y(p.ys[i] - e)); ctx.lineTo(x, Y(p.ys[i] + e)); ctx.stroke(); } ctx.beginPath(); ctx.arc(x, y, p.r || 2.5, 0, Math.PI * 2); ctx.fill(); }
     }
-    for (const mk of (o.marks || [])) { if (!isFinite(mk.x) || !isFinite(mk.y)) continue; ctx.fillStyle = mk.color; ctx.beginPath(); ctx.arc(X(mk.x), Y(mk.y), 4, 0, Math.PI * 2); ctx.fill(); if (mk.label) { ctx.font = '11px Space Grotesk, sans-serif'; ctx.textAlign = 'left'; ctx.fillText(mk.label, X(mk.x) + 6, Y(mk.y) - 6); } }
+    for (const mk of (o.marks || [])) { if (!isFinite(mk.x) || !isFinite(mk.y)) continue; const mx = X(mk.x), my = Y(mk.y); ctx.fillStyle = mk.color; ctx.beginPath(); ctx.arc(mx, my, 4, 0, Math.PI * 2); ctx.fill(); if (mk.label) { ctx.font = '11px Space Grotesk, sans-serif'; const tw = ctx.measureText(mk.label).width, right = mx + 6 + tw > padL + pw; ctx.textAlign = right ? 'right' : 'left'; ctx.fillText(mk.label, mx + (right ? -6 : 6), my - 6 < padT + 12 ? my + 15 : my - 6); } } // 标签贴顶就放到点下面，贴右就放到左边
     ctx.restore();
     return { X, Y, padL, padT, pw, ph };
   }
@@ -231,7 +232,8 @@
         let amp = d8At(a0); let guard = 0; while (amp > 0.12 && a0 > 2e-3 && guard++ < 40) { a0 *= 0.8; amp = d8At(a0); } // 涨落太大就提前开始，保证初条件是线性的
         if (!(amp > 0) || !isFinite(amp)) amp = 1e-4;
         const m = R.m, h = S.H0 / 100, q = window.GENESIS_QSTATE ? window.GENESIS_QSTATE() : null, Ob = q ? q.Ob : 0.049, ns = q ? q.ns : 0.965;
-        st.sim = new NBODY.PM2D({ N, np, L, seed: st.seed, Om: Math.max(m.Om, 1e-4), Ob: Math.min(Ob, Math.max(m.Om, 1e-4) * 0.9), h, ns, aInit: a0, amp,
+        const f0 = clamp((Math.log(d8At(a0 * 1.02)) - Math.log(d8At(a0 / 1.02))) / (2 * Math.log(1.02)), 0, 1.5); // 起点的增长率 f = dlnD/dlna（辐射期里远小于 1：Mészáros）
+        st.sim = new NBODY.PM2D({ N, np, L, seed: st.seed, Om: Math.max(m.Om, 1e-4), Ob: Math.min(Ob, Math.max(m.Om, 1e-4) * 0.9), h, ns, aInit: a0, amp, f: isFinite(f0) ? f0 : 1,
           E: (a) => { const e2 = COSMO.E2(m, a); return e2 > 0 ? Math.sqrt(e2) : 1e-3; }, aOf: (t) => aAt(t <= 0 ? R.past : R.fut, t), tOf: (a) => COSMO.tOfA(R, a) });
         st.firstA = a0; st.t0 = st.sim.t; st.pending = false;
       }
@@ -248,14 +250,8 @@
         }
         return passed;
       }
-      function record(j) { const sim = st.sim, out = new Uint8Array(sim.N * sim.N); st.stats[j] = sim.snapshot(out); st.snaps[j] = out; }
-      function s8FromBytes(bytes) { // 从量化的快照算 8 h⁻¹Mpc 高斯平滑后的 δ 均方根（和线性理论的 δ₈ 同一定义）
-        const n = st.sim.N, n2 = n * n; if (!st.re || st.re.length !== n2) { st.re = new Float64Array(n2); st.im = new Float64Array(n2); } const re = st.re, im = st.im;
-        for (let k = 0; k < n2; k++) { re[k] = Math.pow(10, bytes[k] / 255 * 3.5 - 1) - 1; im[k] = 0; }
-        NBODY.fft2(re, im, n, false); const kf = 2 * Math.PI / L, R8 = 8;
-        for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) { const kx = (i <= n / 2 ? i : i - n) * kf, ky = (j <= n / 2 ? j : j - n) * kf, w = Math.exp(-0.5 * (kx * kx + ky * ky) * R8 * R8), idx = j * n + i; re[idx] *= w; im[idx] *= w; }
-        NBODY.fft2(re, im, n, true); let s2 = 0; for (let k = 0; k < n2; k++) s2 += re[k] * re[k]; return Math.sqrt(s2 / n2);
-      }
+      // 存这一帧：量化的密度场（画图用）+ 最密格子 + 真实场的 δ₈（模拟每步顺手算出，和线性理论的 δ₈ 同一定义；不从量化后的字节反推，那样会把 1+δ 的量化偏移当成涨落）
+      function record(j) { const sim = st.sim, out = new Uint8Array(sim.N * sim.N); st.stats[j] = sim.snapshot(out); st.snaps[j] = out; st.s8[j] = sim.s8; }
       function lut() { // 密度色标：空洞深蓝 → 平均紫灰 → 纤维金 → 团块白
         if (st.lut) return st.lut; const stops = [[0, 8, 12, 40], [0.29, 40, 50, 120], [0.5, 120, 90, 150], [0.72, 230, 170, 80], [0.9, 255, 235, 180], [1, 255, 255, 255]]; const out = new Uint8ClampedArray(256 * 4);
         for (let i = 0; i < 256; i++) { const u = i / 255; let s = 0; while (s < stops.length - 2 && u > stops[s + 1][0]) s++; const A = stops[s], B = stops[s + 1], f = (u - A[0]) / (B[0] - A[0]); for (let c = 0; c < 3; c++) out[i * 4 + c] = A[c + 1] + (B[c + 1] - A[c + 1]) * f; out[i * 4 + 3] = 255; }
@@ -289,16 +285,20 @@
         const hdr = $('movie-hud'), g = GYR(), T = R.T0 / f.a, H = aAtH(f), t = f.t * g;
         const phys = L / (S.H0 / 100) * f.a, physTxt = phys >= 1000 ? sig(phys / 1000, 3) + ' Gpc' : sig(phys, 3) + ' Mpc';
         ctx.font = '12px Space Grotesk, sans-serif'; ctx.textAlign = 'left'; const cap = `方框 ${L} h⁻¹Mpc 共动 = 物理 ${physTxt}`; const cw = ctx.measureText(cap).width; ctx.fillStyle = 'rgba(6,9,19,0.6)'; ctx.fillRect(x0 + 6, y0 + size - 24, cw + 10, 18); ctx.fillStyle = 'rgba(233,237,249,0.85)'; ctx.fillText(cap, x0 + 11, y0 + size - 11);
-        const lin = d8At(f.a); let s8 = null; if (st.snaps[k]) { if (st.s8[k] === null) st.s8[k] = s8FromBytes(st.snaps[k]); s8 = st.s8[k]; }
-        hdr.innerHTML = `t = <b>${gyr(t)}</b>${R.origin === 'bigbang' || R.quantumBounce ? `<br>（${R.quantumBounce ? '反弹' : '大爆炸'}后 <b>${gyr((f.t + R.age) * g)}</b>）` : ''}<br>a = <b>${sig(f.a, 3)}</b>　T = <b>${sig(T, 3)} K</b><br>H = <b>${isFinite(H) ? sig(H * S.H0, 3) : '—'}</b> km/s/Mpc<br>δ₈ 线性 <b>${sig(lin, 2)}</b>${s8 !== null ? `<br>δ₈ N 体实测 <b>${sig(s8, 2)}</b>` : ''}${stat ? `<br>最密格子 1+δ = <b>${sig(stat.max, 2)}</b>` : ''}`;
+        const contracting = R.fate === 'crunch' && f.t > R.tTurn, lin = d8At(f.a), s8 = st.snaps[k] && isFinite(st.s8[k]) ? st.s8[k] : null, linear = f.t < st.t0;
+        // 回转之后线性增长不再是 a 的函数（收缩段里扰动继续长，不会倒回去），按 a 查表没有意义
+        hdr.innerHTML = `${when(t)}${R.origin === 'bigbang' || R.quantumBounce ? `<br>（${R.quantumBounce ? '反弹' : '大爆炸'}后 <b>${gyr((f.t + R.age) * g)}</b>）` : ''}<br>a = <b>${sig(f.a, 3)}</b>　T = <b>${sig(T, 3)} K</b><br>H = <b>${isFinite(H) ? sig(H * S.H0, 3) : '—'}</b> km/s/Mpc<br>δ₈ 线性 <b>${contracting ? '不适用（回转后）' : sig(lin, 2)}</b>${s8 !== null ? `<br>δ₈ N 体实测 <b>${sig(s8, 2)}</b>` : ''}${stat && !linear ? `<br>最密格子 1+δ = <b>${sig(stat.max, 2)}</b>` : ''}`;
         let ep = phase; if (st.dirty) ep += '（参数已变，马上重算）'; else if (st.done && st.note && f.t >= sim.t) ep += ' · ' + st.note;
+        else if (contracting && !linear) ep += ' · 收缩段：已经成团的结构保持物理大小，在越来越小的共动方框里显得散开';
+        else if (phase.startsWith('真引力') && s8 !== null && lin > 0.3 && s8 < 0.9 * lin) ep += ' · N 体实测比线性低：非线性把 8 Mpc 尺度的功率搬去了更小的尺度（团块变密、周围掏空），线性外推在这里已不作数';
         else if (phase.startsWith('真引力') && lin > 1) ep += ' · 纤维和团块：线性理论在这里已经失效，N 体算的才是真的';
         else if (phase.startsWith('真引力') && lin < 0.05) ep += ' · 涨落太小，还看不出结构（色标是对数的）';
+        if (!st.done && !st.dirty && sim.t < frames[frames.length - 1].t && !phase.startsWith('计算中')) ep += `　｜ 已算到 a = ${sig(sim.a, 3)}，再往后的帧边放边算`;
         $('movie-epoch').textContent = ep;
         return reached;
       }
       function setMode(on) {
-        st.on = on; $('nb-on').classList.toggle('on', on); $('nb-off').classList.toggle('on', !on); $('nb-bar').hidden = !on; $('movie-sub').textContent = on ? `二维粒子-网格 N 体：${N}² 格、${np}² 粒子在你拨的 a(t) 背景里真的互相吸引（三维宇宙的一个薄片近似）` : '共动网格上的星系随尺度因子 a(t) 伸缩；颜色随背景温度变化';
+        st.on = on; $('nb-on').classList.toggle('on', on); $('nb-off').classList.toggle('on', !on); $('nb-bar').hidden = !on; $('movie-sub').textContent = on ? `二维粒子-网格 N 体：${N}² 格、${np}² 粒子在你拨的 a(t) 背景里真的互相吸引（三维宇宙的一个薄片近似）。方框是 ${L} h⁻¹Mpc 的共动薄片（点阵画法是 2 Gpc 的立方体），帧是边放边算的` : '共动网格上的星系随尺度因子 a(t) 伸缩；颜色随背景温度变化';
         const cv = $('c-movie'); if (on) cv.dataset.minh = String(Math.min(cv.clientWidth || 600, 440)); else delete cv.dataset.minh; cv.parentElement.classList.toggle('nb', on);
         if (on && R && (st.dirty || !st.sim)) build(); if (R) { drawMovie(); if (!on) drawA(); }
       }
@@ -309,8 +309,8 @@
     // ---- 参数空间地图：Ω_m–Ω_Λ 平面逐格完整求解（Worker 里算，先粗后细）----
     const PMAP = (function () {
       const X0 = -3, X1 = Math.log10(3.2), Y0 = -1.6, Y1 = 3.2, NX = 80, NY = 120, CX = 20, CY = 30; // 横轴 log10 Ω_m（10⁻³ → 3.2），纵轴 Ω_Λ
-      const fx = (Om) => Math.log10(Math.max(Om, 1e-3)), ix = (u) => Math.pow(10, u);
-      const st = { fine: new Float32Array(NX * NY * 5), have: new Uint8Array(NY), coarse: new Float32Array(CX * CY * 5), coarseDone: false, key: null, job: 0, worker: null, layer: 'fate', timer: null, base: null, status: '', fallback: null, img: null };
+      const fx = (Om) => Math.log10(Math.max(Om, 1e-3)), ix = (u) => Math.pow(10, u), y2 = (y) => y.toFixed(2);
+      const st = { fine: new Float32Array(NX * NY * 5), have: new Uint8Array(NY), coarse: new Float32Array(CX * CY * 5), coarseDone: false, key: null, job: 0, worker: null, layer: 'fate', timer: null, base: null, status: '', fallback: null, img: null, hover: null };
       // 单格：[命运码, 宜居码, 年龄(1/H0), 第一批星系的 a, 量子反弹]；命运码 0 大坍缩 1 永远膨胀(减速) 2 永远膨胀(加速) 3 大撕裂 4 没有大爆炸 5 其他
       const CELL = `function cell(C, base, Om, OL) { var R; try { R = C.solve(Object.assign({}, base, { Om: Om, OL: OL }), { lite: true }); } catch (e) { return [5, 0, NaN, NaN, 0]; }
         var bb = R.origin === 'bigbang' || R.quantumBounce, f; if (!bb) f = R.origin === 'bounce' ? 4 : 5; else if (R.fate === 'crunch') f = 0; else if (R.fate === 'rip') f = 3; else f = R.accelerating ? 2 : 1;
@@ -323,13 +323,14 @@
       function update(input) { // 每次求解后：参数底座变了就重算，否则只重画十字
         const base = baseOf(input), key = JSON.stringify(base);
         if (key !== st.key) { st.key = key; st.base = base; st.status = '参数变了，马上重算…'; clearTimeout(st.timer); st.timer = setTimeout(() => { st.timer = null; compute(); }, 400); }
-        draw();
+        draw(); if (!st.hover) readCurrent();
       }
+      function readCurrent() { const p = PRESETS.find((q) => Math.abs(q.p.Om - S.Om) < 1e-9 && Math.abs(q.p.OL - S.OL) < 1e-9) || null; readout(S.Om, S.OL, at(S.Om, S.OL), p, true); } // 没悬停时读十字所在的格
       function compute() {
         st.job++; st.have.fill(0); st.coarseDone = false; const job = st.job, base = st.base;
         const jobs = [{ pass: 'coarse', nx: CX, ny: CY }, { pass: 'fine', nx: NX, ny: NY }].map((o) => Object.assign(o, { job, base, x0: X0, y0: Y0, dx: (X1 - X0) / o.nx, dy: (Y1 - Y0) / o.ny }));
         if (st.worker) { st.worker.terminate(); st.worker = null; } if (st.fallback) { cancelAnimationFrame(st.fallback); st.fallback = null; }
-        const onRow = (m) => { if (m.job !== st.job) return; if (m.pass === 'coarse') { st.coarse.set(m.row, m.j * CX * 5); if (m.j === CY - 1) st.coarseDone = true; } else { st.fine.set(m.row, m.j * NX * 5); st.have[m.j] = 1; } const done = st.have.every((h) => h); st.status = done ? `${NX}×${NY} 格 · 每格一次完整求解` : `计算中 ${m.pass === 'coarse' ? '粗' : '细'}网格 ${Math.round((m.pass === 'coarse' ? (m.j + 1) / CY * 100 * 0.1 : 10 + (m.j + 1) / NY * 90))}%`; if (m.j % 4 === 0 || done || m.pass === 'coarse') draw(); };
+        const onRow = (m) => { if (m.job !== st.job) return; if (m.pass === 'coarse') { st.coarse.set(m.row, m.j * CX * 5); if (m.j === CY - 1) st.coarseDone = true; } else { st.fine.set(m.row, m.j * NX * 5); st.have[m.j] = 1; } const done = st.have.every((h) => h); st.status = done ? `${NX}×${NY} 格 · 每格一次完整求解` : `计算中 ${m.pass === 'coarse' ? '粗' : '细'}网格 ${Math.round((m.pass === 'coarse' ? (m.j + 1) / CY * 100 * 0.1 : 10 + (m.j + 1) / NY * 90))}%`; if (m.j % 4 === 0 || done || m.pass === 'coarse') { draw(); if (!st.hover) readCurrent(); } };
         try {
           if (!window.GENESIS_COSMO_SRC || typeof Worker === 'undefined') throw new Error('no worker');
           const blob = new Blob([window.GENESIS_COSMO_SRC + '\n' + CELL + '\n' + WORKER], { type: 'text/javascript' }), url = URL.createObjectURL(blob);
@@ -344,7 +345,8 @@
         if (st.have[j]) return Array.from(st.fine.subarray((j * NX + i) * 5, (j * NX + i) * 5 + 5));
         if (!st.coarseDone) return null; const ci = Math.floor((x - X0) / (X1 - X0) * CX), cj = Math.floor((y - Y0) / (Y1 - Y0) * CY); return Array.from(st.coarse.subarray((cj * CX + ci) * 5, (cj * CX + ci) * 5 + 5));
       }
-      const FATE = [[232, 112, 95], [70, 150, 160], [90, 205, 190], [170, 120, 230], [110, 115, 130], [60, 60, 70]], FATE_N = ['大坍缩', '永远膨胀（减速）', '永远膨胀（加速）', '大撕裂', '没有大爆炸', '—'], VERD = ['死寂', '勉强', '可能宜居'];
+      // 命运色：减速用蓝、加速用青，暗下去（死寂）也分得开
+      const FATE = [[232, 112, 95], [85, 125, 215], [90, 205, 190], [170, 120, 230], [110, 115, 130], [60, 60, 70]], FATE_N = ['大坍缩', '永远膨胀（减速）', '永远膨胀（加速）', '大撕裂', '没有大爆炸', '—'], VERD = ['死寂', '勉强', '可能宜居'];
       function ramp(u, stops) { u = clamp(u, 0, 1); let s = 0; while (s < stops.length - 2 && u > stops[s + 1][0]) s++; const A = stops[s], B = stops[s + 1], f = (u - A[0]) / (B[0] - A[0]); return [0, 1, 2].map((c) => A[c + 1] + (B[c + 1] - A[c + 1]) * f); }
       const AGE_STOPS = [[0, 20, 30, 70], [0.35, 70, 90, 190], [0.65, 230, 170, 80], [1, 255, 250, 230]];
       function color(c, H0) {
@@ -377,7 +379,7 @@
         ctx.setLineDash([]);
         ctx.fillStyle = 'rgba(255,255,255,0.8)'; ctx.font = '11px Space Grotesk, sans-serif'; ctx.textAlign = 'left'; ctx.fillText('平坦 Ω_k = 0', XO(1.6) + 4, Y(1 - 1.6 - Or) - 5); if (Math.abs(cq) > 1e-6) { const yq = (Or + 0.5 * 2.4) / cq; if (yq > Y0 && yq < Y1) ctx.fillText('q₀ = 0', XO(2.4) + 4, Y(yq) + 12); }
         // 区域名：按各命运类的质心
-        if (st.coarseDone) { const acc = {}; for (let j = 0; j < NY; j++) { const src = st.have[j] ? st.fine : null; for (let i = 0; i < NX; i++) { let f; if (src) f = src[(j * NX + i) * 5] | 0; else { const ci = Math.floor(i * CX / NX), cj = Math.floor(j * CY / NY); f = st.coarse[(cj * CX + ci) * 5] | 0; } const a = acc[f] || (acc[f] = { n: 0, x: 0, y: 0 }); a.n++; a.x += X0 + (i + 0.5) * (X1 - X0) / NX; a.y += Y0 + (j + 0.5) * (Y1 - Y0) / NY; } }
+        if (st.coarseDone && st.layer === 'fate') { const acc = {}; for (let j = 0; j < NY; j++) { const src = st.have[j] ? st.fine : null; for (let i = 0; i < NX; i++) { let f; if (src) f = src[(j * NX + i) * 5] | 0; else { const ci = Math.floor(i * CX / NX), cj = Math.floor(j * CY / NY); f = st.coarse[(cj * CX + ci) * 5] | 0; } const a = acc[f] || (acc[f] = { n: 0, x: 0, y: 0 }); a.n++; a.x += X0 + (i + 0.5) * (X1 - X0) / NX; a.y += Y0 + (j + 0.5) * (Y1 - Y0) / NY; } }
           ctx.font = '600 12px Space Grotesk, sans-serif'; ctx.textAlign = 'center'; for (const f in acc) { const a = acc[f]; if (a.n < NX * NY * 0.035 || f === '5') continue; const lab = FATE_N[f], x = X(a.x / a.n), y = Y(a.y / a.n), tw = ctx.measureText(lab).width; ctx.fillStyle = 'rgba(6,9,19,0.6)'; ctx.fillRect(x - tw / 2 - 5, y - 10, tw + 10, 17); ctx.fillStyle = '#fff'; ctx.fillText(lab, x, y + 3); } }
         // 内置宇宙：实心 = Ω_r、w 和地图一致（可直接比较）；空心 = 不一致
         ctx.font = '10px Space Grotesk, sans-serif'; ctx.textAlign = 'left';
@@ -390,18 +392,22 @@
           : (st.layer === 'age' ? '<span>年龄：<i style="background:linear-gradient(90deg,rgb(20,30,70),rgb(70,90,190),rgb(230,170,80),rgb(255,250,230));width:80px;height:10px"></i> 0.1 → 300 Gyr（对数）；灰 = 没有大爆炸</span>' : '<span>第一批星系出现时的 a：<i style="background:linear-gradient(90deg,rgb(255,250,230),rgb(230,170,80),rgb(70,90,190),rgb(20,30,70));width:80px;height:10px"></i> 10⁻³ → 1；深色 = 永远长不出</span>');
         return { X, Y, padL, padT, pw, ph };
       }
-      function readout(x, y, c, preset) {
-        const H0 = st.base ? st.base.H0 : S.H0, Or = baseOr(), Ok = 1 - x - y - Or;
-        if (!c) { $('pmap-read').innerHTML = `<div class="k gold"><small>Ω_m, Ω_Λ</small><b>${sig(x, 2)}, ${y.toFixed(2)}</b><i>这一格还在算</i></div>`; return; }
+      function readout(x, y, c, preset, cur) {
+        const H0 = st.base ? st.base.H0 : S.H0, Or = baseOr(), Ok = 1 - x - y - Or, who = cur ? '十字所在（当前参数）' + (preset ? '：' + preset.name : '') : (preset ? '内置：' + preset.name : '这一格');
+        if (!c) { $('pmap-read').innerHTML = `<div class="k gold"><small>${who}</small><b>Ω_m = ${sig(x, 2)}，Ω_Λ = ${y.toFixed(2)}</b><i>这一格还在算</i></div>`; return; }
         const f = c[0] | 0, age = c[2] * COSMO.GYR / H0, aF = c[3];
-        $('pmap-read').innerHTML = `<div class="k gold"><small>${preset ? '内置：' + preset.name : '这一格'}</small><b>Ω_m = ${sig(x, 2)}，Ω_Λ = ${y.toFixed(2)}</b><i>Ω_k = ${(Ok >= 0 ? '+' : '') + Ok.toFixed(2)}${c[4] ? ' · 量子反弹' : ''}</i></div>
+        $('pmap-read').innerHTML = `<div class="k gold"><small>${who}</small><b>Ω_m = ${sig(x, 2)}，Ω_Λ = ${y.toFixed(2)}</b><i>Ω_k = ${(Ok >= 0 ? '+' : '') + Ok.toFixed(2)}${c[4] ? ' · 量子反弹' : ''}</i></div>
           <div class="k ${f === 0 || f === 3 ? 'coral' : (f === 4 ? 'violet' : 'teal')}"><small>命运</small><b>${FATE_N[f]}</b><i>${f === 4 ? '没有奇点，往回追溯会反弹' : (isFinite(age) ? '年龄 ' + gyr(age) : '')}</i></div>
           <div class="k ${c[1] === 2 ? 'teal' : (c[1] === 1 ? 'gold' : 'coral')}"><small>宜居诊断</small><b>${VERD[c[1] | 0]}</b><i>${isFinite(aF) ? '第一批星系在 a = ' + sig(aF, 2) : '星系永远长不出来'}</i></div>`;
       }
       function pick(ev) { const cv = $('c-pmap'), r = cv.getBoundingClientRect(), g = draw(); if (!g) return null; const px = ev.clientX - r.left, py = ev.clientY - r.top; const u = X0 + (px - g.padL) / g.pw * (X1 - X0), y = Y0 + (g.padT + g.ph - py) / g.ph * (Y1 - Y0); if (u < X0 || u > X1 || y < Y0 || y > Y1) return null; let best = null; for (const p of PRESETS) { const dx = g.X(fx(p.p.Om)) - px, dy = g.Y(p.p.OL) - py; if (dx * dx + dy * dy < 49 && (!best || dx * dx + dy * dy < best.d)) best = { p, d: dx * dx + dy * dy }; } return { x: ix(u), y, preset: best ? best.p : null }; }
       const cv0 = $('c-pmap');
-      cv0.addEventListener('pointermove', (ev) => { const q = pick(ev); if (!q) return; readout(q.x, q.y, at(q.x, q.y), q.preset); });
-      cv0.addEventListener('click', (ev) => { const q = pick(ev); if (!q) return; if (q.preset) { applyPreset(q.preset.id); toast('装入内置宇宙：' + q.preset.name); return; } S.Om = +q.x.toPrecision(3); S.OL = +q.y.toFixed(3); presetId = null; markPreset(); syncSliders(); frame = TODAY; solve(); toast(`Ω_m = ${S.Om}，Ω_Λ = ${S.OL} 装进了创世台`); });
+      cv0.addEventListener('pointermove', (ev) => { if (ev.pointerType === 'touch') return; const q = pick(ev); if (!q) { st.hover = null; readCurrent(); return; } st.hover = q; readout(q.x, q.y, at(q.x, q.y), q.preset); });
+      cv0.addEventListener('pointerleave', () => { st.hover = null; readCurrent(); });
+      cv0.addEventListener('pointerdown', (ev) => { st.ptype = ev.pointerType; });
+      cv0.addEventListener('click', (ev) => { const q = pick(ev); if (!q) return;
+        if (st.ptype === 'touch') { const key = sig(q.x, 2) + ',' + y2(q.y); if (st.tapKey !== key) { st.tapKey = key; st.hover = q; readout(q.x, q.y, at(q.x, q.y), q.preset); toast('先看读数；再点同一格装进创世台'); return; } st.tapKey = null; st.hover = null; } // 触屏：第一下看读数，第二下装入
+        if (q.preset) { applyPreset(q.preset.id); toast('装入内置宇宙：' + q.preset.name); return; } S.Om = +q.x.toPrecision(3); S.OL = +q.y.toFixed(3); presetId = null; markPreset(); syncSliders(); frame = TODAY; solve(); toast(`Ω_m = ${S.Om}，Ω_Λ = ${S.OL} 装进了创世台`); });
       $('pmap-layer').addEventListener('change', () => { st.layer = $('pmap-layer').value; draw(); });
       return { update, draw, at };
     })();
@@ -442,7 +448,7 @@
       // 比例尺：方框边长 = 2 Gpc × a
       const side = 2000 * a, sideTxt = side >= 1000 ? sig(side / 1000, 3) + ' Gpc' : (side >= 1 ? sig(side, 3) + ' Mpc' : sig(side * 1000, 3) + ' kpc');
       ctx.fillStyle = 'rgba(233,237,249,0.8)'; ctx.font = '12px Space Grotesk, sans-serif'; ctx.textAlign = 'right'; ctx.fillText('方框边长 ' + sideTxt + '（今天 2 Gpc）', w - 10, h - 10);
-      $('movie-hud').innerHTML = `t = <b>${gyr(t)}</b>${R.origin === 'bigbang' || R.quantumBounce ? `（${R.quantumBounce ? '反弹' : '大爆炸'}后 <b>${gyr((f.t + R.age) * g)}</b>）` : ''}<br>a = <b>${sig(a, 3)}</b>　T = <b>${sig(T, 3)} K</b><br>H = <b>${isFinite(H) ? sig(H * S.H0, 3) : '—'} km/s/Mpc</b>`;
+      $('movie-hud').innerHTML = `${when(t)}${R.origin === 'bigbang' || R.quantumBounce ? `（${R.quantumBounce ? '反弹' : '大爆炸'}后 <b>${gyr((f.t + R.age) * g)}</b>）` : ''}<br>a = <b>${sig(a, 3)}</b>　T = <b>${sig(T, 3)} K</b><br>H = <b>${isFinite(H) ? sig(H * S.H0, 3) : '—'} km/s/Mpc</b>`;
       $('v-frame').textContent = `帧 ${frame + 1}/${frames.length}`;
       $('s-frame').value = frame;
     }
@@ -659,8 +665,8 @@
         const rgb = gal.map((G) => { const m = G.color.match(/#(..)(..)(..)/); return [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16)]; });
         for (let p = 0; p < W * H; p++) { const g = st.hit[p], o = p * 4; if (g < 0) { const j = Math.floor(p / W); const v = 10 + 18 * (st.rmax[j] / RC); d[o] = v * 0.7; d[o + 1] = v * 0.8; d[o + 2] = v * 1.6 + 8; d[o + 3] = 255; continue; } const sh = st.shade[p], k = 0.35 + 0.65 * Math.sqrt(Math.max(0, 1 - sh * sh)), c = rgb[g]; d[o] = c[0] * k; d[o + 1] = c[1] * k; d[o + 2] = c[2] * k; d[o + 3] = 255; }
         ic.putImageData(im, 0, 0); st.rendered = true;
-        const seen = new Set(); for (let p = 0; p < W * H; p++) if (st.hit[p] >= 0) seen.add(st.hit[p]); const beyond = gal.filter((G) => G.r > RC).length;
-        $('as-status').textContent = `${W}×${H} 条光线，${Math.round(performance.now() - t0)} ms · 看得见 ${seen.size}/${gal.length} 个星系（${beyond} 个在 r_c 之外，永远看不见）`;
+        const seen = new Set(); for (let p = 0; p < W * H; p++) if (st.hit[p] >= 0) seen.add(st.hit[p]); const beyond = gal.filter((G) => G.r - G.rho >= RC).length, graze = gal.filter((G) => G.r > RC && G.r - G.rho < RC && seen.has(gal.indexOf(G))).length; // 整个落在 r_c 之外的才是永远看不见；中心在外、边缘在内的只露一侧
+        $('as-status').textContent = `${W}×${H} 条光线，${Math.round(performance.now() - t0)} ms · 看得见 ${seen.size}/${gal.length} 个星系（${beyond} 个整个落在 r_c 之外，永远看不见${graze ? `；${graze} 个中心在 r_c 外、只露出靠你的一侧` : ''}）`;
         draw();
       }
       function draw() {
@@ -690,16 +696,18 @@
         }
       }
       function readout() {
-        const el = $('as-read'); if (!st.hover) { el.innerHTML = '把鼠标放到天上任一点'; return; }
+        const el = $('as-read'); if (!st.hover) { el.innerHTML = '指到（或点一下）天上任一点，这里给出那束光的去向'; return; }
         const { i, j } = st.hover, p = j * W + i, theta = (j + 0.5) * 180 / H, psi = -180 + (i + 0.5) * 360 / W, P = physical(rhoRel), unit = P.unitGly;
         let s = `方向 θ = ${theta.toFixed(0)}°，ψ = ${psi.toFixed(0)}°；这束光最远到 r = ${sig(st.rmax[j], 3)}（r_c = ${RC.toFixed(3)}）<br>`;
-        if (st.hit[p] >= 0) { const G = st.gal[st.hit[p]]; s += `<b style="color:${G.color}">${G.name}</b>${G.home ? '' : `：r = ${sig(G.r, 3)}，z = ${sig(G.z, 2)}`}<br>光走了 t = ${sig(st.tt[p], 3)} 哥德尔单位 = ${gyr(st.tt[p] * unit)}（按④的 ω），绕回轴 ${st.cross[p]} 次${G.home ? '——你看到的是自己 ' + gyr(st.tt[p] * unit) + ' 前的样子' : (st.cross[p] > 0 ? '——这是绕回来的像，同一个星系还有别的像' : '')}`; }
+        if (st.hit[p] >= 0) { const G = st.gal[st.hit[p]]; s += `<b style="color:${G.color}">${G.name}</b>${G.home ? '' : `：r = ${sig(G.r, 3)}，沿轴 z = ${sig(G.z, 2)}${G.r > st.rmax[j] ? '（中心比这束光能到的更远：碰到的是它靠你的一侧）' : ''}`}<br>光走了 t = ${sig(st.tt[p], 3)} 哥德尔单位 = ${gyr(st.tt[p] * unit)}（按④的 ω）`; s += G.home ? `，第 ${st.cross[p] + 1} 次回到轴上时碰到你星系的边缘（回到轴心要 t ≈ 1.3）——你看到的是自己 ${gyr(st.tt[p] * unit)} 前的样子` : `，绕回轴 ${st.cross[p]} 次${st.cross[p] > 0 ? '——这是绕回来的像，同一个星系还有别的像' : ''}`; }
         else s += `没碰到星系（追踪了 ${st.returns} 个来回）`;
         el.innerHTML = s;
       }
       const cv = $('c-allsky');
-      cv.addEventListener('pointermove', (ev) => { const r = cv.getBoundingClientRect(); const i = clamp(Math.floor((ev.clientX - r.left) / r.width * W), 0, W - 1), j = clamp(Math.floor((ev.clientY - r.top) / r.height * H), 0, H - 1); if (!st.hover || st.hover.i !== i || st.hover.j !== j) { st.hover = { i, j }; draw(); readout(); } });
-      cv.addEventListener('pointerleave', () => { st.hover = null; draw(); readout(); });
+      const pickSky = (ev) => { const r = cv.getBoundingClientRect(); const i = clamp(Math.floor((ev.clientX - r.left) / r.width * W), 0, W - 1), j = clamp(Math.floor((ev.clientY - r.top) / r.height * H), 0, H - 1); if (!st.hover || st.hover.i !== i || st.hover.j !== j) { st.hover = { i, j }; draw(); readout(); } };
+      cv.addEventListener('pointermove', (ev) => { if (ev.pointerType !== 'touch') pickSky(ev); });
+      cv.addEventListener('pointerdown', pickSky); // 触屏：点一下
+      cv.addEventListener('pointerleave', (ev) => { if (ev.pointerType === 'touch') return; st.hover = null; draw(); readout(); });
       $('as-returns').addEventListener('change', () => { st.returns = +$('as-returns').value; render(); });
       $('as-home').addEventListener('change', () => { st.home = $('as-home').checked; st.gal = null; render(); });
       $('as-reseed').addEventListener('click', () => { st.seed = (st.seed * 31 + 7) % 10007 + 1; st.gal = null; render(); });

@@ -35,20 +35,24 @@
   function solveSoon() { clearTimeout(st.timer); st.timer = setTimeout(solveNow, 250); }
   // ---- 渲染 ----
   function render() { if (!st.R) return; drawShape(); hud(); drawLog(); drawKasner(); epochTable(); cards(); }
-  function cur() { const R = st.R, i = clamp(st.i, 0, R.y.length - 1), y = R.y[i]; const lnV = y[0] + y[1] + y[2], p = MIXMASTER.velocityExponents(y), s2 = p ? p[0] * p[0] + p[1] * p[1] + p[2] * p[2] : NaN, rhs = MIXMASTER.rhs(y, R.M, R.L); const acc = [Math.abs(rhs[3]), Math.abs(rhs[4]), Math.abs(rhs[5])]; const vel = Math.max(1e-9, Math.abs(y[3]), Math.abs(y[4]), Math.abs(y[5])); const wall = Math.max(...acc) > 1e-4 * vel * vel ? acc.indexOf(Math.max(...acc)) : -1; return { i, y, lnV, p, s2, wall, Tb: R.Tbang ? R.Tbang[i] : NaN, Tc: R.Tcrunch ? R.Tcrunch[i] : NaN }; }
+  function cur() { const R = st.R, i = clamp(st.i, 0, R.y.length - 1), y = R.y[i]; const lnV = y[0] + y[1] + y[2], p = MIXMASTER.velocityExponents(y), s2 = p ? p[0] * p[0] + p[1] * p[1] + p[2] * p[2] : NaN;
+    // 撞墙 = 曲率势的各向异性部分在起作用（各向同性的曲率、尘埃和 Λ 对三根轴一视同仁，不算墙）
+    const r0 = MIXMASTER.rhs(y, 0, 0), mean = (r0[3] + r0[4] + r0[5]) / 3, an = [Math.abs(r0[3] - mean), Math.abs(r0[4] - mean), Math.abs(r0[5] - mean)], rf = MIXMASTER.rhs(y, R.M, R.L), iso = Math.max(Math.abs(mean), Math.abs(rf[3] - r0[3]));
+    const vel = Math.max(1e-9, Math.abs(y[3]), Math.abs(y[4]), Math.abs(y[5])); const wall = Math.max(...an) > 1e-4 * vel * vel ? an.indexOf(Math.max(...an)) : -1, isoActs = iso > 1e-4 * vel * vel;
+    return { i, y, lnV, p, s2, wall, isoActs, Tb: R.Tbang ? R.Tbang[i] : NaN, Tc: R.Tcrunch ? R.Tcrunch[i] : NaN }; }
   function hud() {
     const R = st.R, c = cur(), y = c.y, names = ['a', 'b', 'c'];
     $('mix-tau').textContent = `τ = ${sig(R.tau[c.i], 3)}`;
     const K = [];
     K.push(['gold', '宇宙时 t', isFinite(c.Tb) ? `${sig(c.Tb, 3)}` : sig(y[6], 3), isFinite(c.Tb) ? `从大爆炸算起${isFinite(c.Tc) ? `；离大坍缩还有 ${sig(c.Tc, 3)}` : ''}` : '以 τ = 0 为零点']);
     K.push(['teal', '三根轴 ln a, ln b, ln c', `${y[0].toFixed(1)}, ${y[1].toFixed(1)}, ${y[2].toFixed(1)}`, `体积 ln V = ${c.lnV.toFixed(1)}`]);
-    if (c.p) K.push([Math.abs(c.s2 - 1) < 0.03 ? 'violet' : 'coral', '指数 p₁, p₂, p₃', c.p.map((v) => v.toFixed(3)).join(', '), Math.abs(c.s2 - 1) < 0.03 ? `Kasner 时代：Σp² = ${c.s2.toFixed(3)}，u = ${sig(MIXMASTER.uFromKasner(c.p), 3)}；${names[c.p.indexOf(Math.min(...c.p))]} 轴在往最近的奇点方向变长，另外两根在缩` : `反弹中（Σp² = ${c.s2.toFixed(2)} ≠ 1）${c.wall >= 0 ? `：${names[c.wall]} 轴撞墙` : ''}`]);
+    if (c.p) K.push([Math.abs(c.s2 - 1) < 0.03 ? 'violet' : 'coral', '指数 p₁, p₂, p₃', c.p.map((v) => v.toFixed(3)).join(', '), Math.abs(c.s2 - 1) < 0.03 ? `Kasner 时代：Σp² = ${c.s2.toFixed(3)}，u = ${sig(MIXMASTER.uFromKasner(c.p), 3)}；${names[c.p.indexOf(Math.min(...c.p))]} 轴在往最近的奇点方向变长，另外两根在缩` : (c.wall >= 0 ? `反弹中（Σp² = ${c.s2.toFixed(2)} ≠ 1）：${names[c.wall]} 轴撞墙` : `不是 Kasner（Σp² = ${c.s2.toFixed(2)} ≠ 1）：${R.M > 0 && R.L > 0 ? '尘埃和 Λ' : (R.M > 0 ? '尘埃' : (R.L > 0 ? 'Λ' : '各向同性的曲率'))} 在均匀地${R.L > 0 && R.M === 0 ? '加速' : '减速'}三根轴，离奇点还远`)]);
     $('mix-hud').innerHTML = K.map(([cl, k, v, i]) => `<div class="k ${cl}"><small>${k}</small><b class="mono" style="font-size:15px">${v}</b><i>${i}</i></div>`).join('');
   }
   function drawShape() {
     const cv = $('c-mix-shape'), { ctx, w, h } = fit(cv), c = cur(), y = c.y; ctx.fillStyle = '#060913'; ctx.fillRect(0, 0, w, h);
-    const sh = [0, 1, 2].map((k) => y[k] - c.lnV / 3), L = sh.map((s) => Math.exp(2.2 * Math.tanh(s / 5))); // 对数压缩的形状
-    const R = Math.min(w, h) * 0.3, cy = Math.cos(st.yaw), sy = Math.sin(st.yaw), cp = Math.cos(st.pitch), sp = Math.sin(st.pitch);
+    const sh = [0, 1, 2].map((k) => y[k] - c.lnV / 3), L = sh.map((s) => Math.exp(1.3 * Math.sign(s) * Math.log(1 + Math.abs(s)) / Math.log(301))); // 对数压缩的形状：轴长指数差 300 也只画成 1 : 13
+    const R = Math.min(Math.min(w, h) * 0.3, Math.min(w, h) * 0.4 / Math.max(...L)), cy = Math.cos(st.yaw), sy = Math.sin(st.yaw), cp = Math.cos(st.pitch), sp = Math.sin(st.pitch);
     const proj = (x, y3, z) => { const x1 = x * cy - y3 * sy, y1 = x * sy + y3 * cy; const y2 = y1 * cp - z * sp, z2 = y1 * sp + z * cp; return [w / 2 + x1 * R, h / 2 + y2 * R, z2]; };
     const COL = [CSS('--coral'), CSS('--teal'), CSS('--violet')];
     // 网格线
@@ -57,11 +61,11 @@
     for (let m = 1; m < N2; m++) { const th = m / N2 * Math.PI; ctx.beginPath(); for (let k = 0; k <= 48; k++) { const ph = k / 48 * Math.PI * 2; const q = proj(L[0] * Math.sin(th) * Math.cos(ph), L[1] * Math.sin(th) * Math.sin(ph), L[2] * Math.cos(th)); if (k) ctx.lineTo(q[0], q[1]); else ctx.moveTo(q[0], q[1]); } ctx.strokeStyle = 'rgba(242,193,78,0.35)'; ctx.stroke(); }
     // 三根轴
     const names = ['a', 'b', 'c'];
-    for (let k = 0; k < 3; k++) { const v = [0, 0, 0]; v[k] = L[k] * 1.15; const q0 = proj(-v[0], -v[1], -v[2]), q1 = proj(v[0], v[1], v[2]); ctx.strokeStyle = COL[k]; ctx.lineWidth = c.wall === k ? 3 : 1.6; ctx.beginPath(); ctx.moveTo(q0[0], q0[1]); ctx.lineTo(q1[0], q1[1]); ctx.stroke(); ctx.fillStyle = COL[k]; ctx.font = '600 13px Space Grotesk, sans-serif'; ctx.textAlign = 'center'; ctx.fillText(names[k] + (c.p ? ` (p=${c.p[k].toFixed(2)})` : ''), q1[0] + (q1[0] > w / 2 ? 28 : -28), q1[1] + 4); }
+    for (let k = 0; k < 3; k++) { const v = [0, 0, 0]; v[k] = L[k] * 1.15; const q0 = proj(-v[0], -v[1], -v[2]), q1 = proj(v[0], v[1], v[2]); ctx.strokeStyle = COL[k]; ctx.lineWidth = c.wall === k ? 3 : 1.6; ctx.beginPath(); ctx.moveTo(q0[0], q0[1]); ctx.lineTo(q1[0], q1[1]); ctx.stroke(); ctx.fillStyle = COL[k]; ctx.font = '600 13px Space Grotesk, sans-serif'; ctx.textAlign = 'center'; ctx.fillText(names[k] + (c.p ? ` (p=${c.p[k].toFixed(2)})` : ''), clamp(q1[0] + (q1[0] > w / 2 ? 28 : -28), 34, w - 34), clamp(q1[1] + 4, 14, h - 44)); }
     // 体积条和读数
     const vmin = -200, vmax = 10, u = clamp((c.lnV - vmin) / (vmax - vmin), 0, 1);
     ctx.fillStyle = 'rgba(152,164,199,0.25)'; ctx.fillRect(14, h - 22, w - 28, 8); ctx.fillStyle = CSS('--gold'); ctx.fillRect(14, h - 22, (w - 28) * u, 8);
-    ctx.fillStyle = CSS('--dim'); ctx.font = '11px Space Grotesk, sans-serif'; ctx.textAlign = 'left'; ctx.fillText(`体积 ln V = ${c.lnV.toFixed(1)}（轴长比例 a:b:c = ${sh.map((s) => (s > 0 ? '+' : '') + s.toFixed(1)).join(' : ')} 的指数，画时压缩）`, 14, h - 28);
+    ctx.fillStyle = CSS('--dim'); ctx.font = '11px Space Grotesk, sans-serif'; ctx.textAlign = 'left'; const big = Math.max(...sh.map(Math.abs)) > 0.05; ctx.fillText(big ? `体积 ln V = ${c.lnV.toFixed(1)}；各轴偏离平均的对数 ${sh.map((s) => (s > 0 ? '+' : '') + s.toFixed(1)).join(' / ')}（画时压缩）` : `体积 ln V = ${c.lnV.toFixed(1)}；三根轴等长（各向同性）`, 14, h - 28);
     if (c.wall >= 0) { ctx.fillStyle = COL[c.wall]; ctx.font = '600 13px Space Grotesk, sans-serif'; ctx.textAlign = 'right'; ctx.fillText(`${names[c.wall]} 轴撞墙：反弹！`, w - 14, 20); }
   }
   function series(end) { // 乐谱：x = ln T（离奇点的时间），三条 ln a_i
@@ -70,7 +74,7 @@
     return { xs, ya, yb, yc, T };
   }
   function drawLog() {
-    const cv = $('c-mix-log'), S = series(st.end); if (!S) { const { ctx, w, h } = fit(cv); ctx.clearRect(0, 0, w, h); ctx.fillStyle = CSS('--dim'); ctx.font = '13px Space Grotesk'; ctx.textAlign = 'center'; ctx.fillText(st.end === 'crunch' ? '这一端没有大坍缩（Λ 把它抹平了，永远膨胀）' : '这一端没到奇点', w / 2, h / 2); return; }
+    const cv = $('c-mix-log'), S = series(st.end); if (!S) { const { ctx, w, h } = fit(cv); ctx.clearRect(0, 0, w, h); ctx.fillStyle = CSS('--dim'); ctx.font = '13px Space Grotesk'; ctx.textAlign = 'center'; ctx.fillText(st.end === 'crunch' ? (st.R.L > 0 ? '这一端没有大坍缩（Λ 把它抹平了，永远膨胀）' : '这一端在算到的范围里没到奇点') : '这一端在算到的范围里没到奇点', w / 2, h / 2); return; }
     const c = cur(), xcur = Math.log(st.end === 'crunch' ? c.Tc : c.Tb);
     let xmin = Math.min(...S.xs), xmax = Math.max(...S.xs), ymin = Math.min(...S.ya, ...S.yb, ...S.yc), ymax = Math.max(...S.ya, ...S.yb, ...S.yc);
     xmin = Math.max(xmin, xmax - 320); ymin = Math.max(ymin, -260);
@@ -87,7 +91,7 @@
     const R0 = Math.min(w, h) * 0.36, cx = w / 2, cy = h / 2 + 6, sc = R0 / Math.sqrt(2 / 3), X = (p) => cx + sc * (p[0] * E1[0] + p[1] * E1[1] + p[2] * E1[2]), Y = (p) => cy - sc * (p[0] * E2[0] + p[1] * E2[1] + p[2] * E2[2]);
     ctx.strokeStyle = 'rgba(233,237,249,0.5)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(cx, cy, R0, 0, Math.PI * 2); ctx.stroke();
     ctx.font = '11px Space Grotesk, sans-serif'; ctx.fillStyle = CSS('--dim'); ctx.textAlign = 'center';
-    for (const [p, lab] of [[[1, 0, 0], 'p = (1,0,0)：只有 a 在变'], [[0, 1, 0], '(0,1,0)'], [[0, 0, 1], '(0,0,1)']]) { ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(X(p), Y(p), 3, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = CSS('--dim'); ctx.fillText(lab, X(p), Y(p) + (p[2] ? -8 : 14)); }
+    for (const [p, lab] of [[[1, 0, 0], w < 420 ? '(1,0,0)' : 'p = (1,0,0)：只有 a 在变'], [[0, 1, 0], '(0,1,0)'], [[0, 0, 1], '(0,0,1)']]) { ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(X(p), Y(p), 3, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = CSS('--dim'); ctx.fillText(lab, X(p), Y(p) + (p[2] ? -8 : 14)); }
     ctx.fillText('圆上 = Kasner 时代；圆内 = 反弹中', cx, h - 6);
     // 轨迹：按时代上色（靠奇点一端）
     const R = st.R, ep = st.end === 'crunch' ? R.epochsCrunch : R.epochs, end = st.end; const COLS = [CSS('--coral'), CSS('--teal'), CSS('--violet'), CSS('--gold'), '#ff9f6f', '#8fd65a', '#6fb5ff', '#ffd1dc'];
@@ -98,18 +102,21 @@
   function epochTable() {
     const R = st.R, end = st.end, ep = (end === 'crunch' ? R.epochsCrunch : R.epochs).slice().reverse(); // 从起点往奇点方向
     if (!ep.length) { $('mix-epochs').innerHTML = '这一端没有找到 Kasner 时代。'; return; }
-    let html = `<div style="color:var(--ink);font-weight:600;margin-bottom:4px">${end === 'crunch' ? '往大坍缩走' : '往大爆炸走'}，一个时代接一个（圆上的编号 ${ep.length} → 1）：</div><table style="border-collapse:collapse;width:100%"><tr style="color:var(--dim)"><td>#</td><td>方程算出的 u</td><td>BKL 规则预言</td><td>p₁, p₂, p₃</td><td>跨 ln T</td></tr>`;
+    const truncated = end === 'crunch' ? R.futStop === 'singularity' : R.pastStop === 'singularity'; let bad = 0, sens = false;
+    let html = `<div style="color:var(--ink);font-weight:600;margin-bottom:4px">${end === 'crunch' ? '往大坍缩走' : '往大爆炸走'}，一个时代接一个（圆上的编号 ${ep.length} → 1）：</div><div class="mix-tbl"><table style="border-collapse:collapse;width:100%"><tr style="color:var(--dim)"><td>#</td><td>方程算出的 u</td><td>BKL 规则预言</td><td>p₁, p₂, p₃</td><td>跨 ln T</td></tr>`;
     let prev = null;
-    ep.forEach((e, k) => { const pred = prev === null ? '—' : sig(MIXMASTER.bklMap(prev), 3), okk = prev === null ? '' : (Math.abs(MIXMASTER.bklMap(prev) - e.u) / e.u < 0.05 ? ' ✓' : ' ✗'); html += `<tr><td class="mono">${ep.length - k}</td><td class="mono" style="color:var(--ink)">${sig(e.u, 3)}</td><td class="mono">${pred}${okk}</td><td class="mono">${e.p.map((v) => v.toFixed(2)).join(', ')}</td><td class="mono">${(e.lnt1 - e.lnt0).toFixed(0)}</td></tr>`; prev = e.u; });
-    html += '</table>';
+    ep.forEach((e, k) => { const last = k === ep.length - 1; let okk = '', pred = '—'; if (prev !== null) { const pr = MIXMASTER.bklMap(prev), tol = 0.05 + (prev < 2 ? 0.01 / (prev - 1) : 0); pred = sig(pr, 3); const ok = Math.abs(pr - e.u) / e.u < tol; okk = ok ? ' ✓' : ' ✗'; if (!ok) bad++; if (prev < 1.2) sens = true; } html += `<tr><td class="mono">${ep.length - k}</td><td class="mono" style="color:var(--ink)">${sig(e.u, 3)}</td><td class="mono">${pred}${okk}</td><td class="mono">${e.p.map((v) => v.toFixed(2)).join(', ')}</td><td class="mono">${last && truncated ? '≥ ' : ''}${(e.lnt1 - e.lnt0).toFixed(0)}</td></tr>`; prev = e.u; });
+    html += '</table></div>';
+    const notes = []; if (truncated) notes.push('最后一行的时代还没结束：算到体积 e⁻⁶⁵⁰ 就停了，所以写 ≥'); if (sens) notes.push('u 接近 1 时规则 1/(u−1) 对 u 的小误差极敏感，预言的容差相应放宽'); if (bad) notes.push(`✗ 是方程和规则差得超过容差的地方：${R.M > 0 || R.L > 0 ? '离奇点还不够近时尘埃或 Λ 还在起作用，' : ''}反弹之间的过渡段也可能混进来`);
+    if (notes.length) html += `<div class="note" style="margin-top:4px">${notes.join('；')}。</div>`;
     if (st.chaos) html += st.chaos;
     $('mix-epochs').innerHTML = html;
   }
   function cards() {
     const R = st.R, K = [], life = R.tCrunch - R.tBang; let vmax = -Infinity; for (const y of R.y) vmax = Math.max(vmax, y[0] + y[1] + y[2]);
-    K.push(['gold', '一生', isFinite(life) ? sig(life, 3) + '（G = c = 1 的单位）' : (R.Tbang ? '永远膨胀' : '—'), R.Tcrunch ? '从大爆炸到大坍缩' : (R.L > 0 ? 'Λ 赢了：各向异性被抹平，走向 de Sitter' : '没到奇点')]);
+    K.push(['gold', '一生', isFinite(life) ? sig(life, 3) + '（G = c = 1 的单位）' : (R.Tbang ? '永远膨胀' : '—'), R.Tcrunch ? '从大爆炸到大坍缩' + (R.pastApprox || R.futApprox ? '（各向同性的尘埃在 τ 上走不到奇点：体积缩到 e⁻¹⁵ 以下就按剩余时间可忽略截断）' : '') : (R.L > 0 ? 'Λ 赢了：各向异性被抹平，走向 de Sitter' : '算到的范围里没到奇点')]);
     K.push(['teal', '最大体积 ln V', vmax.toFixed(2), R.M > 0 ? '尘埃越多，膨胀得越大' : '真空：曲率自己把它拉回来']);
-    K.push(['violet', 'Kasner 时代数', `${R.epochs.length} / ${R.epochsCrunch.length}`, '大爆炸一端 / 大坍缩一端（算到体积 e⁻⁵⁰⁰）']);
+    K.push(['violet', 'Kasner 时代数', `${R.epochs.length} / ${R.epochsCrunch.length}`, R.epochs.length + R.epochsCrunch.length ? '大爆炸一端 / 大坍缩一端（算到体积 e⁻⁶⁵⁰；只数跨 ln T > 5 的）' : (R.M > 0 && (R.pastApprox || R.futApprox) ? '各向同性：没有剪切就没有 Kasner 时代，直接压回奇点' : '算到的范围里没有找到')]);
     $('mix-cards').innerHTML = K.map(([c, k, v, i]) => `<div class="k ${c}"><small>${k}</small><b class="mono" style="font-size:15px">${v}</b><i>${i}</i></div>`).join('');
   }
   // ---- 交互 ----
@@ -121,7 +128,7 @@
   $('mix-end').addEventListener('change', () => { st.end = $('mix-end').value; render(); });
   $('mix-play').addEventListener('click', () => { st.playing = !st.playing; $('mix-play').textContent = st.playing ? '⏸ 暂停' : '▶ 播放'; if (st.playing) { if (st.i >= st.R.y.length - 1) st.i = 0; st.last = 0; st.raf = requestAnimationFrame(tick); } });
   function tick(now) { if (!st.playing || G.current !== 'mix') { st.playing = false; $('mix-play').textContent = '▶ 播放'; return; } const dt = st.last ? (now - st.last) / 1000 : 0; st.last = now; st.i += Math.round(dt * st.R.y.length / 12); if (st.i >= st.R.y.length - 1) { st.i = st.R.y.length - 1; st.playing = false; $('mix-play').textContent = '▶ 播放'; } $('mix-s').value = st.i; drawShape(); hud(); if (Math.floor(now / 250) !== Math.floor((now - dt * 1000) / 250)) { drawLog(); drawKasner(); } if (st.playing) st.raf = requestAnimationFrame(tick); }
-  $('mix-next').addEventListener('click', () => { const nx = st.bounds.find((b) => b > st.i + 5); st.i = nx === undefined ? 0 : nx; $('mix-s').value = st.i; st.playing = false; $('mix-play').textContent = '▶ 播放'; render(); });
+  $('mix-next').addEventListener('click', () => { const nx = st.bounds.find((b) => b > st.i + 5); if (nx === undefined) { toast('往后没有反弹了：这一端已经算到头'); return; } st.i = nx; $('mix-s').value = st.i; st.playing = false; $('mix-play').textContent = '▶ 播放'; render(); });
   $('mix-chaos').addEventListener('click', () => {
     const q = params(); if (P.mode === 'kasner') q.u = P.u * (1 + 1e-6); else q.chi = P.chi + 1e-6; const R2 = MIXMASTER.solve(q); if (!R2) return;
     const a = st.R.epochs.slice().reverse().map((e) => e.u), b = R2.epochs.slice().reverse().map((e) => e.u); let k = 0; while (k < a.length && k < b.length && Math.abs(a[k] - b[k]) / a[k] < 0.03) k++;
@@ -130,7 +137,7 @@
     const ext = (u0, n) => { const out = []; let u = u0; for (let i = 0; i < n; i++) { out.push(u); u = MIXMASTER.bklMap(u); if (!isFinite(u) || u > 1e6) break; } return out; };
     const ea = ext(a.length ? a[0] : P.u, 14), eb = ext(b.length ? b[0] : q.u, 14); let m = 0; while (m < ea.length && m < eb.length && Math.abs(ea[m] - eb[m]) / ea[m] < 0.03) m++;
     st.chaos = `<div style="margin-top:8px;color:var(--ink)">混沌检验（往大爆炸走的 u 序列）：</div><div class="mono">方程 · 原来：${fmt(a, k)}</div><div class="mono">方程 · u×(1+10⁻⁶)：${fmt(b, k)}</div><div>${k < Math.min(a.length, b.length) ? `第 ${k + 1} 个时代起分道扬镳。` : '方程算到的这几个时代还没分开（体积已缩到 e⁻⁶⁵⁰）；按 BKL 规则继续跳：'}</div><div class="mono">规则 · 原来：${fmt(ea, m)}</div><div class="mono">规则 · 微扰：${fmt(eb, m)}</div><div>${m < Math.min(ea.length, eb.length) ? `第 ${m + 1} 个时代起分道扬镳：10⁻⁶ 的差别，${m} 次反弹后就放大成完全不同的宇宙。` : '连分数的前十几位一样，再往后才分开。'}</div>`;
-    $('mix-chaos-out').textContent = ''; epochTable();
+    $('mix-chaos-out').innerHTML = '结果写在下面 ③ 的时代表底下 ↓'; epochTable(); const tb = $('mix-epochs'); if (tb && tb.scrollIntoView) tb.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   });
   const cv = $('c-mix-shape');
   cv.addEventListener('pointerdown', (e) => { st.drag = { x: e.clientX, y: e.clientY, yaw: st.yaw, pitch: st.pitch }; cv.setPointerCapture(e.pointerId); });
