@@ -296,18 +296,18 @@ footer{border-top:1px solid var(--line);padding:18px 0 28px;color:var(--faint);f
     </div>
   </div>
   <div class="grid g3" style="margin-top:14px">
-    <div class="card tight"><h3 style="font-size:14px"><span data-g="gstar">有效自由度 $g_*(T)$</span> <span class="note" style="font-weight:400">量子统计</span></h3><canvas id="c-gstar" width="380" height="240" data-minh="200"></canvas><p class="note">每当温度降到某种粒子的质量以下，它就湮灭、把熵交给剩下的粒子：台阶处光子被加热。</p></div>
+    <div class="card tight"><h3 style="font-size:14px"><span data-g="gstar">有效自由度 $g_*(T)$</span> <span class="note" style="font-weight:400">量子统计</span></h3><canvas id="c-gstar" width="380" height="240" data-minh="200"></canvas><p class="note">每当温度降到某种粒子的质量 $m_i$ 以下（$T \lesssim m_i$），它就湮灭、把熵交给剩下的粒子：台阶处光子被加热。</p></div>
     <div class="card tight"><h3 style="font-size:14px"><span data-g="Xn">中子份额 $X_n(t)$</span> <span class="note" style="font-weight:400">弱作用 + 氘瓶颈</span> <span data-g="bottleneck"></span></h3><canvas id="c-xn" width="380" height="240" data-minh="200"></canvas><p class="note" id="ev-bbn"></p></div>
     <div class="card tight"><h3 style="font-size:14px"><span data-g="xe">电离度 $x_e(z)$</span> <span class="note" style="font-weight:400">Saha 平衡</span></h3><canvas id="c-xe" width="380" height="240" data-minh="200"></canvas><p class="note" id="ev-rec"></p></div>
   </div>
   <div class="card" style="margin-top:14px">
     <details><summary>读完你自己的发现之后再看：量子效应分别在哪一刻起作用</summary>
       <p><b style="color:var(--ink)">暴胀（$10^{-37}$ 秒）</b>：德西特空间有温度 $T = \hbar H/2\pi k_B$，暴胀子每个哈勃时间长出 $\delta\phi = H/2\pi$ 的量子涨落，被膨胀拉出视界后冻结成经典的密度扰动。$A_s$ 就是这些涨落的功率；它越大，星系的种子越壮。</p>
-      <p><b style="color:var(--ink)">粒子汤（10⁻¹¹ 秒到 1 秒）</b>：每种粒子按玻色–爱因斯坦或费米–狄拉克分布占据相空间；温度降到它的质量以下时它和反粒子湮灭成光子。g*(T) 的每一级台阶都是一次湮灭。</p>
+      <p><b style="color:var(--ink)">粒子汤（$10^{-11}$ 秒到 1 秒）</b>：每种粒子按玻色–爱因斯坦或费米–狄拉克分布占据相空间，$\rho_i = \frac{g_i}{2\pi^2}\int \frac{E\,p^2\,dp}{e^{E/T}\pm1}$；温度降到它的质量以下时它和反粒子湮灭成光子。$g_*(T)$ 的每一级台阶都是一次湮灭。</p>
       <p><b style="color:var(--ink)">中微子退耦（1 秒）</b>：弱作用率 $\propto G_F^2T^5$ 追不上膨胀率 $\propto T^2/M_{Pl}$。此后中微子自己冷却；e⁺e⁻ 湮灭只加热光子，所以今天 $T_\nu/T_\gamma = (4/11)^{1/3}$。</p>
       <p><b style="color:var(--ink)">中子冻结与核合成（1 秒到 4 分钟）</b>：n/p 在平衡时是 $e^{-Q/T}$，弱作用一慢下来就冻住，然后中子按寿命 $\tau_n$ 衰变。氘的结合能只有 2.2 MeV 而光子有十亿倍之多，要等到 $T\approx0.07$ MeV 氘才能存活（氘瓶颈），这时几乎所有剩下的中子都进了 ⁴He：$Y_p = 2X_n$。$Q$、$\tau_n$、$G_F$、$N_{\mathrm{eff}}$、$\eta$ 每一个都在这里留下指纹。</p>
       <p><b style="color:var(--ink)">复合（38 万年）</b>：氢的电离能 $13.6\,\mathrm{eV} = \alpha^2 m_e c^2/2$，但每个重子配十亿个光子，高能尾巴一直把氢打碎，复合要等到 $T\approx0.26$ eV。电子一旦被束缚，汤姆孙散射率 $\propto\alpha^2/m_e^2$ 掉到膨胀率以下，光子自由飞行：这就是 CMB。</p>
-      <p class="note">标签：g*(T)、时间、n/p 是按方程算的（模拟）；氦丰度的氘瓶颈阈值按标准模型校准了一个数（Y<sub>p</sub> = 0.247），氘丰度是经验标度律（拟合）；复合用 Saha 平衡近似，比完整计算早约 4%。</p>
+      <p class="note">标签：$g_*(T)$、时间、n/p 是按方程算的（模拟）；氦丰度的氘瓶颈阈值按标准模型校准了一个数（$Y_p = 0.247$），氘丰度是经验标度律（拟合）；复合用 Saha 平衡近似，比完整计算早约 4%。</p>
     </details>
   </div>
 </section>
@@ -2308,6 +2308,7 @@ var QLAI = (function () {
   'use strict';
   const G = window.GENESIS, $ = G.$, sig = G.sig, gyr = G.gyr, CSS = G.CSS, chart = G.chart, fit = G.fit, toast = G.toast, store = G.store, forge = G.forge;
   const KB = THERMAL.KB, MSUN = 1.989e30, YR = 3.15576e7;
+  const tn = (v, n) => sig(v, n).replace(/e([+-]?\d+)/, '\\times10^{$1}').replace('−', '-'); // TeX 里的数：2.48e13 → 2.48\times10^{13}
   const DEF = { T0: 2.7255, Neff: 3.044, Ob: 0.0493, As: 2.1e-9, ns: 0.965, r: 0.01, alpha: 1, me: 1, Q: 1.29333, GF: 1, lqc: false, rhoC: 122.4 };
   const QS = Object.assign({}, DEF, store.get('q', {}));
   // 滑杆映射：log 的存 log10
@@ -2363,18 +2364,18 @@ var QLAI = (function () {
     $('qv-tau').textContent = CUR.bb ? sig(CUR.bb.tauN, 3) + ' s' : sig(BBN.TAU0 / (QS.GF * QS.GF), 3) + ' s';
     const cards = [], bb = CUR.bb, rc = CUR.rc, inf = CUR.inf;
     if (bb) {
-      cards.push(['gold', '原初氦丰度 Y_p', (bb.Yp * 100).toFixed(1) + ' %' + (bb.etaLow ? '（上限）' : ''), `核合成在大爆炸后 ${sig(bb.tNuc, 3)} s（T = ${sig(bb.Tnuc * 1e3, 3)} MeV）；n/p 在 T ≈ ${sig(bb.Tfreeze * 1e3, 2)} MeV 开始冻结，中子寿命 ${isFinite(bb.tauN) ? sig(bb.tauN, 3) + ' s' : '∞（中子稳定）'}。半解析，阈值按标准模型校准` + (bb.etaLow ? '；η 太小，真实的核反应会跟不上膨胀' : '')]);
-      cards.push(['teal', '氘 D/H', bb.DHvalid ? bb.DH.toExponential(2) : '—', bb.DHvalid ? '经验标度律 ∝ η⁻¹·⁶（拟合）；η = ' + CUR.eta.toExponential(2) : 'η = ' + CUR.eta.toExponential(2) + '，超出拟合的可信范围（η₁₀ ≈ 0.5–30）']);
+      cards.push(['gold', '原初氦丰度 Y_p', (bb.Yp * 100).toFixed(1) + ' %' + (bb.etaLow ? '（上限）' : ''), `核合成在大爆炸后 ${sig(bb.tNuc, 3)} s（$T = ${tn(bb.Tnuc * 1e3, 3)}$ MeV）；n/p 在 $T\\approx${tn(bb.Tfreeze * 1e3, 2)}$ MeV 开始冻结，中子寿命 $\\tau_n = ${isFinite(bb.tauN) ? tn(bb.tauN, 3) + '$ s' : '\\infty$（中子稳定）'}。半解析，阈值按标准模型校准` + (bb.etaLow ? '；$\\eta$ 太小，真实的核反应会跟不上膨胀' : '')]);
+      cards.push(['teal', '氘 D/H', bb.DHvalid ? `$${tn(bb.DH, 2)}$` : '—', bb.DHvalid ? `经验标度律 $\\propto\\eta^{-1.6}$（拟合）；$\\eta = ${tn(CUR.eta, 2)}$` : `$\\eta = ${tn(CUR.eta, 2)}$，超出拟合的可信范围（$\\eta_{10}\\approx0.5$–$30$）`]);
     } else cards.push(['coral', '核合成', '没有', CUR.Tbounce ? `量子反弹时温度只有 ${sig(CUR.Tbounce / KB, 2)} K，从没热到 10 MeV` : '没有辐射就没有热的早期']);
     if (R.coldBounce) cards.push(['violet', '复合', '从没有过等离子体', `反弹时温度 ${sig(R.T0 / R.aMin, 2)} K，低于氢的复合温度：氢（如果有）从一开始就是中性的`]);
     else if (rc && rc.transparentEarly) cards.push(['violet', '光子退耦', isFinite(rc.zDec) ? 'z = ' + sig(rc.zDec, 3) + '，在复合之前' : '一直透明', `重子太稀（η = ${rc.eta.toExponential(1)}）：电子还全在时散射率就已低于膨胀率，光子早早自由${rc.pairPlasma ? '——退耦定在正负电子湮灭时（T ≈ 0.17 MeV），再早的散射来自 e± 对等离子体' : ''}；复合（Saha 50%）在 z ≈ ${isFinite(rc.zHalf) ? sig(rc.zHalf, 3) : '?'}`]);
     else if (rc && isFinite(rc.zDec)) cards.push(['violet', '光子退耦 z_dec', sig(rc.zDec, 4), `Saha 平衡近似（比完整计算早约 4%）；那时电离度 x_e = ${rc.xeDec.toExponential(1)}，温度 ${sig(R.T0 * (1 + rc.zDec), 3)} K，电离能 ${rc.B_eV.toFixed(2)} eV`]);
     else if (rc) cards.push(['coral', '光子退耦', '至今没有', '汤姆孙散射率到今天仍高于膨胀率：宇宙一直不透明']);
     if (rc && isFinite(rc.rs)) cards.push(['teal', '声学视界 r_s', sig(rc.rs, 4) + ' Mpc', '反推台用的那把"标准尺"，这里是算出来的（我们的宇宙 147 Mpc；Saha 近似略小）']);
-    cards.push(['gold', '暴胀能标 V^{1/4}', sig(inf.V4, 3) + ' GeV', `由 A_s = ${QS.As.toExponential(2)}、r = ${sig(QS.r, 2)}：H_inf = ${sig(inf.H, 3)} GeV，ε = ${sig(inf.eps, 2)}，慢滚 η = ${sig(inf.eta, 2)}（大统一能标量级 10¹⁶ GeV）`]);
-    cards.push(['violet', '暴胀的量子涨落', 'δφ = ' + sig(inf.dphi, 3) + ' GeV', `每个哈勃时间 H/2π；德西特温度 T_GH = ${sig(inf.TGH, 3)} K；${inf.N} 个 e-fold 用时 ${sig(inf.tInf, 2)} s`]);
-    if (R.fate === 'eternal' && R.accelerating && R.m.w === -1 && R.m.OL > 0) { const Hinf = R.m.H0 * 1e5 / 3.0857e24 * Math.sqrt(R.m.OL); cards.push(['teal', '终态的德西特温度', sig(INFLATION.deSitterT(Hinf), 3) + ' K', '永远加速的宇宙最终只剩这个温度的热辐射（Gibbons–Hawking）']); }
-    if (R.quantumBounce) cards.push(['coral', '量子反弹', 'a_min = ' + R.aMin.toExponential(2), `反弹在 ${gyr(-R.tBounce * COSMO.GYR / R.m.H0)}前；那时密度 ρ_c = 10^${QS.rhoC.toFixed(1)} ρ_crit，温度 ${sig(R.T0 / R.aMin, 3)} K`]);
+    cards.push(['gold', '暴胀能标 V^{1/4}', `$${tn(inf.V4, 3)}$ GeV`, `由 $A_s = ${tn(QS.As, 2)}$、$r = ${sig(QS.r, 2)}$：$H_{\\mathrm{inf}} = ${tn(inf.H, 3)}$ GeV，$\\epsilon = ${tn(inf.eps, 2)}$，慢滚 $\\eta = ${tn(inf.eta, 2)}$（大统一能标量级 $10^{16}$ GeV）`]);
+    cards.push(['violet', '暴胀的量子涨落', `$\\delta\\phi = ${tn(inf.dphi, 3)}$ GeV`, `每个哈勃时间 $H/2\\pi$；德西特温度 $T_{GH} = ${tn(inf.TGH, 3)}$ K；${inf.N} 个 e-fold 用时 $${tn(inf.tInf, 2)}$ s`]);
+    if (R.fate === 'eternal' && R.accelerating && R.m.w === -1 && R.m.OL > 0) { const Hinf = R.m.H0 * 1e5 / 3.0857e24 * Math.sqrt(R.m.OL); cards.push(['teal', '终态的德西特温度', `$${tn(INFLATION.deSitterT(Hinf), 3)}$ K`, '永远加速的宇宙最终只剩这个温度的热辐射（Gibbons–Hawking）：$T = \\hbar H_\\infty/2\\pi k_B$']); }
+    if (R.quantumBounce) cards.push(['coral', '量子反弹', `$a_{\\min} = ${tn(R.aMin, 2)}$`, `反弹在 ${gyr(-R.tBounce * COSMO.GYR / R.m.H0)}前；那时密度 $\\rho_c = 10^{${QS.rhoC.toFixed(1)}}\\rho_{\\mathrm{crit}}$，温度 $${tn(R.T0 / R.aMin, 3)}$ K`]);
     const QG = { '原初氦丰度 Y_p': 'Yp', '核合成': 'Yp', '氘 D/H': 'DH', '光子退耦 z_dec': 'zdec', '光子退耦': 'zdec', '复合': 'zdec', '声学视界 r_s': 'rs', '暴胀能标 V^{1/4}': 'Vinf', '暴胀的量子涨落': 'dphi', '终态的德西特温度': 'TdS', '量子反弹': 'lqc' };
     $('q-cards').innerHTML = cards.map(([c, k, v, i]) => `<div class="k ${c}"><small${QG[k] ? ` data-g="${QG[k]}"` : ''}>${k.replace('Y_p', '$Y_p$').replace('z_dec', '$z_{dec}$').replace('r_s', '$r_s$').replace('V^{1/4}', '$V^{1/4}$')}</small><b class="mono" style="font-size:16px">${v}</b><i>${i}</i></div>`).join('');
     if (G.decorate) { G.decorate($('q-cards')); G.tex($('q-cards')); }
@@ -2385,7 +2386,7 @@ var QLAI = (function () {
       else if (bb.Yp > 0.4) items.push({ level: 'warn', key: 'helium', title: `原初氦 ${(bb.Yp * 100).toFixed(0)}%：偏多`, detail: '氢还够用，但类太阳恒星更亮、寿命更短。' });
       else items.push({ level: 'ok', key: 'helium', title: `原初氦 ${(bb.Yp * 100).toFixed(1)}%`, detail: bb.Yp < 0.05 ? '几乎没有原初氦——恒星照常，氦由恒星自己造。' : '和我们的宇宙一样，四分之一的重子进了氦。' });
     }
-    if (QS.Q < 0.511) items.push({ level: 'dead', key: 'hydrogen', title: '氢原子不稳定', detail: `Q = ${QS.Q.toFixed(2)} MeV 小于电子质量 0.511 MeV：中子不再衰变，反而是质子俘获电子变成中子（p + e⁻ → n + ν）。没有稳定的氢，也就没有化学。` });
+    if (QS.Q < 0.511) items.push({ level: 'dead', key: 'hydrogen', title: '氢原子不稳定', detail: `$Q = ${QS.Q.toFixed(2)}$ MeV 小于电子质量 $m_e = 0.511$ MeV：中子不再衰变，反而是质子俘获电子变成中子（$p + e^- \\to n + \\nu_e$）。没有稳定的氢，也就没有化学。` });
     if (rc && !R.coldBounce) {
       if (rc.neverDecoupled) items.push({ level: 'dead', key: 'recomb', title: '光子从未退耦', detail: '电子一直自由，光子一直被散射：没有 CMB，重子也被辐射压拖着无法坍缩。' });
       else if (rc.transparentEarly) items.push({ level: 'ok', key: 'recomb', title: '宇宙早早就透明了', detail: '重子太稀，光子在复合之前就已经自由飞行；复合本身照常发生。' });
@@ -2448,36 +2449,36 @@ var QLAI = (function () {
       return s;
     }
     function epochText(D, s) {
-      if (s.mode === 'norad') return ['这个宇宙没有辐射', '创世台上 T₀ = 0：没有热的早期，这个展区没什么可放的。把 T₀ 拨上去。'];
-      if (s.mode === 'coldbounce') return ['反弹太冷，没有热的早期', `圈量子宇宙学的反弹密度被拉得太低：反弹时温度只有 ${sig(D.Tbounce / KB, 2)} K，连氢的复合温度都不到，更没有核合成和粒子汤。把创世台上的 ρ_c 拉高（真实理论值在最右端），这里才有东西可放。`];
-      if (s.mode === 'prebounce') return ['反弹之前', `这是圈量子宇宙学的宇宙：没有奇点，也没有暴胀。在这之前是一个收缩中的前宇宙，密度在反弹时达到 ρ_c，温度 ${sig(D.Tbounce / KB, 2)} K。`];
+      if (s.mode === 'norad') return ['这个宇宙没有辐射', '创世台上 $T_0 = 0$：没有热的早期，这个展区没什么可放的。把 $T_0$ 拨上去。'];
+      if (s.mode === 'coldbounce') return ['反弹太冷，没有热的早期', `圈量子宇宙学的反弹密度被拉得太低：反弹时温度只有 $${tn(D.Tbounce / KB, 2)}$ K，连氢的复合温度都不到，更没有核合成和粒子汤。把创世台上的 $\\rho_c$ 拉高（真实理论值在最右端），这里才有东西可放。`];
+      if (s.mode === 'prebounce') return ['反弹之前', `这是圈量子宇宙学的宇宙：没有奇点，也没有暴胀。在这之前是一个收缩中的前宇宙，密度在反弹时达到 $\\rho_c$，温度 $${tn(D.Tbounce / KB, 2)}$ K。`];
       if (s.mode === 'planck') return ['普朗克时间之前', '量子引力的领地：这里没有可信的方程。经典时空、甚至"时间"本身都未必有意义。'];
       if (s.mode === 'pre') return ['暴胀之前', '不知道。标准模型只从暴胀开始讲起；更早的事（量子引力、暴胀子怎么来的）是开放问题。'];
-      if (s.mode === 'inflation') return ['暴胀：空间指数膨胀', `暴胀子的势能像宇宙学常数一样驱动 a ∝ e^{Ht}，H = ${sig(D.inf.H, 2)} GeV。已经膨胀了 ${s.N.toFixed(1)} 个 e-fold（共 ${D.inf.N}）。德西特温度 ${sig(D.inf.TGH, 2)} K 下，场每个哈勃时间长出 δφ = H/2π 的量子涨落，被拉出视界后冻结——这些就是将来星系的种子，功率 A_s = ${QS.As.toExponential(2)}。`];
-      const T = s.T, bb = D.bb, rc = D.rc;
-      if (T > 1e14) return [D.Tbounce ? '反弹后的粒子汤' : '再加热后的粒子汤', `${D.Tbounce ? '反弹把收缩的能量全部交给辐射' : '暴胀子衰变成辐射'}，温度 ${unitT(T)}。所有标准模型粒子都是相对论性的，g* = ${s.gR.toFixed(1)}。希格斯场还没凝结，一切粒子无质量。`];
-      if (T > 1e4) return ['辐射时期：等待电弱相变', `温度 ${unitT(T)}，a ∝ t^{1/2}，哈勃半径 ${unitLen(s.Rh)}，里面只有 ${unitMass(s.Mh)}。粒子汤的成分在这 ${Math.round(Math.log10(T / 160))} 个数量级里几乎不变（g* = ${s.gR.toFixed(1)}）。重子不对称（每十亿对正反粒子多出一个重子）在这段的某处产生，机制未知——标准模型的 CP 破坏不够。`];
-      if (T > 160) return ['电弱相变前夜', `温度 ${unitT(T)}，离希格斯场凝结（T ≈ 160 GeV）不远。顶夸克、W、Z 还都是无质量的相对论性粒子，g* = ${s.gR.toFixed(1)}。`];
-      if (T > THERMAL.T_QCD) return ['电弱相变之后', `希格斯场凝结（T ≈ 160 GeV），W、Z、顶夸克获得质量并陆续湮灭。夸克和胶子仍是自由的等离子体，g* = ${s.gR.toFixed(1)}。`];
-      if (T > 5e-3) return ['强子时期', `夸克在 T ≈ 150 MeV 被禁闭进质子、中子和介子；介子、μ 子随温度下降湮灭。g* = ${s.gR.toFixed(1)}。n/p 还在弱作用平衡：${sig(s.Xn / (1 - s.Xn), 2)}。`];
-      if (T > 0.17e-3) return ['中微子退耦、中子冻结', `弱作用率 ∝ G_F²T⁵ 追不上膨胀。中微子在 T ≈ ${sig(THERMAL.T_NUDEC * 1e3, 2)} MeV 退耦，n/p 在 T ≈ ${bb ? sig(bb.Tfreeze * 1e3, 2) : '?'} MeV 离开平衡、冻在 ${sig(s.Xn / (1 - s.Xn), 2)}，之后只能靠衰变（τ_n = ${bb ? sig(bb.tauN, 3) : '?'} s）慢慢减少。`];
-      if (bb && !s.bbnDone) return ['氘瓶颈', `e⁺e⁻ 湮灭把光子加热到比中微子高 (11/4)^{1/3}。氘的结合能 ${sig(BBN.BD * 1e3, 3)} MeV，但每个重子配 ${sig(1 / CUR.eta, 2)} 个光子，高能尾巴不断把氘打碎；中子在等待中衰变：X_n = ${sig(s.Xn, 2)}。`];
-      if (bb && s.bbnDone && s.z > (rc && isFinite(rc.zDec) ? rc.zDec * 1.5 : 0) && T > 1e-9) return ['核合成完成', `T ≈ ${sig(bb.Tnuc * 1e3, 2)} MeV 时氘存活，几分钟内几乎所有中子进了 ⁴He：Y_p = ${(bb.Yp * 100).toFixed(1)}%，D/H ≈ ${bb.DH.toExponential(1)}。此后几十万年是光子和等离子体的世界。`];
-      if (rc && !s.decoupled) return ['等离子体时期', `温度 ${sig(s.TK, 3)} K。光子被自由电子不断散射，重子被辐射压拖住。电离度 x_e = ${sig(s.xe, 2)}；电离能 ${rc.B_eV.toFixed(1)} eV，但复合要等到 T ≈ ${sig(rc.B_eV / 50, 2)} eV 量级——光子太多了。`];
-      return ['复合之后：光子自由飞行', `电子被束缚进氢原子，汤姆孙散射率掉到膨胀率以下：这一刻的光就是今天的 CMB。重子开始落进暗物质的势阱，黑暗时代开始。`];
+      if (s.mode === 'inflation') return ['暴胀：空间指数膨胀', `暴胀子的势能像宇宙学常数一样驱动 $a\\propto e^{Ht}$，$H = ${tn(D.inf.H, 2)}$ GeV。已经膨胀了 ${s.N.toFixed(1)} 个 e-fold（共 ${D.inf.N}）。德西特温度 $${tn(D.inf.TGH, 2)}$ K 下，场每个哈勃时间长出 $\\delta\\phi = H/2\\pi$ 的量子涨落，被拉出视界后冻结——这些就是将来星系的种子，功率 $A_s = ${tn(QS.As, 2)}$。`];
+      const T = s.T, bb = D.bb, rc = D.rc, g = `$g_* = ${s.gR.toFixed(1)}$`;
+      if (T > 1e14) return [D.Tbounce ? '反弹后的粒子汤' : '再加热后的粒子汤', `${D.Tbounce ? '反弹把收缩的能量全部交给辐射' : '暴胀子衰变成辐射'}，温度 ${unitT(T)}。所有标准模型粒子都是相对论性的，${g}。希格斯场还没凝结，一切粒子无质量。`];
+      if (T > 1e4) return ['辐射时期：等待电弱相变', `温度 ${unitT(T)}，$a\\propto t^{1/2}$，哈勃半径 ${unitLen(s.Rh)}，里面只有 ${unitMass(s.Mh)}。粒子汤的成分在这 ${Math.round(Math.log10(T / 160))} 个数量级里几乎不变（${g}）。重子不对称（每十亿对正反粒子多出一个重子）在这段的某处产生，机制未知——标准模型的 CP 破坏不够。`];
+      if (T > 160) return ['电弱相变前夜', `温度 ${unitT(T)}，离希格斯场凝结（$T\\approx160$ GeV）不远。顶夸克、W、Z 还都是无质量的相对论性粒子，${g}。`];
+      if (T > THERMAL.T_QCD) return ['电弱相变之后', `希格斯场凝结（$T\\approx160$ GeV），W、Z、顶夸克获得质量并陆续湮灭。夸克和胶子仍是自由的等离子体，${g}。`];
+      if (T > 5e-3) return ['强子时期', `夸克在 $T\\approx150$ MeV 被禁闭进质子、中子和介子；介子、μ 子随温度下降湮灭。${g}。n/p 还在弱作用平衡：$n/p = e^{-Q/T} = ${tn(s.Xn / (1 - s.Xn), 2)}$。`];
+      if (T > 0.17e-3) return ['中微子退耦、中子冻结', `弱作用率 $\\propto G_F^2T^5$ 追不上膨胀率 $\\propto T^2/M_{Pl}$。中微子在 $T\\approx${tn(THERMAL.T_NUDEC * 1e3, 2)}$ MeV 退耦，n/p 在 $T\\approx${bb ? tn(bb.Tfreeze * 1e3, 2) : '?'}$ MeV 离开平衡、冻在 ${tn(s.Xn / (1 - s.Xn), 2)}，之后只能靠衰变（$\\tau_n = ${bb ? (isFinite(bb.tauN) ? tn(bb.tauN, 3) : '\\infty') : '?'}$ s）慢慢减少。`];
+      if (bb && !s.bbnDone) return ['氘瓶颈', `e⁺e⁻ 湮灭把光子加热到比中微子高 $(11/4)^{1/3}$ 倍。氘的结合能 $B_D = ${tn(BBN.BD * 1e3, 3)}$ MeV，但每个重子配 $${tn(1 / CUR.eta, 2)}$ 个光子，高能尾巴不断把氘打碎；中子在等待中衰变：$X_n = ${tn(s.Xn, 2)}$。`];
+      if (bb && s.bbnDone && s.z > (rc && isFinite(rc.zDec) ? rc.zDec * 1.5 : 0) && T > 1e-9) return ['核合成完成', `$T\\approx${tn(bb.Tnuc * 1e3, 2)}$ MeV 时氘存活，几分钟内几乎所有中子进了 ⁴He：$Y_p = ${(bb.Yp * 100).toFixed(1)}\\%$，$\\mathrm{D/H}\\approx${bb.DHvalid ? tn(bb.DH, 2) : '?'}$。此后几十万年是光子和等离子体的世界。`];
+      if (rc && !s.decoupled) return ['等离子体时期', `温度 $${tn(s.TK, 3)}$ K。光子被自由电子不断散射，重子被辐射压拖住。电离度 $x_e = ${tn(s.xe, 2)}$；电离能 $B = ${rc.B_eV.toFixed(1)}$ eV，但复合要等到 $T\\sim B/50 \\approx ${tn(rc.B_eV / 50, 2)}$ eV——光子太多了。`];
+      return ['复合之后：光子自由飞行', `电子被束缚进氢原子，汤姆孙散射率 $n_e\\sigma_T c$ 掉到膨胀率 $H$ 以下：这一刻的光就是今天的 CMB。重子开始落进暗物质的势阱，黑暗时代开始。`];
     }
     // ---------- 渲染 ----------
     function cards(D, s) {
       const K = [];
       if (s.mode === 'thermal') {
-        K.push(['gold', '温度', unitT(s.T), sig(s.TK, 3) + ' K']); K.push(['teal', '尺度因子 a', s.a.toExponential(2), `宇宙是今天的 ${s.a.toExponential(1)} 倍大`]); K.push(['violet', '膨胀率 H', sig(s.H, 3) + ' s⁻¹', '哈勃时间 ' + unitTime(1 / s.H)]);
-        K.push(['gold', '哈勃半径 c/H', unitLen(s.Rh), '其中的质量 ' + unitMass(s.Mh)]); if (s.T > 1e-6) K.push(['teal', '有效自由度 g*', s.gR.toFixed(2), `T_ν/T_γ = ${s.TnuRatio.toFixed(3)}`]); else K.push(['teal', 'T_ν/T_γ', s.TnuRatio.toFixed(3), '中微子比光子冷：e⁺e⁻ 只加热了光子']);
-        if (s.Xn !== undefined) K.push(['coral', '中子 / 质子', sig(s.Xn / (1 - s.Xn), 3), s.bbnDone ? `已进 ⁴He：Y_p = ${(s.He * 100).toFixed(1)}%` : `X_n = ${sig(s.Xn, 3)}`]);
-        if (s.xe !== undefined && s.T < 1e-6) K.push([s.decoupled ? 'teal' : 'coral', '电离度 x_e', sig(s.xe, 3), s.decoupled ? '光子已退耦' : '光子仍被散射']);
-      } else if (s.mode === 'inflation') { K.push(['gold', 'e-fold 数', s.N.toFixed(2) + ' / ' + D.inf.N, '相对暴胀结束 a = ' + s.aRel.toExponential(2)]); K.push(['violet', 'H_inf', sig(D.inf.H, 3) + ' GeV', '哈勃时间 ' + sig(1 / D.inf.Hs, 2) + ' s']); K.push(['teal', '德西特温度', sig(D.inf.TGH, 3) + ' K', 'δφ = ' + sig(D.inf.dphi, 3) + ' GeV']); }
-      const EG = { '尺度因子 a': 'scale', '膨胀率 H': 'H0', '哈勃半径 c/H': 'hubble', '有效自由度 g*': 'gstar', 'T_ν/T_γ': 'annihilation', '中子 / 质子': 'Xn', '电离度 x_e': 'xe', 'e-fold 数': 'inflation', 'H_inf': 'Vinf', '德西特温度': 'dphi' };
+        K.push(['gold', '温度 $T$', unitT(s.T), `$${tn(s.TK, 3)}$ K`]); K.push(['teal', '尺度因子 $a$', `$${tn(s.a, 2)}$`, `宇宙是今天的 $${tn(s.a, 1)}$ 倍大`]); K.push(['violet', '膨胀率 $H$', `$${tn(s.H, 3)}$ s⁻¹`, '哈勃时间 ' + unitTime(1 / s.H)]);
+        K.push(['gold', '哈勃半径 $c/H$', unitLen(s.Rh), '其中的质量 ' + unitMass(s.Mh)]); if (s.T > 1e-6) K.push(['teal', '有效自由度 $g_*$', s.gR.toFixed(2), `$T_\\nu/T_\\gamma = ${s.TnuRatio.toFixed(3)}$`]); else K.push(['teal', '$T_\\nu/T_\\gamma$', s.TnuRatio.toFixed(3), '中微子比光子冷：e⁺e⁻ 只加热了光子']);
+        if (s.Xn !== undefined) K.push(['coral', '中子 / 质子 $n/p$', sig(s.Xn / (1 - s.Xn), 3), s.bbnDone ? `已进 ⁴He：$Y_p = ${(s.He * 100).toFixed(1)}\\%$` : `$X_n = ${tn(s.Xn, 3)}$`]);
+        if (s.xe !== undefined && s.T < 1e-6) K.push([s.decoupled ? 'teal' : 'coral', '电离度 $x_e$', `$${tn(s.xe, 3)}$`, s.decoupled ? '光子已退耦' : '光子仍被散射']);
+      } else if (s.mode === 'inflation') { K.push(['gold', 'e-fold 数 $N$', s.N.toFixed(2) + ' / ' + D.inf.N, `相对暴胀结束 $a = ${tn(s.aRel, 2)}$`]); K.push(['violet', '$H_{\\mathrm{inf}}$', `$${tn(D.inf.H, 3)}$ GeV`, '哈勃时间 ' + sig(1 / D.inf.Hs, 2) + ' s']); K.push(['teal', '德西特温度 $T_{GH}$', `$${tn(D.inf.TGH, 3)}$ K`, `$\\delta\\phi = ${tn(D.inf.dphi, 3)}$ GeV`]); }
+      const EG = { '尺度因子 $a$': 'scale', '膨胀率 $H$': 'H0', '哈勃半径 $c/H$': 'hubble', '有效自由度 $g_*$': 'gstar', '$T_\\nu/T_\\gamma$': 'annihilation', '中子 / 质子 $n/p$': 'Xn', '电离度 $x_e$': 'xe', 'e-fold 数 $N$': 'inflation', '$H_{\\mathrm{inf}}$': 'Vinf', '德西特温度 $T_{GH}$': 'dphi' };
       const html = K.map(([c, k, v, i]) => `<div class="k ${c}"><small${EG[k] ? ` data-g="${EG[k]}"` : ''}>${k}</small><b class="mono" style="font-size:17px">${v}</b><i>${i}</i></div>`).join('');
-      if (html !== ET.lastCards) { $('e-cards').innerHTML = html; ET.lastCards = html; if (G.decorate) G.decorate($('e-cards')); } // 只在内容变了才重画，不然 ? 按钮点不到
+      if (html !== ET.lastCards) { $('e-cards').innerHTML = html; ET.lastCards = html; if (G.decorate) G.decorate($('e-cards')); if (G.tex) G.tex($('e-cards')); } // 只在内容变了才重画，不然 ? 按钮点不到
       const chips = s.species ? s.species.filter((p) => p.frac > 0.004).map((p) => `<span class="pill" style="border-color:${p.color};color:${p.color}">${p.name} ${(p.frac * 100).toFixed(1)}%</span>`).join('') : '';
       if (chips !== ET.lastChips) { $('e-chips').innerHTML = chips; ET.lastChips = chips; }
     }
@@ -2498,8 +2499,8 @@ var QLAI = (function () {
       if (D.noRad || D.coldBounce) { for (const id of ['c-gstar', 'c-xn', 'c-xe']) { const { ctx, w, h } = fit($(id)); ctx.clearRect(0, 0, w, h); } $('ev-bbn').textContent = ''; $('ev-rec').textContent = ''; return; }
       const mk = (x, y) => (isFinite(x) && isFinite(y)) ? [{ x, y, color: CSS('--gold') }] : [];
       chart($('c-gstar'), { xmin: 1e-5, xmax: 1e5, xlog: true, ymin: 1, ymax: 120, xlabel: 'T（GeV）', ylabel: 'g*', padL: 40, series: [{ xs: D.gChart.xs, ys: D.gChart.ys, color: CSS('--teal') }], marks: s.mode === 'thermal' && s.T > 1e-5 && s.T < 1e5 ? mk(s.T, s.gR) : [] });
-      if (D.xnChart) { const X = D.xnChart; chart($('c-xn'), { xmin: 0.01, xmax: 2000, xlog: true, ymin: 0, ymax: 0.5, xlabel: 't（s）', ylabel: 'X_n', padL: 40, series: [{ xs: X.ts, ys: X.Xeq, color: CSS('--faint'), dash: [4, 4] }, { xs: X.ts, ys: X.Xn, color: CSS('--coral') }], vlines: [{ x: X.tNuc, color: CSS('--gold'), label: '氘瓶颈打开' }], marks: s.mode === 'thermal' && s.Xn !== undefined ? mk(s.t, s.Xn) : [] }); $('ev-bbn').textContent = `虚线是弱作用平衡 e^{−Q/T}/(1+e^{−Q/T})；实线离开它就是冻结。Y_p = 2X_n(氘瓶颈) = ${(D.bb.Yp * 100).toFixed(1)}%。`; }
-      if (D.xeChart) { const X = D.xeChart, zmax = Math.max(...X.zs); chart($('c-xe'), { xmin: Math.max(50, Math.min(...X.zs)), xmax: zmax, xlog: true, ymin: 1e-4, ymax: 1.2, ylog: true, xlabel: '红移 z', ylabel: 'x_e', padL: 44, series: [{ xs: X.zs, ys: X.xe, color: CSS('--violet') }], vlines: isFinite(D.rc.zDec) ? [{ x: D.rc.zDec, color: CSS('--gold'), label: '光子退耦' }] : [], marks: s.mode === 'thermal' && s.z < zmax ? mk(s.z, Math.max(1e-4, s.xe)) : [] }); $('ev-rec').textContent = isFinite(D.rc.zDec) ? `退耦在 z = ${sig(D.rc.zDec, 4)}（Saha 近似）；电离能 ${D.rc.B_eV.toFixed(2)} eV，η = ${D.rc.eta.toExponential(2)}。` : '汤姆孙散射率至今高于膨胀率：没有退耦。'; }
+      if (D.xnChart) { const X = D.xnChart; chart($('c-xn'), { xmin: 0.01, xmax: 2000, xlog: true, ymin: 0, ymax: 0.5, xlabel: 't（s）', ylabel: 'X_n', padL: 40, series: [{ xs: X.ts, ys: X.Xeq, color: CSS('--faint'), dash: [4, 4] }, { xs: X.ts, ys: X.Xn, color: CSS('--coral') }], vlines: [{ x: X.tNuc, color: CSS('--gold'), label: '氘瓶颈打开' }], marks: s.mode === 'thermal' && s.Xn !== undefined ? mk(s.t, s.Xn) : [] }); $('ev-bbn').innerHTML = `虚线是弱作用平衡 $X_n^{eq} = 1/(1 + e^{Q/T})$；实线离开它就是冻结。$Y_p = 2X_n(\\text{氘瓶颈}) = ${(D.bb.Yp * 100).toFixed(1)}\\%$。`; if (G.tex) G.tex($('ev-bbn')); }
+      if (D.xeChart) { const X = D.xeChart, zmax = Math.max(...X.zs); chart($('c-xe'), { xmin: Math.max(50, Math.min(...X.zs)), xmax: zmax, xlog: true, ymin: 1e-4, ymax: 1.2, ylog: true, xlabel: '红移 z', ylabel: 'x_e', padL: 44, series: [{ xs: X.zs, ys: X.xe, color: CSS('--violet') }], vlines: isFinite(D.rc.zDec) ? [{ x: D.rc.zDec, color: CSS('--gold'), label: '光子退耦' }] : [], marks: s.mode === 'thermal' && s.z < zmax ? mk(s.z, Math.max(1e-4, s.xe)) : [] }); $('ev-rec').innerHTML = isFinite(D.rc.zDec) ? `退耦在 $z = ${tn(D.rc.zDec, 4)}$（Saha 近似）；电离能 $B = ${D.rc.B_eV.toFixed(2)}$ eV，$\\eta = ${tn(D.rc.eta, 2)}$。` : '汤姆孙散射率至今高于膨胀率：没有退耦。'; if (G.tex) G.tex($('ev-rec')); }
     }
     // 粒子汤画布
     function soup(D, s, now) {
@@ -2537,7 +2538,7 @@ var QLAI = (function () {
     function render(now) {
       const D = prepare(); const t = Math.pow(10, ET.logt); const s = stateAt(D, t);
       $('ev-t').textContent = 't = ' + (ET.logt < -3 ? t.toExponential(2) + ' s' : unitTime(t)); $('es-t').value = ET.logt;
-      const [title, body] = epochText(D, s); $('ev-epoch').textContent = title; $('ev-story').textContent = body; if (D.coldBounce || D.noRad) { $('e-cards').innerHTML = ''; $('e-chips').innerHTML = ''; }
+      const [title, body] = epochText(D, s); $('ev-epoch').textContent = title; if (body !== ET.lastStory) { $('ev-story').innerHTML = body; ET.lastStory = body; if (G.tex) G.tex($('ev-story')); } if (D.coldBounce || D.noRad) { $('e-cards').innerHTML = ''; $('e-chips').innerHTML = ''; }
       if (!(D.coldBounce || D.noRad)) cards(D, s); soup(D, s, now || 0); if (!ET.lastT || Math.abs(ET.logt - ET.lastT) > 0.05 || !ET.chartsDrawn) { charts(D, s); ET.lastT = ET.logt; ET.chartsDrawn = true; }
     }
     function tick(now) {

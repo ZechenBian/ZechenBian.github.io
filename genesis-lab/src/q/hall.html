@@ -18,18 +18,18 @@
     </div>
   </div>
   <div class="grid g3" style="margin-top:14px">
-    <div class="card tight"><h3 style="font-size:14px"><span data-g="gstar">有效自由度 $g_*(T)$</span> <span class="note" style="font-weight:400">量子统计</span></h3><canvas id="c-gstar" width="380" height="240" data-minh="200"></canvas><p class="note">每当温度降到某种粒子的质量以下，它就湮灭、把熵交给剩下的粒子：台阶处光子被加热。</p></div>
+    <div class="card tight"><h3 style="font-size:14px"><span data-g="gstar">有效自由度 $g_*(T)$</span> <span class="note" style="font-weight:400">量子统计</span></h3><canvas id="c-gstar" width="380" height="240" data-minh="200"></canvas><p class="note">每当温度降到某种粒子的质量 $m_i$ 以下（$T \lesssim m_i$），它就湮灭、把熵交给剩下的粒子：台阶处光子被加热。</p></div>
     <div class="card tight"><h3 style="font-size:14px"><span data-g="Xn">中子份额 $X_n(t)$</span> <span class="note" style="font-weight:400">弱作用 + 氘瓶颈</span> <span data-g="bottleneck"></span></h3><canvas id="c-xn" width="380" height="240" data-minh="200"></canvas><p class="note" id="ev-bbn"></p></div>
     <div class="card tight"><h3 style="font-size:14px"><span data-g="xe">电离度 $x_e(z)$</span> <span class="note" style="font-weight:400">Saha 平衡</span></h3><canvas id="c-xe" width="380" height="240" data-minh="200"></canvas><p class="note" id="ev-rec"></p></div>
   </div>
   <div class="card" style="margin-top:14px">
     <details><summary>读完你自己的发现之后再看：量子效应分别在哪一刻起作用</summary>
       <p><b style="color:var(--ink)">暴胀（$10^{-37}$ 秒）</b>：德西特空间有温度 $T = \hbar H/2\pi k_B$，暴胀子每个哈勃时间长出 $\delta\phi = H/2\pi$ 的量子涨落，被膨胀拉出视界后冻结成经典的密度扰动。$A_s$ 就是这些涨落的功率；它越大，星系的种子越壮。</p>
-      <p><b style="color:var(--ink)">粒子汤（10⁻¹¹ 秒到 1 秒）</b>：每种粒子按玻色–爱因斯坦或费米–狄拉克分布占据相空间；温度降到它的质量以下时它和反粒子湮灭成光子。g*(T) 的每一级台阶都是一次湮灭。</p>
+      <p><b style="color:var(--ink)">粒子汤（$10^{-11}$ 秒到 1 秒）</b>：每种粒子按玻色–爱因斯坦或费米–狄拉克分布占据相空间，$\rho_i = \frac{g_i}{2\pi^2}\int \frac{E\,p^2\,dp}{e^{E/T}\pm1}$；温度降到它的质量以下时它和反粒子湮灭成光子。$g_*(T)$ 的每一级台阶都是一次湮灭。</p>
       <p><b style="color:var(--ink)">中微子退耦（1 秒）</b>：弱作用率 $\propto G_F^2T^5$ 追不上膨胀率 $\propto T^2/M_{Pl}$。此后中微子自己冷却；e⁺e⁻ 湮灭只加热光子，所以今天 $T_\nu/T_\gamma = (4/11)^{1/3}$。</p>
       <p><b style="color:var(--ink)">中子冻结与核合成（1 秒到 4 分钟）</b>：n/p 在平衡时是 $e^{-Q/T}$，弱作用一慢下来就冻住，然后中子按寿命 $\tau_n$ 衰变。氘的结合能只有 2.2 MeV 而光子有十亿倍之多，要等到 $T\approx0.07$ MeV 氘才能存活（氘瓶颈），这时几乎所有剩下的中子都进了 ⁴He：$Y_p = 2X_n$。$Q$、$\tau_n$、$G_F$、$N_{\mathrm{eff}}$、$\eta$ 每一个都在这里留下指纹。</p>
       <p><b style="color:var(--ink)">复合（38 万年）</b>：氢的电离能 $13.6\,\mathrm{eV} = \alpha^2 m_e c^2/2$，但每个重子配十亿个光子，高能尾巴一直把氢打碎，复合要等到 $T\approx0.26$ eV。电子一旦被束缚，汤姆孙散射率 $\propto\alpha^2/m_e^2$ 掉到膨胀率以下，光子自由飞行：这就是 CMB。</p>
-      <p class="note">标签：g*(T)、时间、n/p 是按方程算的（模拟）；氦丰度的氘瓶颈阈值按标准模型校准了一个数（Y<sub>p</sub> = 0.247），氘丰度是经验标度律（拟合）；复合用 Saha 平衡近似，比完整计算早约 4%。</p>
+      <p class="note">标签：$g_*(T)$、时间、n/p 是按方程算的（模拟）；氦丰度的氘瓶颈阈值按标准模型校准了一个数（$Y_p = 0.247$），氘丰度是经验标度律（拟合）；复合用 Saha 平衡近似，比完整计算早约 4%。</p>
     </details>
   </div>
 </section>
