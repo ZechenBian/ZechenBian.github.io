@@ -623,10 +623,91 @@
     cc.addEventListener('pointerdown', (e) => { onDown(e); cc.setPointerCapture(e.pointerId); }); cc.addEventListener('pointermove', onMove); cc.addEventListener('pointerup', () => { cone.drag = null; }); cc.addEventListener('pointercancel', () => { cone.drag = null; });
     cc.style.touchAction = 'none';
     $('s-ring').addEventListener('input', () => { cone.ring = +$('s-ring').value; drawCones(); });
+    // ⑤ 全天图：每个像素一条从轴上倒着追的零测地线（godel.js 的闭式方程 axisRay），星系按旋转尘埃的静止空间度规 dℓ² = dr² + ¼sinh²(2r)dφ² + dz² 判中
+    const allsky = (function () {
+      const W = 360, H = 180, RC = GODEL.R_C;
+      const st = { gal: null, seed: 11, returns: 2, home: true, hit: new Int16Array(W * H), lam: new Float32Array(W * H), tt: new Float32Array(W * H), cross: new Uint8Array(W * H), shade: new Float32Array(W * H), rmax: new Float32Array(H), img: null, rendered: false, hover: null, rays: new Array(H) };
+      const PAL = ['#f2c14e', '#5fe0cf', '#ff6f87', '#b08cff', '#8fd65a', '#ff9f6f', '#6fb5ff', '#e9edf9', '#d9a066', '#ffd1dc', '#7fffd4', '#c0a0ff'];
+      function makeGalaxies() { const r = mulberry32(st.seed), out = []; if (st.home) out.push({ r: 0, phi: 0, z: 0, rho: 0.05, color: '#ffffff', name: '你自己的星系（轴上）', home: true });
+        for (let i = 0; i < 36; i++) { const rg = 0.1 + 1.0 * Math.sqrt(r()), ph = r() * Math.PI * 2, z = (r() - 0.5) * 2.4, rho = 0.05 + 0.07 * r(); out.push({ r: rg, phi: ph, z, rho, color: PAL[i % PAL.length], name: '星系 #' + (i + 1), home: false }); } return out; }
+      function render() {
+        if (!st.gal) st.gal = makeGalaxies(); const gal = st.gal, t0 = performance.now();
+        st.hit.fill(-1); st.shade.fill(1); let rowsDone = 0;
+        for (let j = 0; j < H; j++) {
+          const theta = (j + 0.5) * Math.PI / H, ray = GODEL.axisRay(theta, { dl: 0.01, lambdaMax: 3.3 * st.returns + 1, maxCross: st.returns }); st.rays[j] = ray; let rmax = 0;
+          const base = j * W;
+          for (let i = 0; i < ray.r.length; i++) {
+            const rr = Math.abs(ray.r[i]), zz = ray.z[i]; if (rr > rmax) rmax = rr; if (ray.lam[i] < 0.2) continue; /* 刚离开自己的星系那一小段不算 */ const phiEff = ray.phi[i] + (ray.r[i] < 0 ? Math.PI : 0);
+            for (let g = 0; g < gal.length; g++) {
+              const G = gal[g], dz = zz - G.z; if (dz > G.rho || dz < -G.rho) continue; const dr = rr - G.r; if (dr > G.rho || dr < -G.rho) continue;
+              const d2 = dr * dr + dz * dz; if (d2 >= G.rho * G.rho) continue;
+              if (G.r < 1e-9) { // 轴上的星系：和方位无关，整行命中
+                const sh = Math.sqrt(d2) / G.rho; for (let c = 0; c < W; c++) { const p = base + c; if (st.hit[p] < 0) { st.hit[p] = g; st.lam[p] = ray.lam[i]; st.tt[p] = ray.t[i]; st.cross[p] = ray.cross[i]; st.shade[p] = sh; } else if (st.hit[p] === g && sh < st.shade[p] && ray.lam[i] - st.lam[p] < 3 * G.rho) st.shade[p] = sh; } continue; }
+              const K = 0.5 * Math.sinh(2 * G.r), dphiMax = Math.sqrt(G.rho * G.rho - d2) / K, psiC = G.phi - phiEff; // 命中的方位区间
+              const c0 = Math.floor(((psiC - dphiMax + Math.PI) / (2 * Math.PI)) * W), c1 = Math.ceil(((psiC + dphiMax + Math.PI) / (2 * Math.PI)) * W);
+              for (let c = c0; c <= c1; c++) { const col = ((c % W) + W) % W, psi = -Math.PI + (col + 0.5) * 2 * Math.PI / W; let dps = psi - psiC; dps -= 2 * Math.PI * Math.round(dps / (2 * Math.PI)); const dl2 = d2 + K * K * dps * dps; if (dl2 >= G.rho * G.rho) continue; const sh = Math.sqrt(dl2) / G.rho, p = base + col;
+                if (st.hit[p] < 0) { st.hit[p] = g; st.lam[p] = ray.lam[i]; st.tt[p] = ray.t[i]; st.cross[p] = ray.cross[i]; st.shade[p] = sh; } else if (st.hit[p] === g && sh < st.shade[p] && ray.lam[i] - st.lam[p] < 3 * G.rho) st.shade[p] = sh; }
+            }
+          }
+          st.rmax[j] = rmax; rowsDone++;
+        }
+        // 像素
+        if (!st.img) { st.img = document.createElement('canvas'); st.img.width = W; st.img.height = H; }
+        const ic = st.img.getContext('2d'), im = ic.createImageData(W, H), d = im.data;
+        const rgb = gal.map((G) => { const m = G.color.match(/#(..)(..)(..)/); return [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16)]; });
+        for (let p = 0; p < W * H; p++) { const g = st.hit[p], o = p * 4; if (g < 0) { const j = Math.floor(p / W); const v = 10 + 18 * (st.rmax[j] / RC); d[o] = v * 0.7; d[o + 1] = v * 0.8; d[o + 2] = v * 1.6 + 8; d[o + 3] = 255; continue; } const sh = st.shade[p], k = 0.35 + 0.65 * Math.sqrt(Math.max(0, 1 - sh * sh)), c = rgb[g]; d[o] = c[0] * k; d[o + 1] = c[1] * k; d[o + 2] = c[2] * k; d[o + 3] = 255; }
+        ic.putImageData(im, 0, 0); st.rendered = true;
+        const seen = new Set(); for (let p = 0; p < W * H; p++) if (st.hit[p] >= 0) seen.add(st.hit[p]); const beyond = gal.filter((G) => G.r > RC).length;
+        $('as-status').textContent = `${W}×${H} 条光线，${Math.round(performance.now() - t0)} ms · 看得见 ${seen.size}/${gal.length} 个星系（${beyond} 个在 r_c 之外，永远看不见）`;
+        draw();
+      }
+      function draw() {
+        const cv = $('c-allsky'); if (!cv) return; const { ctx, w, h } = fit(cv); ctx.fillStyle = '#060913'; ctx.fillRect(0, 0, w, h);
+        if (!st.rendered) return; ctx.imageSmoothingEnabled = true; ctx.drawImage(st.img, 0, 0, w, h);
+        // 网格：θ = 90°（赤道，垂直转轴）、ψ 刻度
+        ctx.strokeStyle = 'rgba(233,237,249,0.25)'; ctx.setLineDash([3, 4]); ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(0, h / 2); ctx.lineTo(w, h / 2); ctx.stroke();
+        for (const ps of [-90, 0, 90]) { const x = (ps + 180) / 360 * w; ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); } ctx.setLineDash([]);
+        ctx.fillStyle = 'rgba(233,237,249,0.8)'; ctx.font = '11px Space Grotesk, sans-serif'; ctx.textAlign = 'left'; ctx.fillText('ψ = −180°', 4, h - 6); ctx.textAlign = 'center'; ctx.fillText('ψ = 0°', w / 2, h - 6); ctx.textAlign = 'right'; ctx.fillText('+180°', w - 4, h - 6);
+        ctx.textAlign = 'left'; ctx.fillText('θ = 0°：转轴 +z 方向', 4, 12); ctx.fillText('θ = 90°：垂直转轴', 4, h / 2 - 4); ctx.fillText('θ = 180°：−z', 4, h - 20);
+        if (st.hover) { const { i, j } = st.hover; ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.strokeRect((i / W) * w - 3, (j / H) * h - 3, 6, 6); }
+        drawMap();
+      }
+      function drawMap() {
+        const cv = $('c-allsky-map'); if (!cv) return; const { ctx, w, h } = fit(cv); ctx.fillStyle = '#060913'; ctx.fillRect(0, 0, w, h);
+        const cx = w / 2, cy = h / 2, sc = Math.min(w, h) / 2 / 1.5, X = (x) => cx + x * sc, Y = (y) => cy - y * sc;
+        ctx.strokeStyle = CSS('--gold'); ctx.setLineDash([4, 4]); ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(cx, cy, RC * sc, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
+        ctx.fillStyle = CSS('--gold'); ctx.font = '10px Space Grotesk, sans-serif'; ctx.textAlign = 'left'; ctx.fillText('r_c（视界）', cx + RC * sc * 0.72, cy - RC * sc * 0.72);
+        if (st.gal) for (const G of st.gal) { if (G.home) continue; const x = X(G.r * Math.cos(G.phi)), y = Y(G.r * Math.sin(G.phi)); ctx.fillStyle = G.color; ctx.globalAlpha = G.r > RC ? 0.35 : 0.9; ctx.beginPath(); ctx.arc(x, y, Math.max(2, G.rho * sc), 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1; }
+        ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(cx, cy, 3, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = CSS('--dim'); ctx.textAlign = 'center'; ctx.fillText('你（轴上）· 俯视图', cx, h - 6);
+        if (st.hover && st.rays[st.hover.j]) { // 这束光走过的路（投影到平面）
+          const { i, j } = st.hover, ray = st.rays[j], psi = -Math.PI + (i + 0.5) * 2 * Math.PI / W, p = j * W + i, lamHit = st.hit[p] >= 0 ? st.lam[p] : Infinity;
+          ctx.lineWidth = 1.5; ctx.beginPath(); let pen = false;
+          for (let k = 0; k < ray.r.length; k++) { if (ray.lam[k] > lamHit) break; const rr = Math.abs(ray.r[k]), ph = ray.phi[k] + psi + (ray.r[k] < 0 ? Math.PI : 0), x = X(rr * Math.cos(ph)), y = Y(rr * Math.sin(ph)); if (!pen) { ctx.moveTo(x, y); pen = true; } else ctx.lineTo(x, y); }
+          ctx.strokeStyle = st.hit[p] >= 0 ? st.gal[st.hit[p]].color : 'rgba(233,237,249,0.7)'; ctx.stroke();
+          if (st.hit[p] >= 0) { const G = st.gal[st.hit[p]]; if (!G.home) { const x = X(G.r * Math.cos(G.phi)), y = Y(G.r * Math.sin(G.phi)); ctx.strokeStyle = '#fff'; ctx.beginPath(); ctx.arc(x, y, Math.max(4, G.rho * sc) + 3, 0, Math.PI * 2); ctx.stroke(); } }
+        }
+      }
+      function readout() {
+        const el = $('as-read'); if (!st.hover) { el.innerHTML = '把鼠标放到天上任一点'; return; }
+        const { i, j } = st.hover, p = j * W + i, theta = (j + 0.5) * 180 / H, psi = -180 + (i + 0.5) * 360 / W, P = physical(rhoRel), unit = P.unitGly;
+        let s = `方向 θ = ${theta.toFixed(0)}°，ψ = ${psi.toFixed(0)}°；这束光最远到 r = ${sig(st.rmax[j], 3)}（r_c = ${RC.toFixed(3)}）<br>`;
+        if (st.hit[p] >= 0) { const G = st.gal[st.hit[p]]; s += `<b style="color:${G.color}">${G.name}</b>${G.home ? '' : `：r = ${sig(G.r, 3)}，z = ${sig(G.z, 2)}`}<br>光走了 t = ${sig(st.tt[p], 3)} 哥德尔单位 = ${gyr(st.tt[p] * unit)}（按④的 ω），绕回轴 ${st.cross[p]} 次${G.home ? '——你看到的是自己 ' + gyr(st.tt[p] * unit) + ' 前的样子' : (st.cross[p] > 0 ? '——这是绕回来的像，同一个星系还有别的像' : '')}`; }
+        else s += `没碰到星系（追踪了 ${st.returns} 个来回）`;
+        el.innerHTML = s;
+      }
+      const cv = $('c-allsky');
+      cv.addEventListener('pointermove', (ev) => { const r = cv.getBoundingClientRect(); const i = clamp(Math.floor((ev.clientX - r.left) / r.width * W), 0, W - 1), j = clamp(Math.floor((ev.clientY - r.top) / r.height * H), 0, H - 1); if (!st.hover || st.hover.i !== i || st.hover.j !== j) { st.hover = { i, j }; draw(); readout(); } });
+      cv.addEventListener('pointerleave', () => { st.hover = null; draw(); readout(); });
+      $('as-returns').addEventListener('change', () => { st.returns = +$('as-returns').value; render(); });
+      $('as-home').addEventListener('change', () => { st.home = $('as-home').checked; st.gal = null; render(); });
+      $('as-reseed').addEventListener('click', () => { st.seed = (st.seed * 31 + 7) % 10007 + 1; st.gal = null; render(); });
+      return { render: () => { if (!st.rendered) render(); else draw(); }, redraw: draw, readout };
+    })();
+    $('s-rho').addEventListener('input', () => allsky.readout());
     let entered = false;
-    function enter() { if (!sky.stars) newSky(); cards(); drawCones(); if (!sky.raf) sky.raf = requestAnimationFrame(skyTick); if (!light.raf) light.raf = requestAnimationFrame(lightTick); entered = true; }
+    function enter() { if (!sky.stars) newSky(); cards(); drawCones(); if (!sky.raf) sky.raf = requestAnimationFrame(skyTick); if (!light.raf) light.raf = requestAnimationFrame(lightTick); entered = true; allsky.render(); allsky.readout(); }
     function leave() { if (sky.raf) { cancelAnimationFrame(sky.raf); sky.raf = 0; } }
-    window.addEventListener('resize', () => { if (current === 'godel') drawCones(); });
+    window.addEventListener('resize', () => { if (current === 'godel') { drawCones(); allsky.redraw(); } });
     return { enter, leave };
   })();
 

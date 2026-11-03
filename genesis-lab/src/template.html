@@ -55,8 +55,9 @@ section.hall{padding:22px 0 40px}
 .g-forge{grid-template-columns:340px 1fr}
 .g-godel{grid-template-columns:1fr 1fr}
 .g-inv{grid-template-columns:1fr 360px}
+.g-allsky{grid-template-columns:1fr 300px}
 .grid>*{min-width:0}
-@media (max-width:960px){.g-forge,.g-godel,.g-inv,.g3,.g2{grid-template-columns:1fr}}
+@media (max-width:960px){.g-forge,.g-godel,.g-inv,.g-allsky,.g3,.g2{grid-template-columns:1fr}}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;min-width:0}
 .card.tight{padding:10px 12px}
 .card h3{margin-bottom:8px}
@@ -279,6 +280,15 @@ __Q_HALL__
       <canvas id="c-light" width="520" height="360" class="pointer"></canvas>
       <div class="bar"><button class="btn small primary" id="b-flash">✦ 闪光</button><label class="note">发光点半径 r₀ <input type="range" id="s-r0" min="0" max="1.6" step="0.05" value="0" style="width:120px;vertical-align:middle;accent-color:var(--gold)"> <b class="mono" id="v-r0">0</b></label><button class="btn small ghost" id="b-light-clear">清空</button></div>
       <div class="note mono" id="light-readout" style="margin-top:6px"></div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <h3><span data-g="allsky">⑤ 站在轴上看整个天空</span> <span class="tag sim">模拟</span> <span class="note" style="font-weight:400">每个像素一条零测地线，从你眼睛倒着追到星系；没有红移，面亮度守恒</span></h3>
+    <p class="note">全天图（横轴方位角 ψ，纵轴和转轴的夹角 θ，像地图一样摊开）。星系按坐标固定在旋转的尘埃上；每一束光都按②里的方程往回追，光绕回轴几次都算上。把鼠标放到天上的任何一点，右边会画出那束光走过的路。</p>
+    <div class="grid g-allsky">
+      <div><canvas id="c-allsky" width="720" height="360" style="cursor:crosshair;touch-action:pan-y"></canvas>
+        <div class="bar"><label class="note">追踪 <select id="as-returns" class="num" style="width:auto;padding:4px 8px"><option value="1">1 个来回</option><option value="2" selected>2 个来回</option><option value="3">3 个来回</option></select></label><label class="note"><input type="checkbox" id="as-home" checked style="accent-color:var(--gold)"> 把你自己的星系也画上</label><button class="btn small" id="as-reseed">⟲ 重新布置星系</button><span class="note mono" id="as-status"></span></div></div>
+      <div><canvas id="c-allsky-map" width="300" height="300"></canvas><div class="note mono" id="as-read" style="margin-top:6px;min-height:60px;font-size:12px"></div></div>
     </div>
   </div>
   <div class="grid g-godel" style="margin-top:14px">

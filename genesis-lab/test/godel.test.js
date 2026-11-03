@@ -61,4 +61,19 @@ for (const [r, phi] of [[0.3, 0.4], [0.8814, 2.0], [1.5, -1.0], [2.5, 3.0], [0.0
 {
   const P = G.physical(2); ok('CTC radius', Math.abs(P.Rctc - Math.SQRT2 * G.R_C / 2) < 1e-12); ok('period', Math.abs(P.period - Math.PI) < 1e-12); ok('Λ = −ω²', P.Lambda === -4);
 }
+// 7 轴上发出的光的闭式方程（全天图用）：和笛卡尔型坐标里数值积分的测地线逐点对照；折返半径 sinh r_max = √((1−k²)/(1+k²))；k=0 时 λ = π 回到轴、t ≈ 1.30、方位角转 180°
+{
+  for (const deg of [90, 60, 30]) {
+    const th = deg * Math.PI / 180, inc = Math.PI / 2 - th;
+    const path = G.geodesic([0, 0, 0, 0], G.nullVector(0, 0, 0, inc), { dl: 0.002, lambdaMax: 4, every: 50 }), ray = G.axisRay(th, { dl: 0.002, lambdaMax: 4, every: 50 });
+    let worst = 0; for (let i = 0; i < Math.min(path.length, ray.r.length); i++) { const r = Math.abs(ray.r[i]), ph = ray.phi[i] + (ray.r[i] < 0 ? Math.PI : 0); worst = Math.max(worst, Math.hypot(r * Math.cos(ph) - path[i].x[1], r * Math.sin(ph) - path[i].x[2], ray.z[i] - path[i].x[3], ray.t[i] - path[i].x[0])); }
+    ok(`axis ray θ=${deg}° matches numeric geodesic`, worst < 1e-6, worst.toExponential(1));
+    const k = Math.cos(th), rmaxA = Math.asinh(Math.sqrt((1 - k * k) / (1 + k * k))), rmax = Math.max(...G.axisRay(th, { dl: 0.001, lambdaMax: 4 }).r.map(Math.abs));
+    ok(`axis ray θ=${deg}° turning radius`, Math.abs(rmax - rmaxA) < 2e-3, `${rmax.toFixed(4)} vs ${rmaxA.toFixed(4)}`);
+  }
+  const r0 = G.axisRay(Math.PI / 2, { dl: 0.001, lambdaMax: 10, maxCross: 1 }), nEnd = r0.r.length - 1;
+  ok('k=0 ray returns to the axis at λ = π', Math.abs(r0.lam[nEnd] - Math.PI) < 5e-3, r0.lam[nEnd].toFixed(4));
+  ok('k=0 ray return time t ≈ 1.30', Math.abs(r0.t[nEnd] - 1.30) < 0.01, r0.t[nEnd].toFixed(4));
+  ok('k=0 ray azimuth drifts by 180°', Math.abs(Math.abs(r0.phi[nEnd]) - Math.PI) < 5e-3, (r0.phi[nEnd] * 180 / Math.PI).toFixed(2) + '°');
+}
 console.log(`\n全部通过 / all ${n} checks passed`);

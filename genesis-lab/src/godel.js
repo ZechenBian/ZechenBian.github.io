@@ -98,11 +98,31 @@ const GODEL = (function () {
     }
     return out;
   }
+  // ---------- 从轴上发出的光：闭式方程（全天图用） ----------
+  // 轴上发出的零测地线角动量 L = 0，用守恒量 E、p_z = k 消去 t、φ 后只剩一个一维方程（取 E = 1，k = cos θ，θ 是和 z 轴的夹角）：
+  //   r'² = 2 sech²r − 1 − k²，  r'' = −2 sech²r tanh r，  φ' = −√2 sech²r，  t' = 2 sech²r − 1，  z' = k
+  // r 过零继续取负值（相当于 φ + π），这样穿过轴不奇异。k = 0 时折返在 sinh r = 1（哥德尔半径），φ 圈的"拖曳"让光绕轴转着回来。
+  // 验证：和笛卡尔型坐标里数值积分的测地线逐点对照（test/godel.test.js）。
+  function axisRay(theta, opts) {
+    opts = opts || {}; const k = Math.cos(theta), h = opts.dl || 0.01, lMax = opts.lambdaMax || 10, every = opts.every || 1, maxCross = opts.maxCross || Infinity;
+    let r = 0, v = Math.sin(theta), phi = 0, t = 0, z = 0, lam = 0, n = 0; const out = { lam: [0], r: [0], phi: [0], t: [0], z: [0], cross: [0] }; let cross = 0;
+    const acc = (r) => { const s = 1 / Math.cosh(r); return -2 * s * s * Math.tanh(r); };
+    while (lam < lMax && n++ < 1e6) {
+      // RK4：状态 (r, v, φ, t, z)
+      const f = (r, v) => { const s2 = 1 / (Math.cosh(r) * Math.cosh(r)); return [v, acc(r), -SQ2 * s2, 2 * s2 - 1, k]; };
+      const k1 = f(r, v), k2 = f(r + 0.5 * h * k1[0], v + 0.5 * h * k1[1]), k3 = f(r + 0.5 * h * k2[0], v + 0.5 * h * k2[1]), k4 = f(r + h * k3[0], v + h * k3[1]);
+      const nr = r + h / 6 * (k1[0] + 2 * k2[0] + 2 * k3[0] + k4[0]); if (nr * r < 0) cross++;
+      r = nr; v += h / 6 * (k1[1] + 2 * k2[1] + 2 * k3[1] + k4[1]); phi += h / 6 * (k1[2] + 2 * k2[2] + 2 * k3[2] + k4[2]); t += h / 6 * (k1[3] + 2 * k2[3] + 2 * k3[3] + k4[3]); z += h * k; lam += h;
+      if (n % every === 0) { out.lam.push(lam); out.r.push(r); out.phi.push(phi); out.t.push(t); out.z.push(z); out.cross.push(cross); }
+      if (cross >= maxCross) break;
+    }
+    return out;
+  }
   // 物理换算（c = 1）：给定 ω，a = 1/(√2 ω)，坐标长度 × 2a = √2/ω
   function physical(omega) {
     const a = 1 / (SQ2 * omega), unit = 2 * a;
     return { a, unit, Rctc: unit * R_C, period: 2 * Math.PI / omega, Lambda: -omega * omega, rho4piG: omega * omega };
   }
-  return { R_C, metricCyl, coneSlopes, loopProperTime, frameCyl, metric, inv4, christoffel, dot, conserved, cyl, nullVector, pointCart, geodesic, physical };
+  return { R_C, metricCyl, coneSlopes, loopProperTime, frameCyl, metric, inv4, christoffel, dot, conserved, cyl, nullVector, pointCart, geodesic, axisRay, physical };
 })();
 if (typeof module !== 'undefined') module.exports = GODEL;
