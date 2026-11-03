@@ -171,6 +171,7 @@ footer{border-top:1px solid var(--line);padding:18px 0 28px;color:var(--faint);f
       <button data-hall="forge">创世台</button>
       <button data-hall="godel">哥德尔旋转宇宙</button>
       <button data-hall="mix">Mixmaster</button>
+      <button data-hall="ltb">空洞宇宙</button>
       <button data-hall="inverse">反推台</button>
     </nav>
   </div>
@@ -200,6 +201,7 @@ footer{border-top:1px solid var(--line);padding:18px 0 28px;color:var(--faint);f
         <li><a href="#forge" data-go="forge" style="color:var(--teal);font-weight:600">创世台</a>：随手拨出来的宇宙大多死寂；诊断会告诉你死在哪一步，并给你十一组方程允许、各有性格的宇宙。</li>
         <li><a href="#godel" data-go="godel" style="color:var(--teal);font-weight:600">哥德尔旋转宇宙</a>：精确解里亲手发一束光，看它绕回来；看光锥一点点倾倒，直到可以沿一个圈走回过去。</li>
         <li><a href="#mix" data-go="mix" style="color:var(--teal);font-weight:600">Mixmaster</a>：放弃各向同性，看三根轴在奇点附近混沌地跳无穷多次，并亲手核对 BKL 的跳法规则。</li>
+        <li><a href="#ltb" data-go="ltb" style="color:var(--teal);font-weight:600">空洞宇宙</a>：放弃均匀性，住进一个几十亿光年的空洞中心——没有暗能量也能骗过超新星，再看它怎么被戳穿。</li>
         <li><a href="#inverse" data-go="inverse" style="color:var(--teal);font-weight:600">反推台</a>：只给你一个隐藏宇宙的观测数据，你来判断它的形状和命运。</li>
       </ul>
       <p style="margin-top:10px"><button class="btn primary" data-go="forge">开始创世 →</button></p></div>
@@ -370,6 +372,57 @@ footer{border-top:1px solid var(--line);padding:18px 0 28px;color:var(--faint);f
       <p><b style="color:var(--ink)">混沌。</b>BKL 证明每次反弹的指数变化只由 $u$ 决定：$u\to u-1$；到 $1<u<2$ 时 $u\to 1/(u-1)$。写成连分数 $u = k_0 + 1/(k_1 + 1/(k_2+\cdots))$，一个"纪元"就是 $k_i$ 次反弹，纪元之间按高斯映射跳。高斯映射是混沌的：两个 $u$ 相差 $10^{-6}$，六七个纪元之后序列就完全不同——③里的按钮会让你亲眼看到。于是"初始条件决定一切"在这里变成"初始条件的第十位小数决定第十个纪元"。</p>
       <p><b style="color:var(--ink)">它为什么重要。</b>Misner 1969 年提出 Mixmaster，本想用"搅拌"解释宇宙为什么各向同性（视界问题）；结果发现搅拌得并不够，视界问题最后由暴胀解决。但 BKL 猜想——一般的时空奇点附近都是这种振荡——至今仍是广义相对论最深的未解问题之一，数值相对论在 2000 年后才在一般情形下看到它的迹象。装上足够大的 $\Lambda$（④里拨正），膨胀把各向异性抹平：这就是"宇宙无毛"定理（Wald 1983），暴胀抹平初始各向异性的原型。</p>
       <p class="note">标签：三根轴、指数、时代序列全是方程的数值解（模拟）；椭球只是形状的示意（真实的空间是一个被各向异性拉扯的三维球面），轴长用了对数压缩，不然靠近奇点的比例是 $e^{100}$。</p>
+    </details>
+  </div>
+</section>
+
+<!-- Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。 -->
+<!-- ================= LTB 空洞宇宙 ================= -->
+<section class="hall" id="hall-ltb" hidden>
+  <p class="lede">放弃"处处一样"：让宇宙是球对称但不均匀的——我们恰好住在一个几十亿光年大的空洞中心。这是 Lemaître–Tolman–Bondi 解（1933/1934/1947）。它没有暗能量，却能让超新星看起来和加速膨胀的宇宙一模一样。先亲眼看它怎么骗过你，再看它怎么被戳穿。下面全部由方程实时算出。</p>
+  <div class="grid g-godel" style="margin-top:14px">
+    <div class="card">
+      <h3><span data-g="ltb">① 你住在空洞的中心</span> <span class="tag sim">模拟</span></h3>
+      <p class="note">一个剖面：点是星系，密度按今天的剖面 $\rho(r)$ 撒；颜色越暗越空。空洞里的空间膨胀得比外面快（里面物质少、减速少），所以空洞里的哈勃常数更大。</p>
+      <canvas id="c-ltb-map" width="520" height="380"></canvas>
+      <canvas id="c-ltb-prof" width="520" height="220"></canvas>
+      <div class="legend"><span><i style="background:var(--gold)"></i>$\Omega_M(r)$ 物质份额</span><span><i style="background:var(--teal)"></i>$H_\perp(r)$ 横向膨胀率</span><span><i style="background:var(--coral)"></i>$H_\parallel(r)$ 径向膨胀率</span></div>
+    </div>
+    <div class="card">
+      <h3><span data-g="ltbtrap">② 中心观察者的哈勃图：陷阱</span> <span class="tag sim">模拟</span></h3>
+      <p class="note">沿径向光线积分出红移和距离（$D_A = R(t, r)$，$D_L = (1+z)^2 D_A$），画成距离模数相对"没有空洞的 EdS"的差。再把这条曲线当成平坦 FLRW 去拟合——看看会"测"出多少暗能量。</p>
+      <canvas id="c-ltb-hub" width="520" height="320"></canvas>
+      <div class="legend"><span><i style="background:var(--gold)"></i>这个空洞宇宙</span><span><i style="background:var(--teal)"></i>ΛCDM（Planck，真有暗能量）</span><span><i style="background:var(--violet)"></i>按 FLRW 拟合空洞得到的曲线</span><span><i style="background:var(--dim)"></i>EdS（无空洞、无 Λ）</span></div>
+      <div class="kv" id="ltb-fit" style="margin-top:10px"></div>
+    </div>
+  </div>
+  <div class="grid g-godel" style="margin-top:14px">
+    <div class="card">
+      <h3><span data-g="ltbtest">③ 怎么戳穿它</span> <span class="tag sim">模拟</span></h3>
+      <p class="note">超新星只看径向光线，分不出"真的加速"和"我们在空洞里"。能分出来的是别的观测：</p>
+      <div class="kv" id="ltb-tests"></div>
+      <div class="ctl" style="margin-top:10px"><label><span data-g="ltbdipole">你偏离中心的距离 $d$</span><b class="mono" id="ltb-v-d"></b></label><input type="range" id="ltb-d" min="0" max="2.7" step="0.01" value="1"><div class="sub">对数刻度，Mpc；偏离中心的观察者相对远处的 CMB 有速度，看到偶极</div></div>
+      <div class="note" id="ltb-dipole" style="font-size:13px;color:var(--ink)"></div>
+    </div>
+    <div class="card">
+      <h3><span data-g="ltb">④ 创世参数</span></h3>
+      <p class="note">今天的物质份额剖面 $\Omega_M(r)$：中心 $\Omega_{in}$、远处 $\Omega_{out}$、半径 $r_0$、过渡宽度 $\Delta r$，再加远处的哈勃常数 $H_{out}$。要求各处同时大爆炸，中心的 $H_0$ 就被定下来了。</p>
+      <div class="chips" id="ltb-presets"></div>
+      <div class="ctl" style="margin-top:10px"><label><span>中心物质份额 $\Omega_{in}$</span><b class="mono" id="ltb-v-Oin"></b></label><input type="range" id="ltb-Oin" min="0.03" max="1" step="0.01" value="0.13"></div>
+      <div class="ctl"><label><span>远处物质份额 $\Omega_{out}$</span><b class="mono" id="ltb-v-Oout"></b></label><input type="range" id="ltb-Oout" min="0.2" max="1" step="0.01" value="1"><div class="sub">1 = 外面是 EdS（平坦、只有物质）</div></div>
+      <div class="ctl"><label><span>空洞半径 $r_0$</span><b class="mono" id="ltb-v-r0"></b></label><input type="range" id="ltb-r0" min="200" max="5000" step="50" value="2500"><div class="sub">Mpc</div></div>
+      <div class="ctl"><label><span>过渡宽度 $\Delta r$</span><b class="mono" id="ltb-v-dr"></b></label><input type="range" id="ltb-dr" min="50" max="2000" step="25" value="600"><div class="sub">Mpc</div></div>
+      <div class="ctl"><label><span>远处的 $H_{out}$</span><b class="mono" id="ltb-v-Hout"></b></label><input type="range" id="ltb-Hout" min="35" max="80" step="0.5" value="50"><div class="sub">km/s/Mpc</div></div>
+      <div class="kv" id="ltb-cards" style="margin-top:10px"></div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <details><summary>读完你自己的发现之后再看：这个宇宙在说什么</summary>
+      <p><b style="color:var(--ink)">方程。</b>球对称尘埃的精确解：$ds^2 = -dt^2 + \dfrac{R'^2}{1+2E(r)}dr^2 + R^2(t,r)\,d\Omega^2$，每一层壳 $r$ 各自满足 $\dot R^2 = \dfrac{2M(r)}{R} + 2E(r)$——就是弗里德曼方程，但质量 $M$ 和"能量" $E$ 可以一层一层不同。密度 $8\pi G\rho = 2M'/(R^2R')$。规范取今天 $R(t_0, r) = r$，并要求处处同时大爆炸（只留增长模，不然早期就不均匀得离谱）。</p>
+      <p><b style="color:var(--ink)">为什么它能冒充暗能量。</b>中心的观察者沿径向光线看出去，近处（空洞里）膨胀快、远处膨胀慢——这和"过去减速、现在加速"在光线上留下的印记一样：远处的超新星比按今天的 $H_0$ 外推的要暗。1998 年的超新星数据，用一个 $r_0\approx 2.5$ Gpc、中心密度只有外面 1/5 的空洞就能拟合得和 ΛCDM 一样好（García-Bellido &amp; Haugbølle 2008 的参数就是④的第一组预设）。</p>
+      <p><b style="color:var(--ink)">怎么戳穿。</b>(1) 它要求我们离中心不超过十几 Mpc，不然就会看到额外的 CMB 偶极——哥白尼原理被踩在脚下；(2) 远处的 $H_{out}$ 太小，CMB 和 BAO 不答应；(3) 最致命的是动力学 SZ 效应：空洞里的星系团相对 CMB 有径向速度，散射 CMB 光子留下 kSZ 信号，预言比观测大了一个数量级（Zhang &amp; Stebbins 2011；Zibin &amp; Moss 2011）——2011 年之后空洞模型基本出局；(4) 空洞里径向和横向膨胀率不同（①里两条线分开），BAO 的各向异性能量出来。</p>
+      <p><b style="color:var(--ink)">它留下了什么。</b>小一点的"局部空洞"（$r_0\sim 300$ Mpc、密度低 20%）今天仍被认真讨论——它能把本地测到的 $H_0$ 抬高几个百分点，是解释哈勃常数张力的候选之一（④里试试"小空洞"）。还有一个教训：反推宇宙时，"均匀各向同性"是输入进去的假设，不是观测结论；要用不同类型的观测互相钳制，才能把它反推出来。</p>
+      <p class="note">标签：剖面、光线、距离、拟合全是方程算的（模拟）；偶极用的是准牛顿估计 $\Delta T/T \approx [H(d) - H_{out}]\,d/c$（近似）；kSZ 的数字引自文献，本页没有算。</p>
     </details>
   </div>
 </section>
@@ -1170,6 +1223,19 @@ const GLOSS = {
   mixmatter: { t: '装上物质和 Λ', s: '尘埃在每个方程右边加 $M\\,abc$，Λ 加 $2\\Lambda(abc)^2$；物质让宇宙先膨胀再坍缩，Λ 够大则永远膨胀并被抹平。',
     d: '尘埃 $\\rho\\propto 1/abc$，$M = 8\\pi G\\rho_0V_0$。靠近奇点时 $M\\,abc$ 比墙 $a^4$ 衰减得慢还是快？$abc\\to0$ 但墙里的那根轴在变长，所以墙总是先起作用：物质不改变振荡（BKL 的"物质不重要"）。正的 $\\Lambda$ 则相反：膨胀到 $\\Lambda(abc)^2$ 压过曲率后，各向异性指数衰减，走向 de Sitter——Wald 1983 年的"宇宙无毛"定理，也是暴胀能抹平初始各向异性的原因。',
     try: '选"加上 Λ"，看乐谱右端三条线平行（各向同性）。' },
+  // ---------- LTB ----------
+  ltb: { t: 'LTB 空洞宇宙', s: '球对称但不均匀的尘埃宇宙（Lemaître 1933、Tolman 1934、Bondi 1947）：每一层壳各自按弗里德曼方程演化。',
+    d: '$ds^2 = -dt^2 + \\dfrac{R\'^2}{1+2E(r)}dr^2 + R^2(t,r)d\\Omega^2$，$\\dot R^2 = 2M(r)/R + 2E(r)$，$8\\pi G\\rho = 2M\'/(R^2R\')$。两个自由函数 $M(r)$、$E(r)$（再加大爆炸时刻 $t_B(r)$）。本页取今天 $R = r$、处处同时大爆炸，用今天的物质份额剖面 $\\Omega_M(r)$ 定一切：$H_0(r) = F(\\Omega_M(r))/t_0$，$F$ 是均匀尘埃宇宙的"年龄 × $H_0$"。中心 $\\Omega$ 小的壳层减速少，同样的年龄要求更大的 $H_0$：空洞里膨胀快。',
+    try: '拨 Ω_in 从 1 往下，看①里中心的 H₀ 怎么升。' },
+  ltbtrap: { t: '空洞怎么冒充暗能量', s: '中心观察者沿径向光线看出去：近处膨胀快、远处膨胀慢，和"先减速后加速"在超新星上留下的印记一样。',
+    d: '径向光线：$dt/dr = -R\'/\\sqrt{1+2E}$，$dz/dr = (1+z)\\dot R\'/\\sqrt{1+2E}$，角直径距离就是 $D_A = R(t(z), r(z))$，$D_L = (1+z)^2D_A$。把算出的 $\\mu(z)$ 当平坦 FLRW 拟合，GBH 2008 的空洞给出 $\\Omega_\\Lambda\\approx0.7$、残差 0.02 星等——比超新星自身的散布小一个量级。超新星只看径向，分不出。',
+    try: '选"浅空洞"，看"你以为的 Ω_Λ"降到多少。' },
+  ltbtest: { t: '戳穿空洞的观测', s: '远处的 H₀、各向异性膨胀、kSZ 效应、CMB 偶极——每一样都看径向之外的东西。',
+    d: '超新星只量径向光线上的 $D_L(z)$，而空洞里有别的东西在变：径向和横向膨胀率 $H_\\parallel = \\dot R\'/R\'$、$H_\\perp = \\dot R/R$ 不同（BAO 的 Alcock–Paczyński 检验）；远处的 $H_{out}$ 要小到 50 才骗得过超新星，但 CMB 看到的就是远处（Planck 给 67.4）；空洞里的星系团相对 CMB 有速度，散射出动力学 SZ 信号，预言比观测大约 10 倍（Zhang &amp; Stebbins 2011；Zibin &amp; Moss 2011）。',
+    try: '选"小空洞"，看哪几关它反而过了。' },
+  ltbdipole: { t: '偏离中心的偶极', s: '不在正中心的观察者相对远处的 CMB 有速度 $\\approx[H(d)-H_{out}]\\,d$，看到额外的温度偶极。',
+    d: '准牛顿估计：空洞里的尘埃相对外面多出的膨胀速度是 $[H(d) - H_{out}]\\,d$，偶极 $\\Delta T/T = v/c$。观测到的整个偶极 $1.23\\times10^{-3}$ 通常全归给太阳系相对 CMB 的运动（370 km/s）；要让空洞的贡献藏进去，我们得离一个几十亿光年大的空洞的中心不到十几 Mpc——体积占比 $10^{-6}$ 的巧合。这就是人们说"空洞模型违反哥白尼原理"的意思。Alnes &amp; Amarzguioui 2006 用完整的光线追踪得到同一量级。',
+    try: '把 d 拖到 100 Mpc。' },
   // ---------- 哥德尔 ----------
   godel: { t: '哥德尔宇宙', s: '爱因斯坦方程的一个精确解（1949）：物质整体旋转，里面存在回到过去的路线。',
     d: '柱坐标度规 $$ds^2 = 4a^2\\big[-dt^2 + dr^2 + dz^2 - (\\sinh^4 r - \\sinh^2 r)\\,d\\varphi^2 + 2\\sqrt2\\,\\sinh^2 r\\,d\\varphi\\,dt\\big].$$ 物质是静止在坐标上的尘埃，相对局部惯性系以 $\\omega = 1/(\\sqrt2 a)$ 转动。爱因斯坦方程要求 $\\Lambda = -\\omega^2$、$4\\pi G\\rho = \\omega^2$：只有一个自由参数。$g_{\\varphi\\varphi} < 0$ 当 $\\sinh r > 1$——绕轴一圈的曲线变成类时的：闭合类时曲线。',
@@ -2790,6 +2856,190 @@ const MIXMASTER = (function () {
   function enter() { if (!st.R) { sync(); solveNow(); } else render(); }
   function leave() { st.playing = false; $('mix-play').textContent = '▶ 播放'; }
   window.GENESIS_HALLS = window.GENESIS_HALLS || []; window.GENESIS_HALLS.push((hall) => { G.current = hall; if (hall === 'mix') enter(); else leave(); });
+})();
+
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
+// LTB（Lemaître–Tolman–Bondi）空洞宇宙引擎：球对称、不均匀的尘埃宇宙，没有暗能量。
+//   度规 ds² = −dt² + R'²/(1+2E) dr² + R² dΩ²，每个壳层 r 各自按 Ṙ² = 2M(r)/R + 2E(r) 演化（和弗里德曼方程一样，但 M、E 随 r 变）。
+//   规范：今天 R(t₀, r) = r；大爆炸时刻处处相同（t_B = 0，只留增长模）。
+//   给定今天的物质份额剖面 Ω_M(r)（中心 Ω_in，远处 Ω_out，半径 r₀，过渡宽度 Δr；García-Bellido & Haugbølle 2008 的形式），
+//   同时大爆炸的要求定出 H₀(r) = F(Ω_M(r))/t₀，t₀ = F(Ω_out)/H_out；于是 M = ½Ω_M H₀² r³，E = ½(1−Ω_M) H₀² r²。
+//   壳层解析解：E>0 时 R = (M/2E)(cosh η − 1)，t = M(sinh η − η)/(2E)^{3/2}；E=0 时 R = (9M/2)^{1/3} t^{2/3}；E<0 用 cos。
+//   中心观察者的径向光线：dt/dr = −R'/√(1+2E)，dz/dr = (1+z) Ṙ'/√(1+2E)；角直径距离 D_A = R(t, r)，D_L = (1+z)² D_A。
+// 单位：c = 1，长度 Mpc，时间 Mpc（1 Mpc/c = 3.26 Myr），H 以 Mpc⁻¹ 计（km/s/Mpc ÷ 299792.458）。
+const LTB = (function () {
+  const CKMS = 299792.458, MPC_MYR = 3.2616;
+  // 均匀尘埃宇宙的年龄 × H₀：F(Ω)
+  function F(O) {
+    if (Math.abs(O - 1) < 1e-9) return 2 / 3;
+    if (O < 1) { const k = 1 - O; return 1 / k - O / Math.pow(k, 1.5) * Math.asinh(Math.sqrt(k / O)); }
+    const k = O - 1; return O / Math.pow(k, 1.5) * Math.asin(Math.sqrt(k / O)) - 1 / k;
+  }
+  // 某个壳层：给 M、E、t 求 R（Newton 解参数 η）
+  function shellR(M, E, t) {
+    if (!(M > 0)) return 0;
+    if (Math.abs(E) < 1e-12 * Math.pow(M, 2 / 3)) return Math.cbrt(4.5 * M * t * t); // 抛物（EdS）
+    if (E > 0) {
+      const K = t * Math.pow(2 * E, 1.5) / M; // sinh η − η = K
+      let eta = K < 1 ? Math.cbrt(6 * K) : Math.log(2 * K + 2); // 初值
+      for (let i = 0; i < 60; i++) { const f = Math.sinh(eta) - eta - K, d = Math.cosh(eta) - 1; if (d < 1e-300) break; const step = f / d; eta -= step; if (Math.abs(step) < 1e-13 * Math.max(1, eta)) break; }
+      return M / (2 * E) * (Math.cosh(eta) - 1);
+    }
+    const e = -E, K = t * Math.pow(2 * e, 1.5) / M; // η − sin η = K（闭壳层，膨胀段 η < π）
+    let eta = K < 1 ? Math.cbrt(6 * K) : Math.PI / 2;
+    for (let i = 0; i < 60; i++) { const f = eta - Math.sin(eta) - K, d = 1 - Math.cos(eta); if (d < 1e-300) break; const step = f / d; eta -= step; if (Math.abs(step) < 1e-13) break; }
+    return M / (2 * e) * (1 - Math.cos(eta));
+  }
+  // 模型：par = { Hout(km/s/Mpc), Oin, Oout, r0(Mpc), dr(Mpc) }
+  function model(par) {
+    const Hout = (par.Hout || 50) / CKMS, Oin = par.Oin === undefined ? 0.13 : par.Oin, Oout = par.Oout === undefined ? 1 : par.Oout, r0 = par.r0 || 2500, dr = par.dr || 600;
+    const t0 = F(Oout) / Hout; // 年龄（Mpc）
+    const OmegaM = (r) => Oout + (Oin - Oout) * (1 - Math.tanh((r - r0) / (2 * dr))) / (1 + Math.tanh(r0 / (2 * dr)));
+    const H0 = (r) => F(OmegaM(r)) / t0;
+    const Mf = (r) => 0.5 * OmegaM(r) * H0(r) ** 2 * r ** 3, Ef = (r) => 0.5 * (1 - OmegaM(r)) * H0(r) ** 2 * r * r;
+    const R = (t, r) => shellR(Mf(r), Ef(r), t);
+    const Rdot = (t, r) => { const Rv = R(t, r); return Rv > 0 ? Math.sqrt(Math.max(0, 2 * Mf(r) / Rv + 2 * Ef(r))) : 0; };
+    const h = (r) => Math.max(1e-3, 1e-4 * r);
+    const Rp = (t, r) => (R(t, r + h(r)) - R(t, Math.max(0, r - h(r)))) / (r + h(r) - Math.max(0, r - h(r)));
+    const Rdotp = (t, r) => (Rdot(t, r + h(r)) - Rdot(t, Math.max(0, r - h(r)))) / (r + h(r) - Math.max(0, r - h(r)));
+    // 今天的密度（相对远处）：8πGρ = 2M'/(R²R')，今天 R = r、R' = 1 → ρ ∝ M'/r²
+    const Mp = (r) => (Mf(r + h(r)) - Mf(Math.max(1e-6, r - h(r)))) / (r + h(r) - Math.max(1e-6, r - h(r)));
+    const rhoRel = (r) => { const far = 1.5 * Oout * Hout * Hout; return r < 1e-6 ? Mp(1e-3) / (1e-3 * 1e-3) / far : Mp(r) / (r * r) / far; };
+    return { par: { Hout: par.Hout || 50, Oin, Oout, r0, dr }, Hout, t0, t0Gyr: t0 * MPC_MYR / 1000, OmegaM, H0, Hkms: (r) => H0(r) * CKMS, M: Mf, E: Ef, R, Rdot, Rp, Rdotp, rhoRel,
+      Hpar: (r) => Rdotp(t0, r) / Rp(t0, r) * CKMS, // 今天的径向膨胀率 Ṙ'/R'（km/s/Mpc）
+      Hperp: (r) => H0(r) * CKMS };
+  }
+  // 中心观察者的径向光线（向过去追）：输出 r, t, z, DA, DL（Mpc）
+  function ray(mod, opts) {
+    opts = opts || {}; const rMax = opts.rMax || 9000, dr = opts.dr || 2; const out = { r: [0], t: [mod.t0], z: [0], DA: [0], DL: [0] };
+    let t = mod.t0, z = 0, r = 0;
+    const f = (r, t, z) => { const rr = Math.max(r, 1e-3), E = mod.E(rr), s = Math.sqrt(1 + 2 * E), Rp = mod.Rp(t, rr), Rdp = mod.Rdotp(t, rr); return [-Rp / s, (1 + z) * Rdp / s]; };
+    while (r < rMax && t > 0.02 * mod.t0) {
+      const k1 = f(r, t, z), k2 = f(r + dr / 2, t + dr / 2 * k1[0], z + dr / 2 * k1[1]), k3 = f(r + dr / 2, t + dr / 2 * k2[0], z + dr / 2 * k2[1]), k4 = f(r + dr, t + dr * k3[0], z + dr * k3[1]);
+      t += dr / 6 * (k1[0] + 2 * k2[0] + 2 * k3[0] + k4[0]); z += dr / 6 * (k1[1] + 2 * k2[1] + 2 * k3[1] + k4[1]); r += dr;
+      if (!(t > 0)) break;
+      const DA = mod.R(t, r); out.r.push(r); out.t.push(t); out.z.push(z); out.DA.push(DA); out.DL.push((1 + z) * (1 + z) * DA);
+      if (z > (opts.zMax || 6)) break;
+    }
+    return out;
+  }
+  function interp(xs, ys, x) { if (x <= xs[0]) return ys[0]; const n = xs.length; if (x >= xs[n - 1]) return ys[n - 1]; let lo = 0, hi = n - 1; while (hi - lo > 1) { const m = (lo + hi) >> 1; if (xs[m] <= x) lo = m; else hi = m; } const u = (x - xs[lo]) / (xs[hi] - xs[lo]); return ys[lo] + (ys[hi] - ys[lo]) * u; }
+  // 平坦 FLRW 的光度距离（Mpc）：H0 km/s/Mpc，Ω_Λ = 1 − Ω_m
+  function dlFlat(H0, OL, z) { const Om = 1 - OL, n = 200; let s = 0; for (let i = 0; i <= n; i++) { const zz = z * i / n, e = Math.sqrt(Om * (1 + zz) ** 3 + OL), w = (i === 0 || i === n) ? 1 : (i % 2 ? 4 : 2); s += w / e; } return (1 + z) * CKMS / H0 * s * (z / n) / 3; }
+  // 把 LTB 的哈勃图当成平坦 FLRW 来拟合：在 z ∈ [zlo, zhi] 上最小化距离模数残差；返回"你以为的" H₀ 和 Ω_Λ
+  function fitFLRW(ry, zlo, zhi) {
+    zlo = zlo || 0.02; zhi = zhi || 1.2; const zs = []; for (let i = 0; i < 40; i++) zs.push(zlo * Math.pow(zhi / zlo, i / 39));
+    const mu = zs.map((z) => 5 * Math.log10(interp(ry.z, ry.DL, z)) + 25);
+    let best = null;
+    for (let OL = 0; OL <= 0.95; OL += 0.01) { // 对每个 Ω_Λ，H₀ 只是整体平移，解析求最优
+      const m1 = zs.map((z) => 5 * Math.log10(dlFlat(70, OL, z)) + 25); let d = 0; for (let i = 0; i < zs.length; i++) d += mu[i] - m1[i]; d /= zs.length; // 平均残差 = −5 log10(H0/70)
+      let chi = 0; for (let i = 0; i < zs.length; i++) chi += (mu[i] - m1[i] - d) ** 2;
+      if (!best || chi < best.chi) best = { OL, H0: 70 * Math.pow(10, -d / 5), chi, rms: Math.sqrt(chi / zs.length) };
+    }
+    return best;
+  }
+  // 偏离中心 d（Mpc）的观察者看到的 CMB 偶极（准牛顿估计）：ΔT/T ≈ [H(d) − H_out]·d / c
+  function dipole(mod, d) { return (mod.Hkms(d) - mod.par.Hout) * d / CKMS; }
+  return { CKMS, MPC_MYR, F, shellR, model, ray, interp, dlFlat, fitFLRW, dipole };
+})();
+
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
+// LTB 空洞展区的页面逻辑：引擎在 ltb.js；这里管旋钮、剖面图、哈勃图与 FLRW 拟合、戳穿它的几张卡。
+(function () {
+  const G = window.GENESIS, $ = G.$, chart = G.chart, fit = G.fit, sig = G.sig, CSS = G.CSS, gyr = G.gyr;
+  const P = { Oin: 0.13, Oout: 1, r0: 2500, dr: 600, Hout: 50 };
+  const st = { m: null, ry: null, fitR: null, lcdm: null, timer: null, d: 10, seed: 3 };
+  const PRESETS = [
+    { id: 'gbh', name: 'GBH 2008', sub: 'Ω_in = 0.13，r₀ = 2.5 Gpc：骗过超新星', p: { Oin: 0.13, Oout: 1, r0: 2500, dr: 600, Hout: 50 } },
+    { id: 'shallow', name: '浅空洞', sub: 'Ω_in = 0.5：只骗一半', p: { Oin: 0.5, Oout: 1, r0: 2500, dr: 600, Hout: 55 } },
+    { id: 'local', name: '小空洞', sub: 'r₀ = 300 Mpc：哈勃张力的候选', p: { Oin: 0.8, Oout: 1, r0: 300, dr: 100, Hout: 67 } },
+    { id: 'none', name: '没有空洞', sub: 'Ω_in = Ω_out = 1：就是 EdS', p: { Oin: 1, Oout: 1, r0: 2500, dr: 600, Hout: 67.4 } },
+    { id: 'open', name: '均匀开放', sub: 'Ω = 0.3 处处一样：减速但不加速', p: { Oin: 0.3, Oout: 0.3, r0: 2500, dr: 600, Hout: 67.4 } },
+  ];
+  function labels() { $('ltb-v-Oin').textContent = P.Oin.toFixed(2); $('ltb-v-Oout').textContent = P.Oout.toFixed(2); $('ltb-v-r0').textContent = P.r0 + ' Mpc'; $('ltb-v-dr').textContent = P.dr + ' Mpc'; $('ltb-v-Hout').textContent = P.Hout.toFixed(1) + ' km/s/Mpc'; $('ltb-v-d').textContent = sig(st.d, 3) + ' Mpc';
+    for (const b of document.querySelectorAll('#ltb-presets .chip')) { const pr = PRESETS.find((x) => x.id === b.dataset.id); b.classList.toggle('on', !!pr && Object.keys(pr.p).every((k) => Math.abs(pr.p[k] - P[k]) < 1e-9)); } }
+  function sync() { $('ltb-Oin').value = P.Oin; $('ltb-Oout').value = P.Oout; $('ltb-r0').value = P.r0; $('ltb-dr').value = P.dr; $('ltb-Hout').value = P.Hout; $('ltb-d').value = Math.log10(st.d); labels(); }
+  function lcdm() { // 对照：Planck ΛCDM 的 μ(z)
+    if (st.lcdm) return st.lcdm; const m = COSMO.norm(COSMO.FIDUCIAL), T = COSMO.chiTable(m, 3.5, 3500); const zs = [], mu = []; for (let i = 1; i <= 120; i++) { const z = 0.01 * Math.pow(300, i / 120); zs.push(z); mu.push(COSMO.distances(m, T, z).mu); } return (st.lcdm = { zs, mu, H0: m.H0 });
+  }
+  function solveNow() {
+    st.m = LTB.model(P); st.ry = LTB.ray(st.m, { dr: 2, zMax: 3.2 }); st.fitR = LTB.fitFLRW(st.ry); render();
+  }
+  function solveSoon() { clearTimeout(st.timer); st.timer = setTimeout(solveNow, 200); }
+  function render() { if (!st.m) return; drawMap(); drawProf(); drawHub(); fitCards(); tests(); cards(); }
+  function mulberry32(a) { return function () { a |= 0; a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+  function drawMap() {
+    const cv = $('c-ltb-map'), { ctx, w, h } = fit(cv), m = st.m; ctx.fillStyle = '#060913'; ctx.fillRect(0, 0, w, h);
+    const Rmax = Math.max(1.6 * P.r0 + 2 * P.dr, 1200), sc = Math.min(w, h) * 0.46 / Rmax, cx = w / 2, cy = h / 2;
+    // 密度底色：按 ρ(r) 画同心环
+    for (let k = 60; k >= 1; k--) { const r = Rmax * k / 60, rho = Math.min(1.3, m.rhoRel(r)); const v = 18 + 60 * rho; ctx.fillStyle = `rgb(${Math.round(v * 0.55)},${Math.round(v * 0.6)},${Math.round(v * 1.1)})`; ctx.beginPath(); ctx.arc(cx, cy, r * sc, 0, Math.PI * 2); ctx.fill(); }
+    // 星系：按 ρ(r) 撒点（拒绝采样）
+    const rnd = mulberry32(st.seed); const rhoMax = 1.3; let placed = 0, tries = 0;
+    while (placed < 1400 && tries++ < 40000) { const x = (rnd() * 2 - 1) * Rmax, y = (rnd() * 2 - 1) * Rmax, r = Math.hypot(x, y); if (r > Rmax) continue; if (rnd() * rhoMax > m.rhoRel(r)) continue; ctx.fillStyle = `rgba(233,237,249,${0.45 + 0.4 * rnd()})`; ctx.beginPath(); ctx.arc(cx + x * sc, cy + y * sc, 1.1 + rnd(), 0, Math.PI * 2); ctx.fill(); placed++; }
+    // r₀ 圈、你
+    ctx.strokeStyle = CSS('--gold'); ctx.setLineDash([5, 5]); ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(cx, cy, P.r0 * sc, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = CSS('--gold'); ctx.font = '11px Space Grotesk, sans-serif'; ctx.textAlign = 'left'; ctx.fillText(`r₀ = ${(P.r0 / 1000).toFixed(2)} Gpc`, cx + P.r0 * sc * 0.72 + 4, cy - P.r0 * sc * 0.72);
+    ctx.fillStyle = CSS('--coral'); ctx.beginPath(); ctx.arc(cx, cy, 4, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.font = '600 12px Space Grotesk, sans-serif'; ctx.fillText('你', cx, cy - 9);
+    ctx.fillStyle = CSS('--dim'); ctx.font = '11px Space Grotesk, sans-serif'; ctx.textAlign = 'left'; ctx.fillText(`中心密度是远处的 ${(m.rhoRel(1) * 100).toFixed(0)}%　·　H₀：中心 ${m.Hkms(0).toFixed(1)}，远处 ${P.Hout.toFixed(1)} km/s/Mpc`, 10, h - 10);
+    ctx.textAlign = 'right'; ctx.fillText(`方框半宽 ${(Rmax / 1000).toFixed(1)} Gpc`, w - 10, h - 10);
+  }
+  function drawProf() {
+    const cv = $('c-ltb-prof'), m = st.m, Rmax = Math.max(1.6 * P.r0 + 2 * P.dr, 1200), xs = [], om = [], hp = [], hr = [];
+    for (let i = 0; i <= 120; i++) { const r = Math.max(2, Rmax * i / 120); xs.push(r / 1000); om.push(m.OmegaM(r)); hp.push(m.Hperp(r)); hr.push(m.Hpar(r)); }
+    const hmax = Math.max(...hp, ...hr) * 1.1, hmin = Math.min(...hp, ...hr) * 0.9;
+    chart(cv, { xmin: 0, xmax: Rmax / 1000, ymin: 0, ymax: 1.1, xlabel: 'r（Gpc，今天的共动半径）', ylabel: 'Ω_M（左）', padL: 44,
+      series: [{ xs, ys: om, color: CSS('--gold') }, { xs, ys: hp.map((v) => (v - hmin) / (hmax - hmin)), color: CSS('--teal') }, { xs, ys: hr.map((v) => (v - hmin) / (hmax - hmin)), color: CSS('--coral') }],
+      vlines: [{ x: P.r0 / 1000, color: CSS('--faint'), label: 'r₀' }] });
+    const { ctx, w } = fit(cv); ctx.fillStyle = CSS('--dim'); ctx.font = '11px JetBrains Mono, monospace'; ctx.textAlign = 'right'; ctx.fillText(`H 刻度：${hmin.toFixed(0)}–${hmax.toFixed(0)} km/s/Mpc`, w - 16, 14);
+  }
+  function drawHub() {
+    const cv = $('c-ltb-hub'), ry = st.ry, Hc = st.m.Hkms(0), L = lcdm(), fr = st.fitR;
+    const muEdS = (z, H0) => 5 * Math.log10(2 * LTB.CKMS / H0 * (1 + z) * (1 - 1 / Math.sqrt(1 + z))) + 25;
+    const zs = [], dv = [], dl = [], df = []; for (let i = 1; i <= 120; i++) { const z = 0.01 * Math.pow(300, i / 120); if (z > ry.z[ry.z.length - 1]) break; zs.push(z); dv.push(5 * Math.log10(LTB.interp(ry.z, ry.DL, z)) + 25 - muEdS(z, Hc)); dl.push(LTB.interp(L.zs, L.mu, z) - muEdS(z, L.H0)); df.push(5 * Math.log10(LTB.dlFlat(fr.H0, fr.OL, z)) + 25 - muEdS(z, Hc)); }
+    chart(cv, { xmin: 0.01, xmax: 3, xlog: true, ymin: -0.3, ymax: 1.2, xlabel: '红移 z', ylabel: 'Δμ = μ − μ_EdS（星等）', padL: 48,
+      series: [{ xs: zs, ys: dv, color: CSS('--gold'), width: 2.5 }, { xs: zs, ys: dl, color: CSS('--teal') }, { xs: zs, ys: df, color: CSS('--violet'), dash: [5, 4] }],
+      hlines: [{ y: 0, color: CSS('--dim'), label: 'EdS（无空洞、无 Λ，取中心的 H₀）' }], vlines: [{ x: 0.02, color: CSS('--faint') }, { x: 1.2, color: CSS('--faint'), label: '拟合区间' }] });
+  }
+  function fitCards() {
+    const fr = st.fitR, m = st.m, trap = fr.OL > 0.3;
+    $('ltb-fit').innerHTML = [
+      [trap ? 'coral' : 'teal', '按平坦 FLRW 拟合这条哈勃图', `Ω_Λ = ${fr.OL.toFixed(2)}，H₀ = ${fr.H0.toFixed(1)}`, `z ∈ [0.02, 1.2]，残差 rms ${fr.rms.toFixed(3)} 星等（超新星本身的散布约 0.15）${trap ? '——没有一点暗能量，却"测"出了 Ω_Λ' : '——这个空洞骗不了人'}`],
+      ['gold', '真相', `Ω_Λ = 0，Ω_M：中心 ${P.Oin.toFixed(2)} → 远处 ${P.Oout.toFixed(2)}`, `中心 H₀ = ${m.Hkms(0).toFixed(1)}，远处 ${P.Hout.toFixed(1)} km/s/Mpc；年龄 ${m.t0Gyr.toFixed(2)} Gyr（处处一样）`],
+    ].map(([c, k, v, i]) => `<div class="k ${c}"><small>${k}</small><b class="mono" style="font-size:15px">${v}</b><i>${i}</i></div>`).join('');
+  }
+  function tests() {
+    const m = st.m, K = [];
+    const Hfar = P.Hout, cmbH0 = 67.4, badH = Math.abs(Hfar - cmbH0) > 5;
+    K.push([badH ? 'teal' : 'coral', '远处的 H₀ 对 CMB', `${Hfar.toFixed(1)} vs 67.4 km/s/Mpc`, badH ? 'CMB 和 BAO 看到的是远处的宇宙：这个空洞要求远处的 H₀ 离 Planck 值太远 ✗' : '远处的 H₀ 和 CMB 的值差不多：这一关它过了']);
+    const dH = m.Hpar(P.r0) - m.Hperp(P.r0), aniso = Math.abs(dH) > 1;
+    K.push([aniso ? 'teal' : 'coral', '空洞边缘的各向异性膨胀', `H_∥ − H_⊥ = ${dH.toFixed(1)} km/s/Mpc`, aniso ? '径向和横向膨胀率不同：BAO 的 Alcock–Paczyński 检验能量出来 ✗' : '几乎各向同性：BAO 看不出']);
+    K.push(['teal', '年龄', `${m.t0Gyr.toFixed(2)} Gyr，处处一样`, '同时大爆炸是假设进去的（只留增长模）；放开它就多一个自由函数，但早期宇宙会不均匀得离谱']);
+    K.push(['teal', '动力学 SZ 效应', '文献：预言比观测大约 10 倍', '空洞里的星系团相对 CMB 有径向速度，散射出 kSZ 信号（Zhang & Stebbins 2011；Zibin & Moss 2011）✗——本页未算']);
+    $('ltb-tests').innerHTML = K.map(([c, k, v, i]) => `<div class="k ${c}"><small>${k}</small><b class="mono" style="font-size:14px">${v}</b><i>${i}</i></div>`).join('');
+    dipole();
+  }
+  function dipole() {
+    const m = st.m, d = st.d, dt = LTB.dipole(m, d), obs = 1.23e-3, vkms = dt * LTB.CKMS;
+    $('ltb-dipole').innerHTML = `偏离中心 ${sig(d, 3)} Mpc：相对远处 CMB 的速度 ≈ (H(d) − H_out)·d = <b class="mono">${sig(vkms, 3)} km/s</b>，偶极 ΔT/T ≈ <b class="mono">${dt.toExponential(2)}</b>（观测到的整个偶极 1.23×10⁻³，通常全归给太阳系的运动）。${dt > 0.3 * obs ? '<b style="color:var(--coral)">这么大的额外偶极藏不住：你必须离中心更近。</b>' : '藏在太阳系运动的偶极里还不会露馅——但这要求我们离这个几十亿光年大的空洞的中心不到 ' + sig(d, 2) + ' Mpc：按体积算是 10⁻⁶ 级的巧合（哥白尼原理）。'}`;
+  }
+  function cards() {
+    const m = st.m, ry = st.ry;
+    $('ltb-cards').innerHTML = [
+      ['gold', '中心的 H₀', `${m.Hkms(0).toFixed(1)} km/s/Mpc`, '由同时大爆炸定出：Ω 越小的壳层，同样的年龄要求越大的 H'],
+      ['teal', '空洞边缘的红移', `z(r₀) = ${LTB.interp(ry.r, ry.z, P.r0).toFixed(3)}`, '超新星样本里最远的 z ≈ 1–2：空洞必须大到这个尺度才骗得过'],
+      ['violet', '中心密度', `远处的 ${(m.rhoRel(1) * 100).toFixed(0)}%`, '8πGρ = 2M′/(R²R′)'],
+    ].map(([c, k, v, i]) => `<div class="k ${c}"><small>${k}</small><b class="mono" style="font-size:15px">${v}</b><i>${i}</i></div>`).join('');
+  }
+  // ---- 交互 ----
+  const chips = $('ltb-presets'); for (const p of PRESETS) { const b = document.createElement('button'); b.className = 'chip'; b.dataset.id = p.id; b.innerHTML = `${p.name}<small>${p.sub}</small>`; b.addEventListener('click', () => { Object.assign(P, p.p); sync(); solveNow(); }); chips.appendChild(b); }
+  const bind = (id, fn) => $(id).addEventListener('input', () => { fn(+$(id).value); labels(); solveSoon(); });
+  bind('ltb-Oin', (v) => { P.Oin = v; }); bind('ltb-Oout', (v) => { P.Oout = v; }); bind('ltb-r0', (v) => { P.r0 = v; }); bind('ltb-dr', (v) => { P.dr = v; }); bind('ltb-Hout', (v) => { P.Hout = v; });
+  $('ltb-d').addEventListener('input', () => { st.d = Math.pow(10, +$('ltb-d').value); labels(); if (st.m) dipole(); });
+  window.addEventListener('resize', () => { if (G.current === 'ltb') render(); });
+  function enter() { if (!st.m) { sync(); solveNow(); } else render(); }
+  window.GENESIS_HALLS = window.GENESIS_HALLS || []; window.GENESIS_HALLS.push((hall) => { G.current = hall; if (hall === 'ltb') enter(); });
 })();
 
 // Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。

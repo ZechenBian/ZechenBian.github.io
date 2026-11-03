@@ -1,0 +1,50 @@
+<!-- Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。 -->
+<!-- ================= LTB 空洞宇宙 ================= -->
+<section class="hall" id="hall-ltb" hidden>
+  <p class="lede">放弃"处处一样"：让宇宙是球对称但不均匀的——我们恰好住在一个几十亿光年大的空洞中心。这是 Lemaître–Tolman–Bondi 解（1933/1934/1947）。它没有暗能量，却能让超新星看起来和加速膨胀的宇宙一模一样。先亲眼看它怎么骗过你，再看它怎么被戳穿。下面全部由方程实时算出。</p>
+  <div class="grid g-godel" style="margin-top:14px">
+    <div class="card">
+      <h3><span data-g="ltb">① 你住在空洞的中心</span> <span class="tag sim">模拟</span></h3>
+      <p class="note">一个剖面：点是星系，密度按今天的剖面 $\rho(r)$ 撒；颜色越暗越空。空洞里的空间膨胀得比外面快（里面物质少、减速少），所以空洞里的哈勃常数更大。</p>
+      <canvas id="c-ltb-map" width="520" height="380"></canvas>
+      <canvas id="c-ltb-prof" width="520" height="220"></canvas>
+      <div class="legend"><span><i style="background:var(--gold)"></i>$\Omega_M(r)$ 物质份额</span><span><i style="background:var(--teal)"></i>$H_\perp(r)$ 横向膨胀率</span><span><i style="background:var(--coral)"></i>$H_\parallel(r)$ 径向膨胀率</span></div>
+    </div>
+    <div class="card">
+      <h3><span data-g="ltbtrap">② 中心观察者的哈勃图：陷阱</span> <span class="tag sim">模拟</span></h3>
+      <p class="note">沿径向光线积分出红移和距离（$D_A = R(t, r)$，$D_L = (1+z)^2 D_A$），画成距离模数相对"没有空洞的 EdS"的差。再把这条曲线当成平坦 FLRW 去拟合——看看会"测"出多少暗能量。</p>
+      <canvas id="c-ltb-hub" width="520" height="320"></canvas>
+      <div class="legend"><span><i style="background:var(--gold)"></i>这个空洞宇宙</span><span><i style="background:var(--teal)"></i>ΛCDM（Planck，真有暗能量）</span><span><i style="background:var(--violet)"></i>按 FLRW 拟合空洞得到的曲线</span><span><i style="background:var(--dim)"></i>EdS（无空洞、无 Λ）</span></div>
+      <div class="kv" id="ltb-fit" style="margin-top:10px"></div>
+    </div>
+  </div>
+  <div class="grid g-godel" style="margin-top:14px">
+    <div class="card">
+      <h3><span data-g="ltbtest">③ 怎么戳穿它</span> <span class="tag sim">模拟</span></h3>
+      <p class="note">超新星只看径向光线，分不出"真的加速"和"我们在空洞里"。能分出来的是别的观测：</p>
+      <div class="kv" id="ltb-tests"></div>
+      <div class="ctl" style="margin-top:10px"><label><span data-g="ltbdipole">你偏离中心的距离 $d$</span><b class="mono" id="ltb-v-d"></b></label><input type="range" id="ltb-d" min="0" max="2.7" step="0.01" value="1"><div class="sub">对数刻度，Mpc；偏离中心的观察者相对远处的 CMB 有速度，看到偶极</div></div>
+      <div class="note" id="ltb-dipole" style="font-size:13px;color:var(--ink)"></div>
+    </div>
+    <div class="card">
+      <h3><span data-g="ltb">④ 创世参数</span></h3>
+      <p class="note">今天的物质份额剖面 $\Omega_M(r)$：中心 $\Omega_{in}$、远处 $\Omega_{out}$、半径 $r_0$、过渡宽度 $\Delta r$，再加远处的哈勃常数 $H_{out}$。要求各处同时大爆炸，中心的 $H_0$ 就被定下来了。</p>
+      <div class="chips" id="ltb-presets"></div>
+      <div class="ctl" style="margin-top:10px"><label><span>中心物质份额 $\Omega_{in}$</span><b class="mono" id="ltb-v-Oin"></b></label><input type="range" id="ltb-Oin" min="0.03" max="1" step="0.01" value="0.13"></div>
+      <div class="ctl"><label><span>远处物质份额 $\Omega_{out}$</span><b class="mono" id="ltb-v-Oout"></b></label><input type="range" id="ltb-Oout" min="0.2" max="1" step="0.01" value="1"><div class="sub">1 = 外面是 EdS（平坦、只有物质）</div></div>
+      <div class="ctl"><label><span>空洞半径 $r_0$</span><b class="mono" id="ltb-v-r0"></b></label><input type="range" id="ltb-r0" min="200" max="5000" step="50" value="2500"><div class="sub">Mpc</div></div>
+      <div class="ctl"><label><span>过渡宽度 $\Delta r$</span><b class="mono" id="ltb-v-dr"></b></label><input type="range" id="ltb-dr" min="50" max="2000" step="25" value="600"><div class="sub">Mpc</div></div>
+      <div class="ctl"><label><span>远处的 $H_{out}$</span><b class="mono" id="ltb-v-Hout"></b></label><input type="range" id="ltb-Hout" min="35" max="80" step="0.5" value="50"><div class="sub">km/s/Mpc</div></div>
+      <div class="kv" id="ltb-cards" style="margin-top:10px"></div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <details><summary>读完你自己的发现之后再看：这个宇宙在说什么</summary>
+      <p><b style="color:var(--ink)">方程。</b>球对称尘埃的精确解：$ds^2 = -dt^2 + \dfrac{R'^2}{1+2E(r)}dr^2 + R^2(t,r)\,d\Omega^2$，每一层壳 $r$ 各自满足 $\dot R^2 = \dfrac{2M(r)}{R} + 2E(r)$——就是弗里德曼方程，但质量 $M$ 和"能量" $E$ 可以一层一层不同。密度 $8\pi G\rho = 2M'/(R^2R')$。规范取今天 $R(t_0, r) = r$，并要求处处同时大爆炸（只留增长模，不然早期就不均匀得离谱）。</p>
+      <p><b style="color:var(--ink)">为什么它能冒充暗能量。</b>中心的观察者沿径向光线看出去，近处（空洞里）膨胀快、远处膨胀慢——这和"过去减速、现在加速"在光线上留下的印记一样：远处的超新星比按今天的 $H_0$ 外推的要暗。1998 年的超新星数据，用一个 $r_0\approx 2.5$ Gpc、中心密度只有外面 1/5 的空洞就能拟合得和 ΛCDM 一样好（García-Bellido &amp; Haugbølle 2008 的参数就是④的第一组预设）。</p>
+      <p><b style="color:var(--ink)">怎么戳穿。</b>(1) 它要求我们离中心不超过十几 Mpc，不然就会看到额外的 CMB 偶极——哥白尼原理被踩在脚下；(2) 远处的 $H_{out}$ 太小，CMB 和 BAO 不答应；(3) 最致命的是动力学 SZ 效应：空洞里的星系团相对 CMB 有径向速度，散射 CMB 光子留下 kSZ 信号，预言比观测大了一个数量级（Zhang &amp; Stebbins 2011；Zibin &amp; Moss 2011）——2011 年之后空洞模型基本出局；(4) 空洞里径向和横向膨胀率不同（①里两条线分开），BAO 的各向异性能量出来。</p>
+      <p><b style="color:var(--ink)">它留下了什么。</b>小一点的"局部空洞"（$r_0\sim 300$ Mpc、密度低 20%）今天仍被认真讨论——它能把本地测到的 $H_0$ 抬高几个百分点，是解释哈勃常数张力的候选之一（④里试试"小空洞"）。还有一个教训：反推宇宙时，"均匀各向同性"是输入进去的假设，不是观测结论；要用不同类型的观测互相钳制，才能把它反推出来。</p>
+      <p class="note">标签：剖面、光线、距离、拟合全是方程算的（模拟）；偶极用的是准牛顿估计 $\Delta T/T \approx [H(d) - H_{out}]\,d/c$（近似）；kSZ 的数字引自文献，本页没有算。</p>
+    </details>
+  </div>
+</section>
