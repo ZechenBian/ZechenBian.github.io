@@ -37,7 +37,7 @@ const BBN = (function () {
     const A = GF * GF / (TAU0 * f0(q0)); // 归一化只随 G_F² 变
     const tauN = f0(q) > 0 ? 1 / (A * f0(q)) : Infinity; // 中子寿命随 G_F、Q 变；Q < m_e 时中子稳定
     // 以温度为步长向下积分；速率远大于膨胀率时用指数积分（精确于常速率）
-    const T1 = 10e-3, T2 = 0.02e-3; const n = 900; const out = { Ts: [], ts: [], Xn: [], Xeq: [], tauN, A, eta, Q, GF };
+    const T1 = 10e-3, T2 = 0.02e-3; const n = 900; const out = { Ts: [], ts: [], Xn: [], Xeq: [], lnp: [], lpn: [], Hs: [], tauN, A, eta, Q, GF }; // lnp/lpn：n→p、p→n 的速率（s⁻¹），Hs：膨胀率（s⁻¹），给页面画反应用
     let X = null, t = tab.atT(T1).t, tPrev = t;
     const thetaUse = par.theta || THETA || 0.03;
     let Tnuc = NaN, tNuc = NaN, Xnuc = NaN;
@@ -47,7 +47,7 @@ const BBN = (function () {
       if (X === null) X = Xeq;
       else { const dt = st.t - tPrev; X = Xeq + (X - Xeq) * Math.exp(-lam * dt); }
       tPrev = st.t;
-      out.Ts.push(T); out.ts.push(st.t); out.Xn.push(X); out.Xeq.push(Xeq);
+      out.Ts.push(T); out.ts.push(st.t); out.Xn.push(X); out.Xeq.push(Xeq); out.lnp.push(lnp); out.lpn.push(lpn); out.Hs.push(st.H);
       // 氘瓶颈
       const ratio = (1 - X) * 8.14 * eta * Math.pow(T / MN_GEV, 1.5) * Math.exp(Math.min(700, BD / T));
       if (!isFinite(Tnuc) && ratio >= thetaUse) { Tnuc = T; tNuc = st.t; Xnuc = X; }

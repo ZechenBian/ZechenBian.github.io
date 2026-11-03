@@ -98,7 +98,7 @@
   // 最初三分钟 · 慢放
   // ======================================================================
   const early = (function () {
-    const ET = { logt: 0, playing: false, raf: 0, last: 0, data: null, dirty: true, dots: new Map(), nuc: null, lastT: null };
+    const ET = { logt: 0, playing: false, raf: 0, last: 0, data: null, dirty: true, dots: new Map(), nuc: null, lastT: null, fx: [], fxLast: {}, flipLast: 0, bbnAnim: null, bound: 0, chiCache: null };
     const TPL = 5.39e-44;
     function unitT(TGeV) { const T = TGeV; if (T >= 1) return sig(T, 3) + ' GeV'; if (T >= 1e-3) return sig(T * 1e3, 3) + ' MeV'; if (T >= 1e-6) return sig(T * 1e6, 3) + ' keV'; return sig(T * 1e9, 3) + ' eV'; }
     function unitTime(t) { if (t < 1e-3) return t.toExponential(1) + ' s'; if (t < 60) return sig(t, 3) + ' s'; if (t < 3600) return sig(t / 60, 3) + ' 分钟'; if (t < 86400 * 365 * 2) return sig(t / 3600, 3) + ' 小时'; if (t < YR * 1e6) return sig(t / YR, 3) + ' 年'; return sig(t / YR / 1e6, 3) + ' 百万年'; }
@@ -122,6 +122,8 @@
         tT(160, '电弱相变'); tT(THERMAL.T_QCD, '夸克禁闭'); tT(THERMAL.T_NUDEC, '中微子退耦'); if (D.bb && D.bb.Tfreeze) tT(D.bb.Tfreeze, 'n/p 冻结'); tT(0.17e-3, 'e⁺e⁻ 湮灭'); if (D.bb) tT(D.bb.Tnuc, '核合成');
         if (isFinite(R.aEq) && R.aEq < 1) tT(m.T0 * KB / R.aEq, '物质 = 辐射'); if (D.rc && isFinite(D.rc.zDec)) tT(m.T0 * KB * (1 + D.rc.zDec), '复合 · CMB');
         D.events = ev.sort((a, b) => a.t - b.t);
+        // CMB 上的声学角尺度 θ* = r_s / D_M(z_dec)（共动角直径距离），ℓ_A = π/θ*
+        D.thetaStar = null; if (D.rc && isFinite(D.rc.zDec) && D.rc.rs > 0) { try { const T = COSMO.chiTable(m, D.rc.zDec, 4000), d = COSMO.distances(m, T, D.rc.zDec); if (d.DM > 0) { const th = D.rc.rs / d.DM; D.thetaStar = { rad: th, deg: th * 180 / Math.PI, lA: Math.PI / th }; } } catch (e) { D.thetaStar = null; } }
         D.tEnd = Math.min(Math.pow(10, 13.2), D.rc && isFinite(D.rc.zDec) ? D.tOfT(m.T0 * KB * (1 + D.rc.zDec)) * 3 : Math.pow(10, 13.2));
         D.lo = D.Tbounce ? Math.log10(D.tab.atT(D.Tbounce * 0.999).t) - 0.3 : -43; D.startLog = D.Tbounce ? D.lo + 0.3 : Math.log10(D.tI) + 0.2;
         $('es-t').min = D.lo;
@@ -139,7 +141,7 @@
       const hb = THERMAL.hubble(st); s.Rh = hb.Rh_cm; s.Mh = hb.M_kg;
       s.species = D.tab.species(T);
       // n/p
-      const bb = D.bb; if (bb) { if (T >= bb.Ts[0]) s.Xn = 1 / (1 + Math.exp(Math.min(700, (QS.Q * 1e-3) / T))); else if (T <= bb.Tnuc) s.Xn = bb.Xnuc; else { let i = 0; while (i < bb.Ts.length - 1 && bb.Ts[i + 1] > T) i++; const u = (Math.log(bb.Ts[i]) - Math.log(T)) / (Math.log(bb.Ts[i]) - Math.log(bb.Ts[i + 1])); s.Xn = bb.Xn[i] + (bb.Xn[i + 1] - bb.Xn[i]) * u; } s.He = T <= bb.Tnuc ? bb.Yp : 0; s.bbnDone = T <= bb.Tnuc; }
+      const bb = D.bb; if (bb) { if (T >= bb.Ts[0]) { s.Xn = 1 / (1 + Math.exp(Math.min(700, (QS.Q * 1e-3) / T))); s.lnp = bb.lnp[0] * Math.pow(T / bb.Ts[0], 5); s.lpn = bb.lpn[0] * Math.pow(T / bb.Ts[0], 5); } else if (T <= bb.Tnuc) { s.Xn = bb.Xnuc; const k = bb.lnp.length - 1; s.lnp = bb.lnp[k]; s.lpn = bb.lpn[k]; } else { let i = 0; while (i < bb.Ts.length - 1 && bb.Ts[i + 1] > T) i++; const u = (Math.log(bb.Ts[i]) - Math.log(T)) / (Math.log(bb.Ts[i]) - Math.log(bb.Ts[i + 1])); s.Xn = bb.Xn[i] + (bb.Xn[i + 1] - bb.Xn[i]) * u; s.lnp = bb.lnp[i] + (bb.lnp[i + 1] - bb.lnp[i]) * u; s.lpn = bb.lpn[i] + (bb.lpn[i + 1] - bb.lpn[i]) * u; } s.He = T <= bb.Tnuc ? bb.Yp : 0; s.bbnDone = T <= bb.Tnuc; s.weakOverH = (s.lnp + s.lpn) / s.H; s.frozen = isFinite(bb.Tfreeze) && T < bb.Tfreeze; }
       // x_e
       const rc = D.rc; s.z = 1 / st.a - 1; s.xe = 1;
       if (rc && rc.zs.length) { if (s.z < rc.zs[0]) { let i = 0; while (i < rc.zs.length - 1 && rc.zs[i + 1] > s.z) i++; s.xe = rc.xe[Math.min(i, rc.xe.length - 1)]; } s.decoupled = isFinite(rc.zDec) && s.z < rc.zDec; }
@@ -212,31 +214,114 @@
         } else { ctx.fillStyle = CSS('--faint'); ctx.font = '14px Space Grotesk'; ctx.textAlign = 'center'; ctx.fillText(s.mode === 'planck' ? '普朗克时期：没有可信的图像' : (s.mode === 'pre' ? '暴胀之前：未知' : (s.mode === 'prebounce' ? '反弹之前：收缩中的前宇宙' : (s.mode === 'coldbounce' ? '反弹太冷：没有粒子汤' : '没有辐射'))), w / 2, h / 2); }
         return;
       }
-      // 相对论性粒子：每种 ∝ 份额
+      // 相对论性粒子：每种 ∝ 份额；某种粒子从汤里消失时，画出它消失的反应（湮灭、衰变、禁闭）
       const total = 230, wantMap = new Map(); for (const p of s.species) if (p.frac > 0.004) wantMap.set(p.name, { n: Math.round(p.frac * total), color: p.color });
-      for (const [name, info] of wantMap) { if (!ET.dots.has(name)) ET.dots.set(name, []); const arr = ET.dots.get(name); while (arr.length < info.n) arr.push({ x: rnd() * w, y: rnd() * h, vx: (rnd() - .5) * 2, vy: (rnd() - .5) * 2, c: info.color, life: 1 }); while (arr.length > info.n) arr.pop(); }
-      for (const [name, arr] of ET.dots) if (!wantMap.has(name)) { arr.length = Math.max(0, arr.length - 6); if (!arr.length) ET.dots.delete(name); }
+      for (const [name, info] of wantMap) { if (!ET.dots.has(name)) ET.dots.set(name, []); const arr = ET.dots.get(name); while (arr.length < info.n) arr.push({ x: rnd() * w, y: rnd() * h, vx: (rnd() - .5) * 2, vy: (rnd() - .5) * 2, c: info.color, life: 1 }); if (arr.length > info.n) shrink(name, arr, info.n, now); }
+      for (const [name, arr] of ET.dots) if (!wantMap.has(name)) { shrink(name, arr, Math.max(0, arr.length - 6), now); if (!arr.length) ET.dots.delete(name); }
+      const scatter = !s.decoupled && s.T < 1e-6 && s.xe > 0.05; // 复合前：光子被自由电子散射，走折线
       for (const [name, arr] of ET.dots) for (const d of arr) { if (s.decoupled && name.startsWith('γ')) { d.x += d.vx * 2.2; d.y += d.vy * 2.2; } else { d.x += d.vx + (rnd() - .5) * 2.5; d.y += d.vy + (rnd() - .5) * 2.5; } if (d.x < 0) d.x += w; if (d.x > w) d.x -= w; if (d.y < 0) d.y += h; if (d.y > h) d.y -= h; ctx.fillStyle = d.c; ctx.globalAlpha = 0.85; ctx.beginPath(); ctx.arc(d.x, d.y, 2.2, 0, Math.PI * 2); ctx.fill(); }
       ctx.globalAlpha = 1;
-      // 核子（T < 1 GeV 出现）：40 个，中子份额 X_n；核合成后四个一组成 ⁴He；复合后电子绕质子
+      // 核子（T < 1 GeV 出现）：40 个；n⇄p 按弱作用速率翻转；核合成时 p+n→D、D+D→⁴He 动画；复合时电子落进质子
       if (s.T < THERMAL.T_QCD && s.Xn !== undefined) {
-        if (!ET.nuc) { ET.nuc = []; for (let i = 0; i < 40; i++) ET.nuc.push({ x: rnd() * w, y: rnd() * h, vx: (rnd() - .5) * .6, vy: (rnd() - .5) * .6 }); }
+        if (!ET.nuc) { ET.nuc = []; for (let i = 0; i < 40; i++) ET.nuc.push({ x: rnd() * w, y: rnd() * h, vx: (rnd() - .5) * .6, vy: (rnd() - .5) * .6, n: i % 2 === 1 && i < 2 * Math.round(40 * s.Xn) }); ET.bbnAnim = null; ET.bound = 0; }
         const nN = Math.round(40 * s.Xn), heGroups = s.bbnDone ? Math.floor(40 * s.He / 4) : 0;
         for (let i = 0; i < ET.nuc.length; i++) { const d = ET.nuc[i]; d.x += d.vx + (rnd() - .5) * .6; d.y += d.vy + (rnd() - .5) * .6; if (d.x < 0) d.x += w; if (d.x > w) d.x -= w; if (d.y < 0) d.y += h; if (d.y > h) d.y -= h; }
-        let drawn = 0;
-        for (let gI = 0; gI < heGroups; gI++) { const d = ET.nuc[gI]; for (let k = 0; k < 4; k++) { const a = k / 4 * Math.PI * 2; ctx.fillStyle = k < 2 ? '#e9edf9' : '#98a4c7'; ctx.beginPath(); ctx.arc(d.x + 4 * Math.cos(a), d.y + 4 * Math.sin(a), 3.2, 0, Math.PI * 2); ctx.fill(); } ctx.strokeStyle = CSS('--gold'); ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(d.x, d.y, 9, 0, Math.PI * 2); ctx.stroke(); drawn += 4; }
-        for (let i = heGroups; i < ET.nuc.length; i++) { if (drawn >= 40) break; const d = ET.nuc[i], isN = !s.bbnDone && (i < heGroups + nN); ctx.fillStyle = isN ? '#98a4c7' : '#e9edf9'; ctx.beginPath(); ctx.arc(d.x, d.y, 3.2, 0, Math.PI * 2); ctx.fill(); drawn++;
-          if (s.decoupled && !isN) { const a = now / 300 + i; ctx.fillStyle = CSS('--teal'); ctx.beginPath(); ctx.arc(d.x + 8 * Math.cos(a), d.y + 8 * Math.sin(a), 1.6, 0, Math.PI * 2); ctx.fill(); } }
-        label(ctx, s.bbnDone ? (s.decoupled ? '白：质子（氢原子核）；青：束缚电子；金圈：⁴He' : '白：质子；金圈：⁴He（2p2n）') : '白：质子；灰：中子', 10, h - 10, 'left');
+        if (!s.bbnDone) {
+          ET.bbnAnim = null;
+          // 翻转频率跟着 Γ/H 走：平衡期每秒好几次，冻结后越来越稀，之后只剩中子衰变
+          let count = 0; for (const d of ET.nuc) if (d.n) count++;
+          const perSec = Math.min(8, 2.5 * (s.weakOverH || 0)), due = now - ET.flipLast > 1000 / Math.max(perSec, 1e-3);
+          const needDown = count > nN, needUp = count < nN;
+          if ((due && perSec > 0.02) || (needDown && now - ET.flipLast > 350) || (needUp && now - ET.flipLast > 350)) {
+            let toP; if (needDown) toP = true; else if (needUp) toP = false; else toP = rnd() < s.lnp * s.Xn / (s.lnp * s.Xn + s.lpn * (1 - s.Xn) + 1e-300);
+            const pool = ET.nuc.filter((d) => d.n === toP); if (pool.length) { const d = pool[Math.floor(rnd() * pool.length)]; d.n = !toP; ET.flipLast = now;
+              const decay = s.frozen && s.weakOverH < 0.5 || s.T < 0.1e-3; const txt = toP ? (decay ? 'n → p + e⁻ + ν̄ₑ' : (rnd() < 0.5 ? 'n + νₑ → p + e⁻' : 'n + e⁺ → p + ν̄ₑ')) : (rnd() < 0.5 ? 'p + e⁻ → n + νₑ' : 'p + ν̄ₑ → n + e⁺');
+              fx(d.x, d.y, txt, toP ? '#e9edf9' : '#98a4c7', toP ? ['#5fe0cf', '#98a4c7'] : ['#98a4c7'], now, w); }
+          }
+          for (const d of ET.nuc) { ctx.fillStyle = d.n ? '#98a4c7' : '#e9edf9'; ctx.beginPath(); ctx.arc(d.x, d.y, 3.2, 0, Math.PI * 2); ctx.fill(); }
+          label(ctx, s.frozen ? (s.weakOverH < 0.5 ? '白：质子；灰：中子（已冻结，只剩衰变）' : '白：质子；灰：中子（正在冻结）') : `白：质子；灰：中子（弱作用平衡，Γ/H = ${sig(s.weakOverH, 2)}）`, 10, h - 10, 'left');
+        } else {
+          // 核合成动画：第 g 组是核子 4g..4g+3（4g、4g+2 质子，4g+1、4g+3 中子）；先配成两个氘，再合成 ⁴He
+          if (!ET.bbnAnim) { ET.bbnAnim = { t0: now, skip: s.T < D.bb.Tnuc / 3, flashed: new Set() }; for (let g = 0; g < heGroups; g++) for (let k = 0; k < 4; k++) { const d = ET.nuc[4 * g + k]; d.n = k % 2 === 1; d.sx = d.x; d.sy = d.y; delete d.gx; } for (let i = 4 * heGroups; i < 40; i++) ET.nuc[i].n = false; }
+          const A = ET.bbnAnim, el = A.skip ? 1e9 : (now - A.t0) / 1000, u1 = Math.min(1, el / 1.4), u2 = Math.min(1, Math.max(0, (el - 1.6) / 1.2)), ease = (u) => u * u * (3 - 2 * u);
+          for (let g = 0; g < heGroups; g++) {
+            const L = ET.nuc[4 * g], P2 = ET.nuc[4 * g + 2];
+            // 阶段一：两个中子分别落向自己的质子（p + n → D + γ）
+            for (const [ni, pi] of [[1, 0], [3, 2]]) { const n = ET.nuc[4 * g + ni], p = ET.nuc[4 * g + pi]; const e = ease(u1); n.x = n.sx + (p.x - n.sx) * e; n.y = n.sy + (p.y - n.sy) * e; if (u1 >= 1 && !A.flashed.has(4 * g + ni) && !A.skip) { A.flashed.add(4 * g + ni); fx(p.x, p.y, 'p + n → D + γ', '#f2c14e', ['#f2c14e'], now, w); } }
+            // 阶段二：两个氘合并（D + D → ³He + n，³He + D → ⁴He + p）
+            if (u1 >= 1) { if (P2.gx === undefined) { P2.gx = P2.x; P2.gy = P2.y; } const e = ease(u2); const tx = P2.gx + (L.x - P2.gx) * e, ty = P2.gy + (L.y - P2.gy) * e; P2.x = tx; P2.y = ty; ET.nuc[4 * g + 3].x = tx; ET.nuc[4 * g + 3].y = ty; if (u2 >= 1 && !A.flashed.has('he' + g) && !A.skip) { A.flashed.add('he' + g); fx(L.x, L.y, 'D + D → ³He + n → ⁴He', '#f2c14e', ['#e9edf9', '#98a4c7'], now, w); } }
+            if (u2 >= 1) { const d = L; for (let k = 0; k < 4; k++) { const a = k / 4 * Math.PI * 2; ctx.fillStyle = k < 2 ? '#e9edf9' : '#98a4c7'; ctx.beginPath(); ctx.arc(d.x + 4 * Math.cos(a), d.y + 4 * Math.sin(a), 3.2, 0, Math.PI * 2); ctx.fill(); } ctx.strokeStyle = CSS('--gold'); ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(d.x, d.y, 9, 0, Math.PI * 2); ctx.stroke(); }
+            else { for (let k = 0; k < 4; k++) { const d = ET.nuc[4 * g + k]; ctx.fillStyle = d.n ? '#98a4c7' : '#e9edf9'; ctx.beginPath(); ctx.arc(d.x, d.y, 3.2, 0, Math.PI * 2); ctx.fill(); } if (u1 >= 1) { ctx.strokeStyle = 'rgba(242,193,78,0.7)'; ctx.lineWidth = 1; for (const pi of [0, 2]) { const p = ET.nuc[4 * g + pi]; ctx.beginPath(); ctx.arc(p.x, p.y, 6.5, 0, Math.PI * 2); ctx.stroke(); } } }
+          }
+          // 剩下的质子；复合：电子按 1 − x_e 的比例落进质子（p + e⁻ → H + γ），退耦后全部束缚
+          const free = 40 - 4 * heGroups, wantBound = s.T < 1e-6 ? Math.round(free * Math.max(0, Math.min(1, 1 - s.xe))) : 0;
+          if (wantBound < ET.bound) ET.bound = wantBound; // 往回拖：电子又被打掉
+          if (wantBound > ET.bound && now - (ET.fxLast.rec || 0) > 250) { const d = ET.nuc[4 * heGroups + ET.bound]; ET.bound++; ET.fxLast.rec = now; fx(d.x, d.y, 'p + e⁻ → H + γ', '#5fe0cf', ['#f2c14e'], now, w); }
+          for (let i = 4 * heGroups; i < 40; i++) { const d = ET.nuc[i]; ctx.fillStyle = '#e9edf9'; ctx.beginPath(); ctx.arc(d.x, d.y, 3.2, 0, Math.PI * 2); ctx.fill();
+            if (i - 4 * heGroups < ET.bound) { const a = now / 300 + i; ctx.fillStyle = CSS('--teal'); ctx.beginPath(); ctx.arc(d.x + 8 * Math.cos(a), d.y + 8 * Math.sin(a), 1.6, 0, Math.PI * 2); ctx.fill(); } }
+          label(ctx, u2 < 1 ? '核合成进行中：中子找质子成氘，氘再成 ⁴He' : (ET.bound > 0 ? `白：质子；青：束缚电子（${ET.bound}/${free} 个氢原子已复合）；金圈：⁴He` : '白：质子（氢原子核）；金圈：⁴He（2p2n）'), 10, h - 10, 'left');
+        }
       }
-      label(ctx, s.decoupled ? '光子直线飞行：退耦了' : '彩点：相对论性粒子，按能量份额', w - 10, h - 10, 'right');
+      drawFx(ctx, now);
+      label(ctx, s.decoupled ? '光子直线飞行：退耦了' : (scatter ? '光子被自由电子散射：γ + e⁻ → γ + e⁻' : '彩点：相对论性粒子，按能量份额'), w - 10, h - 10, 'right');
+    }
+    // 某种粒子从汤里减少：按速率限制画出它消失的反应
+    const RX = { 'e± 电子': ['e⁺ + e⁻ → γ + γ', ['#f2c14e', '#f2c14e']], 'μ': ['μ → e + ν̄ₑ + ν_μ', ['#5fe0cf', '#98a4c7', '#98a4c7']], 'τ': ['τ → ν_τ + 强子', ['#98a4c7', '#d9a066']], 'π 介子': ['π⁰ → γ + γ', ['#f2c14e', '#f2c14e']], 'K 介子': ['K → π + π', ['#d9a066', '#d9a066']], 'η 介子': ['η → γ + γ', ['#f2c14e', '#f2c14e']], 'u d 夸克': ['禁闭：q q q → p, n', ['#e9edf9']], 's 奇夸克': ['s + s̄ → 湮灭', ['#f2c14e']], 'g 胶子': ['禁闭：胶子进了强子', ['#d9a066']], 'c 粲夸克': ['c + c̄ → 湮灭', ['#f2c14e', '#f2c14e']], 'b 底夸克': ['b + b̄ → 湮灭', ['#f2c14e', '#f2c14e']], 't 顶夸克': ['t → W + b', ['#ff6f87', '#5f8fff']], 'W±': ['W → q + q̄ / ℓ + ν', ['#2f5fa0', '#2f5fa0']], 'Z': ['Z → f + f̄', ['#5fe0cf', '#5fe0cf']], 'H 希格斯': ['H → b + b̄', ['#5f8fff', '#5f8fff']] };
+    function shrink(name, arr, target, now) { const rx = RX[name]; const cv = $('c-soup'); const w = cv.clientWidth || 560; let budget = 1; while (arr.length > target) { const d = arr.pop(); if (rx && budget > 0 && now - (ET.fxLast[name] || 0) > 160) { budget--; ET.fxLast[name] = now; fx(d.x, d.y, rx[0], d.c, rx[1], now, w); if (name === 'e± 电子' && arr.length > target) arr.pop(); } } }
+    function fx(x, y, text, color, sparks, now, w) { if (ET.fx.length > 12) ET.fx.shift(); ET.fx.push({ x: Math.max(70, Math.min((w || 560) - 70, x)), y, text, color, t0: now, dur: 950, sp: sparks.map((c) => { const a = Math.random() * Math.PI * 2; return { c, vx: Math.cos(a), vy: Math.sin(a) }; }) }); }
+    function drawFx(ctx, now) {
+      ET.fx = ET.fx.filter((f) => now - f.t0 < f.dur);
+      for (const f of ET.fx) { const u = (now - f.t0) / f.dur; ctx.globalAlpha = 1 - u * u; ctx.strokeStyle = f.color; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(f.x, f.y, 3 + 18 * u, 0, Math.PI * 2); ctx.stroke(); for (const s of f.sp) { ctx.fillStyle = s.c; ctx.beginPath(); ctx.arc(f.x + s.vx * 44 * u, f.y + s.vy * 44 * u, 2.2, 0, Math.PI * 2); ctx.fill(); } ctx.font = '600 11px Space Grotesk'; ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.fillText(f.text, f.x, f.y - 12 - 10 * u); }
+      ctx.globalAlpha = 1;
+    }
+    // 声波面板：一个原初涨落 → 光子-重子流体里的声波壳 → 退耦时冻结成声学视界
+    function wave(D, s, now) {
+      const cv = $('c-wave'); if (!cv) return; const { ctx, w, h } = fit(cv); ctx.fillStyle = '#060913'; ctx.fillRect(0, 0, w, h);
+      const rc = D.rc, msg = (m) => { ctx.fillStyle = CSS('--faint'); ctx.font = '13px Space Grotesk'; ctx.textAlign = 'center'; ctx.fillText(m, w / 2, h / 2); $('wave-cards').innerHTML = ''; $('ev-wave').textContent = ''; };
+      if (D.noRad || D.coldBounce || !rc || !rc.rsTab || rc.transparentEarly || rc.pairPlasma) return msg(D.noRad ? '没有辐射，也就没有光子-重子流体' : (D.coldBounce ? '反弹太冷：没有等离子体' : '退耦太早：光子-重子流体没形成过'));
+      if (s.mode !== 'thermal') return msg(s.mode === 'inflation' ? '暴胀期：涨落还在被拉出视界' : '还没有热的等离子体');
+      const a = s.a, aDec = rc.aDec || 1, dec = isFinite(rc.zDec) && a > aDec, rNow = rc.rsOf(Math.min(a, aDec)), rFinal = rc.rs, m = D.m;
+      let rGam = rNow; if (dec) { if (!ET.chiCache || ET.chiCache.a !== a) ET.chiCache = { a, chi: COSMO.confQuad(m, aDec, a) * COSMO.CKMS / m.H0 }; rGam = rFinal + ET.chiCache.chi; }
+      const scale = Math.max(rGam, rNow, 1e-4) * 1.45, side = Math.min(h - 40, w * 0.55), cx = 16 + side / 2, cy = 16 + side / 2, px = (r) => r / scale * side / 2;
+      // 俯视图
+      ctx.save(); ctx.beginPath(); ctx.rect(cx - side / 2, cy - side / 2, side, side); ctx.clip();
+      const grd = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(4, px(scale * 0.06))); grd.addColorStop(0, 'rgba(176,140,255,0.9)'); grd.addColorStop(1, 'rgba(176,140,255,0)'); ctx.fillStyle = grd; ctx.fillRect(cx - side / 2, cy - side / 2, side, side);
+      if (rFinal > 0 && px(rFinal) < side / 2) { ctx.strokeStyle = 'rgba(233,237,249,0.35)'; ctx.setLineDash([4, 5]); ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(cx, cy, px(rFinal), 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]); }
+      const ring = (r, color, wd, alpha) => { if (!(r > 0)) return; ctx.globalAlpha = alpha; ctx.strokeStyle = color; ctx.lineWidth = wd; ctx.beginPath(); ctx.arc(cx, cy, Math.max(1.5, px(r)), 0, Math.PI * 2); ctx.stroke(); ctx.globalAlpha = 1; };
+      if (!dec) { ring(rNow, '#f2c14e', Math.max(2, px(rNow) * 0.12), 0.95); ring(rNow, '#e9edf9', 1, 0.6); }
+      else { ring(rFinal, '#e9edf9', 3, 0.9); const fade = Math.max(0.08, rFinal / rGam); ring(rGam, '#f2c14e', Math.max(2, px(rGam) * 0.05), fade); }
+      ctx.restore(); ctx.strokeStyle = 'rgba(152,164,199,0.4)'; ctx.strokeRect(cx - side / 2 + 0.5, cy - side / 2 + 0.5, side - 1, side - 1);
+      // 比例尺
+      const nice = Math.pow(10, Math.floor(Math.log10(scale * 0.5))), barR = [1, 2, 5].map((k) => k * nice).filter((v) => v <= scale * 0.6).pop() || nice, bl = px(barR);
+      ctx.strokeStyle = '#e9edf9'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(cx - side / 2 + 10, cy + side / 2 - 12); ctx.lineTo(cx - side / 2 + 10 + bl, cy + side / 2 - 12); ctx.stroke();
+      ctx.fillStyle = '#e9edf9'; ctx.font = '11px Space Grotesk'; ctx.textAlign = 'left'; ctx.fillText(unitLen(barR * 3.0857e24) + ' 共动', cx - side / 2 + 10, cy + side / 2 - 18);
+      // 右侧：径向剖面（示意）
+      const x0 = cx + side / 2 + 26, pw = w - x0 - 10, y0 = 24, ph = side - 40;
+      ctx.strokeStyle = 'rgba(152,164,199,0.35)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x0, y0 + ph); ctx.lineTo(x0 + pw, y0 + ph); ctx.moveTo(x0, y0); ctx.lineTo(x0, y0 + ph); ctx.stroke();
+      ctx.fillStyle = CSS('--dim'); ctx.font = '11px Space Grotesk'; ctx.textAlign = 'center'; ctx.fillText('距离中心（共动）→', x0 + pw / 2, y0 + ph + 14); ctx.save(); ctx.translate(x0 - 8, y0 + ph / 2); ctx.rotate(-Math.PI / 2); ctx.fillText('δ（示意）', 0, 0); ctx.restore();
+      const prof = (fn, color, dash) => { ctx.strokeStyle = color; ctx.lineWidth = 1.8; ctx.setLineDash(dash || []); ctx.beginPath(); for (let i = 0; i <= 120; i++) { const r = scale * i / 120, v = fn(r); const X = x0 + pw * i / 120, Y = y0 + ph - ph * 0.9 * Math.max(0, Math.min(1, v)); if (i) ctx.lineTo(X, Y); else ctx.moveTo(X, Y); } ctx.stroke(); ctx.setLineDash([]); };
+      const g = (r, r0, sgm) => Math.exp(-0.5 * ((r - r0) / sgm) ** 2), sw = Math.max(scale * 0.025, rNow * 0.08);
+      prof((r) => g(r, 0, scale * 0.04), '#b08cff');
+      if (!dec) { prof((r) => 0.65 * g(r, rNow, sw), '#f2c14e'); prof((r) => 0.65 * g(r, rNow, sw), '#e9edf9', [3, 3]); }
+      else { prof((r) => 0.45 * g(r, rFinal, sw), '#e9edf9'); prof((r) => 0.45 * Math.max(0.08, rFinal / rGam) * g(r, rGam, Math.max(sw, rGam * 0.08)), '#f2c14e'); }
+      ctx.font = '11px Space Grotesk'; ctx.textAlign = 'left'; let ly = y0 + 10; for (const [c, tx] of [['#b08cff', '暗物质'], ['#f2c14e', '光子'], ['#e9edf9', '重子']]) { ctx.fillStyle = c; ctx.fillRect(x0 + 6, ly - 4, 12, 3); ctx.fillStyle = CSS('--dim'); ctx.fillText(tx, x0 + 22, ly); ly += 14; }
+      // 读数
+      const R = rc.R(Math.min(a, aDec)), cs = rc.cs(Math.min(a, aDec)), K = [];
+      K.push(['gold', '声速 $c_s/c$', cs.toFixed(3), `$1/\\sqrt{3(1+R)}$，$R = 3\\rho_b/4\\rho_\\gamma = ${tn(R, 2)}$`]);
+      K.push([dec ? 'teal' : 'gold', dec ? '重子壳（冻结）' : '声波壳的半径', unitLen(rNow * 3.0857e24), dec ? '退耦后声波停了：这就是声学视界' : (rFinal > 0 ? `退耦时将是 ${unitLen(rFinal * 3.0857e24)}` : '这个宇宙至今没有退耦，壳还在长')]);
+      if (dec) K.push(['violet', '光子已飞出', unitLen(rGam * 3.0857e24), '自由流动，把壳的记忆带到今天的 CMB 上']);
+      if (D.thetaStar) K.push(['violet', 'CMB 上的角尺度 $\\theta_*$', D.thetaStar.deg.toFixed(3) + '°', `$\\ell_A = \\pi/\\theta_* = ${Math.round(D.thetaStar.lA)}$，第一峰约在 $0.73\\,\\ell_A \\approx ${Math.round(0.73 * D.thetaStar.lA)}$`]);
+      const html = K.map(([c, k, v, i]) => `<div class="k ${c}"><small>${k}</small><b class="mono" style="font-size:17px">${v}</b><i>${i}</i></div>`).join('');
+      if (html !== ET.lastWave) { $('wave-cards').innerHTML = html; ET.lastWave = html; if (G.tex) G.tex($('wave-cards')); }
+      const story = dec ? '退耦后光子自由飞行，带着壳的印记成为 CMB 的声学峰；重子壳留在原地，后来和中心的暗物质互相吸引——今天星系的两点关联函数在 $r_s$ 处有一个小峰（重子声学振荡）。' : '一个原初涨落：暗物质留在中心，光子-重子流体被辐射压推成一个球壳向外跑，声速 $c_s = c/\\sqrt{3(1+R)}$——重子越多（$R$ 越大）跑得越慢。壳走过的共动距离就是 $r_s$。';
+      if (story !== ET.lastWaveStory) { $('ev-wave').innerHTML = story; ET.lastWaveStory = story; if (G.tex) G.tex($('ev-wave')); }
     }
     function label(ctx, text, x, y, align) { ctx.font = '11px Space Grotesk'; const tw = ctx.measureText(text).width; ctx.fillStyle = 'rgba(6,9,19,0.75)'; ctx.fillRect(align === 'right' ? x - tw - 6 : x - 4, y - 12, tw + 10, 16); ctx.fillStyle = CSS('--dim'); ctx.textAlign = align; ctx.fillText(text, x, y); }
     function render(now) {
       const D = prepare(); const t = Math.pow(10, ET.logt); const s = stateAt(D, t);
       $('ev-t').textContent = 't = ' + (ET.logt < -3 ? t.toExponential(2) + ' s' : unitTime(t)); $('es-t').value = ET.logt;
       const [title, body] = epochText(D, s); $('ev-epoch').textContent = title; if (body !== ET.lastStory) { $('ev-story').innerHTML = body; ET.lastStory = body; if (G.tex) G.tex($('ev-story')); } if (D.coldBounce || D.noRad) { $('e-cards').innerHTML = ''; $('e-chips').innerHTML = ''; }
-      if (!(D.coldBounce || D.noRad)) cards(D, s); soup(D, s, now || 0); if (!ET.lastT || Math.abs(ET.logt - ET.lastT) > 0.05 || !ET.chartsDrawn) { charts(D, s); ET.lastT = ET.logt; ET.chartsDrawn = true; }
+      if (!(D.coldBounce || D.noRad)) cards(D, s); soup(D, s, now || 0); wave(D, s, now || 0); if (!ET.lastT || Math.abs(ET.logt - ET.lastT) > 0.05 || !ET.chartsDrawn) { charts(D, s); ET.lastT = ET.logt; ET.chartsDrawn = true; }
     }
     function tick(now) {
       if (!ET.playing) return; const dt = ET.last ? (now - ET.last) / 1000 : 0; ET.last = now;
@@ -250,7 +335,7 @@
     function enter() { const D = prepare(); if (!ET.logt || ET.logt < (D.lo || -43) || ET.logt >= 13.2) ET.logt = D.startLog || -37; render(performance.now()); if (!idleRaf) idleRaf = requestAnimationFrame(idle); }
     function leave() { ET.playing = false; $('eb-play').textContent = '▶ 慢放'; }
     window.addEventListener('resize', () => { if (G.current === 'early') { ET.chartsDrawn = false; render(performance.now()); } });
-    return { enter, leave, invalidate: () => { ET.dirty = true; ET.chartsDrawn = false; ET.dots.clear(); ET.nuc = null; } };
+    return { enter, leave, invalidate: () => { ET.dirty = true; ET.chartsDrawn = false; ET.dots.clear(); ET.nuc = null; ET.fx = []; ET.bbnAnim = null; ET.bound = 0; ET.chiCache = null; ET.lastWave = null; } };
   })();
   window.GENESIS_Q_HALL = (hall) => { G.current = hall; if (hall === 'early') { if (!forge.R) forge.solve(); early.enter(); } else early.leave(); };
 

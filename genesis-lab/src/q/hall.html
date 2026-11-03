@@ -1,7 +1,7 @@
 
 <!-- ================= 最初三分钟（量子版） ================= -->
 <section class="hall" id="hall-early" hidden>
-  <p class="lede">创世台的影片按尺度因子均匀走，大爆炸最初的几分钟被压成一帧。这里把时间轴换成对数：从普朗克时间到复合，56 个数量级，每十倍时间播同样长。每一帧的粒子成分、温度、反应速率都按量子统计和弱作用实时算出，用的就是创世台上你拨的那组旋钮。</p>
+  <p class="lede">创世台的影片按尺度因子均匀走，大爆炸最初的几分钟被压成一帧。这里把时间轴换成对数：从普朗克时间到复合，56 个数量级，每十倍时间播同样长。每一帧的粒子成分、温度、反应速率都按量子统计和弱作用实时算出，用的就是创世台上你拨的那组旋钮；汤里闪出来的每一个反应（湮灭、n⇄p、氘、复合）的频率都跟着算出的速率走。</p>
   <div class="card" style="margin-top:14px">
     <div class="bar"><button class="btn small primary" id="eb-play">▶ 慢放</button><button class="btn small" id="eb-next">⏭ 下一个事件</button>
       <label class="note">每十倍时间 <select id="es-speed" class="num" style="width:auto;padding:4px 8px"><option value="0.8">0.8 秒</option><option value="1.5" selected>1.5 秒</option><option value="3">3 秒</option></select></label>
@@ -15,6 +15,13 @@
     <div>
       <div class="kv" id="e-cards"></div>
       <div class="card tight" style="margin-top:10px"><h3 style="font-size:14px">这一刻在发生什么</h3><p class="note" id="ev-story" style="font-size:14px;color:var(--ink)"></p></div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <h3 style="font-size:14px"><span data-g="rs">声波：一个原初涨落怎样长成声学视界</span> <span class="tag sim">模拟</span> <span class="note" style="font-weight:400">壳的半径 $r_s = \int c_s\,dt/a$ 按当前参数实时积分；剖面形状示意</span></h3>
+    <div class="grid g2">
+      <div><canvas id="c-wave" width="560" height="340"></canvas></div>
+      <div><div class="kv" id="wave-cards"></div><p class="note" id="ev-wave" style="margin-top:10px;font-size:13px;color:var(--ink)"></p></div>
     </div>
   </div>
   <div class="grid g3" style="margin-top:14px">

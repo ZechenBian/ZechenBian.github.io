@@ -48,6 +48,13 @@ const RECOMB = (function () {
       for (let i = 0; i <= n; i++) { const a = Math.exp(l1 + (l2 - l1) * i / n), e2 = COSMO.E2(m, a); if (!(e2 > 0)) continue; const R = 3 * Ob * a / (4 * Og), w = (i === 0 || i === n) ? 1 : (i % 2 ? 4 : 2); s += w / (a * Math.sqrt(e2) * Math.sqrt(3 * (1 + R))); }
       out.rs = s * ((l2 - l1) / n) / 3 * COSMO.CKMS / m.H0; out.aDec = aDec;
     }
+    // 声波的历史（给"声波"面板）：R(a)、声速 c_s/c、r_s(a) 的累积表（Mpc，共动），一直算到退耦（没退耦就算到今天）
+    out.R = (a) => 3 * Ob * a / (4 * Og); out.cs = (a) => 1 / Math.sqrt(3 * (1 + out.R(a)));
+    if (Og > 0) {
+      const aEnd = isFinite(out.zDec) ? 1 / (1 + out.zDec) : 1, n = 2000, l1 = Math.log(1e-10), l2 = Math.log(aEnd), dl = (l2 - l1) / n, tab = { as: [], rs: [] }; let cum = 0, fPrev = null;
+      for (let i = 0; i <= n; i++) { const a = Math.exp(l1 + dl * i), e2 = COSMO.E2(m, a); const f = e2 > 0 ? out.cs(a) / (a * Math.sqrt(e2)) : 0; if (fPrev !== null) cum += 0.5 * (f + fPrev) * dl; fPrev = f; if (i % 10 === 0 || i === n) { tab.as.push(a); tab.rs.push(cum * COSMO.CKMS / m.H0); } }
+      out.rsTab = tab; out.rsOf = (a) => { const as = tab.as, rs = tab.rs; if (a <= as[0]) return rs[0] * a / as[0]; if (a >= as[as.length - 1]) return rs[rs.length - 1]; let lo = 0, hi = as.length - 1; while (hi - lo > 1) { const mid = (lo + hi) >> 1; if (as[mid] <= a) lo = mid; else hi = mid; } const u = (Math.log(a) - Math.log(as[lo])) / (Math.log(as[hi]) - Math.log(as[lo])); return rs[lo] + (rs[hi] - rs[lo]) * u; };
+    }
     return out;
   }
   // 重子-光子比（给核合成用）
