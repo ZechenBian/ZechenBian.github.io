@@ -79,6 +79,7 @@ section.hall{padding:22px 0 40px}
 .btn.primary{background:var(--gold);color:#1a1200;border-color:var(--gold)}
 .btn.ghost{background:transparent}
 .btn.small{font-size:12px;padding:5px 9px}
+.btn.on{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold) inset}
 .btn:disabled{opacity:.45;cursor:default}
 .ctl{margin:10px 0}
 .ctl label{display:flex;justify-content:space-between;align-items:baseline;font-size:14px;color:var(--dim)}
@@ -97,6 +98,7 @@ canvas.pointer{cursor:crosshair}
 .movie .hud{position:absolute;left:10px;top:8px;font-size:12px;color:var(--dim);pointer-events:none;text-shadow:0 1px 2px #000}
 .movie .hud b{color:var(--ink);font-weight:500}
 .movie .hud{background:rgba(6,9,19,0.55);padding:4px 8px;border-radius:6px}
+.movie.nb .hud{left:auto;right:8px;max-width:150px;line-height:1.45}
 @media (max-width:600px){.movie .hud{position:static;background:transparent;padding:4px 0 0;font-size:11px}}
 .sticky-sum{position:fixed;left:0;right:0;bottom:0;z-index:8;display:none;gap:10px;align-items:center;flex-wrap:wrap;padding:6px max(16px,env(safe-area-inset-left,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-right,0px));background:rgba(11,17,36,0.96);border-top:1px solid var(--line2);font-size:12px;color:var(--dim)}
 .sticky-sum span{white-space:nowrap}.sticky-sum a{margin-left:auto;color:var(--teal);font-weight:600;text-decoration:none}
@@ -251,7 +253,8 @@ footer{border-top:1px solid var(--line);padding:18px 0 28px;color:var(--faint);f
     </div>
     <div>
       <div class="card">
-        <h3><span data-g="movie">创世影片</span> <span class="tag sim">模拟</span> <span class="note" style="font-weight:400">共动网格上的星系随尺度因子 a(t) 伸缩；颜色随背景温度变化</span></h3>
+        <h3><span data-g="movie">创世影片</span> <span class="tag sim">模拟</span> <span class="note" style="font-weight:400" id="movie-sub">共动网格上的星系随尺度因子 a(t) 伸缩；颜色随背景温度变化</span></h3>
+        <div class="bar" style="margin:4px 0 8px"><span class="note">画法</span><button class="btn small on" id="nb-off">共动点阵</button><button class="btn small" id="nb-on">真引力 N 体</button><span data-g="nbody"></span><span id="nb-bar" hidden><button class="btn small" id="nb-run">▶ 从头长出结构</button><button class="btn small" id="nb-reseed">⟲ 换随机相位</button></span></div>
         <div class="movie"><canvas id="c-movie" width="900" height="420"></canvas>
           <div class="hud" id="movie-hud"></div></div>
         <div class="epoch-line" id="movie-epoch"></div>
@@ -694,6 +697,138 @@ const COSMO = (function () {
   }
 
   return { GYR, CKMS, T_CMB, T_REC, DELTA_C, FIDUCIAL, OG_H2, NEFF_STD, NU_FAC, omegaR, temperatureOf, norm, rhoF, E2, Ez, accel, integrate, solve, ageQuad, confQuad, tOfA, tFutOfA, growth, chiTable, chiAt, Sk, distances, SIG_FIRST, SIG_GAL, SIG_8 };
+})();
+
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
+// 结构形成的 N 体模拟（二维粒子-网格法）：在你拨的宇宙背景 a(t) 里，粒子真的互相吸引，纤维、空洞、星系团从微小涨落里长出来。
+//   共动坐标 x，正则动量 p = a² dx/dt；泊松方程 ∇²φ = (3/2) H0² Ω_m δ / a（共动梯度）；dp/dt = −∇φ，dx/dt = p/a²。
+//   时间步在宇宙时 t 上走（而不是 a），所以大坍缩的回转和收缩段也能算。
+//   泊松方程用 FFT 在周期网格上解；密度用云中格（CIC）撒到网格、力用同样的核插回粒子。
+//   初条件：Zel'dovich 近似——按 P(k) = A k^{n_s} T²(k)（BBKS 转移函数，Γ = Ω_m h e^{−Ω_b(1+√(2h)/Ω_m)}）生成高斯场，
+//   幅度定标到 a_i 时 8 h⁻¹Mpc 平滑后的 δ 均方根（创世台把线性增长算出的 δ₈(a_i) 传进来，量子版的 A_s 倍数已含在内）。
+//   二维是三维宇宙的一个薄片近似：线性增长方程在二维完全相同，非线性的纤维-空洞形态定性相同。
+// 单位：长度 = 盒子边长（共动，默认 300 h⁻¹Mpc），时间 = 1/H0。
+const NBODY = (function () {
+  function mulberry32(a) { return function () { a |= 0; a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+  // ---------- FFT（基 2，就地，复数分开存）----------
+  function fft1(re, im, n, inv) {
+    for (let i = 1, j = 0; i < n; i++) { let bit = n >> 1; for (; j & bit; bit >>= 1) j ^= bit; j ^= bit; if (i < j) { let t = re[i]; re[i] = re[j]; re[j] = t; t = im[i]; im[i] = im[j]; im[j] = t; } }
+    for (let len = 2; len <= n; len <<= 1) {
+      const ang = 2 * Math.PI / len * (inv ? 1 : -1), wr = Math.cos(ang), wi = Math.sin(ang);
+      for (let i = 0; i < n; i += len) { let cr = 1, ci = 0; for (let j = 0; j < len / 2; j++) { const a = i + j, b = a + len / 2; const xr = re[b] * cr - im[b] * ci, xi = re[b] * ci + im[b] * cr; re[b] = re[a] - xr; im[b] = im[a] - xi; re[a] += xr; im[a] += xi; const t = cr * wr - ci * wi; ci = cr * wi + ci * wr; cr = t; } }
+    }
+    if (inv) for (let i = 0; i < n; i++) { re[i] /= n; im[i] /= n; }
+  }
+  function fft2(re, im, N, inv) { // 行、列各做一次
+    const tr = new Float64Array(N), ti = new Float64Array(N);
+    for (let y = 0; y < N; y++) { const o = y * N; for (let x = 0; x < N; x++) { tr[x] = re[o + x]; ti[x] = im[o + x]; } fft1(tr, ti, N, inv); for (let x = 0; x < N; x++) { re[o + x] = tr[x]; im[o + x] = ti[x]; } }
+    for (let x = 0; x < N; x++) { for (let y = 0; y < N; y++) { tr[y] = re[y * N + x]; ti[y] = im[y * N + x]; } fft1(tr, ti, N, inv); for (let y = 0; y < N; y++) { re[y * N + x] = tr[y]; im[y * N + x] = ti[y]; } }
+  }
+  // BBKS 转移函数（k 以 h/Mpc 计）
+  function bbks(k, Gamma) { const q = k / Gamma; if (q <= 0) return 1; return Math.log(1 + 2.34 * q) / (2.34 * q) * Math.pow(1 + 3.89 * q + (16.1 * q) ** 2 + (5.46 * q) ** 3 + (6.71 * q) ** 4, -0.25); }
+
+  function pow2(n) { let p = 1; while (p * 2 <= n) p *= 2; return (n - p < p * 2 - n) ? p : p * 2; } // 最近的 2 的幂（FFT 是基 2 的）
+
+  class PM2D {
+    // o: { N 网格（取为 2 的幂）, np 每边粒子数, L 盒长 h⁻¹Mpc, seed, Om, Ob, h, ns, aInit,
+    //      amp: a_init 时 8 h⁻¹Mpc 平滑后的 δ 均方根（给了就用它；否则 sigma8 × Dratio），E: a→E(a), aOf: t→a, tOf: a→t }
+    constructor(o) {
+      this.o = o; const N = this.N = pow2(o.N || 256), np = this.np = o.np || 160, n = this.n = np * np;
+      this.L = o.L || 300; this.x = new Float64Array(n); this.y = new Float64Array(n); this.px = new Float64Array(n); this.py = new Float64Array(n);
+      this.rho = new Float64Array(N * N); this.fx = new Float64Array(N * N); this.fy = new Float64Array(N * N);
+      this.re = new Float64Array(N * N); this.im = new Float64Array(N * N);
+      this.init();
+    }
+    init() {
+      const o = this.o, N = this.N, np = this.np, rnd = mulberry32(o.seed || 7), L = this.L;
+      // 高斯场 δ_k：|δ_k|² ∝ P(k)，相位随机；用 Box–Muller
+      const re = this.re, im = this.im, Gamma = o.Om * o.h * Math.exp(-o.Ob * (1 + Math.sqrt(2 * o.h) / o.Om)), ns = o.ns === undefined ? 0.965 : o.ns;
+      const kf = 2 * Math.PI / L; // 基频 h/Mpc
+      for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
+        const kx = (i <= N / 2 ? i : i - N) * kf, ky = (j <= N / 2 ? j : j - N) * kf, k = Math.hypot(kx, ky), idx = j * N + i;
+        if (k === 0) { re[idx] = 0; im[idx] = 0; continue; }
+        const P = Math.pow(k, ns) * bbks(k, Gamma) ** 2 * k; // 二维薄片：多乘一个 k（三维 P(k) 投影到二维平面的近似）
+        let u = 0; while (!u) u = rnd(); const g = Math.sqrt(-2 * Math.log(u)), th = 2 * Math.PI * rnd();
+        const amp = Math.sqrt(P / 2) * g; re[idx] = amp * Math.cos(th); im[idx] = amp * Math.sin(th);
+      }
+      // 实空间场 → 用 8 h⁻¹Mpc 高斯平滑后的 rms 定标到 σ₈ × D(a_i)/D(1)
+      const dk = new Float64Array(re), dki = new Float64Array(im);
+      const sm = new Float64Array(N * N), smi = new Float64Array(N * N); const R = 8;
+      for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) { const kx = (i <= N / 2 ? i : i - N) * kf, ky = (j <= N / 2 ? j : j - N) * kf, w = Math.exp(-0.5 * (kx * kx + ky * ky) * R * R), idx = j * N + i; sm[idx] = re[idx] * w; smi[idx] = im[idx] * w; }
+      fft2(sm, smi, N, true); let s2 = 0; for (let k = 0; k < N * N; k++) s2 += sm[k] * sm[k]; const rms = Math.sqrt(s2 / (N * N));
+      const target = o.amp !== undefined ? o.amp : (o.sigma8 || 0.81) * (o.Dratio || 1), scale = target / (rms || 1);
+      for (let k = 0; k < N * N; k++) { dk[k] *= scale; dki[k] *= scale; }
+      // 初始的实空间 δ 场（线性，a_init 时），给页面画 N 体开始之前的线性阶段
+      { const d0 = new Float64Array(dk), d0i = new Float64Array(dki); fft2(d0, d0i, N, true); this.delta0 = new Float32Array(N * N); for (let k = 0; k < N * N; k++) this.delta0[k] = d0[k]; }
+      // Zel'dovich 位移 ψ = −∇∇⁻²δ：ψ_k = −i k δ_k / k²（分量）
+      const psx = new Float64Array(N * N), psxi = new Float64Array(N * N), psy = new Float64Array(N * N), psyi = new Float64Array(N * N);
+      for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
+        const kx = (i <= N / 2 ? i : i - N) * kf, ky = (j <= N / 2 ? j : j - N) * kf, k2 = kx * kx + ky * ky, idx = j * N + i; if (k2 === 0) continue;
+        // −i k δ/k²：(a+ib)(−i) = b − ia
+        psx[idx] = kx * dki[idx] / k2; psxi[idx] = -kx * dk[idx] / k2; psy[idx] = ky * dki[idx] / k2; psyi[idx] = -ky * dk[idx] / k2;
+      }
+      fft2(psx, psxi, N, true); fft2(psy, psyi, N, true); // 单位 h⁻¹Mpc
+      const a0 = o.aInit || 0.02, E0 = o.E(a0), f = 1; // 早期物质主导 f = dlnD/dlna ≈ 1
+      for (let j = 0; j < np; j++) for (let i = 0; i < np; i++) {
+        const q = j * np + i, qx = (i + 0.5) / np, qy = (j + 0.5) / np; // 格点（盒子单位）
+        const gx = Math.floor(qx * N), gy = Math.floor(qy * N), g = gy * N + gx; const dx = psx[g] / L, dy = psy[g] / L; // 位移（盒子单位；δ 已含 D(a_i)）
+        this.x[q] = ((qx + dx) % 1 + 1) % 1; this.y[q] = ((qy + dy) % 1 + 1) % 1;
+        this.px[q] = a0 * a0 * E0 * f * dx; this.py[q] = a0 * a0 * E0 * f * dy; // p = a² ẋ = a² H f D ψ
+      }
+      this.a = a0; this.t = o.tOf(a0); this.steps = 0; this.deposit();
+    }
+    deposit() { // CIC：rho 是每格的粒子数相对平均值（1 + δ）
+      const N = this.N, rho = this.rho; rho.fill(0); const n = this.n, w0 = N * N / n;
+      for (let q = 0; q < n; q++) {
+        const X = this.x[q] * N - 0.5, Y = this.y[q] * N - 0.5, i = Math.floor(X), j = Math.floor(Y), fx = X - i, fy = Y - j;
+        const i0 = ((i % N) + N) % N, i1 = (i0 + 1) % N, j0 = ((j % N) + N) % N, j1 = (j0 + 1) % N;
+        rho[j0 * N + i0] += w0 * (1 - fx) * (1 - fy); rho[j0 * N + i1] += w0 * fx * (1 - fy); rho[j1 * N + i0] += w0 * (1 - fx) * fy; rho[j1 * N + i1] += w0 * fx * fy;
+      }
+    }
+    forces() { // ∇²φ = (3/2) Ω_m δ / a（盒子单位，H0 = 1）→ φ_k = −(3/2 Ω_m/a) δ_k / k²；力 = −∇φ（中心差分）
+      const N = this.N, re = this.re, im = this.im, L = this.L; for (let k = 0; k < N * N; k++) { re[k] = this.rho[k] - 1; im[k] = 0; }
+      fft2(re, im, N, false); const kf = 2 * Math.PI, C = -1.5 * this.o.Om / this.a; // k 以盒子单位（2π/L 的倍数 → 这里 L = 1）
+      for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) { const kx = (i <= N / 2 ? i : i - N) * kf, ky = (j <= N / 2 ? j : j - N) * kf, k2 = kx * kx + ky * ky, idx = j * N + i; if (k2 === 0) { re[idx] = 0; im[idx] = 0; continue; } const s = C / k2; re[idx] *= s; im[idx] *= s; }
+      fft2(re, im, N, true); // re = φ（盒子单位）
+      const h = 1 / N, fx = this.fx, fy = this.fy;
+      for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) { const ip = (i + 1) % N, im1 = (i + N - 1) % N, jp = (j + 1) % N, jm = (j + N - 1) % N; fx[j * N + i] = -(re[j * N + ip] - re[j * N + im1]) / (2 * h); fy[j * N + i] = -(re[jp * N + i] - re[jm * N + i]) / (2 * h); }
+    }
+    kick(dt) { // dp/dt = −∇φ（p = a²ẋ，φ 是共动坐标里的扰动势），CIC 插值
+      const N = this.N, n = this.n, fx = this.fx, fy = this.fy, s = dt;
+      for (let q = 0; q < n; q++) {
+        const X = this.x[q] * N - 0.5, Y = this.y[q] * N - 0.5, i = Math.floor(X), j = Math.floor(Y), ux = X - i, uy = Y - j;
+        const i0 = ((i % N) + N) % N, i1 = (i0 + 1) % N, j0 = ((j % N) + N) % N, j1 = (j0 + 1) % N;
+        const w00 = (1 - ux) * (1 - uy), w10 = ux * (1 - uy), w01 = (1 - ux) * uy, w11 = ux * uy;
+        this.px[q] += s * (fx[j0 * N + i0] * w00 + fx[j0 * N + i1] * w10 + fx[j1 * N + i0] * w01 + fx[j1 * N + i1] * w11);
+        this.py[q] += s * (fy[j0 * N + i0] * w00 + fy[j0 * N + i1] * w10 + fy[j1 * N + i0] * w01 + fy[j1 * N + i1] * w11);
+      }
+    }
+    drift(dt) { const s = dt / (this.a * this.a), n = this.n; for (let q = 0; q < n; q++) { this.x[q] = (((this.x[q] + s * this.px[q]) % 1) + 1) % 1; this.y[q] = (((this.y[q] + s * this.py[q]) % 1) + 1) % 1; } }
+    // 一步：kick-drift-kick，dt 按 |H| 自适应（a 由背景 t→a 给出，回转和收缩都能走）
+    step(dtMax) {
+      const o = this.o, E = Math.abs(o.E(this.a)) || 1e-3, dt = Math.min(dtMax || 0.05, 0.02 / E);
+      this.deposit(); this.forces(); this.kick(dt / 2);
+      const aMid = o.aOf(this.t + dt / 2); this.a = aMid > 0 ? aMid : this.a; this.drift(dt);
+      this.t += dt; const a1 = o.aOf(this.t); this.a = a1 > 0 ? a1 : this.a;
+      this.deposit(); this.forces(); this.kick(dt / 2); this.steps++;
+      return dt;
+    }
+    // 快照：log10(1+δ) 从 −1 到 +2.5 量化成一个字节（给页面存每一帧用），并返回最密格子和 δ 的均方根
+    snapshot(out) {
+      const N2 = this.N * this.N, rho = this.rho; this.deposit(); let max = 0, s2 = 0;
+      for (let k = 0; k < N2; k++) { const r = rho[k]; if (r > max) max = r; const d = r - 1; s2 += d * d; out[k] = Math.max(0, Math.min(255, Math.round((Math.log10(Math.max(r, 1e-3)) + 1) / 3.5 * 255))); }
+      return { max, rms: Math.sqrt(s2 / N2) };
+    }
+    // 诊断：δ 的 rms（8 h⁻¹Mpc 高斯平滑）
+    sigma8() {
+      const N = this.N, re = this.re, im = this.im; this.deposit(); for (let k = 0; k < N * N; k++) { re[k] = this.rho[k] - 1; im[k] = 0; }
+      fft2(re, im, N, false); const kf = 2 * Math.PI / this.L, R = 8;
+      for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) { const kx = (i <= N / 2 ? i : i - N) * kf, ky = (j <= N / 2 ? j : j - N) * kf, w = Math.exp(-0.5 * (kx * kx + ky * ky) * R * R), idx = j * N + i; re[idx] *= w; im[idx] *= w; }
+      fft2(re, im, N, true); let s2 = 0; for (let k = 0; k < N * N; k++) s2 += re[k] * re[k]; return Math.sqrt(s2 / (N * N));
+    }
+  }
+  return { PM2D, fft2, bbks };
 })();
 
 // Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
@@ -1230,6 +1365,9 @@ const GLOSS = {
   movie: { t: '创世影片', s: '共动网格上的星系随 $a(t)$ 伸缩；颜色按背景温度 $T = T_0/a$ 调。',
     d: '方框是一块共动体积（今天 2 Gpc 见方），里面的点是固定在共动坐标上的"星系"，实际距离 $= a\\times$ 共动距离。复合（$T\\approx 3000$ K）之前画成不透明的火球；第一批星系形成后点才变亮。帧按 $\\ln a$ 均匀分布，所以最初几分钟被压成一帧——量子版的"最初三分钟"展区专门放慢这一段。',
     try: '' },
+  nbody: { t: '真引力 N 体', s: '把一块 $300\\,h^{-1}$Mpc 的共动薄片撒上粒子，在你拨的 $a(t)$ 背景里让它们真的互相吸引，看纤维、空洞、团块从微小涨落里长出来。',
+    d: '粒子-网格法（PM）：每一步把粒子云撒到 $256^2$ 的网格上得到 $\\delta$，用 FFT 解共动坐标里的泊松方程 $$\\nabla^2\\phi = \\tfrac32 H_0^2\\,\\Omega_m\\,\\delta/a,$$ 再按 $\\dot{\\mathbf p} = -\\nabla\\phi$、$\\dot{\\mathbf x} = \\mathbf p/a^2$（$\\mathbf p = a^2\\dot{\\mathbf x}$）推进半步-整步-半步。初条件是 Zel\'dovich 近似：按 BBKS 转移函数生成高斯场，幅度定标到线性增长给出的 $\\delta_8(a_i)$。时间步在宇宙时上走，所以大坍缩的回转和收缩段也能算；背景 $a(t)$ 就是创世台积分出来的那条。二维是三维宇宙的薄片近似：线性增长方程一样，非线性的纤维-空洞形态定性相同。读数里"δ₈ 线性"是线性理论，"N 体实测"是模拟里 8 $h^{-1}$Mpc 平滑后的均方根——两者分开的那一刻就是线性理论失效的时刻。',
+    try: '选"我们的宇宙"，点"从头长出结构"；再把 Ω_Λ 拨到 2，看结构被冻住。' },
   // ---------- 哥德尔 ----------
   godel: { t: '哥德尔宇宙', s: '爱因斯坦方程的一个精确解（1949）：物质整体旋转，里面存在回到过去的路线。',
     d: '柱坐标度规 $$ds^2 = 4a^2\\big[-dt^2 + dr^2 + dz^2 - (\\sinh^4 r - \\sinh^2 r)\\,d\\varphi^2 + 2\\sqrt2\\,\\sinh^2 r\\,d\\varphi\\,dt\\big].$$ 物质是静止在坐标上的尘埃，相对局部惯性系以 $\\omega = 1/(\\sqrt2 a)$ 转动。爱因斯坦方程要求 $\\Lambda = -\\omega^2$、$4\\pi G\\rho = \\omega^2$：只有一个自由参数。$g_{\\varphi\\varphi} < 0$ 当 $\\sinh r > 1$——绕轴一圈的曲线变成类时的：闭合类时曲线。',
@@ -1869,7 +2007,7 @@ var QLAI = (function () {
       let input = Object.assign({}, S); for (const f of hooks.input) input = f(input, S) || input;
       R = COSMO.solve(input);
       for (const f of hooks.solved) f(R, S, input);
-      buildFrames(); render();
+      buildFrames(); NB.invalidate(); render();
     }
     function buildFrames() {
       frames = []; const N = 300;
@@ -1973,11 +2111,101 @@ var QLAI = (function () {
     function bbColor(T) { // 粗略黑体色
       if (T > 10000) return [190, 210, 255]; if (T > 6000) return [255, 244, 235]; if (T > 4000) return [255, 215, 160]; return [255, 150, 70];
     }
+    // ---- 真引力 N 体（二维粒子-网格，nbody.js）----
+    const NB = (function () {
+      const phone = Math.min(window.innerWidth || 1e9, window.innerHeight || 1e9) < 700 || /Android|iPhone|iPad/i.test(navigator.userAgent || '');
+      const N = phone ? 128 : 256, np = N, L = 300; // 网格 / 每边粒子数（每格一个，散粒噪声小）/ 盒长 h⁻¹Mpc
+      const st = { on: false, sim: null, seed: 7, dirty: true, snaps: null, stats: null, s8: null, re: null, im: null, pending: false, loop: false, done: false, note: '', off: null, lut: null, timer: null, firstA: NaN, t0: NaN };
+      function d8At(a) { const G = R.growth; if (!G) return NaN; const as = G.as, d = G.d8; if (a <= as[0]) return d[0]; let lo = 0, hi = as.length - 1; if (a >= as[hi]) return d[hi]; while (hi - lo > 1) { const m = (lo + hi) >> 1; if (as[m] <= a) lo = m; else hi = m; } const u = (Math.log(a) - Math.log(as[lo])) / (Math.log(as[hi]) - Math.log(as[lo])); return d[lo] + (d[hi] - d[lo]) * u; }
+      function usable() { return !!(R && R.growth && (R.origin === 'bigbang' || R.quantumBounce)); }
+      function build() { // 按当前宇宙重做初条件（代价约 0.1 s，所以参数拖动时延迟重算）
+        if (!R) return; st.sim = null; st.snaps = new Array(frames.length).fill(null); st.stats = new Array(frames.length).fill(null); st.s8 = new Array(frames.length).fill(null); st.done = false; st.dirty = false; st.note = '';
+        if (!usable()) return;
+        let a0 = 0.02; const G = R.growth; if (R.quantumBounce && R.aMin > a0 / 2) a0 = Math.min(0.5, R.aMin * 2); // 反弹后从两倍的最小尺度开始
+        let amp = d8At(a0); let guard = 0; while (amp > 0.12 && a0 > 2e-3 && guard++ < 40) { a0 *= 0.8; amp = d8At(a0); } // 涨落太大就提前开始，保证初条件是线性的
+        if (!(amp > 0) || !isFinite(amp)) amp = 1e-4;
+        const m = R.m, h = S.H0 / 100, q = window.GENESIS_QSTATE ? window.GENESIS_QSTATE() : null, Ob = q ? q.Ob : 0.049, ns = q ? q.ns : 0.965;
+        st.sim = new NBODY.PM2D({ N, np, L, seed: st.seed, Om: Math.max(m.Om, 1e-4), Ob: Math.min(Ob, Math.max(m.Om, 1e-4) * 0.9), h, ns, aInit: a0, amp,
+          E: (a) => { const e2 = COSMO.E2(m, a); return e2 > 0 ? Math.sqrt(e2) : 1e-3; }, aOf: (t) => aAt(t <= 0 ? R.past : R.fut, t), tOf: (a) => COSMO.tOfA(R, a) });
+        st.firstA = a0; st.t0 = st.sim.t; st.pending = false;
+      }
+      function invalidate() { st.dirty = true; if (!st.on) return; clearTimeout(st.timer); st.timer = setTimeout(() => { st.timer = null; if (st.on) { build(); drawMovie(); } }, 350); }
+      function reseed() { st.seed = (st.seed * 7 + 13) % 100003 + 1; build(); drawMovie(); toast('换了一组随机相位——同样的宇宙，另一片天区'); }
+      // 把模拟推进到第 k 帧的时刻；预算 ms 毫秒；沿途经过的帧都存快照。返回是否到达
+      function advanceTo(k, budget) {
+        const sim = st.sim; if (!sim || st.done) return true; const want = frames[k].t, t0 = performance.now(); let passed = sim.t >= want;
+        while (!passed && performance.now() - t0 < budget) {
+          const tPrev = sim.t; sim.step(0.05);
+          for (let j = 0; j < frames.length; j++) if (!st.snaps[j] && frames[j].t > tPrev && frames[j].t <= sim.t) record(j);
+          if (!isFinite(sim.a) || sim.a <= 0 || sim.a > 30 || (R.fate === 'crunch' && sim.t > R.tTurn && sim.a < st.firstA * 0.5) || sim.steps > 3000) { st.done = true; st.note = sim.a > 30 ? 'a > 30：共动结构已冻结（撕裂发生在星系内部，网格看不见）' : (R.fate === 'crunch' ? '收缩到 a < a_i：密度场已超出粒子-网格法的分辨率' : '模拟已停在这里'); return true; }
+          passed = sim.t >= want;
+        }
+        return passed;
+      }
+      function record(j) { const sim = st.sim, out = new Uint8Array(sim.N * sim.N); st.stats[j] = sim.snapshot(out); st.snaps[j] = out; }
+      function s8FromBytes(bytes) { // 从量化的快照算 8 h⁻¹Mpc 高斯平滑后的 δ 均方根（和线性理论的 δ₈ 同一定义）
+        const n = st.sim.N, n2 = n * n; if (!st.re || st.re.length !== n2) { st.re = new Float64Array(n2); st.im = new Float64Array(n2); } const re = st.re, im = st.im;
+        for (let k = 0; k < n2; k++) { re[k] = Math.pow(10, bytes[k] / 255 * 3.5 - 1) - 1; im[k] = 0; }
+        NBODY.fft2(re, im, n, false); const kf = 2 * Math.PI / L, R8 = 8;
+        for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) { const kx = (i <= n / 2 ? i : i - n) * kf, ky = (j <= n / 2 ? j : j - n) * kf, w = Math.exp(-0.5 * (kx * kx + ky * ky) * R8 * R8), idx = j * n + i; re[idx] *= w; im[idx] *= w; }
+        NBODY.fft2(re, im, n, true); let s2 = 0; for (let k = 0; k < n2; k++) s2 += re[k] * re[k]; return Math.sqrt(s2 / n2);
+      }
+      function lut() { // 密度色标：空洞深蓝 → 平均紫灰 → 纤维金 → 团块白
+        if (st.lut) return st.lut; const stops = [[0, 8, 12, 40], [0.29, 40, 50, 120], [0.5, 120, 90, 150], [0.72, 230, 170, 80], [0.9, 255, 235, 180], [1, 255, 255, 255]]; const out = new Uint8ClampedArray(256 * 4);
+        for (let i = 0; i < 256; i++) { const u = i / 255; let s = 0; while (s < stops.length - 2 && u > stops[s + 1][0]) s++; const A = stops[s], B = stops[s + 1], f = (u - A[0]) / (B[0] - A[0]); for (let c = 0; c < 3; c++) out[i * 4 + c] = A[c + 1] + (B[c + 1] - A[c + 1]) * f; out[i * 4 + 3] = 255; }
+        st.lut = out; return out;
+      }
+      function paint(ctx, bytes, x, y, size, n) { // 把 n×n 的字节场画成 size×size 的方块
+        if (!st.off || st.off.width !== n) { st.off = document.createElement('canvas'); st.off.width = st.off.height = n; }
+        const octx = st.off.getContext('2d'), img = octx.createImageData(n, n), L = lut(), d = img.data;
+        for (let k = 0; k < n * n; k++) { const b = bytes[k] * 4; d[k * 4] = L[b]; d[k * 4 + 1] = L[b + 1]; d[k * 4 + 2] = L[b + 2]; d[k * 4 + 3] = 255; }
+        octx.putImageData(img, 0, 0); ctx.imageSmoothingEnabled = true; ctx.drawImage(st.off, x, y, size, size);
+      }
+      function linearBytes(factor) { // N 体开始之前：线性场 δ₀ × D(a)/D(a_i)
+        const sim = st.sim, n = sim.N * sim.N, out = new Uint8Array(n), d0 = sim.delta0; let max = 0, s2 = 0;
+        for (let k = 0; k < n; k++) { const r = Math.max(1e-3, 1 + d0[k] * factor); if (r > max) max = r; s2 += (r - 1) * (r - 1); out[k] = Math.max(0, Math.min(255, Math.round((Math.log10(r) + 1) / 3.5 * 255))); }
+        return { out, max, rms: Math.sqrt(s2 / n) };
+      }
+      // 画这一帧；返回 true 表示画完了（false = 还在算，调用者应该再来）
+      function draw(ctx, w, h, f, k) {
+        if (!st.sim || (st.dirty && !st.timer)) build();
+        const size = Math.min(w, h) - 16, wide = w - size >= 150, x0 = wide ? 8 : (w - size) / 2, y0 = (h - size) / 2; let reached = true, bytes = null, stat = null, phase = '';
+        if (!usable() || !st.sim) { ctx.fillStyle = CSS('--dim'); ctx.font = '13px Space Grotesk, sans-serif'; ctx.textAlign = 'center'; ctx.fillText('没有热大爆炸，结构形成不适用——换一组有大爆炸的参数', w / 2, h / 2); return true; }
+        const sim = st.sim;
+        if (f.t < st.t0) { const lb = linearBytes(d8At(f.a) / Math.max(1e-12, d8At(st.firstA))); bytes = lb.out; stat = lb; phase = '线性阶段（N 体从 a = ' + sig(st.firstA, 2) + ' 开始）'; }
+        else if (st.snaps[k]) { bytes = st.snaps[k]; stat = st.stats[k]; phase = '真引力 N 体'; }
+        else { reached = advanceTo(k, 28); if (st.snaps[k]) { bytes = st.snaps[k]; stat = st.stats[k]; phase = '真引力 N 体'; } else { const out = new Uint8Array(sim.N * sim.N); stat = sim.snapshot(out); bytes = out; phase = reached ? '真引力 N 体' : `计算中… 已算到 a = ${sig(sim.a, 3)}（第 ${sim.steps} 步）`; } }
+        paint(ctx, bytes, x0, y0, size, sim.N);
+        ctx.strokeStyle = 'rgba(152,164,199,0.5)'; ctx.lineWidth = 1; ctx.strokeRect(x0 + 0.5, y0 + 0.5, size - 1, size - 1);
+        // 右侧色标（宽屏）
+        if (wide) { const bx = x0 + size + 14, by = y0 + 128, bh = size - 140, Lt = lut(); for (let i = 0; i < bh; i++) { const b = Math.round((1 - i / bh) * 255) * 4; ctx.fillStyle = `rgb(${Lt[b]},${Lt[b + 1]},${Lt[b + 2]})`; ctx.fillRect(bx, by + i, 10, 1.5); }
+          ctx.fillStyle = 'rgba(233,237,249,0.8)'; ctx.font = '11px JetBrains Mono, monospace'; ctx.textAlign = 'left'; for (const [v, lab] of [[2.5, '1+δ=300'], [2, '100'], [1, '10'], [0, '1'], [-1, '0.1']]) { const yy = by + bh * (1 - (v + 1) / 3.5); ctx.fillText(lab, bx + 14, yy + 4); } ctx.font = '11px Space Grotesk, sans-serif'; ctx.fillText('密度（对数）', bx, by - 8); }
+        const hdr = $('movie-hud'), g = GYR(), T = R.T0 / f.a, H = aAtH(f), t = f.t * g;
+        const phys = L / (S.H0 / 100) * f.a, physTxt = phys >= 1000 ? sig(phys / 1000, 3) + ' Gpc' : sig(phys, 3) + ' Mpc';
+        ctx.font = '12px Space Grotesk, sans-serif'; ctx.textAlign = 'left'; const cap = `方框 ${L} h⁻¹Mpc 共动 = 物理 ${physTxt}`; const cw = ctx.measureText(cap).width; ctx.fillStyle = 'rgba(6,9,19,0.6)'; ctx.fillRect(x0 + 6, y0 + size - 24, cw + 10, 18); ctx.fillStyle = 'rgba(233,237,249,0.85)'; ctx.fillText(cap, x0 + 11, y0 + size - 11);
+        const lin = d8At(f.a); let s8 = null; if (st.snaps[k]) { if (st.s8[k] === null) st.s8[k] = s8FromBytes(st.snaps[k]); s8 = st.s8[k]; }
+        hdr.innerHTML = `t = <b>${gyr(t)}</b>${R.origin === 'bigbang' || R.quantumBounce ? `<br>（${R.quantumBounce ? '反弹' : '大爆炸'}后 <b>${gyr((f.t + R.age) * g)}</b>）` : ''}<br>a = <b>${sig(f.a, 3)}</b>　T = <b>${sig(T, 3)} K</b><br>H = <b>${isFinite(H) ? sig(H * S.H0, 3) : '—'}</b> km/s/Mpc<br>δ₈ 线性 <b>${sig(lin, 2)}</b>${s8 !== null ? `<br>δ₈ N 体实测 <b>${sig(s8, 2)}</b>` : ''}${stat ? `<br>最密格子 1+δ = <b>${sig(stat.max, 2)}</b>` : ''}`;
+        let ep = phase; if (st.dirty) ep += '（参数已变，马上重算）'; else if (st.done && st.note && f.t >= sim.t) ep += ' · ' + st.note;
+        else if (phase.startsWith('真引力') && lin > 1) ep += ' · 纤维和团块：线性理论在这里已经失效，N 体算的才是真的';
+        else if (phase.startsWith('真引力') && lin < 0.05) ep += ' · 涨落太小，还看不出结构（色标是对数的）';
+        $('movie-epoch').textContent = ep;
+        return reached;
+      }
+      function setMode(on) {
+        st.on = on; $('nb-on').classList.toggle('on', on); $('nb-off').classList.toggle('on', !on); $('nb-bar').hidden = !on; $('movie-sub').textContent = on ? `二维粒子-网格 N 体：${N}² 格、${np}² 粒子在你拨的 a(t) 背景里真的互相吸引（三维宇宙的一个薄片近似）` : '共动网格上的星系随尺度因子 a(t) 伸缩；颜色随背景温度变化';
+        const cv = $('c-movie'); if (on) cv.dataset.minh = String(Math.min(cv.clientWidth || 600, 440)); else delete cv.dataset.minh; cv.parentElement.classList.toggle('nb', on);
+        if (on && R && (st.dirty || !st.sim)) build(); if (R) { drawMovie(); if (!on) drawA(); }
+      }
+      $('nb-on').addEventListener('click', () => setMode(true)); $('nb-off').addEventListener('click', () => setMode(false)); $('nb-reseed').addEventListener('click', reseed);
+      $('nb-run').addEventListener('click', () => { if (!st.on) setMode(true); frame = frames.findIndex((f) => f.a >= st.firstA); if (frame < 0) frame = 0; playing = true; $('b-play').textContent = '⏸ 暂停'; requestAnimationFrame(tick); });
+      return { st, invalidate, draw, setMode, get on() { return st.on; }, usable };
+    })();
     function drawMovie() {
       if (!galaxies) galaxies = makeGalaxies();
       const cv = $('c-movie'), { ctx, w, h } = fit(cv), f = frames[frame]; if (!f) return;
       const a = f.a, g = GYR(), T = R.T0 / a;
       ctx.fillStyle = '#060913'; ctx.fillRect(0, 0, w, h);
+      if (NB.on) { const ok = NB.draw(ctx, w, h, f, frame); $('v-frame').textContent = `帧 ${frame + 1}/${frames.length}`; $('s-frame').value = frame; if (!ok && !playing && !NB.st.loop) { NB.st.loop = true; requestAnimationFrame(() => { NB.st.loop = false; if (NB.on && !playing) drawMovie(); }); } return ok; }
       // 背景辐射：复合之前是不透明的火球
       const glow = clamp((T - 1500) / 3000, 0, 1);
       if (glow > 0) { const c = bbColor(T); const grd = ctx.createRadialGradient(w / 2, h / 2, 10, w / 2, h / 2, Math.max(w, h) * 0.7); grd.addColorStop(0, `rgba(${c[0]},${c[1]},${c[2]},${0.95 * glow})`); grd.addColorStop(1, `rgba(${c[0]},${c[1]},${c[2]},${0.55 * glow})`); ctx.fillStyle = grd; ctx.fillRect(0, 0, w, h); }
@@ -2016,7 +2244,15 @@ var QLAI = (function () {
     function aAtH(f) { const e2 = COSMO.E2(R.m, f.a); return e2 > 0 ? Math.sqrt(e2) * (R.fate === 'crunch' && f.t > R.tTurn ? -1 : 1) : 0; }
     $('s-frame').addEventListener('input', () => { frame = +$('s-frame').value; drawMovie(); drawA(); });
     $('b-play').addEventListener('click', () => { playing = !playing; $('b-play').textContent = playing ? '⏸ 暂停' : '▶ 播放'; if (playing) { if (frame >= frames.length - 1) frame = 0; requestAnimationFrame(tick); } });
-    function tick(ts) { if (!playing || current !== 'forge') { playing = false; $('b-play').textContent = '▶ 播放'; return; } if (ts - lastDraw > 40) { lastDraw = ts; frame++; if (frame >= frames.length) { frame = frames.length - 1; playing = false; $('b-play').textContent = '▶ 播放'; } drawMovie(); if (frame % 6 === 0) drawA(); } requestAnimationFrame(tick); }
+    function tick(ts) {
+      if (!playing || current !== 'forge') { playing = false; $('b-play').textContent = '▶ 播放'; return; }
+      const pend = NB.on && NB.st.pending; // N 体还没算到这一帧：先把这一帧算完再往前走
+      if (pend || ts - lastDraw > 40) {
+        if (!pend) { lastDraw = ts; frame++; if (frame >= frames.length) { frame = frames.length - 1; playing = false; $('b-play').textContent = '▶ 播放'; } }
+        const ok = drawMovie(); NB.st.pending = NB.on && ok === false; if (!pend && frame % 6 === 0) drawA();
+      }
+      requestAnimationFrame(tick);
+    }
     $('b-alog').addEventListener('click', () => { alog = !alog; $('b-alog').textContent = alog ? '线性刻度' : '对数刻度'; drawA(); });
     window.addEventListener('resize', () => { if (current === 'forge') render(); });
     // 初始化
