@@ -73,6 +73,7 @@
     current = hall; store.set('hall', hall); { const bar = $('sticky-sum'); if (bar) bar.hidden = hall !== 'forge'; } try { if (location.hash !== '#' + hall) history.replaceState(null, '', '#' + hall); } catch (e) { /* 无妨 */ }
     if (hall === 'forge') forge.render(); if (hall === 'godel') godel.enter(); else godel.leave(); if (hall === 'inverse') inverse.render();
     if (window.GENESIS_Q_HALL) window.GENESIS_Q_HALL(hall);
+    for (const f of (window.GENESIS_HALLS || [])) f(hall); // 其他展区（Mixmaster 等）各自挂的钩子
   }
   $('tabs').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { show(b.dataset.hall); window.scrollTo({ top: 0 }); } });
   document.addEventListener('click', (e) => { const a = e.target.closest('[data-scroll]'); if (a) { e.preventDefault(); const el = $(a.dataset.scroll); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); } });
@@ -819,5 +820,5 @@
   // 启动（量子版先让 app_q 挂好钩子再启动）
   const start = () => show(halls.includes(location.hash.slice(1)) ? location.hash.slice(1) : store.get('hall', 'overview'));
   window.GENESIS.start = start; window.GENESIS.$ = $; window.GENESIS.chart = chart; window.GENESIS.fit = fit; window.GENESIS.sig = sig; window.GENESIS.gyr = gyr; window.GENESIS.toast = toast; window.GENESIS.CSS = CSS; window.GENESIS.store = store;
-  if (!window.GENESIS_Q) start();
+  // 启动由模板最后一行 GENESIS.start() 触发（各展区模块先挂好钩子）
 })();

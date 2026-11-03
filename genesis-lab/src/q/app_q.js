@@ -341,5 +341,4 @@
 
   window.GENESIS_QSTATE = () => ({ T0_K: QS.T0, Neff: QS.Neff, Ob: QS.Ob, As: QS.As, ns: QS.ns, r: QS.r, alpha_rel: QS.alpha, me_rel: QS.me, Q_MeV: QS.Q, GF_rel: QS.GF, LQC: QS.lqc ? 'ρ_c = 10^' + QS.rhoC + ' ρ_crit' : 'off' });
   syncQ();
-  G.start();
 })();

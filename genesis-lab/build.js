@@ -43,6 +43,8 @@ function build(q, artifact) {
   fill('__NBODY__', strip(src('nbody.js'))); fill('__GODEL__', strip(src('godel.js'))); fill('__PRESETS__', strip(src('presets.js'))); fill('__PUZZLES__', strip(src('puzzles.js')));
   fill('__Q_ENGINES__', q ? ['q/thermal.js', 'q/bbn.js', 'q/recomb.js', 'q/inflation.js'].map((f) => strip(src(f))).join('\n') : '');
   fill('__APP__', strip(src('app.js'))); fill('__Q_APP__', q ? strip(src('q/app_q.js')) : '');
+  // 其他展区：每个展区一个引擎（src/*.js，可在 Node 里测）+ 一个页面模块和一段 HTML（src/halls/）
+  fill('__MIX_HALL__', src('halls/mixmaster.html')); fill('__HALLS__', [strip(src('mixmaster.js')), strip(src('halls/mixmaster.js'))].join('\n'));
   fill('__GLOSS__', strip(src('gloss.js'))); fill('__QLAI__', artifact ? '' : QLAI); fill('__HELP__', strip(src('help.js')));
   fill('__KATEX_CSS__', KATEX_CSS); fill('__KATEX_JS__', KATEX_JS);
   return t;

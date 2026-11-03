@@ -170,6 +170,7 @@ footer{border-top:1px solid var(--line);padding:18px 0 28px;color:var(--faint);f
       <button data-hall="overview" class="on">总览</button>
       <button data-hall="forge">创世台</button>
       <button data-hall="godel">哥德尔旋转宇宙</button>
+      <button data-hall="mix">Mixmaster</button>
       <button data-hall="inverse">反推台</button>
     </nav>
   </div>
@@ -198,6 +199,7 @@ footer{border-top:1px solid var(--line);padding:18px 0 28px;color:var(--faint);f
       <ul>
         <li><a href="#forge" data-go="forge" style="color:var(--teal);font-weight:600">创世台</a>：随手拨出来的宇宙大多死寂；诊断会告诉你死在哪一步，并给你十一组方程允许、各有性格的宇宙。</li>
         <li><a href="#godel" data-go="godel" style="color:var(--teal);font-weight:600">哥德尔旋转宇宙</a>：精确解里亲手发一束光，看它绕回来；看光锥一点点倾倒，直到可以沿一个圈走回过去。</li>
+        <li><a href="#mix" data-go="mix" style="color:var(--teal);font-weight:600">Mixmaster</a>：放弃各向同性，看三根轴在奇点附近混沌地跳无穷多次，并亲手核对 BKL 的跳法规则。</li>
         <li><a href="#inverse" data-go="inverse" style="color:var(--teal);font-weight:600">反推台</a>：只给你一个隐藏宇宙的观测数据，你来判断它的形状和命运。</li>
       </ul>
       <p style="margin-top:10px"><button class="btn primary" data-go="forge">开始创世 →</button></p></div>
@@ -317,6 +319,61 @@ footer{border-top:1px solid var(--line);padding:18px 0 28px;color:var(--faint);f
 </section>
 
 <!-- ================= 反推台 ================= -->
+<!-- Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。 -->
+<!-- ================= Mixmaster（Bianchi IX）宇宙 ================= -->
+<section class="hall" id="hall-mix" hidden>
+  <p class="lede">放弃"各向同性"：让宇宙在三个方向上各有自己的尺度因子 a、b、c。这是爱因斯坦方程的 Bianchi IX 解（Misner 1969 叫它 Mixmaster，"搅拌机"）。它像我们的封闭宇宙一样有大爆炸和大坍缩，但靠近奇点时三根轴会轮流被挤扁、拉长，跳一支无穷无尽、而且混沌的舞。下面全部是从方程实时积分出来的。</p>
+  <div class="grid g-godel" style="margin-top:14px">
+    <div class="card">
+      <h3><span data-g="mixmaster">① 三根轴的舞蹈</span> <span class="tag sim">模拟</span></h3>
+      <p class="note">把宇宙的形状画成一个椭球（三根半轴 ∝ a、b、c，去掉了整体的大小）。拖动时间轴：靠近两端的奇点，宇宙在"雪茄"和"煎饼"之间不停切换——每一次切换就是一次反弹。拖动画面可以转动视角。</p>
+      <canvas id="c-mix-shape" width="520" height="380" class="pointer"></canvas>
+      <div class="bar"><button class="btn small primary" id="mix-play">▶ 播放</button><button class="btn small" id="mix-next">⏭ 下一次反弹</button><input type="range" id="mix-s" min="0" max="1000" step="1" value="500"><span class="note mono" id="mix-tau" style="min-width:90px;text-align:right"></span></div>
+      <div class="kv" id="mix-hud" style="margin-top:8px"></div>
+    </div>
+    <div class="card">
+      <h3><span data-g="bkl">② 指数的乐谱</span> <span class="tag sim">模拟</span></h3>
+      <p class="note">横轴是离奇点的时间（对数），纵轴是三根轴的对数长度。每一段直线是一个 Kasner 时代：三根轴各按 $t^{p_i}$ 伸缩，$p_1 + p_2 + p_3 = p_1^2 + p_2^2 + p_3^2 = 1$，总有一根在缩。折点是反弹。</p>
+      <div class="bar" style="margin-top:0"><label class="note">看哪一端 <select id="mix-end" class="num" style="width:auto;padding:4px 8px"><option value="bang">大爆炸</option><option value="crunch">大坍缩</option></select></label><span class="note" id="mix-cerr"></span></div>
+      <canvas id="c-mix-log" width="520" height="300"></canvas>
+      <div class="legend"><span><i style="background:var(--coral)"></i>ln a</span><span><i style="background:var(--teal)"></i>ln b</span><span><i style="background:var(--violet)"></i>ln c</span><span><i style="background:var(--gold)"></i>当前时刻</span></div>
+    </div>
+  </div>
+  <div class="grid g-godel" style="margin-top:14px">
+    <div class="card">
+      <h3><span data-g="kasner">③ Kasner 圆与高斯映射</span> <span class="tag sim">模拟</span></h3>
+      <p class="note">$\Sigma p = 1$ 和 $\Sigma p^2 = 1$ 一起定义一个圆。每个 Kasner 时代是圆上一个点，反弹把它跳到另一个点。BKL（1970）算出跳法只由一个数 $u \ge 1$ 决定：$u \to u - 1$，到 $1 < u < 2$ 时 $u \to 1/(u-1)$——这就是连分数的高斯映射，初始条件的小数点后第十位决定第十个时代。下面把方程积出来的时代序列和这条规则逐个对照。</p>
+      <div class="grid g2">
+        <div><canvas id="c-mix-kasner" width="300" height="300"></canvas></div>
+        <div id="mix-epochs" class="note" style="font-size:12px"></div>
+      </div>
+      <div class="bar"><button class="btn small" id="mix-chaos">🎲 混沌检验：u 改一百万分之一再算一遍</button><span class="note" id="mix-chaos-out"></span></div>
+    </div>
+    <div class="card">
+      <h3><span data-g="mixmaster">④ 创世参数</span></h3>
+      <p class="note">起点：三根轴一样长（$a = b = c = a_0$），各向异性全在速度里。两种给法：精确的 Kasner 态（一个数 $u$），或一般的剪切（大小和方向）。再决定装不装物质。</p>
+      <div class="chips" id="mix-presets"></div>
+      <div class="bar" style="margin-top:10px"><label class="note"><input type="radio" name="mix-mode" value="kasner" checked style="accent-color:var(--gold)"> 精确 Kasner 态</label><label class="note"><input type="radio" name="mix-mode" value="general" style="accent-color:var(--gold)"> 一般剪切</label></div>
+      <div class="ctl" id="mix-ctl-u"><label><span data-g="kasner">起始的 $u$</span><b class="mono" id="mix-v-u"></b></label><input type="range" id="mix-u" min="1.05" max="8" step="0.01" value="3.7"><div class="sub">$u = p_3/p_2$；$u$ 越大，第一个时代越"安静"（一根轴几乎不动）</div></div>
+      <div class="ctl" id="mix-ctl-shear" hidden><label><span>剪切大小</span><b class="mono" id="mix-v-shear"></b></label><input type="range" id="mix-shear" min="0" max="2" step="0.01" value="0.9"><div class="sub">0 = 各向同性（就是封闭的 FLRW）</div></div>
+      <div class="ctl" id="mix-ctl-chi" hidden><label><span>剪切方向 χ</span><b class="mono" id="mix-v-chi"></b></label><input type="range" id="mix-chi" min="0" max="6.28" step="0.01" value="0.7"><div class="sub">哪根轴先被压</div></div>
+      <div class="ctl"><label><span>起始大小 $a_0$</span><b class="mono" id="mix-v-a0"></b></label><input type="range" id="mix-a0" min="-2" max="-0.3" step="0.01" value="-1.7"><div class="sub">对数刻度；越小，离奇点越近、第一个时代越长</div></div>
+      <div class="ctl"><label><span data-g="mixmatter">尘埃 $M = 8\pi G\rho_0 V_0$</span><b class="mono" id="mix-v-M"></b></label><input type="range" id="mix-M" min="0" max="3" step="0.01" value="0"><div class="sub">0 = 真空（纯 Mixmaster）</div></div>
+      <div class="ctl"><label><span data-g="mixmatter">宇宙学常数 $\Lambda$</span><b class="mono" id="mix-v-L"></b></label><input type="range" id="mix-L" min="-0.3" max="0.6" step="0.01" value="0"><div class="sub">正的 Λ 够大时宇宙不再坍缩，反而被抹平</div></div>
+      <div class="kv" id="mix-cards" style="margin-top:10px"></div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <details><summary>读完你自己的发现之后再看：这个宇宙在说什么</summary>
+      <p><b style="color:var(--ink)">方程。</b>度规 $ds^2 = -dt^2 + a^2\sigma_1^2 + b^2\sigma_2^2 + c^2\sigma_3^2$，$\sigma_i$ 是三维球面上的 SU(2) 左不变一形式。用 BKL 的时间 $d\tau = dt/(abc)$ 和 $\alpha = \ln a$ 等，真空爱因斯坦方程变成 $$2\alpha'' = (b^2-c^2)^2 - a^4,\qquad 2\beta'' = (a^2-c^2)^2 - b^4,\qquad 2\gamma'' = (a^2-b^2)^2 - c^4,$$ 外加约束 $\alpha'\beta' + \beta'\gamma' + \gamma'\alpha' = \tfrac14(a^4+b^4+c^4) - \tfrac12(a^2b^2+b^2c^2+c^2a^2)$。右边就是三维空间的曲率——各向异性的三维球面的曲率可正可负，它像三面"墙"，轮流把宇宙弹回去。装尘埃是在每个方程右边加 $M\,abc$，装 $\Lambda$ 加 $2\Lambda(abc)^2$。三根轴一样长时，约束就退化成封闭 FLRW 的弗里德曼方程（页面的测试里逐个对照过）。</p>
+      <p><b style="color:var(--ink)">Kasner 时代。</b>离奇点足够近时墙可以忽略，$\alpha' $ 等都是常数：$a\propto t^{p_1}$、$b\propto t^{p_2}$、$c\propto t^{p_3}$，$\Sigma p_i = \Sigma p_i^2 = 1$（Kasner 1921）。总有一个指数是负的——往奇点走时那根轴反而在变长。它一长，对应的墙 $a^4$ 就起来了，把它弹回去：新的时代，新的指数。</p>
+      <p><b style="color:var(--ink)">混沌。</b>BKL 证明每次反弹的指数变化只由 $u$ 决定：$u\to u-1$；到 $1<u<2$ 时 $u\to 1/(u-1)$。写成连分数 $u = k_0 + 1/(k_1 + 1/(k_2+\cdots))$，一个"纪元"就是 $k_i$ 次反弹，纪元之间按高斯映射跳。高斯映射是混沌的：两个 $u$ 相差 $10^{-6}$，六七个纪元之后序列就完全不同——③里的按钮会让你亲眼看到。于是"初始条件决定一切"在这里变成"初始条件的第十位小数决定第十个纪元"。</p>
+      <p><b style="color:var(--ink)">它为什么重要。</b>Misner 1969 年提出 Mixmaster，本想用"搅拌"解释宇宙为什么各向同性（视界问题）；结果发现搅拌得并不够，视界问题最后由暴胀解决。但 BKL 猜想——一般的时空奇点附近都是这种振荡——至今仍是广义相对论最深的未解问题之一，数值相对论在 2000 年后才在一般情形下看到它的迹象。装上足够大的 $\Lambda$（④里拨正），膨胀把各向异性抹平：这就是"宇宙无毛"定理（Wald 1983），暴胀抹平初始各向异性的原型。</p>
+      <p class="note">标签：三根轴、指数、时代序列全是方程的数值解（模拟）；椭球只是形状的示意（真实的空间是一个被各向异性拉扯的三维球面），轴长用了对数压缩，不然靠近奇点的比例是 $e^{100}$。</p>
+    </details>
+  </div>
+</section>
+
 <section class="hall" id="hall-inverse" hidden>
   <p class="lede">第一关 · 命运之谜。实验室随机藏起一个宇宙，只把它的观测数据给你（全部<span class="tag sim">模拟</span>：由隐藏参数算出、加上真实量级的噪声）。请判断：它是开放还是封闭？会永远膨胀、还是终将坍缩？</p>
   <div class="grid g-inv" style="margin-top:14px">
@@ -1100,6 +1157,19 @@ const GLOSS = {
   pmap: { t: '参数空间地图', s: '$\\Omega_m$–$\\Omega_\\Lambda$ 平面上每一格都完整解一遍弗里德曼方程，画出命运、宜居、年龄的分区。',
     d: '横轴物质密度 $\\Omega_m$，纵轴暗能量 $\\Omega_\\Lambda$，$H_0$、$\\Omega_r$、$w$ 固定为创世台当前的值。右上灰区是"没有大爆炸"：$\\Lambda$ 太大、物质太少，往回追溯 $\\dot a$ 会先变号——宇宙从一个有限的 $a_{\\min}$ 反弹而来（1927 年勒梅特的徘徊宇宙就贴在这条边界上）。下方红区是大坍缩：$\\Lambda$ 不够大，物质把膨胀拉回来。中间是永远膨胀，白虚线 $\\Omega_m+\\Omega_\\Lambda+\\Omega_r=1$ 是平坦宇宙，点线 $q_0=0$ 把加速和减速分开。亮度来自宜居诊断：Λ 越大结构越早冻住（温伯格 1987 年用这条边界预言了 Λ 的量级），物质越多宇宙越短命。这张图就是 1998 年超新星观测把我们的宇宙钉在 $(0.3, 0.7)$ 附近时用的那张"宇宙学三角"图的全貌。',
     try: '把 w 拨到 −1.5，看整个"永远膨胀"区变成大撕裂；把 H₀ 拨到 30，看宜居区怎么变。' },
+  // ---------- Mixmaster ----------
+  mixmaster: { t: 'Mixmaster（Bianchi IX）宇宙', s: '三个方向各有尺度因子 a、b、c 的封闭宇宙；靠近奇点时三根轴轮流被挤扁拉长，混沌地跳无穷多次。',
+    d: '度规 $ds^2 = -dt^2 + a^2\\sigma_1^2 + b^2\\sigma_2^2 + c^2\\sigma_3^2$，$\\sigma_i$ 是三维球面的 SU(2) 一形式。用 $d\\tau = dt/abc$、$\\alpha = \\ln a$ 等，真空方程是 $$2\\alpha\'\' = (b^2-c^2)^2 - a^4$$（轮换），约束 $\\alpha\'\\beta\' + \\beta\'\\gamma\' + \\gamma\'\\alpha\' = \\tfrac14\\Sigma a^4 - \\tfrac12\\Sigma a^2b^2$。右边是各向异性三维球面的曲率，像三面墙。Misner 1969 年给它起名 Mixmaster（搅拌机），想用来解释宇宙为什么各向同性；BKL（Belinski–Khalatnikov–Lifshitz）1970 年证明奇点附近的一般行为就是这种振荡。',
+    try: '选"纯 Mixmaster"，按播放，看三根轴在"雪茄"和"煎饼"之间换。' },
+  bkl: { t: 'BKL 振荡 / Kasner 时代', s: '离奇点足够近时墙可以忽略，三根轴按 $t^{p_1}, t^{p_2}, t^{p_3}$ 伸缩（Kasner 1921）；某根轴长到撞墙就反弹，换一组指数。',
+    d: 'Kasner 指数满足 $\\Sigma p_i = \\Sigma p_i^2 = 1$，所以总有一个是负的：往奇点走时那根轴反而变长，它的墙 $a^4$ 跟着起来，把它弹回去。指数由一个参数 $u\\ge1$ 给出：$$p_1 = \\frac{-u}{1+u+u^2},\\quad p_2 = \\frac{1+u}{1+u+u^2},\\quad p_3 = \\frac{u(1+u)}{1+u+u^2}.$$ 每反弹一次 $u\\to u-1$；到 $1<u<2$ 时 $u\\to 1/(u-1)$。页面把方程积出来的每个时代的 $u$ 和这条规则并排给你核。',
+    try: '在③里看"方程算出的 u"和"BKL 规则预言"那两列。' },
+  kasner: { t: 'Kasner 圆与 u', s: '$\\Sigma p = 1$ 与 $\\Sigma p^2 = 1$ 的交集是一个圆；每个 Kasner 时代是圆上一点，$u = p_3/p_2$ 把圆参数化。',
+    d: '$u\\to u-1$、$u\\to 1/(u-1)$ 合起来就是连分数的高斯映射 $x\\to\\{1/x\\}$：把 $u$ 写成连分数 $[k_0; k_1, k_2, \\dots]$，第一个纪元反弹 $k_0$ 次，第二个纪元 $k_1$ 次……混沌就藏在这里：$u$ 的小数点后第十位决定第十个纪元。黄金比 $u = (1+\\sqrt5)/2$ 的连分数是 $[1;1,1,1,\\dots]$，所以它每次反弹都回到同一个 $u$——周期轨道。',
+    try: '选"黄金比"，看③里 u 一直是 1.618。' },
+  mixmatter: { t: '装上物质和 Λ', s: '尘埃在每个方程右边加 $M\\,abc$，Λ 加 $2\\Lambda(abc)^2$；物质让宇宙先膨胀再坍缩，Λ 够大则永远膨胀并被抹平。',
+    d: '尘埃 $\\rho\\propto 1/abc$，$M = 8\\pi G\\rho_0V_0$。靠近奇点时 $M\\,abc$ 比墙 $a^4$ 衰减得慢还是快？$abc\\to0$ 但墙里的那根轴在变长，所以墙总是先起作用：物质不改变振荡（BKL 的"物质不重要"）。正的 $\\Lambda$ 则相反：膨胀到 $\\Lambda(abc)^2$ 压过曲率后，各向异性指数衰减，走向 de Sitter——Wald 1983 年的"宇宙无毛"定理，也是暴胀能抹平初始各向异性的原因。',
+    try: '选"加上 Λ"，看乐谱右端三条线平行（各向同性）。' },
   // ---------- 哥德尔 ----------
   godel: { t: '哥德尔宇宙', s: '爱因斯坦方程的一个精确解（1949）：物质整体旋转，里面存在回到过去的路线。',
     d: '柱坐标度规 $$ds^2 = 4a^2\\big[-dt^2 + dr^2 + dz^2 - (\\sinh^4 r - \\sinh^2 r)\\,d\\varphi^2 + 2\\sqrt2\\,\\sinh^2 r\\,d\\varphi\\,dt\\big].$$ 物质是静止在坐标上的尘埃，相对局部惯性系以 $\\omega = 1/(\\sqrt2 a)$ 转动。爱因斯坦方程要求 $\\Lambda = -\\omega^2$、$4\\pi G\\rho = \\omega^2$：只有一个自由参数。$g_{\\varphi\\varphi} < 0$ 当 $\\sinh r > 1$——绕轴一圈的曲线变成类时的：闭合类时曲线。',
@@ -1703,6 +1773,7 @@ var QLAI = (function () {
     current = hall; store.set('hall', hall); { const bar = $('sticky-sum'); if (bar) bar.hidden = hall !== 'forge'; } try { if (location.hash !== '#' + hall) history.replaceState(null, '', '#' + hall); } catch (e) { /* 无妨 */ }
     if (hall === 'forge') forge.render(); if (hall === 'godel') godel.enter(); else godel.leave(); if (hall === 'inverse') inverse.render();
     if (window.GENESIS_Q_HALL) window.GENESIS_Q_HALL(hall);
+    for (const f of (window.GENESIS_HALLS || [])) f(hall); // 其他展区（Mixmaster 等）各自挂的钩子
   }
   $('tabs').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { show(b.dataset.hall); window.scrollTo({ top: 0 }); } });
   document.addEventListener('click', (e) => { const a = e.target.closest('[data-scroll]'); if (a) { e.preventDefault(); const el = $(a.dataset.scroll); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); } });
@@ -2449,9 +2520,277 @@ var QLAI = (function () {
   // 启动（量子版先让 app_q 挂好钩子再启动）
   const start = () => show(halls.includes(location.hash.slice(1)) ? location.hash.slice(1) : store.get('hall', 'overview'));
   window.GENESIS.start = start; window.GENESIS.$ = $; window.GENESIS.chart = chart; window.GENESIS.fit = fit; window.GENESIS.sig = sig; window.GENESIS.gyr = gyr; window.GENESIS.toast = toast; window.GENESIS.CSS = CSS; window.GENESIS.store = store;
-  if (!window.GENESIS_Q) start();
+  // 启动由模板最后一行 GENESIS.start() 触发（各展区模块先挂好钩子）
 })();
 
+
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
+// Mixmaster（Bianchi IX）宇宙引擎：各向异性的封闭宇宙，三个方向各有一个尺度因子 a、b、c。
+//   度规 ds² = −dt² + a²σ₁² + b²σ₂² + c²σ₃²，σᵢ 是 SU(2) 的左不变一形式（dσ₁ = σ₂∧σ₃ 等）。
+//   用 BKL 的时间 τ（dt = abc dτ）和 α = ln a、β = ln b、γ = ln c，爱因斯坦方程变成
+//     2α'' = (b² − c²)² − a⁴ + M·abc + 2Λ(abc)²   （β、γ 轮换）
+//   约束  α'β' + β'γ' + γ'α' = ¼(a⁴ + b⁴ + c⁴) − ½(a²b² + b²c² + c²a²) + M·abc + Λ(abc)²
+//   其中 M = 8πGρ₀V₀ 是尘埃的量（ρ ∝ 1/abc），Λ 是宇宙学常数；M = Λ = 0 就是真空的 Mixmaster。
+//   各向同性 a = b = c = R/2 时约束退化成封闭 FLRW 的弗里德曼方程（test/mixmaster.test.js 对照）。
+//   奇点附近：势能项轮流起作用，宇宙在 Kasner 时代之间跳——指数 (p₁,p₂,p₃)，Σp = Σp² = 1，由 u ≥ 1 参数化：
+//     p₁ = −u/(1+u+u²)，p₂ = (1+u)/(1+u+u²)，p₃ = u(1+u)/(1+u+u²)；每次反弹 u → u−1（u ≥ 2）或 1/(u−1)（1 < u < 2）：高斯映射，混沌。
+const MIXMASTER = (function () {
+  function kasnerFromU(u) { const d = 1 + u + u * u; return [-u / d, (1 + u) / d, u * (1 + u) / d]; } // 升序：p1 < 0 < p2 < p3
+  function uFromKasner(p) { const s = p.slice().sort((x, y) => x - y); return s[1] > 1e-12 ? s[2] / s[1] : Infinity; }
+  function bklMap(u) { return u >= 2 ? u - 1 : 1 / (u - 1); } // 一次反弹后的 u（u > 1）
+  // 右端项
+  function rhs(y, M, L) { // y = [α, β, γ, α', β', γ', t]
+    const a2 = Math.exp(2 * y[0]), b2 = Math.exp(2 * y[1]), c2 = Math.exp(2 * y[2]), abc = Math.exp(y[0] + y[1] + y[2]), V2 = abc * abc;
+    const m = M * abc + 2 * L * V2;
+    return [y[3], y[4], y[5], 0.5 * ((b2 - c2) ** 2 - a2 * a2 + m), 0.5 * ((a2 - c2) ** 2 - b2 * b2 + m), 0.5 * ((a2 - b2) ** 2 - c2 * c2 + m), abc];
+  }
+  function constraint(y, M, L) {
+    const a2 = Math.exp(2 * y[0]), b2 = Math.exp(2 * y[1]), c2 = Math.exp(2 * y[2]), abc = Math.exp(y[0] + y[1] + y[2]);
+    const lhs = y[3] * y[4] + y[4] * y[5] + y[5] * y[3], rhsV = 0.25 * (a2 * a2 + b2 * b2 + c2 * c2) - 0.5 * (a2 * b2 + b2 * c2 + c2 * a2) + M * abc + L * abc * abc;
+    const scale = Math.abs(y[3] * y[4]) + Math.abs(y[4] * y[5]) + Math.abs(y[5] * y[3]) + 0.25 * (a2 * a2 + b2 * b2 + c2 * c2) + 0.5 * (a2 * b2 + b2 * c2 + c2 * a2) + M * abc + Math.abs(L) * abc * abc + 1e-300;
+    return { lhs, rhs: rhsV, err: Math.abs(lhs - rhsV) / scale }; // 相对误差：分母是各项绝对值之和（避免相消处虚高）
+  }
+  // 初始数据：τ = 0 时 a = b = c = a0，速度 = 各向同性部分 s·(1,1,1) + 剪切 q（Σq = 0），s 由约束解出（取膨胀支）
+  //   剪切用大小 |q| 和方向角 χ 给：q = |q|·(cos χ, cos(χ+2π/3), cos(χ+4π/3))·√(2/3)
+  function initial(o) {
+    const a0 = o.a0 || 1, M = o.M || 0, L = o.L || 0, qm = o.shear || 0, chi = o.chi || 0;
+    const q = [0, 1, 2].map((k) => qm * Math.sqrt(2 / 3) * Math.cos(chi + k * 2 * Math.PI / 3));
+    const y = [Math.log(a0), Math.log(a0), Math.log(a0), 0, 0, 0, 0];
+    const c = constraint(y, M, L).rhs; // 约束右端（只和 a,b,c 有关）
+    const q2 = q[0] * q[0] + q[1] * q[1] + q[2] * q[2], s2 = (c + 0.5 * q2) / 3;
+    if (s2 < 0) return null; // 这个 a0 下连静止都不允许（曲率太强）
+    const s = Math.sqrt(s2) * (o.contracting ? -1 : 1);
+    y[3] = s + q[0]; y[4] = s + q[1]; y[5] = s + q[2];
+    return y;
+  }
+  // 从一个精确的 Kasner 态出发（尺度 a0 很小、势能可忽略）：速度 = λ·pᵢ，p 由 u 给出，perm 指定哪个方向是负指数（0/1/2）
+  function initialKasner(o) {
+    const a0 = o.a0 || 0.02, u = o.u || 3.7, lam = o.lambda || 1, perm = o.perm || 0, M = o.M || 0, L = o.L || 0;
+    const p = kasnerFromU(u), q = [p[perm % 3], p[(perm + 1) % 3], p[(perm + 2) % 3]];
+    const y = [Math.log(a0), Math.log(a0), Math.log(a0), lam * q[0], lam * q[1], lam * q[2], 0];
+    // 严格满足约束：速度加一个各向同性的小量 ε（Kasner 的 Σpᵢpⱼ = 0，势能项 c 很小）：3ε² + 2λε − c = 0
+    const c = constraint(y, M, L).rhs, disc = 4 * lam * lam + 12 * c; if (disc < 0) return null;
+    const eps = (-2 * lam + Math.sqrt(disc)) / 6; y[3] += eps; y[4] += eps; y[5] += eps;
+    return y;
+  }
+  // RK4 自适应（步长按右端项大小），向 τ 增大（dir=+1）或减小（dir=−1）积分，直到体积缩到 e^{−lnVmin}、τ 到 tauMax 或步数用尽
+  function integrate(y0, o) {
+    o = o || {}; const M = o.M || 0, L = o.L || 0, dir = o.dir || 1, tauMax = o.tauMax || 20000, maxSteps = o.maxSteps || 1500000, lnVmin = o.lnVmin || -650, every = o.every || 4;
+    let y = y0.slice(), tau = 0, n = 0; const out = { tau: [0], y: [y.slice()], cerr: [constraint(y, M, L).err], stop: null };
+    const f = (y) => rhs(y, M, L);
+    while (n++ < maxSteps) {
+      // 步长：每步 |Δα| ≤ 0.03（势能墙 e^{4α} 每步最多变 e^{0.12}）；墙已经起作用时再细到 |Δα| ≤ 0.004；Kasner 长段里步子放大
+      const k1 = f(y); const vel = Math.max(1e-6, Math.abs(y[3]), Math.abs(y[4]), Math.abs(y[5])), acc = Math.max(Math.abs(k1[3]), Math.abs(k1[4]), Math.abs(k1[5]));
+      const wall = acc > 1e-7 * vel * vel, sa = Math.sqrt(acc);
+      const h = dir * Math.min(o.hMax || 0.5, 0.03 / vel, 0.05 / Math.max(sa, 1e-9), wall ? Math.min(0.004 / vel, 0.01 / Math.max(sa, 1e-9)) : Infinity);
+      const y2 = y.map((v, i) => v + 0.5 * h * k1[i]), k2 = f(y2), y3 = y.map((v, i) => v + 0.5 * h * k2[i]), k3 = f(y3), y4 = y.map((v, i) => v + h * k3[i]), k4 = f(y4);
+      const ny = y.map((v, i) => v + h / 6 * (k1[i] + 2 * k2[i] + 2 * k3[i] + k4[i]));
+      if (!ny.every(isFinite)) { out.stop = 'overflow'; break; }
+      y = ny; tau += h;
+      if (n % every === 0) { out.tau.push(tau); out.y.push(y.slice()); out.cerr.push(constraint(y, M, L).err); }
+      const lnV = y[0] + y[1] + y[2];
+      if (lnV < lnVmin) { out.stop = 'singularity'; break; }
+      if (Math.abs(tau) >= tauMax) { out.stop = 'tauMax'; break; }
+      if (lnV > 60) { out.stop = 'big'; break; }
+      if (y[0] > 300 || y[1] > 300 || y[2] > 300) { out.stop = 'range'; break; }
+    }
+    if (!out.stop) out.stop = 'steps';
+    if (out.tau[out.tau.length - 1] !== tau) { out.tau.push(tau); out.y.push(y.slice()); out.cerr.push(constraint(y, M, L).err); }
+    return out;
+  }
+  // 完整求解：从 τ = 0 向未来和过去各积一遍；宇宙时 t 以 τ = 0 为零点（y[6]）
+  function solve(o) {
+    const y0 = o.u ? initialKasner(o) : initial(o); if (!y0) return null;
+    const fut = integrate(y0, Object.assign({}, o, { dir: 1 })), past = integrate(y0, Object.assign({}, o, { dir: -1 }));
+    // 合并成一条按 τ 递增的轨迹
+    const tau = [], Y = [], cerr = [];
+    for (let i = past.tau.length - 1; i >= 1; i--) { tau.push(past.tau[i]); Y.push(past.y[i]); cerr.push(past.cerr[i]); }
+    for (let i = 0; i < fut.tau.length; i++) { tau.push(fut.tau[i]); Y.push(fut.y[i]); cerr.push(fut.cerr[i]); }
+    const R = { tau, y: Y, cerr, y0, pastStop: past.stop, futStop: fut.stop, M: o.M || 0, L: o.L || 0 };
+    // 宇宙时：t(τ=0) = 0；大爆炸时刻 tBang = past 端的 t（负），大坍缩 tCrunch = fut 端的 t；体积已缩到 e^{−60} 以下就当作到了奇点（剩下的时间可忽略）
+    const lnVend = (br) => { const y = br.y[br.y.length - 1]; return y[0] + y[1] + y[2]; };
+    const pastSing = past.stop === 'singularity' || lnVend(past) < -60, futSing = fut.stop === 'singularity' || lnVend(fut) < -60;
+    R.tBang = pastSing ? past.y[past.y.length - 1][6] : NaN; R.tCrunch = futSing ? fut.y[fut.y.length - 1][6] : NaN;
+    // 离奇点的时间 T（从大爆炸算起）和 T'（到大坍缩）：从奇点那一端把 abc 累加回来，每个值都是正项之和，不会相消（能一路算到 e^{−500}）
+    const n = tau.length, abc = Y.map((y) => Math.exp(y[0] + y[1] + y[2])); R.Tbang = new Float64Array(n); R.Tcrunch = new Float64Array(n);
+    { const y = Y[0], s = y[3] + y[4] + y[5]; R.Tbang[0] = s > 0 ? abc[0] / s : 0; for (let i = 1; i < n; i++) R.Tbang[i] = R.Tbang[i - 1] + 0.5 * (abc[i - 1] + abc[i]) * (tau[i] - tau[i - 1]); }
+    { const y = Y[n - 1], s = -(y[3] + y[4] + y[5]); R.Tcrunch[n - 1] = s > 0 ? abc[n - 1] / s : 0; for (let i = n - 2; i >= 0; i--) R.Tcrunch[i] = R.Tcrunch[i + 1] + 0.5 * (abc[i + 1] + abc[i]) * (tau[i + 1] - tau[i]); }
+    if (!pastSing) R.Tbang = null; if (!futSing) R.Tcrunch = null;
+    R.epochs = epochs(R, 'bang'); R.epochsCrunch = epochs(R, 'crunch');
+    return R;
+  }
+  // 瞬时的"速度指数" pᵢ = αᵢ'/(α'+β'+γ')：势能可忽略时就是 Kasner 指数（不需要知道大爆炸时刻）
+  function velocityExponents(y) { const s = y[3] + y[4] + y[5]; return Math.abs(s) > 1e-300 ? [y[3] / s, y[4] / s, y[5] / s] : null; }
+  // Kasner 指数 pᵢ = d ln aᵢ / d ln T，T 是离奇点的时间（end = 'bang'：从大爆炸算起；'crunch'：到大坍缩，指数取反方向）
+  function exponents(R, i, end) {
+    const y = R.y[i], crunch = end === 'crunch', T = crunch ? (R.Tcrunch && R.Tcrunch[i]) : (R.Tbang && R.Tbang[i]); if (!(T > 0)) return null; const abc = Math.exp(y[0] + y[1] + y[2]), s = crunch ? -1 : 1;
+    return [s * y[3] * T / abc, s * y[4] * T / abc, s * y[5] * T / abc];
+  }
+  // 时代划分：从奇点那一端往外看，指数几乎不变的一段算一个 Kasner 时代（Σp ≈ 1 且 Σp² ≈ 1 才算真的 Kasner）
+  function epochs(R, end) {
+    const crunch = end === 'crunch'; if (crunch ? !R.Tcrunch : !R.Tbang) return [];
+    const list = []; let cur = null; const N = R.y.length;
+    for (let k = 0; k < N; k++) {
+      const i = crunch ? N - 1 - k : k;
+      const p = exponents(R, i, end); if (!p) continue; const s1 = p[0] + p[1] + p[2], s2 = p[0] * p[0] + p[1] * p[1] + p[2] * p[2];
+      const kasner = Math.abs(s1 - 1) < 0.03 && Math.abs(s2 - 1) < 0.06;
+      if (!kasner) { if (cur) { cur.iEnd = i - 1; list.push(cur); cur = null; } continue; }
+      if (cur && Math.max(Math.abs(p[0] - cur.p[0]), Math.abs(p[1] - cur.p[1]), Math.abs(p[2] - cur.p[2])) < 0.04) { cur.iEnd = i; cur.n++; for (let k = 0; k < 3; k++) cur.sum[k] += p[k]; cur.p = cur.sum.map((v) => v / cur.n); }
+      else { if (cur) list.push(cur); cur = { iStart: i, iEnd: i, p: p.slice(), sum: p.slice(), n: 1 }; }
+    }
+    if (cur) list.push(cur);
+    const T = crunch ? R.Tcrunch : R.Tbang;
+    // 一个时代至少要跨 ln T 的 0.5（排除反弹中的过渡点）
+    const out = list.map((e) => { const l0 = Math.log(T[e.iStart]), l1 = Math.log(T[e.iEnd]); return { iStart: Math.min(e.iStart, e.iEnd), iEnd: Math.max(e.iStart, e.iEnd), p: e.p, u: uFromKasner(e.p), growing: e.p.indexOf(Math.max(...e.p)), shrinking: e.p.indexOf(Math.min(...e.p)), lnt0: Math.min(l0, l1), lnt1: Math.max(l0, l1), n: e.n }; }).filter((e) => e.n >= 8 && e.lnt1 - e.lnt0 > 2);
+    return out;
+  }
+  return { kasnerFromU, uFromKasner, bklMap, rhs, constraint, initial, initialKasner, integrate, solve, velocityExponents, exponents, epochs };
+})();
+
+// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
+// Mixmaster 展区的页面逻辑：引擎在 mixmaster.js；这里只管旋钮、椭球动画、乐谱图、Kasner 圆和时代表。
+(function () {
+  const G = window.GENESIS, $ = G.$, chart = G.chart, fit = G.fit, sig = G.sig, CSS = G.CSS, toast = G.toast;
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const P = { mode: 'kasner', u: 3.7, shear: 0.9, chi: 0.7, a0: 0.02, M: 0, L: 0 };
+  const st = { R: null, i: 0, playing: false, raf: 0, last: 0, yaw: 0.7, pitch: 0.45, drag: null, end: 'bang', chaos: null, timer: null, bounds: [] };
+  const PRESETS = [
+    { id: 'pure', name: '纯 Mixmaster', sub: '真空，u = 3.7', p: { mode: 'kasner', u: 3.7, a0: 0.02, M: 0, L: 0 } },
+    { id: 'long', name: '长纪元', sub: 'u = 5.5：先连跳四次', p: { mode: 'kasner', u: 5.5, a0: 0.02, M: 0, L: 0 } },
+    { id: 'golden', name: '黄金比', sub: 'u = 1.618…：永远同一种跳法', p: { mode: 'kasner', u: (1 + Math.sqrt(5)) / 2, a0: 0.02, M: 0, L: 0 } },
+    { id: 'dust', name: '装上尘埃', sub: 'M = 1：先膨胀再坍缩', p: { mode: 'general', shear: 0.9, chi: 0.7, a0: 0.3, M: 1, L: 0 } },
+    { id: 'lambda', name: '加上 Λ', sub: 'Λ = 0.4：被抹平，永远膨胀', p: { mode: 'general', shear: 0.9, chi: 0.7, a0: 0.3, M: 1, L: 0.4 } },
+    { id: 'iso', name: '各向同性', sub: '剪切 0：就是封闭 FLRW', p: { mode: 'general', shear: 0, chi: 0, a0: 0.3, M: 1, L: 0 } },
+  ];
+  function params() { return P.mode === 'kasner' ? { u: P.u, a0: P.a0, lambda: 1, M: P.M, L: P.L } : { a0: P.a0, shear: P.shear, chi: P.chi, M: P.M, L: P.L }; }
+  function labels() {
+    $('mix-v-u').textContent = P.u.toFixed(3); $('mix-v-shear').textContent = P.shear.toFixed(2); $('mix-v-chi').textContent = P.chi.toFixed(2); $('mix-v-a0').textContent = sig(P.a0, 3); $('mix-v-M').textContent = P.M.toFixed(2); $('mix-v-L').textContent = P.L.toFixed(2);
+    $('mix-ctl-u').hidden = P.mode !== 'kasner'; $('mix-ctl-shear').hidden = P.mode === 'kasner'; $('mix-ctl-chi').hidden = P.mode === 'kasner';
+    for (const b of document.querySelectorAll('#mix-presets .chip')) { const pr = PRESETS.find((x) => x.id === b.dataset.id); b.classList.toggle('on', !!pr && Object.keys(pr.p).every((k) => (k === 'mode' ? pr.p[k] === P[k] : Math.abs(pr.p[k] - P[k]) < 1e-9))); }
+  }
+  function sync() { $('mix-u').value = P.u; $('mix-shear').value = P.shear; $('mix-chi').value = P.chi; $('mix-a0').value = Math.log10(P.a0); $('mix-M').value = P.M; $('mix-L').value = P.L; for (const r of document.querySelectorAll('input[name=mix-mode]')) r.checked = r.value === P.mode; labels(); }
+  // ---- 求解 ----
+  function solveNow() {
+    const t0 = performance.now(); const R = MIXMASTER.solve(params());
+    if (!R) { toast('这组初始条件不允许：曲率太强，连静止都不行——把 a₀ 调小'); return; }
+    st.R = R; st.chaos = null; $('mix-chaos-out').textContent = '';
+    // 反弹的位置：时代的边界（两端的都算），供"下一次反弹"用
+    const b = new Set(); for (const e of R.epochs.concat(R.epochsCrunch)) { b.add(e.iStart); b.add(e.iEnd); } st.bounds = Array.from(b).sort((x, y) => x - y);
+    $('mix-s').max = R.y.length - 1; let i0 = 0; for (let i = 0; i < R.tau.length; i++) if (R.tau[i] <= 0) i0 = i; st.i = i0; $('mix-s').value = i0;
+    let cm = 0; for (const c of R.cerr) if (c > cm) cm = c; $('mix-cerr').textContent = `约束相对误差最大 ${cm.toExponential(1)} · ${R.y.length} 个采样点 · ${Math.round(performance.now() - t0)} ms`;
+    render();
+  }
+  function solveSoon() { clearTimeout(st.timer); st.timer = setTimeout(solveNow, 250); }
+  // ---- 渲染 ----
+  function render() { if (!st.R) return; drawShape(); hud(); drawLog(); drawKasner(); epochTable(); cards(); }
+  function cur() { const R = st.R, i = clamp(st.i, 0, R.y.length - 1), y = R.y[i]; const lnV = y[0] + y[1] + y[2], p = MIXMASTER.velocityExponents(y), s2 = p ? p[0] * p[0] + p[1] * p[1] + p[2] * p[2] : NaN, rhs = MIXMASTER.rhs(y, R.M, R.L); const acc = [Math.abs(rhs[3]), Math.abs(rhs[4]), Math.abs(rhs[5])]; const vel = Math.max(1e-9, Math.abs(y[3]), Math.abs(y[4]), Math.abs(y[5])); const wall = Math.max(...acc) > 1e-4 * vel * vel ? acc.indexOf(Math.max(...acc)) : -1; return { i, y, lnV, p, s2, wall, Tb: R.Tbang ? R.Tbang[i] : NaN, Tc: R.Tcrunch ? R.Tcrunch[i] : NaN }; }
+  function hud() {
+    const R = st.R, c = cur(), y = c.y, names = ['a', 'b', 'c'];
+    $('mix-tau').textContent = `τ = ${sig(R.tau[c.i], 3)}`;
+    const K = [];
+    K.push(['gold', '宇宙时 t', isFinite(c.Tb) ? `${sig(c.Tb, 3)}` : sig(y[6], 3), isFinite(c.Tb) ? `从大爆炸算起${isFinite(c.Tc) ? `；离大坍缩还有 ${sig(c.Tc, 3)}` : ''}` : '以 τ = 0 为零点']);
+    K.push(['teal', '三根轴 ln a, ln b, ln c', `${y[0].toFixed(1)}, ${y[1].toFixed(1)}, ${y[2].toFixed(1)}`, `体积 ln V = ${c.lnV.toFixed(1)}`]);
+    if (c.p) K.push([Math.abs(c.s2 - 1) < 0.03 ? 'violet' : 'coral', '指数 p₁, p₂, p₃', c.p.map((v) => v.toFixed(3)).join(', '), Math.abs(c.s2 - 1) < 0.03 ? `Kasner 时代：Σp² = ${c.s2.toFixed(3)}，u = ${sig(MIXMASTER.uFromKasner(c.p), 3)}；${names[c.p.indexOf(Math.min(...c.p))]} 轴在往最近的奇点方向变长，另外两根在缩` : `反弹中（Σp² = ${c.s2.toFixed(2)} ≠ 1）${c.wall >= 0 ? `：${names[c.wall]} 轴撞墙` : ''}`]);
+    $('mix-hud').innerHTML = K.map(([cl, k, v, i]) => `<div class="k ${cl}"><small>${k}</small><b class="mono" style="font-size:15px">${v}</b><i>${i}</i></div>`).join('');
+  }
+  function drawShape() {
+    const cv = $('c-mix-shape'), { ctx, w, h } = fit(cv), c = cur(), y = c.y; ctx.fillStyle = '#060913'; ctx.fillRect(0, 0, w, h);
+    const sh = [0, 1, 2].map((k) => y[k] - c.lnV / 3), L = sh.map((s) => Math.exp(2.2 * Math.tanh(s / 5))); // 对数压缩的形状
+    const R = Math.min(w, h) * 0.3, cy = Math.cos(st.yaw), sy = Math.sin(st.yaw), cp = Math.cos(st.pitch), sp = Math.sin(st.pitch);
+    const proj = (x, y3, z) => { const x1 = x * cy - y3 * sy, y1 = x * sy + y3 * cy; const y2 = y1 * cp - z * sp, z2 = y1 * sp + z * cp; return [w / 2 + x1 * R, h / 2 + y2 * R, z2]; };
+    const COL = [CSS('--coral'), CSS('--teal'), CSS('--violet')];
+    // 网格线
+    ctx.lineWidth = 1; const N1 = 12, N2 = 8;
+    for (let m = 0; m < N1; m++) { const ph = m / N1 * Math.PI * 2; ctx.beginPath(); for (let k = 0; k <= 32; k++) { const th = k / 32 * Math.PI; const q = proj(L[0] * Math.sin(th) * Math.cos(ph), L[1] * Math.sin(th) * Math.sin(ph), L[2] * Math.cos(th)); if (k) ctx.lineTo(q[0], q[1]); else ctx.moveTo(q[0], q[1]); } ctx.strokeStyle = 'rgba(242,193,78,0.35)'; ctx.stroke(); }
+    for (let m = 1; m < N2; m++) { const th = m / N2 * Math.PI; ctx.beginPath(); for (let k = 0; k <= 48; k++) { const ph = k / 48 * Math.PI * 2; const q = proj(L[0] * Math.sin(th) * Math.cos(ph), L[1] * Math.sin(th) * Math.sin(ph), L[2] * Math.cos(th)); if (k) ctx.lineTo(q[0], q[1]); else ctx.moveTo(q[0], q[1]); } ctx.strokeStyle = 'rgba(242,193,78,0.35)'; ctx.stroke(); }
+    // 三根轴
+    const names = ['a', 'b', 'c'];
+    for (let k = 0; k < 3; k++) { const v = [0, 0, 0]; v[k] = L[k] * 1.15; const q0 = proj(-v[0], -v[1], -v[2]), q1 = proj(v[0], v[1], v[2]); ctx.strokeStyle = COL[k]; ctx.lineWidth = c.wall === k ? 3 : 1.6; ctx.beginPath(); ctx.moveTo(q0[0], q0[1]); ctx.lineTo(q1[0], q1[1]); ctx.stroke(); ctx.fillStyle = COL[k]; ctx.font = '600 13px Space Grotesk, sans-serif'; ctx.textAlign = 'center'; ctx.fillText(names[k] + (c.p ? ` (p=${c.p[k].toFixed(2)})` : ''), q1[0] + (q1[0] > w / 2 ? 28 : -28), q1[1] + 4); }
+    // 体积条和读数
+    const vmin = -200, vmax = 10, u = clamp((c.lnV - vmin) / (vmax - vmin), 0, 1);
+    ctx.fillStyle = 'rgba(152,164,199,0.25)'; ctx.fillRect(14, h - 22, w - 28, 8); ctx.fillStyle = CSS('--gold'); ctx.fillRect(14, h - 22, (w - 28) * u, 8);
+    ctx.fillStyle = CSS('--dim'); ctx.font = '11px Space Grotesk, sans-serif'; ctx.textAlign = 'left'; ctx.fillText(`体积 ln V = ${c.lnV.toFixed(1)}（轴长比例 a:b:c = ${sh.map((s) => (s > 0 ? '+' : '') + s.toFixed(1)).join(' : ')} 的指数，画时压缩）`, 14, h - 28);
+    if (c.wall >= 0) { ctx.fillStyle = COL[c.wall]; ctx.font = '600 13px Space Grotesk, sans-serif'; ctx.textAlign = 'right'; ctx.fillText(`${names[c.wall]} 轴撞墙：反弹！`, w - 14, 20); }
+  }
+  function series(end) { // 乐谱：x = ln T（离奇点的时间），三条 ln a_i
+    const R = st.R, T = end === 'crunch' ? R.Tcrunch : R.Tbang; if (!T) return null; const xs = [], ya = [], yb = [], yc = [];
+    for (let i = 0; i < R.y.length; i += 2) { const t = T[i]; if (!(t > 0)) continue; const x = Math.log(t); xs.push(x); ya.push(R.y[i][0]); yb.push(R.y[i][1]); yc.push(R.y[i][2]); }
+    return { xs, ya, yb, yc, T };
+  }
+  function drawLog() {
+    const cv = $('c-mix-log'), S = series(st.end); if (!S) { const { ctx, w, h } = fit(cv); ctx.clearRect(0, 0, w, h); ctx.fillStyle = CSS('--dim'); ctx.font = '13px Space Grotesk'; ctx.textAlign = 'center'; ctx.fillText(st.end === 'crunch' ? '这一端没有大坍缩（Λ 把它抹平了，永远膨胀）' : '这一端没到奇点', w / 2, h / 2); return; }
+    const c = cur(), xcur = Math.log(st.end === 'crunch' ? c.Tc : c.Tb);
+    let xmin = Math.min(...S.xs), xmax = Math.max(...S.xs), ymin = Math.min(...S.ya, ...S.yb, ...S.yc), ymax = Math.max(...S.ya, ...S.yb, ...S.yc);
+    xmin = Math.max(xmin, xmax - 320); ymin = Math.max(ymin, -260);
+    const ep = st.end === 'crunch' ? st.R.epochsCrunch : st.R.epochs;
+    chart(cv, { xmin, xmax, ymin: ymin - 5, ymax: ymax + 5, xlabel: st.end === 'crunch' ? 'ln T（离大坍缩还有多久；往左是未来）' : 'ln T（从大爆炸算起）', ylabel: 'ln a, ln b, ln c', padL: 48,
+      series: [{ xs: S.xs, ys: S.ya, color: CSS('--coral') }, { xs: S.xs, ys: S.yb, color: CSS('--teal') }, { xs: S.xs, ys: S.yc, color: CSS('--violet') }],
+      vlines: ep.map((e, k) => ({ x: e.lnt0, color: 'rgba(152,164,199,0.35)', label: `u=${sig(e.u, 3)}` })),
+      marks: isFinite(xcur) ? [{ x: xcur, y: c.y[0], color: CSS('--gold') }, { x: xcur, y: c.y[1], color: CSS('--gold') }, { x: xcur, y: c.y[2], color: CSS('--gold') }] : [] });
+  }
+  // Kasner 圆：p 在 Σp = 1 平面上的坐标
+  const E1 = [2 / Math.sqrt(6), -1 / Math.sqrt(6), -1 / Math.sqrt(6)], E2 = [0, 1 / Math.sqrt(2), -1 / Math.sqrt(2)];
+  function drawKasner() {
+    const cv = $('c-mix-kasner'), { ctx, w, h } = fit(cv); ctx.fillStyle = '#060913'; ctx.fillRect(0, 0, w, h);
+    const R0 = Math.min(w, h) * 0.36, cx = w / 2, cy = h / 2 + 6, sc = R0 / Math.sqrt(2 / 3), X = (p) => cx + sc * (p[0] * E1[0] + p[1] * E1[1] + p[2] * E1[2]), Y = (p) => cy - sc * (p[0] * E2[0] + p[1] * E2[1] + p[2] * E2[2]);
+    ctx.strokeStyle = 'rgba(233,237,249,0.5)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(cx, cy, R0, 0, Math.PI * 2); ctx.stroke();
+    ctx.font = '11px Space Grotesk, sans-serif'; ctx.fillStyle = CSS('--dim'); ctx.textAlign = 'center';
+    for (const [p, lab] of [[[1, 0, 0], 'p = (1,0,0)：只有 a 在变'], [[0, 1, 0], '(0,1,0)'], [[0, 0, 1], '(0,0,1)']]) { ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(X(p), Y(p), 3, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = CSS('--dim'); ctx.fillText(lab, X(p), Y(p) + (p[2] ? -8 : 14)); }
+    ctx.fillText('圆上 = Kasner 时代；圆内 = 反弹中', cx, h - 6);
+    // 轨迹：按时代上色（靠奇点一端）
+    const R = st.R, ep = st.end === 'crunch' ? R.epochsCrunch : R.epochs, end = st.end; const COLS = [CSS('--coral'), CSS('--teal'), CSS('--violet'), CSS('--gold'), '#ff9f6f', '#8fd65a', '#6fb5ff', '#ffd1dc'];
+    ep.forEach((e, k) => { ctx.strokeStyle = COLS[k % COLS.length]; ctx.lineWidth = 2; ctx.beginPath(); let pen = false; for (let i = e.iStart; i <= e.iEnd; i += 3) { const p = MIXMASTER.exponents(R, i, end); if (!p) continue; if (!pen) { ctx.moveTo(X(p), Y(p)); pen = true; } else ctx.lineTo(X(p), Y(p)); } ctx.stroke(); const pm = e.p; ctx.fillStyle = COLS[k % COLS.length]; ctx.beginPath(); ctx.arc(X(pm), Y(pm), 4, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#fff'; ctx.font = '10px JetBrains Mono, monospace'; ctx.fillText(String(k + 1), X(pm) + 8, Y(pm) - 6); });
+    // 当前点（速度指数）
+    const c = cur(); if (c.p) { ctx.fillStyle = CSS('--gold'); ctx.beginPath(); ctx.arc(X(c.p), Y(c.p), 5, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = '#1a1200'; ctx.lineWidth = 1; ctx.stroke(); }
+  }
+  function epochTable() {
+    const R = st.R, end = st.end, ep = (end === 'crunch' ? R.epochsCrunch : R.epochs).slice().reverse(); // 从起点往奇点方向
+    if (!ep.length) { $('mix-epochs').innerHTML = '这一端没有找到 Kasner 时代。'; return; }
+    let html = `<div style="color:var(--ink);font-weight:600;margin-bottom:4px">${end === 'crunch' ? '往大坍缩走' : '往大爆炸走'}，一个时代接一个（圆上的编号 ${ep.length} → 1）：</div><table style="border-collapse:collapse;width:100%"><tr style="color:var(--dim)"><td>#</td><td>方程算出的 u</td><td>BKL 规则预言</td><td>p₁, p₂, p₃</td><td>跨 ln T</td></tr>`;
+    let prev = null;
+    ep.forEach((e, k) => { const pred = prev === null ? '—' : sig(MIXMASTER.bklMap(prev), 3), okk = prev === null ? '' : (Math.abs(MIXMASTER.bklMap(prev) - e.u) / e.u < 0.05 ? ' ✓' : ' ✗'); html += `<tr><td class="mono">${ep.length - k}</td><td class="mono" style="color:var(--ink)">${sig(e.u, 3)}</td><td class="mono">${pred}${okk}</td><td class="mono">${e.p.map((v) => v.toFixed(2)).join(', ')}</td><td class="mono">${(e.lnt1 - e.lnt0).toFixed(0)}</td></tr>`; prev = e.u; });
+    html += '</table>';
+    if (st.chaos) html += st.chaos;
+    $('mix-epochs').innerHTML = html;
+  }
+  function cards() {
+    const R = st.R, K = [], life = R.tCrunch - R.tBang; let vmax = -Infinity; for (const y of R.y) vmax = Math.max(vmax, y[0] + y[1] + y[2]);
+    K.push(['gold', '一生', isFinite(life) ? sig(life, 3) + '（G = c = 1 的单位）' : (R.Tbang ? '永远膨胀' : '—'), R.Tcrunch ? '从大爆炸到大坍缩' : (R.L > 0 ? 'Λ 赢了：各向异性被抹平，走向 de Sitter' : '没到奇点')]);
+    K.push(['teal', '最大体积 ln V', vmax.toFixed(2), R.M > 0 ? '尘埃越多，膨胀得越大' : '真空：曲率自己把它拉回来']);
+    K.push(['violet', 'Kasner 时代数', `${R.epochs.length} / ${R.epochsCrunch.length}`, '大爆炸一端 / 大坍缩一端（算到体积 e⁻⁵⁰⁰）']);
+    $('mix-cards').innerHTML = K.map(([c, k, v, i]) => `<div class="k ${c}"><small>${k}</small><b class="mono" style="font-size:15px">${v}</b><i>${i}</i></div>`).join('');
+  }
+  // ---- 交互 ----
+  const chips = $('mix-presets'); for (const p of PRESETS) { const b = document.createElement('button'); b.className = 'chip'; b.dataset.id = p.id; b.innerHTML = `${p.name}<small>${p.sub}</small>`; b.addEventListener('click', () => { Object.assign(P, p.p); sync(); solveNow(); }); chips.appendChild(b); }
+  for (const r of document.querySelectorAll('input[name=mix-mode]')) r.addEventListener('change', () => { if (r.checked) { P.mode = r.value; labels(); solveSoon(); } });
+  const bind = (id, fn) => $(id).addEventListener('input', () => { fn(+$(id).value); labels(); solveSoon(); });
+  bind('mix-u', (v) => { P.u = v; }); bind('mix-shear', (v) => { P.shear = v; }); bind('mix-chi', (v) => { P.chi = v; }); bind('mix-a0', (v) => { P.a0 = Math.pow(10, v); }); bind('mix-M', (v) => { P.M = v; }); bind('mix-L', (v) => { P.L = v; });
+  $('mix-s').addEventListener('input', () => { st.i = +$('mix-s').value; st.playing = false; $('mix-play').textContent = '▶ 播放'; render(); });
+  $('mix-end').addEventListener('change', () => { st.end = $('mix-end').value; render(); });
+  $('mix-play').addEventListener('click', () => { st.playing = !st.playing; $('mix-play').textContent = st.playing ? '⏸ 暂停' : '▶ 播放'; if (st.playing) { if (st.i >= st.R.y.length - 1) st.i = 0; st.last = 0; st.raf = requestAnimationFrame(tick); } });
+  function tick(now) { if (!st.playing || G.current !== 'mix') { st.playing = false; $('mix-play').textContent = '▶ 播放'; return; } const dt = st.last ? (now - st.last) / 1000 : 0; st.last = now; st.i += Math.round(dt * st.R.y.length / 12); if (st.i >= st.R.y.length - 1) { st.i = st.R.y.length - 1; st.playing = false; $('mix-play').textContent = '▶ 播放'; } $('mix-s').value = st.i; drawShape(); hud(); if (Math.floor(now / 250) !== Math.floor((now - dt * 1000) / 250)) { drawLog(); drawKasner(); } if (st.playing) st.raf = requestAnimationFrame(tick); }
+  $('mix-next').addEventListener('click', () => { const nx = st.bounds.find((b) => b > st.i + 5); st.i = nx === undefined ? 0 : nx; $('mix-s').value = st.i; st.playing = false; $('mix-play').textContent = '▶ 播放'; render(); });
+  $('mix-chaos').addEventListener('click', () => {
+    const q = params(); if (P.mode === 'kasner') q.u = P.u * (1 + 1e-6); else q.chi = P.chi + 1e-6; const R2 = MIXMASTER.solve(q); if (!R2) return;
+    const a = st.R.epochs.slice().reverse().map((e) => e.u), b = R2.epochs.slice().reverse().map((e) => e.u); let k = 0; while (k < a.length && k < b.length && Math.abs(a[k] - b[k]) / a[k] < 0.03) k++;
+    const fmt = (arr, k) => arr.map((u, i) => (i >= k ? `<b style="color:var(--coral)">${sig(u, 4)}</b>` : sig(u, 4))).join(' → ');
+    // 方程只能算到体积 e⁻⁶⁵⁰；再往下按 BKL 规则外推，看两条序列什么时候分开
+    const ext = (u0, n) => { const out = []; let u = u0; for (let i = 0; i < n; i++) { out.push(u); u = MIXMASTER.bklMap(u); if (!isFinite(u) || u > 1e6) break; } return out; };
+    const ea = ext(a.length ? a[0] : P.u, 14), eb = ext(b.length ? b[0] : q.u, 14); let m = 0; while (m < ea.length && m < eb.length && Math.abs(ea[m] - eb[m]) / ea[m] < 0.03) m++;
+    st.chaos = `<div style="margin-top:8px;color:var(--ink)">混沌检验（往大爆炸走的 u 序列）：</div><div class="mono">方程 · 原来：${fmt(a, k)}</div><div class="mono">方程 · u×(1+10⁻⁶)：${fmt(b, k)}</div><div>${k < Math.min(a.length, b.length) ? `第 ${k + 1} 个时代起分道扬镳。` : '方程算到的这几个时代还没分开（体积已缩到 e⁻⁶⁵⁰）；按 BKL 规则继续跳：'}</div><div class="mono">规则 · 原来：${fmt(ea, m)}</div><div class="mono">规则 · 微扰：${fmt(eb, m)}</div><div>${m < Math.min(ea.length, eb.length) ? `第 ${m + 1} 个时代起分道扬镳：10⁻⁶ 的差别，${m} 次反弹后就放大成完全不同的宇宙。` : '连分数的前十几位一样，再往后才分开。'}</div>`;
+    $('mix-chaos-out').textContent = ''; epochTable();
+  });
+  const cv = $('c-mix-shape');
+  cv.addEventListener('pointerdown', (e) => { st.drag = { x: e.clientX, y: e.clientY, yaw: st.yaw, pitch: st.pitch }; cv.setPointerCapture(e.pointerId); });
+  cv.addEventListener('pointermove', (e) => { if (!st.drag) return; st.yaw = st.drag.yaw + (e.clientX - st.drag.x) * 0.01; st.pitch = clamp(st.drag.pitch + (e.clientY - st.drag.y) * 0.01, -1.4, 1.4); drawShape(); });
+  cv.addEventListener('pointerup', () => { st.drag = null; }); cv.addEventListener('pointercancel', () => { st.drag = null; }); cv.style.touchAction = 'none';
+  window.addEventListener('resize', () => { if (G.current === 'mix') render(); });
+  function enter() { if (!st.R) { sync(); solveNow(); } else render(); }
+  function leave() { st.playing = false; $('mix-play').textContent = '▶ 播放'; }
+  window.GENESIS_HALLS = window.GENESIS_HALLS || []; window.GENESIS_HALLS.push((hall) => { G.current = hall; if (hall === 'mix') enter(); else leave(); });
+})();
 
 // Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
 // Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
@@ -2589,6 +2928,7 @@ var QLAI = (function () {
   decorate(); tex(document.body);
 })();
 
+GENESIS.start();
 </script>
 <script>
 /* KaTeX 0.16.47 — MIT License, (c) Khan Academy and other contributors. https://github.com/KaTeX/KaTeX */
