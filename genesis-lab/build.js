@@ -37,7 +37,9 @@ function build(q, artifact) {
   fill('__Q_CARDS__', q ? '\n      <div class="card" style="margin-top:14px"><h3>量子物理给出的数 <span class="note" style="font-weight:400">由上面的旋钮算出</span></h3><div class="kv" id="q-cards"></div></div>' : '');
   fill('__Q_HALL__', q ? src('q/hall.html') : '');
   fill('__Q_OVERVIEW_BTN__', q ? ' <button class="btn" data-go="early">最初三分钟 →</button>' : '');
-  fill('__COSMO__', (q ? 'window.GENESIS_Q = true;\n' : '') + strip(src('cosmo.js')));
+  const cosmo = strip(src('cosmo.js')); if (/<\/script/i.test(cosmo)) throw new Error('cosmo.js 里有 </script>');
+  // 引擎源码另存一份字符串，给参数空间地图的 Worker 用（Worker 里不能碰页面，只跑引擎）
+  fill('__COSMO__', (q ? 'window.GENESIS_Q = true;\n' : '') + 'window.GENESIS_COSMO_SRC = ' + JSON.stringify(cosmo) + ';\n' + cosmo);
   fill('__NBODY__', strip(src('nbody.js'))); fill('__GODEL__', strip(src('godel.js'))); fill('__PRESETS__', strip(src('presets.js'))); fill('__PUZZLES__', strip(src('puzzles.js')));
   fill('__Q_ENGINES__', q ? ['q/thermal.js', 'q/bbn.js', 'q/recomb.js', 'q/inflation.js'].map((f) => strip(src(f))).join('\n') : '');
   fill('__APP__', strip(src('app.js'))); fill('__Q_APP__', q ? strip(src('q/app_q.js')) : '');

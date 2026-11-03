@@ -100,7 +100,9 @@ const COSMO = (function () {
   }
 
   // ---------- 整体求解 ----------
-  function solve(input) {
+  // opts.lite：参数空间地图逐格调用时用——跳过视界、增长步长放宽一倍、撕裂时间积分点数减少（命运、年龄、宜居诊断不变）
+  function solve(input, opts) {
+    const lite = !!(opts && opts.lite);
     const m = norm(input);
     const past = integrate(m, -1), fut = integrate(m, +1);
     const R = { m, past, fut };
@@ -114,7 +116,7 @@ const COSMO = (function () {
     const q0 = m.Or + 0.5 * m.Om + 0.5 * (1 + 3 * m.w) * m.OL;
     R.q0 = q0;
     if (fut.stop.why === 'singular') { R.fate = 'crunch'; R.tEnd = fut.stop.t; R.aMax = fut.turn ? fut.turn.a : 1; R.tTurn = fut.turn ? fut.turn.t : 0; }
-    else if (fut.stop.why === 'big' && m.w < -1 && m.OL > 0) { R.fate = 'rip'; R.tEnd = ripTime(m); }
+    else if (fut.stop.why === 'big' && m.w < -1 && m.OL > 0) { R.fate = 'rip'; R.tEnd = ripTime(m, lite ? 4000 : 20000); }
     else if (fut.turn) { R.fate = 'crunch'; R.tEnd = fut.stop.t; R.aMax = fut.turn.a; R.tTurn = fut.turn.t; } // 回转但还没到奇点（极慢坍缩）
     else { R.fate = 'eternal'; R.tEnd = Infinity; const aL = fut.as[fut.as.length - 1]; R.accelerating = accel(m, aL) > 0; R.aEnd = aL; }
     // 几何
@@ -122,11 +124,14 @@ const COSMO = (function () {
     R.curvRadius = Math.abs(m.Ok) < 1e-9 ? Infinity : 1 / Math.sqrt(Math.abs(m.Ok)); // c/H0 单位
     // 视界：粒子视界 ∫_0^1 da/(a²E) 只在 a→0 处被辐射或物质（或 w>−1/3 的暗能量）压住时收敛；只有曲率的 Milne 宇宙没有粒子视界
     const phFinite = R.origin === 'bigbang' && (m.Or > 1e-12 || m.Om > 1e-12 || (m.OL > 0 && m.w > -1 / 3));
-    R.particleHorizon = phFinite ? confQuad(m, 1e-7, 1) : (R.quantumBounce ? confQuad(m, R.aMin * 1.0001, 1) : Infinity);
-    if (R.fate === 'eternal') R.eventHorizon = (m.OL > 0 && m.w < -1 / 3) ? confQuad(m, 1, 1e9) : Infinity;
-    else if (R.fate === 'rip') R.eventHorizon = confQuad(m, 1, 1e9);
-    else { // 大坍缩：整个未来的 ∫dt/a，沿轨迹数值积分
-      let s = 0; for (let i = 1; i < fut.ts.length; i++) s += (fut.ts[i] - fut.ts[i - 1]) * 0.5 * (1 / fut.as[i] + 1 / fut.as[i - 1]); R.eventHorizon = s;
+    if (lite) { R.particleHorizon = NaN; R.eventHorizon = NaN; }
+    else {
+      R.particleHorizon = phFinite ? confQuad(m, 1e-7, 1) : (R.quantumBounce ? confQuad(m, R.aMin * 1.0001, 1) : Infinity);
+      if (R.fate === 'eternal') R.eventHorizon = (m.OL > 0 && m.w < -1 / 3) ? confQuad(m, 1, 1e9) : Infinity;
+      else if (R.fate === 'rip') R.eventHorizon = confQuad(m, 1, 1e9);
+      else { // 大坍缩：整个未来的 ∫dt/a，沿轨迹数值积分
+        let s = 0; for (let i = 1; i < fut.ts.length; i++) s += (fut.ts[i] - fut.ts[i - 1]) * 0.5 * (1 / fut.as[i] + 1 / fut.as[i - 1]); R.eventHorizon = s;
+      }
     }
     // 纪元
     R.aEq = m.Om > 0 ? m.Or / m.Om : Infinity;
@@ -134,12 +139,12 @@ const COSMO = (function () {
     R.aRec = m.aRecIn || (m.T0 > 0 ? m.T0 / T_REC : Infinity); // 复合：背景温度 T0/a 降到 T_REC 时，a_rec = T0/T_REC；没有辐射就没有复合
     R.aLambda = (m.OL > 0 && m.Om > 0) ? Math.pow(m.OL / m.Om, 1 / (3 * m.w)) : Infinity;
     R.tOf = (a) => tOfA(R, a);
-    R.growth = growth(m, R);
+    R.growth = growth(m, R, lite ? 0.01 : undefined);
     R.diag = diagnose(R);
     return R;
   }
-  function ripTime(m) { // t_rip − t0 = ∫_1^∞ da/(a E)
-    const n = 20000; let s = 0; // u = 1/a
+  function ripTime(m, n) { // t_rip − t0 = ∫_1^∞ da/(a E)
+    n = n || 20000; let s = 0; // u = 1/a
     for (let i = 0; i <= n; i++) { const u = i / n; if (u === 0) continue; const a = 1 / u, e = E2(m, a); const g = e > 0 ? 1 / (a * Math.sqrt(e)) / (u * u) : 0; s += ((i === 0 || i === n) ? 1 : (i % 2 ? 4 : 2)) * g; }
     return s / n / 3;
   }
@@ -173,11 +178,11 @@ const COSMO = (function () {
     const num = -4 * m.Or / (a * a * a * a) - 3 * m.Om / (a * a * a) - 2 * m.Ok / (a * a) + nL * m.OL * Math.pow(a, nL);
     return num / (2 * E2(m, a));
   }
-  function growthRaw(m, R, aStart, aStop) {
+  function growthRaw(m, R, aStart, aStop, dxStep) {
     if (R.origin !== 'bigbang') return null;
     aStart = aStart || 1e-5;
     if (aStop === undefined) aStop = R.fate === 'crunch' ? R.aMax * (1 - 1e-4) : 1e4;
-    let x = Math.log(aStart), D = 1, p = 0; const xEnd = Math.log(aStop), dx = 0.005;
+    let x = Math.log(aStart), D = 1, p = 0; const xEnd = Math.log(aStop), dx = dxStep || 0.005;
     const out = { as: [aStart], Ds: [D] }; let peak = 1, n = 0;
     const f = (x, D, p) => { const a = Math.exp(x), e2 = E2(m, a); if (!(e2 > 0)) return [p, 0]; return [p, -(2 + dlnE(m, a)) * p + 1.5 * m.Om / (a * a * a) / e2 * D]; };
     while (x < xEnd && n++ < 100000) {
@@ -199,9 +204,9 @@ const COSMO = (function () {
   // 三个尺度在 Planck 宇宙今天的线性涨落（ΛCDM 的 σ(M)）：
   //   星系团 8 h⁻¹Mpc：σ8 = 0.81；典型星系 10¹² M☉：σ ≈ 2.1；矮星系 / 第一批星系 10⁸ M☉：σ ≈ 3.9，取 3σ 高峰
   const SIG_8 = 0.81, SIG_GAL = 2.1, SIG_FIRST = 3 * 3.9;
-  function growth(m, R) {
+  function growth(m, R, dxStep) {
     if (R.origin === 'bounce' && R.quantumBounce) R = Object.assign({}, R, { origin: 'bigbang' }); // 量子反弹之后的膨胀段和热大爆炸一样
-    const g = growthRaw(m, R); if (!g) return null;
+    const g = growthRaw(m, R, undefined, undefined, dxStep); if (!g) return null;
     const d1 = fiducialD1(), sc = m.sigScale || { first: 1, gal: 1, c8: 1 };
     const S_F = SIG_FIRST * (sc.first || 1), S_G = SIG_GAL * (sc.gal || 1), S_8 = SIG_8 * (sc.c8 || 1);
     const res = { as: g.as, dFirst: g.Ds.map((D) => D * S_F / d1), dGal: g.Ds.map((D) => D * S_G / d1), d8: g.Ds.map((D) => D * S_8 / d1) };

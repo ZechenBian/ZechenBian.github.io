@@ -239,6 +239,18 @@ footer{border-top:1px solid var(--line);padding:18px 0 28px;color:var(--faint);f
           <div class="legend"><span><i style="background:var(--coral)"></i>第一批星系（10⁸ M☉ 的 3σ 峰）</span><span><i style="background:var(--teal)"></i>典型星系（10¹² M☉，1σ）</span><span><i style="background:var(--violet)"></i>星系团（8 h⁻¹Mpc，1σ）</span><span><i style="background:var(--gold)"></i>坍缩阈值 1.686</span></div></div>
       </div>
       <div class="card" style="margin-top:14px">
+        <h3><span data-g="pmap">参数空间地图</span> <span class="tag sim">模拟</span> <span class="note" style="font-weight:400">每个格点都完整解一遍方程；$H_0$、$\Omega_r$、$w$ 取当前值。点地图把那组参数装进创世台</span></h3>
+        <div class="grid g2">
+          <div><canvas id="c-pmap" width="440" height="440" style="cursor:crosshair;touch-action:pan-y"></canvas></div>
+          <div>
+            <div class="bar" style="margin-top:0"><label class="note">图层 <select id="pmap-layer" class="num" style="width:auto;padding:4px 8px"><option value="fate">命运 × 宜居</option><option value="age">年龄</option><option value="first">第一批星系何时出现</option></select></label><span class="note mono" id="pmap-status"></span></div>
+            <div class="legend" id="pmap-legend" style="margin-top:8px"></div>
+            <div class="kv" id="pmap-read" style="margin-top:10px"></div>
+            <p class="note" style="margin-top:10px">白虚线是平坦（$\Omega_k = 0$），点线是 $q_0 = 0$（今天恰好不加速也不减速）。灰色区没有大爆炸：往回追溯会在某个 $a_{\min}$ 反弹。小圆点是内置的宇宙，十字是你现在的参数。</p>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:14px">
         <h3><span data-g="diag">宜居诊断（粗略）</span> <span id="verdict"></span></h3>
         <p class="note">三道关：有没有热的开端、扰动能不能长成星系、星系形成后恒星还有多少时间。假设各宇宙在 $a = 10^{-5}$ 时的原初扰动幅度和我们的一样。</p>
         <ul class="diag" id="diag"></ul>

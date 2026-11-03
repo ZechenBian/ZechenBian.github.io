@@ -112,7 +112,7 @@
       let input = Object.assign({}, S); for (const f of hooks.input) input = f(input, S) || input;
       R = COSMO.solve(input);
       for (const f of hooks.solved) f(R, S, input);
-      buildFrames(); NB.invalidate(); render();
+      buildFrames(); NB.invalidate(); PMAP.update(input); render();
     }
     function buildFrames() {
       frames = []; const N = 300;
@@ -131,7 +131,7 @@
       const f = (t - ts[lo]) / (ts[hi] - ts[lo]); return as[lo] + (as[hi] - as[lo]) * f;
     }
     // ---- 绘制 ----
-    function render() { if (!R) return; drawMovie(); fateCards(); drawA(); drawGrowth(); diag(); eqs(); timeline(); }
+    function render() { if (!R) return; drawMovie(); fateCards(); drawA(); drawGrowth(); diag(); eqs(); timeline(); PMAP.draw(); }
     function GYR() { return COSMO.GYR / S.H0; }
     function fateCards() {
       const g = GYR(), m = R.m, cards = [];
@@ -304,6 +304,105 @@
       $('nb-on').addEventListener('click', () => setMode(true)); $('nb-off').addEventListener('click', () => setMode(false)); $('nb-reseed').addEventListener('click', reseed);
       $('nb-run').addEventListener('click', () => { if (!st.on) setMode(true); frame = frames.findIndex((f) => f.a >= st.firstA); if (frame < 0) frame = 0; playing = true; $('b-play').textContent = '⏸ 暂停'; requestAnimationFrame(tick); });
       return { st, invalidate, draw, setMode, get on() { return st.on; }, usable };
+    })();
+    // ---- 参数空间地图：Ω_m–Ω_Λ 平面逐格完整求解（Worker 里算，先粗后细）----
+    const PMAP = (function () {
+      const X0 = -3, X1 = Math.log10(3.2), Y0 = -1.6, Y1 = 3.2, NX = 80, NY = 120, CX = 20, CY = 30; // 横轴 log10 Ω_m（10⁻³ → 3.2），纵轴 Ω_Λ
+      const fx = (Om) => Math.log10(Math.max(Om, 1e-3)), ix = (u) => Math.pow(10, u);
+      const st = { fine: new Float32Array(NX * NY * 5), have: new Uint8Array(NY), coarse: new Float32Array(CX * CY * 5), coarseDone: false, key: null, job: 0, worker: null, layer: 'fate', timer: null, base: null, status: '', fallback: null, img: null };
+      // 单格：[命运码, 宜居码, 年龄(1/H0), 第一批星系的 a, 量子反弹]；命运码 0 大坍缩 1 永远膨胀(减速) 2 永远膨胀(加速) 3 大撕裂 4 没有大爆炸 5 其他
+      const CELL = `function cell(C, base, Om, OL) { var R; try { R = C.solve(Object.assign({}, base, { Om: Om, OL: OL }), { lite: true }); } catch (e) { return [5, 0, NaN, NaN, 0]; }
+        var bb = R.origin === 'bigbang' || R.quantumBounce, f; if (!bb) f = R.origin === 'bounce' ? 4 : 5; else if (R.fate === 'crunch') f = 0; else if (R.fate === 'rip') f = 3; else f = R.accelerating ? 2 : 1;
+        var v = R.verdict === 'alive' ? 2 : (R.verdict === 'marginal' ? 1 : 0); return [f, v, bb ? R.age : NaN, R.growth && isFinite(R.growth.aFirst) ? R.growth.aFirst : NaN, R.quantumBounce ? 1 : 0]; }`;
+      const WORKER = `self.onmessage = function (e) { var d = e.data, row = new Float32Array(d.nx * 5); for (var j = 0; j < d.ny; j++) { for (var i = 0; i < d.nx; i++) { var c = cell(COSMO, d.base, Math.pow(10, d.x0 + (i + 0.5) * d.dx), d.y0 + (j + 0.5) * d.dy); for (var k = 0; k < 5; k++) row[i * 5 + k] = c[k]; } self.postMessage({ job: d.job, pass: d.pass, j: j, row: row }); } };`;
+      let cellFn = null; // 主线程的后备
+      function cellMain(base, Om, OL) { if (!cellFn) cellFn = new Function('C', 'base', 'Om', 'OL', CELL + ' return cell(C, base, Om, OL);'); return cellFn(COSMO, base, Om, OL); }
+      function baseOf(input) { const b = Object.assign({}, input); delete b.Om; delete b.OL; return b; }
+      function baseOr() { const b = st.base; if (!b) return S.Or; return b.Or !== undefined ? b.Or : COSMO.omegaR(b.T0 || 0, b.H0, b.Neff); }
+      function update(input) { // 每次求解后：参数底座变了就重算，否则只重画十字
+        const base = baseOf(input), key = JSON.stringify(base);
+        if (key !== st.key) { st.key = key; st.base = base; st.status = '参数变了，马上重算…'; clearTimeout(st.timer); st.timer = setTimeout(() => { st.timer = null; compute(); }, 400); }
+        draw();
+      }
+      function compute() {
+        st.job++; st.have.fill(0); st.coarseDone = false; const job = st.job, base = st.base;
+        const jobs = [{ pass: 'coarse', nx: CX, ny: CY }, { pass: 'fine', nx: NX, ny: NY }].map((o) => Object.assign(o, { job, base, x0: X0, y0: Y0, dx: (X1 - X0) / o.nx, dy: (Y1 - Y0) / o.ny }));
+        if (st.worker) { st.worker.terminate(); st.worker = null; } if (st.fallback) { cancelAnimationFrame(st.fallback); st.fallback = null; }
+        const onRow = (m) => { if (m.job !== st.job) return; if (m.pass === 'coarse') { st.coarse.set(m.row, m.j * CX * 5); if (m.j === CY - 1) st.coarseDone = true; } else { st.fine.set(m.row, m.j * NX * 5); st.have[m.j] = 1; } const done = st.have.every((h) => h); st.status = done ? `${NX}×${NY} 格 · 每格一次完整求解` : `计算中 ${m.pass === 'coarse' ? '粗' : '细'}网格 ${Math.round((m.pass === 'coarse' ? (m.j + 1) / CY * 100 * 0.1 : 10 + (m.j + 1) / NY * 90))}%`; if (m.j % 4 === 0 || done || m.pass === 'coarse') draw(); };
+        try {
+          if (!window.GENESIS_COSMO_SRC || typeof Worker === 'undefined') throw new Error('no worker');
+          const blob = new Blob([window.GENESIS_COSMO_SRC + '\n' + CELL + '\n' + WORKER], { type: 'text/javascript' }), url = URL.createObjectURL(blob);
+          st.worker = new Worker(url); URL.revokeObjectURL(url); st.worker.onmessage = (e) => onRow(e.data); st.worker.onerror = () => { st.worker.terminate(); st.worker = null; mainThread(jobs, onRow); };
+          for (const jb of jobs) st.worker.postMessage(jb);
+        } catch (e) { mainThread(jobs, onRow); }
+      }
+      function mainThread(jobs, onRow) { // 没有 Worker 时在主线程分帧算
+        let q = 0, j = 0; const step = () => { const t0 = performance.now(); while (performance.now() - t0 < 24 && q < jobs.length) { const d = jobs[q], row = new Float32Array(d.nx * 5); for (let i = 0; i < d.nx; i++) { const c = cellMain(d.base, ix(d.x0 + (i + 0.5) * d.dx), d.y0 + (j + 0.5) * d.dy); for (let k = 0; k < 5; k++) row[i * 5 + k] = c[k]; } onRow({ job: d.job, pass: d.pass, j, row }); if (++j >= d.ny) { j = 0; q++; } } if (q < jobs.length) st.fallback = requestAnimationFrame(step); else st.fallback = null; }; st.fallback = requestAnimationFrame(step); }
+      function at(Om, y) { // 取 (Ω_m, Ω_Λ) 处的格值：有细格用细格，否则粗格
+        const x = fx(Om), i = Math.floor((x - X0) / (X1 - X0) * NX), j = Math.floor((y - Y0) / (Y1 - Y0) * NY); if (i < 0 || i >= NX || j < 0 || j >= NY) return null;
+        if (st.have[j]) return Array.from(st.fine.subarray((j * NX + i) * 5, (j * NX + i) * 5 + 5));
+        if (!st.coarseDone) return null; const ci = Math.floor((x - X0) / (X1 - X0) * CX), cj = Math.floor((y - Y0) / (Y1 - Y0) * CY); return Array.from(st.coarse.subarray((cj * CX + ci) * 5, (cj * CX + ci) * 5 + 5));
+      }
+      const FATE = [[232, 112, 95], [70, 150, 160], [90, 205, 190], [170, 120, 230], [110, 115, 130], [60, 60, 70]], FATE_N = ['大坍缩', '永远膨胀（减速）', '永远膨胀（加速）', '大撕裂', '没有大爆炸', '—'], VERD = ['死寂', '勉强', '可能宜居'];
+      function ramp(u, stops) { u = clamp(u, 0, 1); let s = 0; while (s < stops.length - 2 && u > stops[s + 1][0]) s++; const A = stops[s], B = stops[s + 1], f = (u - A[0]) / (B[0] - A[0]); return [0, 1, 2].map((c) => A[c + 1] + (B[c + 1] - A[c + 1]) * f); }
+      const AGE_STOPS = [[0, 20, 30, 70], [0.35, 70, 90, 190], [0.65, 230, 170, 80], [1, 255, 250, 230]];
+      function color(c, H0) {
+        if (!c) return [14, 18, 36]; const f = c[0] | 0;
+        if (st.layer === 'fate') { const k = [0.36, 0.66, 1][c[1] | 0]; return FATE[f].map((v) => v * k); }
+        if (f === 4 || f === 5) return [90, 92, 104];
+        if (st.layer === 'age') { const gy = c[2] * COSMO.GYR / H0; if (!isFinite(gy)) return [90, 92, 104]; return ramp((Math.log10(gy) + 1) / 3.5, AGE_STOPS); }
+        const aF = c[3]; if (!isFinite(aF)) return [38, 40, 60]; return ramp(1 - (Math.log10(aF) + 3) / 3, AGE_STOPS);
+      }
+      function draw() {
+        const cv = $('c-pmap'); if (!cv || current !== 'forge') return; const { ctx, w, h } = fit(cv); ctx.clearRect(0, 0, w, h);
+        const padL = 44, padB = 34, padT = 8, padR = 8, pw = w - padL - padR, ph = h - padT - padB, H0 = st.base ? st.base.H0 : S.H0;
+        const X = (x) => padL + (x - X0) / (X1 - X0) * pw, Y = (y) => padT + ph - (y - Y0) / (Y1 - Y0) * ph, XO = (Om) => X(fx(Om));
+        // 格子 → 图像（细格缺的行用粗格补）
+        if (!st.img) { st.img = document.createElement('canvas'); st.img.width = NX; st.img.height = NY; }
+        const ic = st.img.getContext('2d'), im = ic.createImageData(NX, NY), d = im.data;
+        for (let j = 0; j < NY; j++) { const row = NY - 1 - j; for (let i = 0; i < NX; i++) { let c = null; if (st.have[j]) c = st.fine.subarray((j * NX + i) * 5, (j * NX + i) * 5 + 5); else if (st.coarseDone) { const ci = Math.floor(i * CX / NX), cj = Math.floor(j * CY / NY); c = st.coarse.subarray((cj * CX + ci) * 5, (cj * CX + ci) * 5 + 5); } const rgb = color(c, H0), o = (row * NX + i) * 4; d[o] = rgb[0]; d[o + 1] = rgb[1]; d[o + 2] = rgb[2]; d[o + 3] = 255; } }
+        ic.putImageData(im, 0, 0); ctx.imageSmoothingEnabled = false; ctx.drawImage(st.img, padL, padT, pw, ph); ctx.imageSmoothingEnabled = true;
+        // 坐标轴
+        ctx.font = '11px JetBrains Mono, monospace'; ctx.fillStyle = CSS('--dim'); ctx.strokeStyle = 'rgba(152,164,199,0.25)'; ctx.lineWidth = 1;
+        for (const [v, lab] of [[1e-3, '0.001'], [1e-2, '0.01'], [0.1, '0.1'], [1, '1'], [3, '3']]) { ctx.textAlign = 'center'; ctx.fillText(lab, XO(v), h - padB + 14); if (v < 3) { ctx.beginPath(); ctx.moveTo(XO(v), padT); ctx.lineTo(XO(v), padT + ph); ctx.stroke(); } }
+        for (let y = -1; y <= Y1 + 1e-9; y += 1) { ctx.textAlign = 'right'; ctx.fillText(String(y), padL - 6, Y(y) + 4); ctx.beginPath(); ctx.moveTo(padL, Y(y)); ctx.lineTo(padL + pw, Y(y)); ctx.stroke(); }
+        ctx.font = '12px Space Grotesk, sans-serif'; ctx.textAlign = 'center'; ctx.fillText('物质 Ω_m（对数）', padL + pw / 2, h - 6); ctx.save(); ctx.translate(12, padT + ph / 2); ctx.rotate(-Math.PI / 2); ctx.fillText('暗能量 Ω_Λ', 0, 0); ctx.restore();
+        ctx.save(); ctx.beginPath(); ctx.rect(padL, padT, pw, ph); ctx.clip();
+        // 平坦线 Ω_m + Ω_Λ + Ω_r = 1；q0 = 0 线
+        const Or = baseOr(), wv = st.base ? st.base.w : S.w;
+        const curve = (fn) => { ctx.beginPath(); for (let k = 0; k <= 120; k++) { const u = X0 + (X1 - X0) * k / 120, y = fn(ix(u)); if (k === 0) ctx.moveTo(X(u), Y(y)); else ctx.lineTo(X(u), Y(y)); } ctx.stroke(); };
+        ctx.strokeStyle = 'rgba(255,255,255,0.75)'; ctx.setLineDash([6, 4]); ctx.lineWidth = 1.2; curve((Om) => 1 - Om - Or);
+        const cq = -0.5 * (1 + 3 * wv); if (Math.abs(cq) > 1e-6) { ctx.strokeStyle = 'rgba(255,255,255,0.55)'; ctx.setLineDash([2, 4]); curve((Om) => (Or + 0.5 * Om) / cq); }
+        ctx.setLineDash([]);
+        ctx.fillStyle = 'rgba(255,255,255,0.8)'; ctx.font = '11px Space Grotesk, sans-serif'; ctx.textAlign = 'left'; ctx.fillText('平坦 Ω_k = 0', XO(1.6) + 4, Y(1 - 1.6 - Or) - 5); if (Math.abs(cq) > 1e-6) { const yq = (Or + 0.5 * 2.4) / cq; if (yq > Y0 && yq < Y1) ctx.fillText('q₀ = 0', XO(2.4) + 4, Y(yq) + 12); }
+        // 区域名：按各命运类的质心
+        if (st.coarseDone) { const acc = {}; for (let j = 0; j < NY; j++) { const src = st.have[j] ? st.fine : null; for (let i = 0; i < NX; i++) { let f; if (src) f = src[(j * NX + i) * 5] | 0; else { const ci = Math.floor(i * CX / NX), cj = Math.floor(j * CY / NY); f = st.coarse[(cj * CX + ci) * 5] | 0; } const a = acc[f] || (acc[f] = { n: 0, x: 0, y: 0 }); a.n++; a.x += X0 + (i + 0.5) * (X1 - X0) / NX; a.y += Y0 + (j + 0.5) * (Y1 - Y0) / NY; } }
+          ctx.font = '600 12px Space Grotesk, sans-serif'; ctx.textAlign = 'center'; for (const f in acc) { const a = acc[f]; if (a.n < NX * NY * 0.035 || f === '5') continue; const lab = FATE_N[f], x = X(a.x / a.n), y = Y(a.y / a.n), tw = ctx.measureText(lab).width; ctx.fillStyle = 'rgba(6,9,19,0.6)'; ctx.fillRect(x - tw / 2 - 5, y - 10, tw + 10, 17); ctx.fillStyle = '#fff'; ctx.fillText(lab, x, y + 3); } }
+        // 内置宇宙：实心 = Ω_r、w 和地图一致（可直接比较）；空心 = 不一致
+        ctx.font = '10px Space Grotesk, sans-serif'; ctx.textAlign = 'left';
+        for (const p of PRESETS) { const same = Math.abs(p.p.w - wv) < 1e-9 && Math.abs(Math.log10((p.p.Or || 1e-12) / (Or || 1e-12))) < 0.3; const x = XO(p.p.Om), y = Y(p.p.OL); if (p.p.Om > ix(X1) || p.p.OL < Y0 || p.p.OL > Y1) continue; ctx.beginPath(); ctx.arc(x, y, 3.5, 0, Math.PI * 2); ctx.lineWidth = 1.5; ctx.strokeStyle = '#1a1200'; if (same) { ctx.fillStyle = CSS('--gold'); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#fff'; const right = x > padL + pw * 0.68; ctx.textAlign = right ? 'right' : 'left'; ctx.fillText(p.name, x + (right ? -6 : 6), y + 4); ctx.textAlign = 'left'; } else { ctx.strokeStyle = CSS('--gold'); ctx.stroke(); } }
+        // 当前参数：十字
+        const cx = X(clamp(fx(S.Om), X0, X1)), cy = Y(clamp(S.OL, Y0, Y1)); ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(cx - 9, cy); ctx.lineTo(cx + 9, cy); ctx.moveTo(cx, cy - 9); ctx.lineTo(cx, cy + 9); ctx.stroke(); ctx.beginPath(); ctx.arc(cx, cy, 5, 0, Math.PI * 2); ctx.stroke();
+        ctx.restore();
+        $('pmap-status').textContent = st.status;
+        $('pmap-legend').innerHTML = st.layer === 'fate' ? FATE_N.slice(0, 5).map((n, i) => `<span><i style="background:rgb(${FATE[i].join(',')});width:12px;height:12px;border-radius:3px"></i>${n}</span>`).join('') + '<span>亮度 = 宜居诊断（亮 可能宜居 / 中 勉强 / 暗 死寂）</span>'
+          : (st.layer === 'age' ? '<span>年龄：<i style="background:linear-gradient(90deg,rgb(20,30,70),rgb(70,90,190),rgb(230,170,80),rgb(255,250,230));width:80px;height:10px"></i> 0.1 → 300 Gyr（对数）；灰 = 没有大爆炸</span>' : '<span>第一批星系出现时的 a：<i style="background:linear-gradient(90deg,rgb(255,250,230),rgb(230,170,80),rgb(70,90,190),rgb(20,30,70));width:80px;height:10px"></i> 10⁻³ → 1；深色 = 永远长不出</span>');
+        return { X, Y, padL, padT, pw, ph };
+      }
+      function readout(x, y, c, preset) {
+        const H0 = st.base ? st.base.H0 : S.H0, Or = baseOr(), Ok = 1 - x - y - Or;
+        if (!c) { $('pmap-read').innerHTML = `<div class="k gold"><small>Ω_m, Ω_Λ</small><b>${sig(x, 2)}, ${y.toFixed(2)}</b><i>这一格还在算</i></div>`; return; }
+        const f = c[0] | 0, age = c[2] * COSMO.GYR / H0, aF = c[3];
+        $('pmap-read').innerHTML = `<div class="k gold"><small>${preset ? '内置：' + preset.name : '这一格'}</small><b>Ω_m = ${sig(x, 2)}，Ω_Λ = ${y.toFixed(2)}</b><i>Ω_k = ${(Ok >= 0 ? '+' : '') + Ok.toFixed(2)}${c[4] ? ' · 量子反弹' : ''}</i></div>
+          <div class="k ${f === 0 || f === 3 ? 'coral' : (f === 4 ? 'violet' : 'teal')}"><small>命运</small><b>${FATE_N[f]}</b><i>${f === 4 ? '没有奇点，往回追溯会反弹' : (isFinite(age) ? '年龄 ' + gyr(age) : '')}</i></div>
+          <div class="k ${c[1] === 2 ? 'teal' : (c[1] === 1 ? 'gold' : 'coral')}"><small>宜居诊断</small><b>${VERD[c[1] | 0]}</b><i>${isFinite(aF) ? '第一批星系在 a = ' + sig(aF, 2) : '星系永远长不出来'}</i></div>`;
+      }
+      function pick(ev) { const cv = $('c-pmap'), r = cv.getBoundingClientRect(), g = draw(); if (!g) return null; const px = ev.clientX - r.left, py = ev.clientY - r.top; const u = X0 + (px - g.padL) / g.pw * (X1 - X0), y = Y0 + (g.padT + g.ph - py) / g.ph * (Y1 - Y0); if (u < X0 || u > X1 || y < Y0 || y > Y1) return null; let best = null; for (const p of PRESETS) { const dx = g.X(fx(p.p.Om)) - px, dy = g.Y(p.p.OL) - py; if (dx * dx + dy * dy < 49 && (!best || dx * dx + dy * dy < best.d)) best = { p, d: dx * dx + dy * dy }; } return { x: ix(u), y, preset: best ? best.p : null }; }
+      const cv0 = $('c-pmap');
+      cv0.addEventListener('pointermove', (ev) => { const q = pick(ev); if (!q) return; readout(q.x, q.y, at(q.x, q.y), q.preset); });
+      cv0.addEventListener('click', (ev) => { const q = pick(ev); if (!q) return; if (q.preset) { applyPreset(q.preset.id); toast('装入内置宇宙：' + q.preset.name); return; } S.Om = +q.x.toPrecision(3); S.OL = +q.y.toFixed(3); presetId = null; markPreset(); syncSliders(); frame = TODAY; solve(); toast(`Ω_m = ${S.Om}，Ω_Λ = ${S.OL} 装进了创世台`); });
+      $('pmap-layer').addEventListener('change', () => { st.layer = $('pmap-layer').value; draw(); });
+      return { update, draw, at };
     })();
     function drawMovie() {
       if (!galaxies) galaxies = makeGalaxies();

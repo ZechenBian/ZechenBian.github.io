@@ -243,6 +243,18 @@ footer{border-top:1px solid var(--line);padding:18px 0 28px;color:var(--faint);f
           <div class="legend"><span><i style="background:var(--coral)"></i>第一批星系（10⁸ M☉ 的 3σ 峰）</span><span><i style="background:var(--teal)"></i>典型星系（10¹² M☉，1σ）</span><span><i style="background:var(--violet)"></i>星系团（8 h⁻¹Mpc，1σ）</span><span><i style="background:var(--gold)"></i>坍缩阈值 1.686</span></div></div>
       </div>
       <div class="card" style="margin-top:14px">
+        <h3><span data-g="pmap">参数空间地图</span> <span class="tag sim">模拟</span> <span class="note" style="font-weight:400">每个格点都完整解一遍方程；$H_0$、$\Omega_r$、$w$ 取当前值。点地图把那组参数装进创世台</span></h3>
+        <div class="grid g2">
+          <div><canvas id="c-pmap" width="440" height="440" style="cursor:crosshair;touch-action:pan-y"></canvas></div>
+          <div>
+            <div class="bar" style="margin-top:0"><label class="note">图层 <select id="pmap-layer" class="num" style="width:auto;padding:4px 8px"><option value="fate">命运 × 宜居</option><option value="age">年龄</option><option value="first">第一批星系何时出现</option></select></label><span class="note mono" id="pmap-status"></span></div>
+            <div class="legend" id="pmap-legend" style="margin-top:8px"></div>
+            <div class="kv" id="pmap-read" style="margin-top:10px"></div>
+            <p class="note" style="margin-top:10px">白虚线是平坦（$\Omega_k = 0$），点线是 $q_0 = 0$（今天恰好不加速也不减速）。灰色区没有大爆炸：往回追溯会在某个 $a_{\min}$ 反弹。小圆点是内置的宇宙，十字是你现在的参数。</p>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:14px">
         <h3><span data-g="diag">宜居诊断（粗略）</span> <span id="verdict"></span></h3>
         <p class="note">三道关：有没有热的开端、扰动能不能长成星系、星系形成后恒星还有多少时间。假设各宇宙在 $a = 10^{-5}$ 时的原初扰动幅度和我们的一样。</p>
         <ul class="diag" id="diag"></ul>
@@ -336,6 +348,7 @@ footer{border-top:1px solid var(--line);padding:18px 0 28px;color:var(--faint);f
 <footer><div class="wrap">© 2026 Zechen Bian · All rights reserved · 保留所有权利 · 创世实验室 Genesis Lab · 所有画面由本页实时积分方程生成 · 公式排版 KaTeX（MIT）</div></footer>
 <div class="toast" id="toast"></div>
 <script>
+window.GENESIS_COSMO_SRC = "// Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。\n// Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。\n// FLRW 宇宙引擎：真的在积分弗里德曼方程（加速度形式），不是查表或解析近似。\n// 单位：时间用 1/H0（换成 Gyr 乘 977.792/H0），长度用 c/H0（换成 Mpc 乘 299792.458/H0）。\n// 模型参数：H0（km/s/Mpc）、Ω_m（物质）、Ω_r（辐射）、Ω_Λ（暗能量，状态方程 w）；曲率 Ω_k = 1 − Ω_m − Ω_r − Ω_Λ 由方程决定。\n//   第一弗里德曼方程  H²/H0² = E²(a) = Ω_r a⁻⁴ + Ω_m a⁻³ + Ω_k a⁻² + Ω_Λ a^{−3(1+w)}\n//   加速度方程        ä/a  = −H0² [ Ω_r a⁻⁴ + ½ Ω_m a⁻³ + ½(1+3w) Ω_Λ a^{−3(1+w)} ]\n// 我们积分第二个（二阶常微分方程，今天 a=1、ȧ=H0 作初值，向过去和向未来各积一遍）：\n// 它在转折点（ȧ=0，大坍缩的回转、反弹）也不出问题，而第一个方程在那里要开平方。\n// 线性结构增长：δ̈ + 2H δ̇ = (3/2) H0² Ω_m a⁻³ δ（Mészáros 方程，辐射主导期自动冻结增长）。\nconst COSMO = (function () {\n  const GYR = 977.792;          // 1/H0 = 977.792/H0 Gyr（H0 以 km/s/Mpc 计）\n  const CKMS = 299792.458;      // 光速 km/s → c/H0 = 299792.458/H0 Mpc\n  const T_CMB = 2.7255;         // 今天的 CMB 温度 K（Fixsen 2009）\n  const T_REC = 2970;           // 复合温度 K（氢的 Saha 平衡；z_rec = T_REC/T0 − 1，我们的宇宙 ≈ 1090）\n  const DELTA_C = 1.686;        // 线性坍缩阈值（球对称坍缩模型）\n  const A_BIG = 1e7, T_MAX = 1000, H_CAP = 0.05, EPS = 0.01;\n  // 辐射密度由温度决定（普朗克黑体公式 + 三代中微子）：Ω_γ h² = 2.473e-5 (T0/2.7255)⁴，Ω_r = Ω_γ (1 + 0.2271 N_eff)\n  const OG_H2 = 2.473e-5, NEFF_STD = 3.044, NU_FAC = 0.2271;\n  function omegaR(T0, H0, Neff) { const h = H0 / 100; return OG_H2 * Math.pow(T0 / T_CMB, 4) * (1 + NU_FAC * (Neff === undefined ? NEFF_STD : Neff)) / (h * h); }\n  function temperatureOf(Or, H0, Neff) { const h = H0 / 100; return Or <= 0 ? 0 : T_CMB * Math.pow(Or * h * h / (OG_H2 * (1 + NU_FAC * (Neff === undefined ? NEFF_STD : Neff))), 0.25); }\n\n  // 我们的宇宙：Planck 2018（TT,TE,EE+lowE+lensing，Table 2 最后一列）。Ω_r 由 T_CMB 和三代中微子算出：Ω_r h² = 4.18e-5。\n  const FIDUCIAL = { name: 'Planck 2018', H0: 67.4, Om: 0.315, Or: omegaR(T_CMB, 67.4), OL: 0.685, w: -1 };\n\n  // 输入可以给 Ω_r（经典版）或 T0 + N_eff（量子版，Ω_r 由黑体公式算出）；两种写法互相一致。\n  // 可选：rhoC（圈量子宇宙学的反弹密度，以今天的临界密度为单位）、aRec（外部算出的复合尺度因子）、sigScale（原初扰动幅度的倍数）\n  function norm(m) {\n    const w = (m.w === undefined || m.w === null) ? -1 : m.w;\n    const Neff = m.Neff === undefined ? NEFF_STD : m.Neff;\n    let Or, T0;\n    if (m.T0 !== undefined && m.T0 !== null) { T0 = m.T0; Or = omegaR(T0, m.H0, Neff); }\n    else { Or = m.Or === undefined ? 0 : m.Or; T0 = temperatureOf(Or, m.H0, Neff); }\n    const out = { H0: m.H0, Om: m.Om, Or, OL: m.OL, w, Ok: 1 - m.Om - Or - m.OL, T0, Neff, rhoC: m.rhoC > 0 ? m.rhoC : null, sigScale: m.sigScale || null };\n    if (m.aRec > 0) out.aRecIn = m.aRec;\n    return out;\n  }\n  // 流体部分的密度和压强（ρ_crit0 单位）\n  function rhoF(m, a) { return m.Or / (a * a * a * a) + m.Om / (a * a * a) + m.OL * Math.pow(a, -3 * (1 + m.w)); }\n  function pF(m, a) { return m.Or / (a * a * a * a) / 3 + m.w * m.OL * Math.pow(a, -3 * (1 + m.w)); }\n  // 第一弗里德曼方程；圈量子宇宙学的有效修正 H² = (8πG/3) ρ (1 − ρ/ρ_c)（Ashtekar–Singh；曲率项按经典处理）\n  function E2(m, a) { const r = rhoF(m, a); const q = m.rhoC ? (1 - r / m.rhoC) : 1; return r * q + m.Ok / (a * a); }\n  function Ez(m, z) { const e = E2(m, 1 / (1 + z)); return e > 0 ? Math.sqrt(e) : NaN; }\n  // ä/a（H0² 单位）：−½(ρ + 3p)；LQC：−½[ρ(1 − 4ρ/ρ_c) + 3p(1 − 2ρ/ρ_c)]，在 ρ = ρ_c 处为正——反弹\n  function accel(m, a) {\n    const r = rhoF(m, a), p = pF(m, a);\n    if (!m.rhoC) return -0.5 * (r + 3 * p);\n    const x = r / m.rhoC; return -0.5 * (r * (1 - 4 * x) + 3 * p * (1 - 2 * x));\n  }\n  // 密度会不会在 a→0 时发散（真奇点）；纯 de Sitter 不会；LQC 有反弹，永远不会\n  function singularAtZero(m) { if (m.rhoC) return false; return m.Or > 1e-12 || m.Om > 1e-12 || m.Ok > 1e-12 || (m.OL > 0 && m.w > -1 / 3); }\n  function aSing(m) { return m.rhoC ? 1e-60 : 1e-7; }\n\n  // ---------- 积分 ----------\n  // 从今天出发，dir=+1 向未来，dir=−1 向过去。返回采样点和停下的原因。\n  function integrate(m, dir) {\n    let a = 1, v = 1, t = 0;\n    const ts = [0], as = [1], vs = [1];\n    let stop = null, turn = null, nStep = 0, lastLog = 0, lastT = 0;\n    const f = (a, v) => [v, accel(m, a) * a];\n    const A_SING = aSing(m);\n    while (nStep < 400000) {\n      nStep++;\n      const acc = Math.abs(accel(m, a));\n      let h = EPS * Math.min(Math.abs(a / v) || H_CAP, acc > 0 ? 1 / Math.sqrt(acc) : H_CAP);\n      h = Math.min(h, H_CAP, Math.max(h, 1e-12));\n      h *= dir;\n      const k1 = f(a, v), k2 = f(a + 0.5 * h * k1[0], v + 0.5 * h * k1[1]);\n      const k3 = f(a + 0.5 * h * k2[0], v + 0.5 * h * k2[1]), k4 = f(a + h * k3[0], v + h * k3[1]);\n      const na = a + h / 6 * (k1[0] + 2 * k2[0] + 2 * k3[0] + k4[0]);\n      const nv = v + h / 6 * (k1[1] + 2 * k2[1] + 2 * k3[1] + k4[1]);\n      if (!isFinite(na) || !isFinite(nv)) { stop = { why: 'overflow', t, a }; break; }\n      // 转折：ȧ 变号（向未来：膨胀→收缩，即回转；向过去：收缩→膨胀，即反弹）\n      if (nv * v < 0 && turn === null) { const fr = v / (v - nv); turn = { t: t + h * fr, a: a + (na - a) * fr }; }\n      a = na; v = nv; t += h;\n      if (Math.abs(Math.log(a) - lastLog) > 0.004 || Math.abs(t - lastT) > 0.004) { ts.push(t); as.push(a); vs.push(v); lastLog = Math.log(a); lastT = t; }\n      if (a <= A_SING) { stop = { why: singularAtZero(m) ? 'singular' : 'asymptotic', t, a }; break; }\n      if (dir < 0 && turn && a >= 1) { stop = { why: 'prebounce', t, a }; break; } // 反弹之前的收缩宇宙已经和今天一样大：够看了\n      if (a >= A_BIG) { stop = { why: 'big', t, a }; break; }\n      if (Math.abs(t) >= T_MAX) { stop = { why: 'tmax', t, a }; break; }\n    }\n    if (!stop) stop = { why: 'steps', t, a };\n    if (ts[ts.length - 1] !== t) { ts.push(t); as.push(a); vs.push(v); }\n    return { ts, as, vs, stop, turn };\n  }\n\n  // ∫_0^1 da/(a E(a))：有大爆炸时的年龄（辛普森，a=u² 换元消掉 a→0 的尖峰）\n  function ageQuad(m, aEnd) {\n    aEnd = aEnd === undefined ? 1 : aEnd;\n    const n = 4000, u1 = Math.sqrt(aEnd); let s = 0;\n    const g = (u) => { if (u <= 0) return 0; const a = u * u, e = E2(m, a); return e > 0 ? 2 * u / (a * Math.sqrt(e)) : NaN; };\n    for (let i = 0; i <= n; i++) { const u = u1 * i / n, w = (i === 0 || i === n) ? 1 : (i % 2 ? 4 : 2); s += w * g(u); }\n    return s * (u1 / n) / 3;\n  }\n  // ∫_{a1}^{a2} da/(a² E)：共形时间（视界用），对数网格\n  function confQuad(m, a1, a2) {\n    const n = 4000, l1 = Math.log(a1), l2 = Math.log(a2); let s = 0;\n    for (let i = 0; i <= n; i++) { const a = Math.exp(l1 + (l2 - l1) * i / n), e = E2(m, a); if (!(e > 0)) return NaN; const w = (i === 0 || i === n) ? 1 : (i % 2 ? 4 : 2); s += w / (a * Math.sqrt(e)); }\n    return s * ((l2 - l1) / n) / 3;\n  }\n\n  // ---------- 整体求解 ----------\n  // opts.lite：参数空间地图逐格调用时用——跳过视界、增长步长放宽一倍、撕裂时间积分点数减少（命运、年龄、宜居诊断不变）\n  function solve(input, opts) {\n    const lite = !!(opts && opts.lite);\n    const m = norm(input);\n    const past = integrate(m, -1), fut = integrate(m, +1);\n    const R = { m, past, fut };\n    // 过去\n    if (past.turn) { R.origin = 'bounce'; R.aMin = past.turn.a; R.tBounce = past.turn.t; R.quantumBounce = !!m.rhoC; if (m.rhoC) R.age = -past.turn.t; }\n    else if (past.stop.why === 'singular') { R.origin = 'bigbang'; R.age = -past.stop.t; }\n    else if (past.stop.why === 'asymptotic') { R.origin = 'eternalpast'; }\n    else R.origin = 'eternalpast';\n    if (R.origin === 'bigbang') { const q = ageQuad(m); if (isFinite(q)) R.age = q; }\n    // 未来\n    const q0 = m.Or + 0.5 * m.Om + 0.5 * (1 + 3 * m.w) * m.OL;\n    R.q0 = q0;\n    if (fut.stop.why === 'singular') { R.fate = 'crunch'; R.tEnd = fut.stop.t; R.aMax = fut.turn ? fut.turn.a : 1; R.tTurn = fut.turn ? fut.turn.t : 0; }\n    else if (fut.stop.why === 'big' && m.w < -1 && m.OL > 0) { R.fate = 'rip'; R.tEnd = ripTime(m, lite ? 4000 : 20000); }\n    else if (fut.turn) { R.fate = 'crunch'; R.tEnd = fut.stop.t; R.aMax = fut.turn.a; R.tTurn = fut.turn.t; } // 回转但还没到奇点（极慢坍缩）\n    else { R.fate = 'eternal'; R.tEnd = Infinity; const aL = fut.as[fut.as.length - 1]; R.accelerating = accel(m, aL) > 0; R.aEnd = aL; }\n    // 几何\n    R.geometry = Math.abs(m.Ok) < 2e-3 ? 'flat' : (m.Ok > 0 ? 'open' : 'closed'); // |Ω_k| < 0.002 当作平坦（Planck 对 Ω_k 的测量精度也就 0.002）\n    R.curvRadius = Math.abs(m.Ok) < 1e-9 ? Infinity : 1 / Math.sqrt(Math.abs(m.Ok)); // c/H0 单位\n    // 视界：粒子视界 ∫_0^1 da/(a²E) 只在 a→0 处被辐射或物质（或 w>−1/3 的暗能量）压住时收敛；只有曲率的 Milne 宇宙没有粒子视界\n    const phFinite = R.origin === 'bigbang' && (m.Or > 1e-12 || m.Om > 1e-12 || (m.OL > 0 && m.w > -1 / 3));\n    if (lite) { R.particleHorizon = NaN; R.eventHorizon = NaN; }\n    else {\n      R.particleHorizon = phFinite ? confQuad(m, 1e-7, 1) : (R.quantumBounce ? confQuad(m, R.aMin * 1.0001, 1) : Infinity);\n      if (R.fate === 'eternal') R.eventHorizon = (m.OL > 0 && m.w < -1 / 3) ? confQuad(m, 1, 1e9) : Infinity;\n      else if (R.fate === 'rip') R.eventHorizon = confQuad(m, 1, 1e9);\n      else { // 大坍缩：整个未来的 ∫dt/a，沿轨迹数值积分\n        let s = 0; for (let i = 1; i < fut.ts.length; i++) s += (fut.ts[i] - fut.ts[i - 1]) * 0.5 * (1 / fut.as[i] + 1 / fut.as[i - 1]); R.eventHorizon = s;\n      }\n    }\n    // 纪元\n    R.aEq = m.Om > 0 ? m.Or / m.Om : Infinity;\n    R.T0 = m.T0;\n    R.aRec = m.aRecIn || (m.T0 > 0 ? m.T0 / T_REC : Infinity); // 复合：背景温度 T0/a 降到 T_REC 时，a_rec = T0/T_REC；没有辐射就没有复合\n    R.aLambda = (m.OL > 0 && m.Om > 0) ? Math.pow(m.OL / m.Om, 1 / (3 * m.w)) : Infinity;\n    R.tOf = (a) => tOfA(R, a);\n    R.growth = growth(m, R, lite ? 0.01 : undefined);\n    R.diag = diagnose(R);\n    return R;\n  }\n  function ripTime(m, n) { // t_rip − t0 = ∫_1^∞ da/(a E)\n    n = n || 20000; let s = 0; // u = 1/a\n    for (let i = 0; i <= n; i++) { const u = i / n; if (u === 0) continue; const a = 1 / u, e = E2(m, a); const g = e > 0 ? 1 / (a * Math.sqrt(e)) / (u * u) : 0; s += ((i === 0 || i === n) ? 1 : (i % 2 ? 4 : 2)) * g; }\n    return s / n / 3;\n  }\n  // 过去分支（单调的大爆炸宇宙）：由 a 找时间 t（相对今天，负数）\n  function tOfA(R, a) {\n    if (a >= 1) return 0;\n    if (R.origin !== 'bigbang' && !R.quantumBounce) return NaN;\n    const { ts, as } = R.past; // 从今天往回 a 单调递减；量子反弹的宇宙只在反弹之前这一段里找\n    let lo = 0, hi = as.length - 1;\n    if (R.quantumBounce) { if (a <= R.aMin) return R.tBounce; let k = 0; while (k < ts.length - 1 && ts[k + 1] >= R.tBounce) k++; hi = k; }\n    if (a <= as[hi]) return ts[hi];\n    while (hi - lo > 1) { const mid = (lo + hi) >> 1; if (as[mid] > a) lo = mid; else hi = mid; }\n    const f = (Math.log(as[lo]) - Math.log(a)) / (Math.log(as[lo]) - Math.log(as[hi]));\n    return ts[lo] + (ts[hi] - ts[lo]) * f;\n  }\n  // 今天之后、由 a 找 t（未来分支，膨胀段）\n  function tFutOfA(R, a) {\n    const { ts, as } = R.fut; if (a <= 1) return 0;\n    for (let i = 1; i < as.length; i++) { if (as[i] >= a) { const f = (a - as[i - 1]) / (as[i] - as[i - 1]); return ts[i - 1] + (ts[i] - ts[i - 1]) * f; } if (as[i] < as[i - 1]) return NaN; }\n    return NaN;\n  }\n\n  // ---------- 线性增长 ----------\n  // 以 x = ln a 为自变量（膨胀段 a 单调，背景直接用第一弗里德曼方程，不另积背景，避免误差被放大）：\n  //   p = dD/dx，  dp/dx = −(2 + q) p + (3/2) Ω_m a⁻³/E² · D，  q = d ln E / d ln a\n  // 从 a_i = 1e-5（所有可比宇宙都在辐射主导期）出发，D=1、p=0，积到膨胀结束（回转、撕裂）或 a=10⁴。\n  // 归一化：以 Planck 宇宙今天 δ_8 = 0.81、星系尺度（~10¹² M☉）σ ≈ 2.1 定标——即假设各宇宙的原初扰动幅度相同。\n  let FID_D1 = null;\n  function dlnE(m, a) { // q = d ln E / d ln a = (Σ nᵢ Ωᵢ aⁿⁱ) / (2E²)\n    const nL = -3 * (1 + m.w);\n    const num = -4 * m.Or / (a * a * a * a) - 3 * m.Om / (a * a * a) - 2 * m.Ok / (a * a) + nL * m.OL * Math.pow(a, nL);\n    return num / (2 * E2(m, a));\n  }\n  function growthRaw(m, R, aStart, aStop, dxStep) {\n    if (R.origin !== 'bigbang') return null;\n    aStart = aStart || 1e-5;\n    if (aStop === undefined) aStop = R.fate === 'crunch' ? R.aMax * (1 - 1e-4) : 1e4;\n    let x = Math.log(aStart), D = 1, p = 0; const xEnd = Math.log(aStop), dx = dxStep || 0.005;\n    const out = { as: [aStart], Ds: [D] }; let peak = 1, n = 0;\n    const f = (x, D, p) => { const a = Math.exp(x), e2 = E2(m, a); if (!(e2 > 0)) return [p, 0]; return [p, -(2 + dlnE(m, a)) * p + 1.5 * m.Om / (a * a * a) / e2 * D]; };\n    while (x < xEnd && n++ < 100000) {\n      const h = Math.min(dx, xEnd - x);\n      const k1 = f(x, D, p), k2 = f(x + .5 * h, D + .5 * h * k1[0], p + .5 * h * k1[1]);\n      const k3 = f(x + .5 * h, D + .5 * h * k2[0], p + .5 * h * k2[1]), k4 = f(x + h, D + h * k3[0], p + h * k3[1]);\n      D += h / 6 * (k1[0] + 2 * k2[0] + 2 * k3[0] + k4[0]); p += h / 6 * (k1[1] + 2 * k2[1] + 2 * k3[1] + k4[1]); x += h;\n      if (!isFinite(D)) break;\n      if (n % 2 === 0 || x >= xEnd) { out.as.push(Math.exp(x)); out.Ds.push(D); }\n      if (D > peak) peak = D;\n    }\n    out.peak = peak;\n    return out;\n  }\n  function fiducialD1() {\n    if (FID_D1 === null) { const m = norm(FIDUCIAL); const g = growthRaw(m, { origin: 'bigbang', fate: 'eternal' }, 1e-5, 1); FID_D1 = g.Ds[g.Ds.length - 1]; }\n    return FID_D1;\n  }\n  // 三个尺度在 Planck 宇宙今天的线性涨落（ΛCDM 的 σ(M)）：\n  //   星系团 8 h⁻¹Mpc：σ8 = 0.81；典型星系 10¹² M☉：σ ≈ 2.1；矮星系 / 第一批星系 10⁸ M☉：σ ≈ 3.9，取 3σ 高峰\n  const SIG_8 = 0.81, SIG_GAL = 2.1, SIG_FIRST = 3 * 3.9;\n  function growth(m, R, dxStep) {\n    if (R.origin === 'bounce' && R.quantumBounce) R = Object.assign({}, R, { origin: 'bigbang' }); // 量子反弹之后的膨胀段和热大爆炸一样\n    const g = growthRaw(m, R, undefined, undefined, dxStep); if (!g) return null;\n    const d1 = fiducialD1(), sc = m.sigScale || { first: 1, gal: 1, c8: 1 };\n    const S_F = SIG_FIRST * (sc.first || 1), S_G = SIG_GAL * (sc.gal || 1), S_8 = SIG_8 * (sc.c8 || 1);\n    const res = { as: g.as, dFirst: g.Ds.map((D) => D * S_F / d1), dGal: g.Ds.map((D) => D * S_G / d1), d8: g.Ds.map((D) => D * S_8 / d1) };\n    res.dFirstMax = g.peak * S_F / d1; res.dGalMax = g.peak * S_G / d1; res.d8Max = g.peak * S_8 / d1; res.growthMax = g.peak / d1;\n    // 第一次越过阈值的 a（线性插值），再换成时间\n    const cross = (arr) => { for (let i = 1; i < arr.length; i++) if (arr[i] >= DELTA_C && arr[i - 1] < DELTA_C) { const f = (DELTA_C - arr[i - 1]) / (arr[i] - arr[i - 1]); return g.as[i - 1] + (g.as[i] - g.as[i - 1]) * f; } return NaN; };\n    const tAt = (a) => !isFinite(a) ? NaN : (a <= 1 ? tOfA(R, a) : tFutOfA(R, a));\n    res.aFirst = cross(res.dFirst); res.aGal = cross(res.dGal); res.aCluster = cross(res.d8);\n    res.tFirst = tAt(res.aFirst); res.tGal = tAt(res.aGal); res.tCluster = tAt(res.aCluster);\n    const at1 = (arr) => { for (let i = 1; i < g.as.length; i++) if (g.as[i] >= 1 && g.as[i - 1] < 1) { const f = (1 - g.as[i - 1]) / (g.as[i] - g.as[i - 1]); return arr[i - 1] + (arr[i] - arr[i - 1]) * f; } return arr[arr.length - 1]; };\n    res.sigma8Today = at1(res.d8); res.dGalToday = at1(res.dGal); res.growthToday = at1(g.Ds.map((D) => D / d1));\n    return res;\n  }\n\n  // ---------- 宜居诊断（粗略）----------\n  function diagnose(R) {\n    const m = R.m, gyr = GYR / m.H0, items = [];\n    const G = R.growth;\n    const fmtT = (t) => (t * gyr).toPrecision(3) + ' Gyr';\n    // 1 起点\n    if (R.origin === 'bigbang') {\n      if (m.Or > 1e-12) items.push({ level: 'ok', key: 'origin', title: '热大爆炸', detail: `从奇点算起 ${fmtT(R.age)}。今天的背景温度 ${m.T0.toPrecision(3)} K，往回追溯足够热，有核合成和 CMB。` });\n      else if (m.Om > 1e-12) items.push({ level: 'warn', key: 'origin', title: '大爆炸，但是冷的', detail: `从奇点算起 ${fmtT(R.age)}；没有辐射，温度始终为零：没有核合成，也没有 CMB。` });\n      else items.push({ level: 'warn', key: 'origin', title: '大爆炸，但空无一物', detail: `从奇点算起 ${fmtT(R.age)}；没有物质也没有辐射，所谓\"大爆炸\"只是坐标的起点（米尔恩宇宙其实就是闵可夫斯基时空的一块）。` });\n    }\n    else if (R.origin === 'bounce' && R.quantumBounce) {\n      const Tb = m.T0 / R.aMin;\n      items.push({ level: Tb > 1e10 ? 'ok' : 'warn', key: 'origin', title: '量子反弹代替奇点', detail: `圈量子宇宙学的有效方程在密度到 ρ_c 时把收缩翻成膨胀：反弹在 ${fmtT(-R.tBounce)}前，最小 a = ${R.aMin.toExponential(2)}，那时温度 ${Tb.toExponential(2)} K。` + (Tb > 1e10 ? '足够热，核合成和 CMB 照常。' : '不够热：核合成没有发生过。') });\n    }\n    else if (R.origin === 'bounce') items.push({ level: 'warn', key: 'origin', title: '没有大爆炸（反弹）', detail: `过去收缩到最小 a = ${R.aMin.toPrecision(3)} 后反弹。从没热过：没有氦、没有 CMB——真实宇宙的观测排除了它。` });\n    else items.push({ level: 'warn', key: 'origin', title: '没有奇点，无限的过去', detail: '密度不发散，膨胀只是指数地从极小开始（de Sitter 式）。也没有热的开端。' });\n    // 2 星系\n    if (!G) items.push({ level: 'dead', key: 'galaxies', title: '结构形成：不适用', detail: '没有热大爆炸就没有原初扰动的常规剧本，这里不做判断。' });\n    else if (isFinite(G.tFirst)) {\n      const T = m.T0 / G.aFirst;\n      let d = `10⁸ M☉ 的 3σ 高峰在 a = ${G.aFirst.toPrecision(2)}（背景温度 ${T.toPrecision(2)} K）越过坍缩阈值 δ = 1.686。`;\n      d += isFinite(G.tGal) ? ` 像银河系那样的典型星系（10¹² M☉ 的 1σ 涨落）在 ${G.aGal <= 1 ? '大爆炸后 ' + fmtT(G.tGal + R.age) : '今天之后 ' + fmtT(G.tGal)}坍缩；` : ' 典型星系尺度（10¹² M☉ 的 1σ）永远到不了阈值；';\n      d += isFinite(G.tCluster) ? `星系团尺度（8 h⁻¹Mpc 的 1σ）在 ${G.aCluster <= 1 ? '大爆炸后 ' + fmtT(G.tCluster + R.age) : '今天之后 ' + fmtT(G.tCluster)}坍缩。` : '星系团尺度（8 h⁻¹Mpc 的 1σ）永远到不了阈值——真实的星系团是 2–3σ 的稀有高峰。';\n      items.push({ level: 'ok', key: 'galaxies', title: `第一批星系在${R.quantumBounce ? '反弹' : '大爆炸'}后 ${fmtT(G.tFirst + R.age)} 形成`, detail: d });\n    } else {\n      let why;\n      const peak = G.dFirstMax.toPrecision(2);\n      const sc = m.sigScale && m.sigScale.c8 ? m.sigScale.c8 : 1;\n      if (m.Om <= 1e-12) why = '宇宙里没有物质：没有东西可以在引力下聚集。';\n      else if (sc < 1 && G.growthMax * SIG_FIRST >= DELTA_C) why = `原初扰动太弱：幅度只有我们宇宙的 ${sc.toPrecision(2)} 倍（A_s 是 ${(sc * sc).toPrecision(2)} 倍），同样的增长下最高的密度峰只到 δ = ${peak}；按我们宇宙的幅度本来可以长到 ${(G.growthMax * SIG_FIRST).toPrecision(2)}。`;\n      else if (R.fate === 'crunch') why = `宇宙寿命只有 ${fmtT(R.tEnd + R.age)}，连最高的密度峰也只长到 δ = ${peak} 就被大坍缩压碎了。`;\n      else if (R.aEq > 0.01) why = `辐射主导得太久（物质-辐射相等${R.aEq < 1 ? '要到 a = ' + R.aEq.toPrecision(2) : '到今天还没发生'}），辐射压让物质扰动几乎不长（Mészáros 效应），最高的密度峰也只到 δ ≈ ${peak}。` + (m.OL > 0 && m.w < -1 / 3 && R.aLambda < 10 ? `之后暗能量又在 a = ${R.aLambda.toPrecision(2)} 接管，把增长彻底冻住。` : '');\n      else if (m.OL > 0 && m.w < -1 / 3) why = `暗能量过早接管（物质-暗能量相等在 a = ${R.aLambda.toPrecision(2)}），增长被冻结：最高的密度峰也只长到 δ = ${peak} < 1.686，永远形不成星系。这正是温伯格 1987 年用来\"预言\"宇宙学常数不能比我们的大太多的论证。`;\n      else why = `密度峰最多长到 δ = ${peak}，不够坍缩（开放宇宙的曲率让膨胀太快，增长在 a ≈ Ω_m/|Ω_k| 后冻结）。`;\n      items.push({ level: 'dead', key: 'galaxies', title: '没有星系', detail: why });\n    }\n    // 3 恒星时间\n    if (G && isFinite(G.tFirst)) {\n      const avail = R.fate === 'eternal' ? Infinity : (R.tEnd - G.tFirst);\n      if (avail === Infinity) items.push({ level: 'ok', key: 'stars', title: '恒星可以燃烧到自然终老', detail: R.accelerating ? '永远膨胀并加速：其他星系最终退出视界，每个星系群成为孤岛，但本地的恒星不受影响。' : '永远膨胀、不加速：没有事件视界，整个宇宙保持因果联系。' });\n      else if (avail * gyr > 5) items.push({ level: 'ok', key: 'stars', title: `星系形成后还有 ${fmtT(avail)}`, detail: R.fate === 'crunch' ? '够类太阳恒星走完一生，然后一切被大坍缩压回奇点。' : '够类太阳恒星走完一生，然后大撕裂把星系、恒星、原子逐级撕开。' });\n      else if (avail * gyr > 0.5) items.push({ level: 'warn', key: 'stars', title: `星系形成后只剩 ${fmtT(avail)}`, detail: '大质量恒星来得及，类太阳恒星和行星上的演化大概来不及。' });\n      else items.push({ level: 'dead', key: 'stars', title: `星系刚形成 ${fmtT(avail)} 就结束了`, detail: '没有恒星来得及走完一生。' });\n    }\n    // 总评\n    const dead = items.some((i) => i.level === 'dead'), warn = items.some((i) => i.level === 'warn');\n    R.verdict = dead ? 'dead' : (warn ? 'marginal' : 'alive');\n    return items;\n  }\n\n  // ---------- 距离与观测量 ----------\n  // 共动距离 χ(z) 表（c/H0 单位），z 到 zMax；E² ≤ 0 处（反弹宇宙的过去）截断\n  function chiTable(m, zMax, n) {\n    zMax = zMax || 3; n = n || 1500;\n    const zs = new Float64Array(n + 1), chi = new Float64Array(n + 1); let prev = 1 / Ez(m, 0), ok = n;\n    for (let i = 1; i <= n; i++) {\n      const z = zMax * i / n, zm = zMax * (i - 0.5) / n, e = Ez(m, z), em = Ez(m, zm);\n      zs[i] = z;\n      if (!(e > 0) || !(em > 0)) { ok = i - 1; for (let j = i; j <= n; j++) { chi[j] = NaN; zs[j] = zMax * j / n; } break; }\n      const cur = 1 / e, mid = 1 / em; chi[i] = chi[i - 1] + (zMax / n) * (prev + 4 * mid + cur) / 6; prev = cur;\n    }\n    return { zs, chi, zMax, n, zOk: zMax * ok / n };\n  }\n  function chiAt(T, z) {\n    if (z <= 0) return 0; if (z > T.zOk) return NaN;\n    const f = z / T.zMax * T.n, i = Math.min(T.n - 1, Math.floor(f)); return T.chi[i] + (T.chi[i + 1] - T.chi[i]) * (f - i);\n  }\n  function Sk(m, chi) {\n    const Ok = m.Ok; if (Math.abs(Ok) < 1e-9) return chi;\n    const s = Math.sqrt(Math.abs(Ok)); return Ok > 0 ? Math.sinh(s * chi) / s : Math.sin(s * chi) / s;\n  }\n  // 光度距离、角直径距离（Mpc），距离模数\n  function distances(m, T, z) {\n    const chi = chiAt(T, z); if (!isFinite(chi)) return { DL: NaN, DA: NaN, DM: NaN, mu: NaN };\n    const DM = Sk(m, chi) * CKMS / m.H0; if (!(DM > 0)) return { DL: NaN, DA: NaN, DM, mu: NaN };\n    return { DM, DL: DM * (1 + z), DA: DM / (1 + z), mu: 5 * Math.log10(DM * (1 + z)) + 25 };\n  }\n\n  return { GYR, CKMS, T_CMB, T_REC, DELTA_C, FIDUCIAL, OG_H2, NEFF_STD, NU_FAC, omegaR, temperatureOf, norm, rhoF, E2, Ez, accel, integrate, solve, ageQuad, confQuad, tOfA, tFutOfA, growth, chiTable, chiAt, Sk, distances, SIG_FIRST, SIG_GAL, SIG_8 };\n})();\n";
 // Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
 // Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 // FLRW 宇宙引擎：真的在积分弗里德曼方程（加速度形式），不是查表或解析近似。
@@ -438,7 +451,9 @@ const COSMO = (function () {
   }
 
   // ---------- 整体求解 ----------
-  function solve(input) {
+  // opts.lite：参数空间地图逐格调用时用——跳过视界、增长步长放宽一倍、撕裂时间积分点数减少（命运、年龄、宜居诊断不变）
+  function solve(input, opts) {
+    const lite = !!(opts && opts.lite);
     const m = norm(input);
     const past = integrate(m, -1), fut = integrate(m, +1);
     const R = { m, past, fut };
@@ -452,7 +467,7 @@ const COSMO = (function () {
     const q0 = m.Or + 0.5 * m.Om + 0.5 * (1 + 3 * m.w) * m.OL;
     R.q0 = q0;
     if (fut.stop.why === 'singular') { R.fate = 'crunch'; R.tEnd = fut.stop.t; R.aMax = fut.turn ? fut.turn.a : 1; R.tTurn = fut.turn ? fut.turn.t : 0; }
-    else if (fut.stop.why === 'big' && m.w < -1 && m.OL > 0) { R.fate = 'rip'; R.tEnd = ripTime(m); }
+    else if (fut.stop.why === 'big' && m.w < -1 && m.OL > 0) { R.fate = 'rip'; R.tEnd = ripTime(m, lite ? 4000 : 20000); }
     else if (fut.turn) { R.fate = 'crunch'; R.tEnd = fut.stop.t; R.aMax = fut.turn.a; R.tTurn = fut.turn.t; } // 回转但还没到奇点（极慢坍缩）
     else { R.fate = 'eternal'; R.tEnd = Infinity; const aL = fut.as[fut.as.length - 1]; R.accelerating = accel(m, aL) > 0; R.aEnd = aL; }
     // 几何
@@ -460,11 +475,14 @@ const COSMO = (function () {
     R.curvRadius = Math.abs(m.Ok) < 1e-9 ? Infinity : 1 / Math.sqrt(Math.abs(m.Ok)); // c/H0 单位
     // 视界：粒子视界 ∫_0^1 da/(a²E) 只在 a→0 处被辐射或物质（或 w>−1/3 的暗能量）压住时收敛；只有曲率的 Milne 宇宙没有粒子视界
     const phFinite = R.origin === 'bigbang' && (m.Or > 1e-12 || m.Om > 1e-12 || (m.OL > 0 && m.w > -1 / 3));
-    R.particleHorizon = phFinite ? confQuad(m, 1e-7, 1) : (R.quantumBounce ? confQuad(m, R.aMin * 1.0001, 1) : Infinity);
-    if (R.fate === 'eternal') R.eventHorizon = (m.OL > 0 && m.w < -1 / 3) ? confQuad(m, 1, 1e9) : Infinity;
-    else if (R.fate === 'rip') R.eventHorizon = confQuad(m, 1, 1e9);
-    else { // 大坍缩：整个未来的 ∫dt/a，沿轨迹数值积分
-      let s = 0; for (let i = 1; i < fut.ts.length; i++) s += (fut.ts[i] - fut.ts[i - 1]) * 0.5 * (1 / fut.as[i] + 1 / fut.as[i - 1]); R.eventHorizon = s;
+    if (lite) { R.particleHorizon = NaN; R.eventHorizon = NaN; }
+    else {
+      R.particleHorizon = phFinite ? confQuad(m, 1e-7, 1) : (R.quantumBounce ? confQuad(m, R.aMin * 1.0001, 1) : Infinity);
+      if (R.fate === 'eternal') R.eventHorizon = (m.OL > 0 && m.w < -1 / 3) ? confQuad(m, 1, 1e9) : Infinity;
+      else if (R.fate === 'rip') R.eventHorizon = confQuad(m, 1, 1e9);
+      else { // 大坍缩：整个未来的 ∫dt/a，沿轨迹数值积分
+        let s = 0; for (let i = 1; i < fut.ts.length; i++) s += (fut.ts[i] - fut.ts[i - 1]) * 0.5 * (1 / fut.as[i] + 1 / fut.as[i - 1]); R.eventHorizon = s;
+      }
     }
     // 纪元
     R.aEq = m.Om > 0 ? m.Or / m.Om : Infinity;
@@ -472,12 +490,12 @@ const COSMO = (function () {
     R.aRec = m.aRecIn || (m.T0 > 0 ? m.T0 / T_REC : Infinity); // 复合：背景温度 T0/a 降到 T_REC 时，a_rec = T0/T_REC；没有辐射就没有复合
     R.aLambda = (m.OL > 0 && m.Om > 0) ? Math.pow(m.OL / m.Om, 1 / (3 * m.w)) : Infinity;
     R.tOf = (a) => tOfA(R, a);
-    R.growth = growth(m, R);
+    R.growth = growth(m, R, lite ? 0.01 : undefined);
     R.diag = diagnose(R);
     return R;
   }
-  function ripTime(m) { // t_rip − t0 = ∫_1^∞ da/(a E)
-    const n = 20000; let s = 0; // u = 1/a
+  function ripTime(m, n) { // t_rip − t0 = ∫_1^∞ da/(a E)
+    n = n || 20000; let s = 0; // u = 1/a
     for (let i = 0; i <= n; i++) { const u = i / n; if (u === 0) continue; const a = 1 / u, e = E2(m, a); const g = e > 0 ? 1 / (a * Math.sqrt(e)) / (u * u) : 0; s += ((i === 0 || i === n) ? 1 : (i % 2 ? 4 : 2)) * g; }
     return s / n / 3;
   }
@@ -511,11 +529,11 @@ const COSMO = (function () {
     const num = -4 * m.Or / (a * a * a * a) - 3 * m.Om / (a * a * a) - 2 * m.Ok / (a * a) + nL * m.OL * Math.pow(a, nL);
     return num / (2 * E2(m, a));
   }
-  function growthRaw(m, R, aStart, aStop) {
+  function growthRaw(m, R, aStart, aStop, dxStep) {
     if (R.origin !== 'bigbang') return null;
     aStart = aStart || 1e-5;
     if (aStop === undefined) aStop = R.fate === 'crunch' ? R.aMax * (1 - 1e-4) : 1e4;
-    let x = Math.log(aStart), D = 1, p = 0; const xEnd = Math.log(aStop), dx = 0.005;
+    let x = Math.log(aStart), D = 1, p = 0; const xEnd = Math.log(aStop), dx = dxStep || 0.005;
     const out = { as: [aStart], Ds: [D] }; let peak = 1, n = 0;
     const f = (x, D, p) => { const a = Math.exp(x), e2 = E2(m, a); if (!(e2 > 0)) return [p, 0]; return [p, -(2 + dlnE(m, a)) * p + 1.5 * m.Om / (a * a * a) / e2 * D]; };
     while (x < xEnd && n++ < 100000) {
@@ -537,9 +555,9 @@ const COSMO = (function () {
   // 三个尺度在 Planck 宇宙今天的线性涨落（ΛCDM 的 σ(M)）：
   //   星系团 8 h⁻¹Mpc：σ8 = 0.81；典型星系 10¹² M☉：σ ≈ 2.1；矮星系 / 第一批星系 10⁸ M☉：σ ≈ 3.9，取 3σ 高峰
   const SIG_8 = 0.81, SIG_GAL = 2.1, SIG_FIRST = 3 * 3.9;
-  function growth(m, R) {
+  function growth(m, R, dxStep) {
     if (R.origin === 'bounce' && R.quantumBounce) R = Object.assign({}, R, { origin: 'bigbang' }); // 量子反弹之后的膨胀段和热大爆炸一样
-    const g = growthRaw(m, R); if (!g) return null;
+    const g = growthRaw(m, R, undefined, undefined, dxStep); if (!g) return null;
     const d1 = fiducialD1(), sc = m.sigScale || { first: 1, gal: 1, c8: 1 };
     const S_F = SIG_FIRST * (sc.first || 1), S_G = SIG_GAL * (sc.gal || 1), S_8 = SIG_8 * (sc.c8 || 1);
     const res = { as: g.as, dFirst: g.Ds.map((D) => D * S_F / d1), dGal: g.Ds.map((D) => D * S_G / d1), d8: g.Ds.map((D) => D * S_8 / d1) };
@@ -1049,6 +1067,9 @@ const GLOSS = {
   nbody: { t: '真引力 N 体', s: '把一块 $300\\,h^{-1}$Mpc 的共动薄片撒上粒子，在你拨的 $a(t)$ 背景里让它们真的互相吸引，看纤维、空洞、团块从微小涨落里长出来。',
     d: '粒子-网格法（PM）：每一步把粒子云撒到 $256^2$ 的网格上得到 $\\delta$，用 FFT 解共动坐标里的泊松方程 $$\\nabla^2\\phi = \\tfrac32 H_0^2\\,\\Omega_m\\,\\delta/a,$$ 再按 $\\dot{\\mathbf p} = -\\nabla\\phi$、$\\dot{\\mathbf x} = \\mathbf p/a^2$（$\\mathbf p = a^2\\dot{\\mathbf x}$）推进半步-整步-半步。初条件是 Zel\'dovich 近似：按 BBKS 转移函数生成高斯场，幅度定标到线性增长给出的 $\\delta_8(a_i)$。时间步在宇宙时上走，所以大坍缩的回转和收缩段也能算；背景 $a(t)$ 就是创世台积分出来的那条。二维是三维宇宙的薄片近似：线性增长方程一样，非线性的纤维-空洞形态定性相同。读数里"δ₈ 线性"是线性理论，"N 体实测"是模拟里 8 $h^{-1}$Mpc 平滑后的均方根——两者分开的那一刻就是线性理论失效的时刻。',
     try: '选"我们的宇宙"，点"从头长出结构"；再把 Ω_Λ 拨到 2，看结构被冻住。' },
+  pmap: { t: '参数空间地图', s: '$\\Omega_m$–$\\Omega_\\Lambda$ 平面上每一格都完整解一遍弗里德曼方程，画出命运、宜居、年龄的分区。',
+    d: '横轴物质密度 $\\Omega_m$，纵轴暗能量 $\\Omega_\\Lambda$，$H_0$、$\\Omega_r$、$w$ 固定为创世台当前的值。右上灰区是"没有大爆炸"：$\\Lambda$ 太大、物质太少，往回追溯 $\\dot a$ 会先变号——宇宙从一个有限的 $a_{\\min}$ 反弹而来（1927 年勒梅特的徘徊宇宙就贴在这条边界上）。下方红区是大坍缩：$\\Lambda$ 不够大，物质把膨胀拉回来。中间是永远膨胀，白虚线 $\\Omega_m+\\Omega_\\Lambda+\\Omega_r=1$ 是平坦宇宙，点线 $q_0=0$ 把加速和减速分开。亮度来自宜居诊断：Λ 越大结构越早冻住（温伯格 1987 年用这条边界预言了 Λ 的量级），物质越多宇宙越短命。这张图就是 1998 年超新星观测把我们的宇宙钉在 $(0.3, 0.7)$ 附近时用的那张"宇宙学三角"图的全貌。',
+    try: '把 w 拨到 −1.5，看整个"永远膨胀"区变成大撕裂；把 H₀ 拨到 30，看宜居区怎么变。' },
   // ---------- 哥德尔 ----------
   godel: { t: '哥德尔宇宙', s: '爱因斯坦方程的一个精确解（1949）：物质整体旋转，里面存在回到过去的路线。',
     d: '柱坐标度规 $$ds^2 = 4a^2\\big[-dt^2 + dr^2 + dz^2 - (\\sinh^4 r - \\sinh^2 r)\\,d\\varphi^2 + 2\\sqrt2\\,\\sinh^2 r\\,d\\varphi\\,dt\\big].$$ 物质是静止在坐标上的尘埃，相对局部惯性系以 $\\omega = 1/(\\sqrt2 a)$ 转动。爱因斯坦方程要求 $\\Lambda = -\\omega^2$、$4\\pi G\\rho = \\omega^2$：只有一个自由参数。$g_{\\varphi\\varphi} < 0$ 当 $\\sinh r > 1$——绕轴一圈的曲线变成类时的：闭合类时曲线。',
@@ -1688,7 +1709,7 @@ var QLAI = (function () {
       let input = Object.assign({}, S); for (const f of hooks.input) input = f(input, S) || input;
       R = COSMO.solve(input);
       for (const f of hooks.solved) f(R, S, input);
-      buildFrames(); NB.invalidate(); render();
+      buildFrames(); NB.invalidate(); PMAP.update(input); render();
     }
     function buildFrames() {
       frames = []; const N = 300;
@@ -1707,7 +1728,7 @@ var QLAI = (function () {
       const f = (t - ts[lo]) / (ts[hi] - ts[lo]); return as[lo] + (as[hi] - as[lo]) * f;
     }
     // ---- 绘制 ----
-    function render() { if (!R) return; drawMovie(); fateCards(); drawA(); drawGrowth(); diag(); eqs(); timeline(); }
+    function render() { if (!R) return; drawMovie(); fateCards(); drawA(); drawGrowth(); diag(); eqs(); timeline(); PMAP.draw(); }
     function GYR() { return COSMO.GYR / S.H0; }
     function fateCards() {
       const g = GYR(), m = R.m, cards = [];
@@ -1880,6 +1901,105 @@ var QLAI = (function () {
       $('nb-on').addEventListener('click', () => setMode(true)); $('nb-off').addEventListener('click', () => setMode(false)); $('nb-reseed').addEventListener('click', reseed);
       $('nb-run').addEventListener('click', () => { if (!st.on) setMode(true); frame = frames.findIndex((f) => f.a >= st.firstA); if (frame < 0) frame = 0; playing = true; $('b-play').textContent = '⏸ 暂停'; requestAnimationFrame(tick); });
       return { st, invalidate, draw, setMode, get on() { return st.on; }, usable };
+    })();
+    // ---- 参数空间地图：Ω_m–Ω_Λ 平面逐格完整求解（Worker 里算，先粗后细）----
+    const PMAP = (function () {
+      const X0 = -3, X1 = Math.log10(3.2), Y0 = -1.6, Y1 = 3.2, NX = 80, NY = 120, CX = 20, CY = 30; // 横轴 log10 Ω_m（10⁻³ → 3.2），纵轴 Ω_Λ
+      const fx = (Om) => Math.log10(Math.max(Om, 1e-3)), ix = (u) => Math.pow(10, u);
+      const st = { fine: new Float32Array(NX * NY * 5), have: new Uint8Array(NY), coarse: new Float32Array(CX * CY * 5), coarseDone: false, key: null, job: 0, worker: null, layer: 'fate', timer: null, base: null, status: '', fallback: null, img: null };
+      // 单格：[命运码, 宜居码, 年龄(1/H0), 第一批星系的 a, 量子反弹]；命运码 0 大坍缩 1 永远膨胀(减速) 2 永远膨胀(加速) 3 大撕裂 4 没有大爆炸 5 其他
+      const CELL = `function cell(C, base, Om, OL) { var R; try { R = C.solve(Object.assign({}, base, { Om: Om, OL: OL }), { lite: true }); } catch (e) { return [5, 0, NaN, NaN, 0]; }
+        var bb = R.origin === 'bigbang' || R.quantumBounce, f; if (!bb) f = R.origin === 'bounce' ? 4 : 5; else if (R.fate === 'crunch') f = 0; else if (R.fate === 'rip') f = 3; else f = R.accelerating ? 2 : 1;
+        var v = R.verdict === 'alive' ? 2 : (R.verdict === 'marginal' ? 1 : 0); return [f, v, bb ? R.age : NaN, R.growth && isFinite(R.growth.aFirst) ? R.growth.aFirst : NaN, R.quantumBounce ? 1 : 0]; }`;
+      const WORKER = `self.onmessage = function (e) { var d = e.data, row = new Float32Array(d.nx * 5); for (var j = 0; j < d.ny; j++) { for (var i = 0; i < d.nx; i++) { var c = cell(COSMO, d.base, Math.pow(10, d.x0 + (i + 0.5) * d.dx), d.y0 + (j + 0.5) * d.dy); for (var k = 0; k < 5; k++) row[i * 5 + k] = c[k]; } self.postMessage({ job: d.job, pass: d.pass, j: j, row: row }); } };`;
+      let cellFn = null; // 主线程的后备
+      function cellMain(base, Om, OL) { if (!cellFn) cellFn = new Function('C', 'base', 'Om', 'OL', CELL + ' return cell(C, base, Om, OL);'); return cellFn(COSMO, base, Om, OL); }
+      function baseOf(input) { const b = Object.assign({}, input); delete b.Om; delete b.OL; return b; }
+      function baseOr() { const b = st.base; if (!b) return S.Or; return b.Or !== undefined ? b.Or : COSMO.omegaR(b.T0 || 0, b.H0, b.Neff); }
+      function update(input) { // 每次求解后：参数底座变了就重算，否则只重画十字
+        const base = baseOf(input), key = JSON.stringify(base);
+        if (key !== st.key) { st.key = key; st.base = base; st.status = '参数变了，马上重算…'; clearTimeout(st.timer); st.timer = setTimeout(() => { st.timer = null; compute(); }, 400); }
+        draw();
+      }
+      function compute() {
+        st.job++; st.have.fill(0); st.coarseDone = false; const job = st.job, base = st.base;
+        const jobs = [{ pass: 'coarse', nx: CX, ny: CY }, { pass: 'fine', nx: NX, ny: NY }].map((o) => Object.assign(o, { job, base, x0: X0, y0: Y0, dx: (X1 - X0) / o.nx, dy: (Y1 - Y0) / o.ny }));
+        if (st.worker) { st.worker.terminate(); st.worker = null; } if (st.fallback) { cancelAnimationFrame(st.fallback); st.fallback = null; }
+        const onRow = (m) => { if (m.job !== st.job) return; if (m.pass === 'coarse') { st.coarse.set(m.row, m.j * CX * 5); if (m.j === CY - 1) st.coarseDone = true; } else { st.fine.set(m.row, m.j * NX * 5); st.have[m.j] = 1; } const done = st.have.every((h) => h); st.status = done ? `${NX}×${NY} 格 · 每格一次完整求解` : `计算中 ${m.pass === 'coarse' ? '粗' : '细'}网格 ${Math.round((m.pass === 'coarse' ? (m.j + 1) / CY * 100 * 0.1 : 10 + (m.j + 1) / NY * 90))}%`; if (m.j % 4 === 0 || done || m.pass === 'coarse') draw(); };
+        try {
+          if (!window.GENESIS_COSMO_SRC || typeof Worker === 'undefined') throw new Error('no worker');
+          const blob = new Blob([window.GENESIS_COSMO_SRC + '\n' + CELL + '\n' + WORKER], { type: 'text/javascript' }), url = URL.createObjectURL(blob);
+          st.worker = new Worker(url); URL.revokeObjectURL(url); st.worker.onmessage = (e) => onRow(e.data); st.worker.onerror = () => { st.worker.terminate(); st.worker = null; mainThread(jobs, onRow); };
+          for (const jb of jobs) st.worker.postMessage(jb);
+        } catch (e) { mainThread(jobs, onRow); }
+      }
+      function mainThread(jobs, onRow) { // 没有 Worker 时在主线程分帧算
+        let q = 0, j = 0; const step = () => { const t0 = performance.now(); while (performance.now() - t0 < 24 && q < jobs.length) { const d = jobs[q], row = new Float32Array(d.nx * 5); for (let i = 0; i < d.nx; i++) { const c = cellMain(d.base, ix(d.x0 + (i + 0.5) * d.dx), d.y0 + (j + 0.5) * d.dy); for (let k = 0; k < 5; k++) row[i * 5 + k] = c[k]; } onRow({ job: d.job, pass: d.pass, j, row }); if (++j >= d.ny) { j = 0; q++; } } if (q < jobs.length) st.fallback = requestAnimationFrame(step); else st.fallback = null; }; st.fallback = requestAnimationFrame(step); }
+      function at(Om, y) { // 取 (Ω_m, Ω_Λ) 处的格值：有细格用细格，否则粗格
+        const x = fx(Om), i = Math.floor((x - X0) / (X1 - X0) * NX), j = Math.floor((y - Y0) / (Y1 - Y0) * NY); if (i < 0 || i >= NX || j < 0 || j >= NY) return null;
+        if (st.have[j]) return Array.from(st.fine.subarray((j * NX + i) * 5, (j * NX + i) * 5 + 5));
+        if (!st.coarseDone) return null; const ci = Math.floor((x - X0) / (X1 - X0) * CX), cj = Math.floor((y - Y0) / (Y1 - Y0) * CY); return Array.from(st.coarse.subarray((cj * CX + ci) * 5, (cj * CX + ci) * 5 + 5));
+      }
+      const FATE = [[232, 112, 95], [70, 150, 160], [90, 205, 190], [170, 120, 230], [110, 115, 130], [60, 60, 70]], FATE_N = ['大坍缩', '永远膨胀（减速）', '永远膨胀（加速）', '大撕裂', '没有大爆炸', '—'], VERD = ['死寂', '勉强', '可能宜居'];
+      function ramp(u, stops) { u = clamp(u, 0, 1); let s = 0; while (s < stops.length - 2 && u > stops[s + 1][0]) s++; const A = stops[s], B = stops[s + 1], f = (u - A[0]) / (B[0] - A[0]); return [0, 1, 2].map((c) => A[c + 1] + (B[c + 1] - A[c + 1]) * f); }
+      const AGE_STOPS = [[0, 20, 30, 70], [0.35, 70, 90, 190], [0.65, 230, 170, 80], [1, 255, 250, 230]];
+      function color(c, H0) {
+        if (!c) return [14, 18, 36]; const f = c[0] | 0;
+        if (st.layer === 'fate') { const k = [0.36, 0.66, 1][c[1] | 0]; return FATE[f].map((v) => v * k); }
+        if (f === 4 || f === 5) return [90, 92, 104];
+        if (st.layer === 'age') { const gy = c[2] * COSMO.GYR / H0; if (!isFinite(gy)) return [90, 92, 104]; return ramp((Math.log10(gy) + 1) / 3.5, AGE_STOPS); }
+        const aF = c[3]; if (!isFinite(aF)) return [38, 40, 60]; return ramp(1 - (Math.log10(aF) + 3) / 3, AGE_STOPS);
+      }
+      function draw() {
+        const cv = $('c-pmap'); if (!cv || current !== 'forge') return; const { ctx, w, h } = fit(cv); ctx.clearRect(0, 0, w, h);
+        const padL = 44, padB = 34, padT = 8, padR = 8, pw = w - padL - padR, ph = h - padT - padB, H0 = st.base ? st.base.H0 : S.H0;
+        const X = (x) => padL + (x - X0) / (X1 - X0) * pw, Y = (y) => padT + ph - (y - Y0) / (Y1 - Y0) * ph, XO = (Om) => X(fx(Om));
+        // 格子 → 图像（细格缺的行用粗格补）
+        if (!st.img) { st.img = document.createElement('canvas'); st.img.width = NX; st.img.height = NY; }
+        const ic = st.img.getContext('2d'), im = ic.createImageData(NX, NY), d = im.data;
+        for (let j = 0; j < NY; j++) { const row = NY - 1 - j; for (let i = 0; i < NX; i++) { let c = null; if (st.have[j]) c = st.fine.subarray((j * NX + i) * 5, (j * NX + i) * 5 + 5); else if (st.coarseDone) { const ci = Math.floor(i * CX / NX), cj = Math.floor(j * CY / NY); c = st.coarse.subarray((cj * CX + ci) * 5, (cj * CX + ci) * 5 + 5); } const rgb = color(c, H0), o = (row * NX + i) * 4; d[o] = rgb[0]; d[o + 1] = rgb[1]; d[o + 2] = rgb[2]; d[o + 3] = 255; } }
+        ic.putImageData(im, 0, 0); ctx.imageSmoothingEnabled = false; ctx.drawImage(st.img, padL, padT, pw, ph); ctx.imageSmoothingEnabled = true;
+        // 坐标轴
+        ctx.font = '11px JetBrains Mono, monospace'; ctx.fillStyle = CSS('--dim'); ctx.strokeStyle = 'rgba(152,164,199,0.25)'; ctx.lineWidth = 1;
+        for (const [v, lab] of [[1e-3, '0.001'], [1e-2, '0.01'], [0.1, '0.1'], [1, '1'], [3, '3']]) { ctx.textAlign = 'center'; ctx.fillText(lab, XO(v), h - padB + 14); if (v < 3) { ctx.beginPath(); ctx.moveTo(XO(v), padT); ctx.lineTo(XO(v), padT + ph); ctx.stroke(); } }
+        for (let y = -1; y <= Y1 + 1e-9; y += 1) { ctx.textAlign = 'right'; ctx.fillText(String(y), padL - 6, Y(y) + 4); ctx.beginPath(); ctx.moveTo(padL, Y(y)); ctx.lineTo(padL + pw, Y(y)); ctx.stroke(); }
+        ctx.font = '12px Space Grotesk, sans-serif'; ctx.textAlign = 'center'; ctx.fillText('物质 Ω_m（对数）', padL + pw / 2, h - 6); ctx.save(); ctx.translate(12, padT + ph / 2); ctx.rotate(-Math.PI / 2); ctx.fillText('暗能量 Ω_Λ', 0, 0); ctx.restore();
+        ctx.save(); ctx.beginPath(); ctx.rect(padL, padT, pw, ph); ctx.clip();
+        // 平坦线 Ω_m + Ω_Λ + Ω_r = 1；q0 = 0 线
+        const Or = baseOr(), wv = st.base ? st.base.w : S.w;
+        const curve = (fn) => { ctx.beginPath(); for (let k = 0; k <= 120; k++) { const u = X0 + (X1 - X0) * k / 120, y = fn(ix(u)); if (k === 0) ctx.moveTo(X(u), Y(y)); else ctx.lineTo(X(u), Y(y)); } ctx.stroke(); };
+        ctx.strokeStyle = 'rgba(255,255,255,0.75)'; ctx.setLineDash([6, 4]); ctx.lineWidth = 1.2; curve((Om) => 1 - Om - Or);
+        const cq = -0.5 * (1 + 3 * wv); if (Math.abs(cq) > 1e-6) { ctx.strokeStyle = 'rgba(255,255,255,0.55)'; ctx.setLineDash([2, 4]); curve((Om) => (Or + 0.5 * Om) / cq); }
+        ctx.setLineDash([]);
+        ctx.fillStyle = 'rgba(255,255,255,0.8)'; ctx.font = '11px Space Grotesk, sans-serif'; ctx.textAlign = 'left'; ctx.fillText('平坦 Ω_k = 0', XO(1.6) + 4, Y(1 - 1.6 - Or) - 5); if (Math.abs(cq) > 1e-6) { const yq = (Or + 0.5 * 2.4) / cq; if (yq > Y0 && yq < Y1) ctx.fillText('q₀ = 0', XO(2.4) + 4, Y(yq) + 12); }
+        // 区域名：按各命运类的质心
+        if (st.coarseDone) { const acc = {}; for (let j = 0; j < NY; j++) { const src = st.have[j] ? st.fine : null; for (let i = 0; i < NX; i++) { let f; if (src) f = src[(j * NX + i) * 5] | 0; else { const ci = Math.floor(i * CX / NX), cj = Math.floor(j * CY / NY); f = st.coarse[(cj * CX + ci) * 5] | 0; } const a = acc[f] || (acc[f] = { n: 0, x: 0, y: 0 }); a.n++; a.x += X0 + (i + 0.5) * (X1 - X0) / NX; a.y += Y0 + (j + 0.5) * (Y1 - Y0) / NY; } }
+          ctx.font = '600 12px Space Grotesk, sans-serif'; ctx.textAlign = 'center'; for (const f in acc) { const a = acc[f]; if (a.n < NX * NY * 0.035 || f === '5') continue; const lab = FATE_N[f], x = X(a.x / a.n), y = Y(a.y / a.n), tw = ctx.measureText(lab).width; ctx.fillStyle = 'rgba(6,9,19,0.6)'; ctx.fillRect(x - tw / 2 - 5, y - 10, tw + 10, 17); ctx.fillStyle = '#fff'; ctx.fillText(lab, x, y + 3); } }
+        // 内置宇宙：实心 = Ω_r、w 和地图一致（可直接比较）；空心 = 不一致
+        ctx.font = '10px Space Grotesk, sans-serif'; ctx.textAlign = 'left';
+        for (const p of PRESETS) { const same = Math.abs(p.p.w - wv) < 1e-9 && Math.abs(Math.log10((p.p.Or || 1e-12) / (Or || 1e-12))) < 0.3; const x = XO(p.p.Om), y = Y(p.p.OL); if (p.p.Om > ix(X1) || p.p.OL < Y0 || p.p.OL > Y1) continue; ctx.beginPath(); ctx.arc(x, y, 3.5, 0, Math.PI * 2); ctx.lineWidth = 1.5; ctx.strokeStyle = '#1a1200'; if (same) { ctx.fillStyle = CSS('--gold'); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#fff'; const right = x > padL + pw * 0.68; ctx.textAlign = right ? 'right' : 'left'; ctx.fillText(p.name, x + (right ? -6 : 6), y + 4); ctx.textAlign = 'left'; } else { ctx.strokeStyle = CSS('--gold'); ctx.stroke(); } }
+        // 当前参数：十字
+        const cx = X(clamp(fx(S.Om), X0, X1)), cy = Y(clamp(S.OL, Y0, Y1)); ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(cx - 9, cy); ctx.lineTo(cx + 9, cy); ctx.moveTo(cx, cy - 9); ctx.lineTo(cx, cy + 9); ctx.stroke(); ctx.beginPath(); ctx.arc(cx, cy, 5, 0, Math.PI * 2); ctx.stroke();
+        ctx.restore();
+        $('pmap-status').textContent = st.status;
+        $('pmap-legend').innerHTML = st.layer === 'fate' ? FATE_N.slice(0, 5).map((n, i) => `<span><i style="background:rgb(${FATE[i].join(',')});width:12px;height:12px;border-radius:3px"></i>${n}</span>`).join('') + '<span>亮度 = 宜居诊断（亮 可能宜居 / 中 勉强 / 暗 死寂）</span>'
+          : (st.layer === 'age' ? '<span>年龄：<i style="background:linear-gradient(90deg,rgb(20,30,70),rgb(70,90,190),rgb(230,170,80),rgb(255,250,230));width:80px;height:10px"></i> 0.1 → 300 Gyr（对数）；灰 = 没有大爆炸</span>' : '<span>第一批星系出现时的 a：<i style="background:linear-gradient(90deg,rgb(255,250,230),rgb(230,170,80),rgb(70,90,190),rgb(20,30,70));width:80px;height:10px"></i> 10⁻³ → 1；深色 = 永远长不出</span>');
+        return { X, Y, padL, padT, pw, ph };
+      }
+      function readout(x, y, c, preset) {
+        const H0 = st.base ? st.base.H0 : S.H0, Or = baseOr(), Ok = 1 - x - y - Or;
+        if (!c) { $('pmap-read').innerHTML = `<div class="k gold"><small>Ω_m, Ω_Λ</small><b>${sig(x, 2)}, ${y.toFixed(2)}</b><i>这一格还在算</i></div>`; return; }
+        const f = c[0] | 0, age = c[2] * COSMO.GYR / H0, aF = c[3];
+        $('pmap-read').innerHTML = `<div class="k gold"><small>${preset ? '内置：' + preset.name : '这一格'}</small><b>Ω_m = ${sig(x, 2)}，Ω_Λ = ${y.toFixed(2)}</b><i>Ω_k = ${(Ok >= 0 ? '+' : '') + Ok.toFixed(2)}${c[4] ? ' · 量子反弹' : ''}</i></div>
+          <div class="k ${f === 0 || f === 3 ? 'coral' : (f === 4 ? 'violet' : 'teal')}"><small>命运</small><b>${FATE_N[f]}</b><i>${f === 4 ? '没有奇点，往回追溯会反弹' : (isFinite(age) ? '年龄 ' + gyr(age) : '')}</i></div>
+          <div class="k ${c[1] === 2 ? 'teal' : (c[1] === 1 ? 'gold' : 'coral')}"><small>宜居诊断</small><b>${VERD[c[1] | 0]}</b><i>${isFinite(aF) ? '第一批星系在 a = ' + sig(aF, 2) : '星系永远长不出来'}</i></div>`;
+      }
+      function pick(ev) { const cv = $('c-pmap'), r = cv.getBoundingClientRect(), g = draw(); if (!g) return null; const px = ev.clientX - r.left, py = ev.clientY - r.top; const u = X0 + (px - g.padL) / g.pw * (X1 - X0), y = Y0 + (g.padT + g.ph - py) / g.ph * (Y1 - Y0); if (u < X0 || u > X1 || y < Y0 || y > Y1) return null; let best = null; for (const p of PRESETS) { const dx = g.X(fx(p.p.Om)) - px, dy = g.Y(p.p.OL) - py; if (dx * dx + dy * dy < 49 && (!best || dx * dx + dy * dy < best.d)) best = { p, d: dx * dx + dy * dy }; } return { x: ix(u), y, preset: best ? best.p : null }; }
+      const cv0 = $('c-pmap');
+      cv0.addEventListener('pointermove', (ev) => { const q = pick(ev); if (!q) return; readout(q.x, q.y, at(q.x, q.y), q.preset); });
+      cv0.addEventListener('click', (ev) => { const q = pick(ev); if (!q) return; if (q.preset) { applyPreset(q.preset.id); toast('装入内置宇宙：' + q.preset.name); return; } S.Om = +q.x.toPrecision(3); S.OL = +q.y.toFixed(3); presetId = null; markPreset(); syncSliders(); frame = TODAY; solve(); toast(`Ω_m = ${S.Om}，Ω_Λ = ${S.OL} 装进了创世台`); });
+      $('pmap-layer').addEventListener('change', () => { st.layer = $('pmap-layer').value; draw(); });
+      return { update, draw, at };
     })();
     function drawMovie() {
       if (!galaxies) galaxies = makeGalaxies();
