@@ -11,8 +11,9 @@
     </div>
     <div class="card">
       <h3><span data-g="circles">② 天上的圈</span> <span class="tag sim">模拟</span></h3>
-      <p class="note">CMB 全天图（Sachs–Wolfe 近似：温度 ∝ 周期随机场在最后散射面上的值）。最后散射面被平移 $v$ 后和自己相交于一个圆，圆心在 $\pm\hat v$，角半径 $\alpha = \arccos(|v|/2\chi)$；每一对同色的圆上温度逐点相同。指到（或点一下）一对圆，下面画出沿两个圆的温度。</p>
+      <p class="note">CMB 全天图（Sachs–Wolfe 近似：温度 ∝ 周期随机场在最后散射面上的值）。最后散射面被平移 $v$ 后和自己相交于一个圆，圆心在 $\pm\hat v$，角半径 $\alpha = \arccos(|v|/2\chi)$；每一对同色的圆上温度逐点相同。指到（或点一下）一对圆，下面画出沿两个圆的温度。胞腔小时圆对成百上千，默认只画最大的几十对。</p>
       <canvas id="c-topo-sky" width="720" height="360" style="cursor:crosshair"></canvas>
+      <div class="bar" style="margin-top:4px"><label class="note">画圆 <select id="topo-showc" class="num" style="width:auto;padding:3px 8px"><option value="some" selected>最大的 24 对</option><option value="all">全部</option><option value="hover">只画指到的那对</option></select></label><span class="note">点一下钉住一对，再点别处松开。图已去掉单极和偶极（真实 CMB 图也是这样处理的）</span></div>
       <canvas id="c-topo-match" width="720" height="160"></canvas>
       <div class="kv" id="topo-sky-cards" style="margin-top:8px"></div>
     </div>
@@ -36,8 +37,8 @@
   </div>
   <div class="card" style="margin-top:14px">
     <details><summary>读完你自己的发现之后再看：这个宇宙在说什么</summary>
-      <p><b style="color:var(--ink)">几何和拓扑是两回事。</b>爱因斯坦方程是局部的：它告诉你每一小块空间怎么弯，不告诉你这些小块怎么拼成整体。平坦空间可以拼成无限的 $\mathbb R^3$，也可以拼成有限的三维环面 $T^3$——把一个盒子的对面粘起来——还有另外十七种平坦的拼法（Bieberbach 群）。正曲率的有限空间更多（庞加莱十二面体空间是其中最出名的，2003 年曾被提出来解释低四极）。弗里德曼方程对它们一视同仁。</p>
-      <p><b style="color:var(--ink)">怎么看出来。</b>(1) 鬼像：同一个星系在不同方向、不同距离出现，而且每个像都是它在不同年代的样子——要认出来并不容易，星系会演化。(2) 天上的圈（Cornish、Spergel、Starkman 1998）：最后散射面是半径 $\chi$ 的球，平移 $v$ 的像球和它相交于一个圆，两个圆上的温度逐点相同；$|v| < 2\chi$ 才有。Planck 2015 找遍了所有半径 $> 15°$ 的圆对：没有。这把最小的平移压到了 $\gtrsim 0.94\times 2\chi$，也就是 $L\gtrsim 1.9\chi$（Planck 2015 XVIII）。(3) 大角度功率被截断：胞腔里没有比 $L$ 长的波，四极先被压低。我们的 CMB 四极确实偏低（只有 ΛCDM 预期的四分之一左右），这曾是拓扑猜想的动机——但匹配圆没找到，这条路基本关上了；低四极大概率只是统计涨落（宇宙方差）。</p>
+      <p><b style="color:var(--ink)">几何和拓扑是两回事。</b>爱因斯坦方程是局部的：它告诉你每一小块空间怎么弯，不告诉你这些小块怎么拼成整体。平坦空间可以拼成无限的 $\mathbb R^3$，也可以拼成有限的三维环面 $T^3$——把一个盒子的对面粘起来——还有另外九种紧致的平坦拼法（Bieberbach：平坦的紧致三维流形一共十种，六种可定向、四种不可定向；加上烟囱、板这样有非紧方向的，共十八种）。正曲率的有限空间更多（庞加莱十二面体空间是其中最出名的，2003 年曾被提出来解释低四极）。弗里德曼方程对它们一视同仁。</p>
+      <p><b style="color:var(--ink)">怎么看出来。</b>(1) 鬼像：同一个星系在不同方向、不同距离出现，而且每个像都是它在不同年代的样子——要认出来并不容易，星系会演化。(2) 天上的圈（Cornish、Spergel、Starkman 1998）：最后散射面是半径 $\chi$ 的球，平移 $v$ 的像球和它相交于一个圆，两个圆上的温度逐点相同；$|v| < 2\chi$ 才有。Planck 2015 找遍了所有半径 $> 15°$ 的圆对：没有。这把最小的平移压到了 $\gtrsim 0.94\times 2\chi \approx 1.9\chi$（Planck 2015 XVIII）。(3) 大角度功率被截断：胞腔里没有比 $L$ 长的波，四极先被压低。我们的 CMB 四极确实偏低（只有 ΛCDM 预期的四分之一左右），这曾是拓扑猜想的动机——但匹配圆没找到，这条路基本关上了；低四极大概率只是统计涨落（宇宙方差）。</p>
       <p><b style="color:var(--ink)">本页怎么算。</b>在基本胞腔上生成一个周期的高斯随机场（功率 $\propto k^{-3}$，固定不随 $L$ 变，外加 3° 的平滑），温度取它在半径 $\chi$ 的球上的值（Sachs–Wolfe 近似，$\Delta T/T = \Phi/3$）。周期性不是画上去的：天图里的重复花样、圆对上一模一样的温度曲线、小胞腔时消失的大角度功率，都是从这个场里直接采样出来的。没算的是声学峰（它们在小角度上，和拓扑无关）。</p>
       <p class="note">标签：天图、圆、多极功率全是算出来的（模拟）；Planck 的结论引自文献。</p>
     </details>

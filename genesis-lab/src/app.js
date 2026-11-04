@@ -470,7 +470,8 @@
     const saved = store.get('forge', null); if (saved && typeof saved.H0 === 'number') { Object.assign(S, saved); presetId = PRESETS.find((p) => ids.every((k) => Math.abs(p.p[k] - S[k]) < 1e-9)) ? PRESETS.find((p) => ids.every((k) => Math.abs(p.p[k] - S[k]) < 1e-9)).id : null; }
     syncSliders(); markPreset();
     window.addEventListener('beforeunload', () => store.set('forge', S));
-    function setParams(obj) { Object.assign(S, obj); presetId = null; markPreset(); syncSliders(); frame = TODAY; solve(); } // 其他展区把一组参数装进创世台
+    function setParams(obj) { // 其他展区把一组参数装进创世台；超出滑杆范围的值把滑杆的范围撑开（例如泡泡宇宙交来 Λ 大 200 倍、H₀′ 近 1000 的宇宙）
+      Object.assign(S, obj); for (const k of ids) { const el = $('s-' + k), v = toSlider(k, S[k]); if (v > +el.max) el.max = Math.ceil(v); if (v < +el.min) el.min = Math.floor(v); } presetId = null; markPreset(); syncSliders(); frame = TODAY; solve(); }
     return { render: () => { if (!R) solve(); else render(); }, S, hooks, solve, syncSliders, labels, markPreset, setParams, get R() { return R; }, get frames() { return frames; } };
   })();
   window.GENESIS = { forge, show: (h) => show(h), halls };

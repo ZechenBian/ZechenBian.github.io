@@ -11,7 +11,7 @@
     if (!GRAVITY21.inChart(S[0], S[1], d)) { const r = Math.hypot(S[0], S[1]); let ph = Math.atan2(S[1], S[0]); if (ph < 0) ph += 2 * Math.PI; ph = ph < Math.PI ? d / 2 + 0.01 : 2 * Math.PI - d / 2 - 0.01; S = [r * Math.cos(ph), r * Math.sin(ph)]; st.src = S; }
     const im = GRAVITY21.images(O, S, d); drawCut(im); drawGlue(im);
     const sep = im.length === 2 ? Math.abs(im[0].dir - im[1].dir) : 0;
-    $('g21-cone-cards').innerHTML = [[im.length === 2 ? 'gold' : 'teal', '你看到几个像', String(im.length), im.length === 2 ? `两像夹角 ${(sep * 180 / Math.PI).toFixed(1)}°（远处光源 → δ = ${(d * 180 / Math.PI).toFixed(0)}°）` : '光源不在质点背后：只有一个像'], ['violet', '质量', `m = δ/8πG = ${(d / (8 * Math.PI)).toFixed(3)} /G`, `这样的质点 ${(2 * Math.PI / d).toFixed(1)} 个就把空间闭合成球`]].map(([c, k, v, i]) => `<div class="k ${c}"><small>${k}</small><b class="mono" style="font-size:15px">${v}</b><i>${i}</i></div>`).join('');
+    $('g21-cone-cards').innerHTML = [[im.length === 2 ? 'gold' : 'teal', '你看到几个像', String(im.length), im.length === 2 ? `两像夹角 ${(sep * 180 / Math.PI).toFixed(1)}°（远处光源 → δ = ${(d * 180 / Math.PI).toFixed(0)}°）` : '光源不在质点背后：只有一个像'], ['violet', '质量', `m = δ/8πG = ${(d / (8 * Math.PI)).toFixed(3)} /G`, d > 1e-6 ? `这样的质点 ${(2 * Math.PI / d).toFixed(1)} 个（总亏角 2π）远处就合拢成圆柱，${(4 * Math.PI / d).toFixed(1)} 个（4π）闭合成球` : '没有质量：平面就是平面']].map(([c, k, v, i]) => `<div class="k ${c}"><small>${k}</small><b class="mono" style="font-size:15px">${v}</b><i>${i}</i></div>`).join('');
   }
   function drawCut(im) {
     const cv = $('c-g21-cut'), { ctx, w, h } = fit(cv), d = st.delta, sc = Math.min(w, h) / 14, cx = w / 2, cy = h / 2, X = (p) => cx + p[0] * sc, Y = (p) => cy - p[1] * sc;
@@ -21,7 +21,7 @@
     // 光线：直线 O→像的目标
     for (const q of im) { ctx.strokeStyle = q.copy === 0 ? CSS('--gold') : CSS('--teal'); ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(X(st.O), Y(st.O)); ctx.lineTo(X(q.target), Y(q.target)); ctx.stroke(); if (q.copy !== 0) { ctx.fillStyle = CSS('--teal'); ctx.globalAlpha = 0.6; ctx.beginPath(); ctx.arc(X(q.target), Y(q.target), 5, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1; } }
     ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(cx, cy, 4, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = CSS('--gold'); ctx.beginPath(); ctx.arc(X(st.src), Y(st.src), 6, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = CSS('--violet'); ctx.beginPath(); ctx.arc(X(st.O), Y(st.O), 5, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = CSS('--dim'); ctx.font = '11px Space Grotesk, sans-serif'; ctx.textAlign = 'left'; ctx.fillText('剪开的平面：红楔去掉，两条虚线粘在一起；光是直线', 6, 14); ctx.fillText('紫 = 你　金 = 光源（拖）　青 = 光源的副本', 6, h - 8);
+    ctx.fillStyle = CSS('--dim'); ctx.font = '11px Space Grotesk, sans-serif'; ctx.textAlign = 'left'; ctx.fillText(w < 330 ? '剪开的平面：去掉红楔，虚线粘合；光是直线' : '剪开的平面：红楔去掉，两条虚线粘在一起；光是直线', 6, 14); ctx.fillText('紫 = 你　金 = 光源（拖）　青 = 光源的副本', 6, h - 8);
   }
   function drawGlue(im) {
     const cv = $('c-g21-glue'), { ctx, w, h } = fit(cv), d = st.delta, sc = Math.min(w, h) / 14, cx = w / 2, cy = h / 2, P = (p) => { const g = GRAVITY21.glue(p[0], p[1], d); return [cx + g[0] * sc, cy - g[1] * sc]; };
@@ -43,10 +43,11 @@
   $('g21-delta').addEventListener('input', () => { st.delta = +$('g21-delta').value; labels(); cone(); });
   // ---- ② BTZ ----
   function shoot() {
-    const B = GRAVITY21.btz(st.M, st.ell), kap = st.kind === 'massive'; const r0 = 2 * B.ell + B.rp;
-    st.orbit = GRAVITY21.geodesic(B, { E: st.E, L: st.L, massive: kap, r0, phi0: 0, outward: true, lambdaMax: kap ? 40 : 60, dl: 0.005 }); st.anim = 0; cancelAnimationFrame(st.raf); st.raf = requestAnimationFrame(orbitTick); drawPot();
-    if (!st.orbit.ok) { $('g21-fate').textContent = '这组 E、L 在出发点不允许（E² < V）：把 E 调大'; drawOrbit(); return; }
-    const o = st.orbit; $('g21-fate').textContent = o.fate === 'horizon' ? (o.bounces ? `到 AdS 边界反射 ${o.bounces} 次后掉进视界` : '掉进视界') : (o.fate === 'bounce' ? `在 AdS 边界反射了 ${o.bounces} 次（AdS 是一口井）` : '绕着');
+    const B = GRAVITY21.btz(st.M, st.ell), kap = st.kind === 'massive'; let r0 = 2 * B.ell + B.rp, outward = true, fromTurn = false;
+    const V = (r) => B.f(r) * ((kap ? 1 : 0) + st.L * st.L / (r * r)); if (st.E * st.E < V(r0)) { let lo = B.rp * 1.001, hi = r0; for (let i = 0; i < 60; i++) { const mid = 0.5 * (lo + hi); if (V(mid) > st.E * st.E) hi = mid; else lo = mid; } r0 = lo; outward = false; fromTurn = true; } // E 不够从 r₀ 往外飞：从折返点出发往里落
+    st.orbit = GRAVITY21.geodesic(B, { E: st.E, L: st.L, massive: kap, r0, phi0: 0, outward, lambdaMax: kap ? 40 : 60, dl: 0.005 }); st.anim = 0; cancelAnimationFrame(st.raf); st.raf = requestAnimationFrame(orbitTick); drawPot();
+    if (!st.orbit.ok) { $('g21-fate').textContent = '这组 E、L 处处不允许（E² < V）：把 E 调大'; drawOrbit(); return; }
+    const o = st.orbit, pre = fromTurn ? `E² 在 r₀ 处小于 V：从折返点 r = ${r0.toFixed(2)} 出发往里落，` : ''; $('g21-fate').textContent = pre + (o.fate === 'horizon' ? (o.bounces ? `到 AdS 边界反射 ${o.bounces} 次后掉进视界` : '掉进视界') : (o.fate === 'bounce' ? `在 AdS 边界反射了 ${o.bounces} 次（AdS 是一口井）` : (st.kind === 'photon' && Math.abs(st.E - st.L / st.ell) < 0.03 ? '临界情形 E = L/ℓ：光渐近地贴向 AdS 边界，既不掉进去也到不了边界' : '算到的范围里既没掉进视界也没碰到边界（还在绕）')));
   }
   function orbitTick() { if (!st.orbit || !st.orbit.ok) return; st.anim = Math.min(st.orbit.r.length - 1, st.anim + Math.max(2, Math.round(st.orbit.r.length / 240))); drawOrbit(); if (st.anim < st.orbit.r.length - 1 && G.current === 'g21') st.raf = requestAnimationFrame(orbitTick); }
   function drawOrbit() {
@@ -58,12 +59,12 @@
     const rh = R0 * 2 / Math.PI * Math.atan(B.rp / B.ell); ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(cx, cy, rh, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = CSS('--coral'); ctx.lineWidth = 1.5; ctx.stroke();
     ctx.fillStyle = CSS('--coral'); ctx.font = '11px Space Grotesk, sans-serif'; ctx.textAlign = 'center'; ctx.fillText(`视界 r₊ = ${B.rp.toFixed(2)}`, cx, cy - rh - 6); ctx.fillStyle = CSS('--violet'); ctx.fillText('AdS 边界（r = ∞）', cx, cy - R0 + 14);
     if (st.orbit && st.orbit.ok) { const o = st.orbit, n = st.anim; ctx.strokeStyle = st.kind === 'massive' ? CSS('--gold') : CSS('--teal'); ctx.lineWidth = 1.8; ctx.beginPath(); for (let i = 0; i <= n; i++) { const p = P(o.r[i], o.phi[i]); if (i) ctx.lineTo(p[0], p[1]); else ctx.moveTo(p[0], p[1]); } ctx.stroke(); const p = P(o.r[n], o.phi[n]); ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(p[0], p[1], 4, 0, Math.PI * 2); ctx.fill(); }
-    ctx.fillStyle = CSS('--dim'); ctx.textAlign = 'left'; ctx.fillText(`AdS 半径 ℓ = ${st.ell}；画面按 (2/π)arctan(r/ℓ) 压缩，灰圈 r = 1, 2, 4, 8`, 8, h - 8);
+    ctx.textAlign = 'left'; const cap = `AdS 半径 ℓ = ${st.ell}；画面按 (2/π)arctan(r/ℓ) 压缩，灰圈 r = 1, 2, 4, 8`; ctx.fillStyle = 'rgba(6,9,19,0.75)'; ctx.fillRect(4, h - 20, ctx.measureText(cap).width + 8, 16); ctx.fillStyle = CSS('--dim'); ctx.fillText(cap, 8, h - 8);
   }
   function drawPot() {
     const cv = $('c-g21-pot'), B = GRAVITY21.btz(st.M, st.ell), kap = st.kind === 'massive' ? 1 : 0, xs = [], ys = []; const rmax = 8 * B.ell;
     for (let i = 0; i <= 200; i++) { const r = B.rp + (rmax - B.rp) * i / 200; xs.push(r); ys.push(B.f(r) * (kap + st.L * st.L / (r * r))); }
-    chart(cv, { xmin: 0, xmax: rmax, ymin: Math.min(0, ...ys) - 1, ymax: Math.max(st.E * st.E * 1.3, ...ys.slice(0, 150)), xlabel: 'r', ylabel: 'V(r) 与 E²', padL: 44, series: [{ xs, ys, color: CSS('--violet') }], hlines: [{ y: st.E * st.E, color: CSS('--gold'), label: 'E²' }], vlines: [{ x: B.rp, color: CSS('--coral'), label: 'r₊' }] });
+    chart(cv, { xmin: 0, xmax: rmax, ymin: Math.min(0, ...ys) - 1, ymax: Math.max(st.E * st.E * 1.3, ...ys.slice(0, 150)), xlabel: 'r', ylabel: 'V(r) 与 E²', padL: 44, series: [{ xs, ys, color: CSS('--violet') }], hlines: [{ y: st.E * st.E, color: CSS('--gold'), label: 'E²' }], vlines: [{ x: B.rp, color: CSS('--coral') }] }); { const { ctx, w } = fit(cv); ctx.fillStyle = CSS('--coral'); ctx.font = '11px Space Grotesk'; ctx.textAlign = 'left'; ctx.fillText('视界 r₊', 44 + (w - 44 - 14) * B.rp / rmax + 4, 22); }
     $('g21-btz-cards').innerHTML = [['coral', '霍金温度', `T = r₊/2πℓ² = ${sig(B.T, 3)}`, 'ℏ = k_B = 1'], ['gold', '熵', `S = 2πr₊/4G = ${sig(B.S, 3)}`, '"面积"在 2+1 维里是周长'], ['violet', '边界中心荷', `c = 3ℓ/2G = ${sig(B.centralCharge, 3)}`, 'Brown–Henneaux 1986；Cardy 公式给出同一个 S']].map(([c, k, v, i]) => `<div class="k ${c}"><small>${k}</small><b class="mono" style="font-size:15px">${v}</b><i>${i}</i></div>`).join('');
   }
   for (const r of document.querySelectorAll('input[name=g21-kind]')) r.addEventListener('change', () => { if (r.checked) { st.kind = r.value; shoot(); } });
@@ -72,7 +73,7 @@
   // ---- ③ 2+1 维 FLRW ----
   function drawFlrw() {
     const cv = $('c-g21-flrw'); if (!st.flrw) { const d = GRAVITY21.flrw21({ dust: 1 }), r = GRAVITY21.flrw21({ rad: 1 }), L = GRAVITY21.flrw21({ lambda: 1 }); const R = COSMO.solve({ H0: 67.4, Om: 1, OL: 0, Or: 0, w: -1 }); const ts = [], as = []; for (let i = R.past.ts.length - 1; i >= 0; i--) { ts.push(R.past.ts[i]); as.push(R.past.as[i]); } for (let i = 1; i < R.fut.ts.length; i++) { ts.push(R.fut.ts[i]); as.push(R.fut.as[i]); } st.flrw = { d, r, L, eds: { ts, as } }; }
-    const F = st.flrw; chart(cv, { xmin: -1.2, xmax: 3, ymin: 0, ymax: 5, xlabel: '时间（1/H₀，今天 = 0）', ylabel: '尺度因子 a', padL: 44, series: [{ xs: F.d.ts, ys: F.d.as, color: CSS('--gold') }, { xs: F.r.ts, ys: F.r.as, color: CSS('--teal') }, { xs: F.L.ts, ys: F.L.as, color: CSS('--violet') }, { xs: F.eds.ts, ys: F.eds.as, color: CSS('--coral'), dash: [4, 4] }], vlines: [{ x: 0, color: CSS('--dim'), label: '今天' }] });
+    const F = st.flrw; chart(cv, { xmin: -1.2, xmax: 3, ymin: 0, ymax: 5, xlabel: '时间（1/H₀，今天 = 0）', ylabel: '尺度因子 a', padL: 44, series: [{ xs: F.d.ts, ys: F.d.as, color: CSS('--gold') }, { xs: F.r.ts, ys: F.r.as, color: CSS('--teal') }, { xs: F.L.ts, ys: F.L.as, color: CSS('--violet') }, { xs: F.eds.ts, ys: F.eds.as, color: CSS('--coral'), dash: [3, 9], width: 2.5 }], vlines: [{ x: 0, color: CSS('--dim'), label: '今天' }] });
   }
   window.addEventListener('resize', () => { if (G.current === 'g21') { cone(); drawOrbit(); drawPot(); drawFlrw(); } });
   let entered = false;

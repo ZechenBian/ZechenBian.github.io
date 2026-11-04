@@ -48,10 +48,10 @@ const TOPO = (function () {
     for (let j = 0; j < H; j++) { const th = (j + 0.5) * Math.PI / H, st = Math.sin(th), ct = Math.cos(th); for (let i = 0; i < W; i++) { const ps = -Math.PI + (i + 0.5) * 2 * Math.PI / W; out[j * W + i] = sample(F, st * Math.cos(ps), st * Math.sin(ps), ct); } }
     return out;
   }
-  // 匹配圆：所有 |v| < 2 的平移向量 v = (nx Lx, ny Ly, nz Lz)（成对只算一次：取 v 和 −v 中字典序正的那个）
-  function circles(L, nmax) {
-    nmax = nmax || 2; const out = [];
-    for (let a = -nmax; a <= nmax; a++) for (let b = -nmax; b <= nmax; b++) for (let c = -nmax; c <= nmax; c++) {
+  // 匹配圆：所有 |v| < 2 的平移向量 v = (nx Lx, ny Ly, nz Lz)（成对只算一次：取 v 和 −v 中字典序正的那个）；每个方向搜到 |n| ≤ ⌈2/L⌉，一个不漏
+  function circles(L) {
+    const out = [], N = L.map((l) => Math.min(40, Math.ceil(2 / l)));
+    for (let a = -N[0]; a <= N[0]; a++) for (let b = -N[1]; b <= N[1]; b++) for (let c = -N[2]; c <= N[2]; c++) {
       if (!a && !b && !c) continue; if (a < 0 || (a === 0 && b < 0) || (a === 0 && b === 0 && c < 0)) continue;
       const v = [a * L[0], b * L[1], c * L[2]], d = Math.hypot(v[0], v[1], v[2]); if (!(d < 2) || !isFinite(d)) continue;
       out.push({ n: [a, b, c], v, d, alpha: Math.acos(d / 2), dir: v.map((q) => q / d) });
@@ -72,6 +72,14 @@ const TOPO = (function () {
     for (const g of gal) for (let i = -imax; i <= imax; i++) for (let j = -jmax; j <= jmax; j++) { const x = g.x + i * L[0], y = g.y + j * L[1], d = Math.hypot(x, y); if (d < chi) out.push({ x, y, d, g, i, j, direct: i === 0 && j === 0 }); }
     return out;
   }
+  // 去掉单极和偶极（真实的 CMB 图也是这样处理的：偶极被我们的运动淹没）；返回减掉的均值，供匹配圆的温度曲线只减均值用
+  function removeDipole(S, W, H) {
+    const dO = (2 * Math.PI / W) * (Math.PI / H); let mean = 0, tot = 0; const a = [0, 0, 0], c1 = Math.sqrt(3 / (4 * Math.PI));
+    for (let j = 0; j < H; j++) { const th = (j + 0.5) * Math.PI / H, w = Math.sin(th) * dO; for (let i = 0; i < W; i++) { mean += S[j * W + i] * w; tot += w; } } mean /= tot;
+    for (let j = 0; j < H; j++) { const th = (j + 0.5) * Math.PI / H, w = Math.sin(th) * dO, ct = Math.cos(th), st = Math.sin(th); for (let i = 0; i < W; i++) { const ph = -Math.PI + (i + 0.5) * 2 * Math.PI / W, v = (S[j * W + i] - mean) * w; a[0] += v * c1 * ct; a[1] += v * c1 * st * Math.cos(ph); a[2] += v * c1 * st * Math.sin(ph); } }
+    for (let j = 0; j < H; j++) { const th = (j + 0.5) * Math.PI / H, ct = Math.cos(th), st = Math.sin(th); for (let i = 0; i < W; i++) { const ph = -Math.PI + (i + 0.5) * 2 * Math.PI / W; S[j * W + i] -= mean + c1 * (a[0] * ct + a[1] * st * Math.cos(ph) + a[2] * st * Math.sin(ph)); } }
+    return { mean, dipole: Math.hypot(a[0], a[1], a[2]) };
+  }
   // 低阶多极：全天图在实球谐函数 ℓ = 1, 2, 3 上的功率 C_ℓ = Σ_m a_ℓm²/(2ℓ+1)（胞腔小于视界时大角度功率被截断）
   function lowMultipoles(S, W, H) {
     const Y = (th, ph) => { const c = Math.cos(th), s = Math.sin(th); return [
@@ -83,6 +91,6 @@ const TOPO = (function () {
     for (let j = 0; j < H; j++) { const th = (j + 0.5) * Math.PI / H, w = Math.sin(th) * dO; for (let i = 0; i < W; i++) { const ph = -Math.PI + (i + 0.5) * 2 * Math.PI / W, y = Y(th, ph), v = (S[j * W + i] - mean) * w; for (let l = 0; l < 3; l++) for (let m = 0; m < a[l].length; m++) a[l][m] += v * y[l][m]; } }
     return { C1: a[0].reduce((s, v) => s + v * v, 0) / 3, C2: a[1].reduce((s, v) => s + v * v, 0) / 5, C3: a[2].reduce((s, v) => s + v * v, 0) / 7 };
   }
-  return { field, sample, sky, circles, circlePoints, ghosts, lowMultipoles, fft3, mulberry32 };
+  return { field, sample, sky, circles, circlePoints, ghosts, lowMultipoles, removeDipole, fft3, mulberry32 };
 })();
 if (typeof module !== 'undefined') module.exports = TOPO;

@@ -23,6 +23,8 @@ let n = 0; function ok(name, cond, info) { n++; assert.ok(cond, name + (info ? '
   ok('temperature identical along the matched pair', worst < 1e-12, worst.toExponential(1));
   ok('L > 2χ: no matched circles', T.circles([2.5, 2.5, 2.5]).length === 0);
   ok('slab (one periodic axis): circles only along that axis', T.circles([0.8, 50, 50]).every((c) => c.n[1] === 0 && c.n[2] === 0)); }
+{ const cs = T.circles([0.5, 0.5, 0.5]); let cnt = 0; for (let a = -4; a <= 4; a++) for (let b = -4; b <= 4; b++) for (let c = -4; c <= 4; c++) if ((a || b || c) && (a * a + b * b + c * c) * 0.25 < 4) cnt++; ok('small torus L = 0.5χ: every |n|·L < 2χ counted (no search cap)', cs.length === cnt / 2 && cs.length === 125, `${cs.length} pairs, expected ${cnt / 2}`);
+  const F = T.field([0.9, 60, 60], 32, 3), S = T.sky(F, 90, 45), r0 = Math.sqrt(S.reduce((q, v) => q + v * v, 0) / S.length), m = T.removeDipole(S, 90, 45); let mean = 0, dz = 0, tot = 0; for (let j = 0; j < 45; j++) { const th = (j + 0.5) * Math.PI / 45, w = Math.sin(th); for (let i = 0; i < 90; i++) { mean += S[j * 90 + i] * w; dz += S[j * 90 + i] * w * Math.cos(th); tot += w; } } ok('removeDipole: residual sky has zero monopole and zero z-dipole (solid-angle weighted)', Math.abs(mean / tot) < 1e-6 * Math.max(1, r0) && Math.abs(dz / tot) < 2e-3 * Math.max(1, r0), `${(mean / tot).toExponential(1)}, ${(dz / tot).toExponential(1)}`); }
 // 4 鬼像个数 ≈ πχ²/(Lx Ly)
 { const g = T.ghosts([{ x: 0.1, y: 0.2 }], [0.5, 0.5], 1); ok('ghost image count ≈ πχ²/L²', Math.abs(g.length - Math.PI / 0.25) < 3, g.length + ' vs ' + (Math.PI / 0.25).toFixed(1)); ok('exactly one direct image', g.filter((q) => q.direct).length === 1); }
 console.log(`\n全部通过 / all ${n} checks passed`);

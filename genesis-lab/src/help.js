@@ -49,6 +49,10 @@
     box.innerHTML = '<div class="drawer-head"><b>问 AI <span class="note" id="chat-who" style="font-weight:400"></span></b><span><button class="btn small ghost" id="chat-setup" hidden>接入 AI…</button> <button class="btn small ghost" id="chat-close">关闭</button></span></div><div class="drawer-body"><div id="chat-log" class="chat-log"></div><div id="chat-setup-panel" hidden></div><form id="chat-form" class="chat-form"><textarea id="chat-in" rows="2" placeholder="看不懂哪里？直接问。AI 会连同你当前拨的参数和页面上的数一起看。"></textarea><div class="bar"><button class="btn small primary" type="submit" id="chat-send">发送</button><button class="btn small ghost" type="button" id="chat-clear">清空</button><span class="note" id="chat-hint"></span></div></form></div>';
     document.body.appendChild(box);
     const fab = document.createElement('button'); fab.id = 'chat-fab'; fab.className = 'btn primary'; fab.textContent = '问 AI'; fab.title = '看不懂就问'; document.body.appendChild(fab);
+    // 手机上浮钮会盖住画布右下角：滚动时和在画布上按着的时候先让开
+    { let tm = 0; const away = (ms) => { fab.classList.add('away'); clearTimeout(tm); tm = setTimeout(() => fab.classList.remove('away'), ms); };
+      window.addEventListener('scroll', () => { if (window.innerWidth <= 600) away(700); }, { passive: true });
+      document.addEventListener('pointerdown', (e) => { if (window.innerWidth <= 600 && e.target.tagName === 'CANVAS') away(1500); }, { passive: true, capture: true }); }
     const log = $('chat-log'), input = $('chat-in');
     let history = [], sampler = null, mode = 'none', busy = false;
     const SYS = '你是"创世实验室"（一个用真实方程模拟宇宙的网页）的讲解员。读者懂微积分和基础物理，但不熟悉宇宙学。用中文回答，先说它是什么、为什么重要，再给公式；公式用 LaTeX（行内 $...$，整行 $$...$$）。回答尽量短（200 字以内，追问时再展开），不要寒暄。页面状态在下面，引用其中的具体数字来解释。如果读者的问题超出页面内容，照常回答但说明页面上看不到。';
