@@ -2,6 +2,8 @@
   "_说明": "网站上对外公开的页面。新加页面要在这里登记：check_rules.py 会检查每个 index.html 都登记了，smoke.js 会在无头浏览器里逐个打开。generated=true 表示由构建脚本生成（.gitattributes 里也要标 linguist-generated）；smoke=false 表示不做冒烟测试（例如登录回调页）。",
   "pages": [
     { "path": "index.html",                            "name": "主页 Homepage" },
+    { "path": "genesis-lab/index.html",                "name": "创世实验室 Genesis Lab",    "generated": true },
+    { "path": "genesis-lab/quantum/index.html",        "name": "创世实验室 · 量子版",       "generated": true },
     { "path": "gravity-slingshot/index.html",          "name": "引力弹弓 Gravity Slingshot", "generated": true },
     { "path": "jieya/index.html",                      "name": "深夜解压铺",                "generated": true },
     { "path": "nobel-lab/index.html",                  "name": "诺奖思想实验室",            "generated": true },

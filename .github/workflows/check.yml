@@ -86,6 +86,9 @@ jobs:
       - name: 装天下棋局地图的构建工具（d3-geo）
         working-directory: tianxia/_source
         run: npm install --no-audit --no-fund --no-package-lock
+      - name: 装创世实验室的构建工具（KaTeX）
+        working-directory: genesis-lab
+        run: npm install --no-audit --no-fund --no-package-lock
       - run: python3 .github/scripts/check_rebuild.py
 
   tianxia-replay:

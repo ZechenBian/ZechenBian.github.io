@@ -1,0 +1,54 @@
+<!-- Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。 -->
+<!-- ================= Mixmaster（Bianchi IX）宇宙 ================= -->
+<section class="hall" id="hall-mix" hidden>
+  <p class="lede">放弃"各向同性"：让宇宙在三个方向上各有自己的尺度因子 a、b、c。这是爱因斯坦方程的 Bianchi IX 解（Misner 1969 叫它 Mixmaster，"搅拌机"）。它像我们的封闭宇宙一样有大爆炸和大坍缩，但靠近奇点时三根轴会轮流被挤扁、拉长，跳一支无穷无尽、而且混沌的舞。下面全部是从方程实时积分出来的。</p>
+  <div class="grid g-godel" style="margin-top:14px">
+    <div class="card">
+      <h3><span data-g="mixmaster">① 三根轴的舞蹈</span> <span class="tag sim">模拟</span></h3>
+      <p class="note">把宇宙的形状画成一个椭球（三根半轴 ∝ a、b、c，去掉了整体的大小）。拖动时间轴：靠近两端的奇点，宇宙在"雪茄"和"煎饼"之间不停切换——每一次切换就是一次反弹。拖动画面可以转动视角。</p>
+      <canvas id="c-mix-shape" width="520" height="380" class="pointer"></canvas>
+      <div class="bar"><button class="btn small primary" id="mix-play">▶ 播放</button><button class="btn small" id="mix-next">⏭ 下一次反弹</button><input type="range" id="mix-s" min="0" max="1000" step="1" value="500"><span class="note mono" id="mix-tau" style="min-width:90px;text-align:right"></span></div>
+      <div class="kv" id="mix-hud" style="margin-top:8px"></div>
+    </div>
+    <div class="card">
+      <h3><span data-g="bkl">② 指数的乐谱</span> <span class="tag sim">模拟</span></h3>
+      <p class="note">横轴是离奇点的时间（对数），纵轴是三根轴的对数长度。每一段直线是一个 Kasner 时代：三根轴各按 $t^{p_i}$ 伸缩，$p_1 + p_2 + p_3 = p_1^2 + p_2^2 + p_3^2 = 1$，总有一根在缩。折点是反弹。</p>
+      <div class="bar" style="margin-top:0"><label class="note">看哪一端 <select id="mix-end" class="num" style="width:auto;padding:4px 8px"><option value="bang">大爆炸</option><option value="crunch">大坍缩</option></select></label><span class="note" id="mix-cerr"></span></div>
+      <canvas id="c-mix-log" width="520" height="300"></canvas>
+      <div class="legend"><span><i style="background:var(--coral)"></i>ln a</span><span><i style="background:var(--teal)"></i>ln b</span><span><i style="background:var(--violet)"></i>ln c</span><span><i style="background:var(--gold)"></i>当前时刻</span></div>
+    </div>
+  </div>
+  <div class="grid g-godel" style="margin-top:14px">
+    <div class="card">
+      <h3><span data-g="kasner">③ Kasner 圆与高斯映射</span> <span class="tag sim">模拟</span></h3>
+      <p class="note">$\Sigma p = 1$ 和 $\Sigma p^2 = 1$ 一起定义一个圆。每个 Kasner 时代是圆上一个点，反弹把它跳到另一个点。BKL（1970）算出跳法只由一个数 $u \ge 1$ 决定：$u \to u - 1$，到 $1 < u < 2$ 时 $u \to 1/(u-1)$——这就是连分数的高斯映射，初始条件的小数点后第十位决定第十个时代。下面把方程积出来的时代序列和这条规则逐个对照。</p>
+      <div class="grid g2">
+        <div><canvas id="c-mix-kasner" width="300" height="300"></canvas></div>
+        <div id="mix-epochs" class="note" style="font-size:12px"></div>
+      </div>
+      <div class="bar"><button class="btn small" id="mix-chaos">🎲 混沌检验：u 改一百万分之一再算一遍</button><span class="note" id="mix-chaos-out">结果会接在上面的时代表底下</span></div>
+    </div>
+    <div class="card">
+      <h3><span data-g="mixmaster">④ 创世参数</span></h3>
+      <p class="note">起点：三根轴一样长（$a = b = c = a_0$），各向异性全在速度里。两种给法：精确的 Kasner 态（一个数 $u$），或一般的剪切（大小和方向）。再决定装不装物质。</p>
+      <div class="chips" id="mix-presets"></div>
+      <div class="bar" style="margin-top:10px"><label class="note"><input type="radio" name="mix-mode" value="kasner" checked style="accent-color:var(--gold)"> 精确 Kasner 态</label><label class="note"><input type="radio" name="mix-mode" value="general" style="accent-color:var(--gold)"> 一般剪切</label></div>
+      <div class="ctl" id="mix-ctl-u"><label><span data-g="kasner">起始的 $u$</span><b class="mono" id="mix-v-u"></b></label><input type="range" id="mix-u" min="1.05" max="8" step="0.01" value="3.7"><div class="sub">$u = p_3/p_2$；$u$ 越大，第一个时代越"安静"（一根轴几乎不动）</div></div>
+      <div class="ctl" id="mix-ctl-shear" hidden><label><span>剪切大小</span><b class="mono" id="mix-v-shear"></b></label><input type="range" id="mix-shear" min="0" max="2" step="0.01" value="0.9"><div class="sub">0 = 各向同性（就是封闭的 FLRW）</div></div>
+      <div class="ctl" id="mix-ctl-chi" hidden><label><span>剪切方向 χ</span><b class="mono" id="mix-v-chi"></b></label><input type="range" id="mix-chi" min="0" max="6.28" step="0.01" value="0.7"><div class="sub">哪根轴先被压</div></div>
+      <div class="ctl"><label><span>起始大小 $a_0$</span><b class="mono" id="mix-v-a0"></b></label><input type="range" id="mix-a0" min="-2" max="-0.3" step="0.01" value="-1.7"><div class="sub">对数刻度；越小，离奇点越近、第一个时代越长</div></div>
+      <div class="ctl"><label><span data-g="mixmatter">尘埃 $M = 8\pi G\rho_0 V_0$</span><b class="mono" id="mix-v-M"></b></label><input type="range" id="mix-M" min="0" max="3" step="0.01" value="0"><div class="sub">0 = 真空（纯 Mixmaster）</div></div>
+      <div class="ctl"><label><span data-g="mixmatter">宇宙学常数 $\Lambda$</span><b class="mono" id="mix-v-L"></b></label><input type="range" id="mix-L" min="-0.3" max="0.6" step="0.01" value="0"><div class="sub">正的 Λ 够大时宇宙不再坍缩，反而被抹平</div></div>
+      <div class="kv" id="mix-cards" style="margin-top:10px"></div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <details><summary>读完你自己的发现之后再看：这个宇宙在说什么</summary>
+      <p><b style="color:var(--ink)">方程。</b>度规 $ds^2 = -dt^2 + a^2\sigma_1^2 + b^2\sigma_2^2 + c^2\sigma_3^2$，$\sigma_i$ 是三维球面上的 SU(2) 左不变一形式。用 BKL 的时间 $d\tau = dt/(abc)$ 和 $\alpha = \ln a$ 等，真空爱因斯坦方程变成 $$2\alpha'' = (b^2-c^2)^2 - a^4,\qquad 2\beta'' = (a^2-c^2)^2 - b^4,\qquad 2\gamma'' = (a^2-b^2)^2 - c^4,$$ 外加约束 $\alpha'\beta' + \beta'\gamma' + \gamma'\alpha' = \tfrac14(a^4+b^4+c^4) - \tfrac12(a^2b^2+b^2c^2+c^2a^2)$。右边就是三维空间的曲率——各向异性的三维球面的曲率可正可负，它像三面"墙"，轮流把宇宙弹回去。装尘埃是在每个方程右边加 $M\,abc$，装 $\Lambda$ 加 $2\Lambda(abc)^2$。三根轴一样长时，约束就退化成封闭 FLRW 的弗里德曼方程（页面的测试里逐个对照过）。</p>
+      <p><b style="color:var(--ink)">Kasner 时代。</b>离奇点足够近时墙可以忽略，$\alpha' $ 等都是常数：$a\propto t^{p_1}$、$b\propto t^{p_2}$、$c\propto t^{p_3}$，$\Sigma p_i = \Sigma p_i^2 = 1$（Kasner 1921）。总有一个指数是负的——往奇点走时那根轴反而在变长。它一长，对应的墙 $a^4$ 就起来了，把它弹回去：新的时代，新的指数。</p>
+      <p><b style="color:var(--ink)">混沌。</b>BKL 证明每次反弹的指数变化只由 $u$ 决定：$u\to u-1$；到 $1<u<2$ 时 $u\to 1/(u-1)$。写成连分数 $u = k_0 + 1/(k_1 + 1/(k_2+\cdots))$，一个"纪元"就是 $k_i$ 次反弹，纪元之间按高斯映射跳。高斯映射是混沌的：两个 $u$ 相差 $10^{-6}$，六七个纪元之后序列就完全不同——③里的按钮会让你亲眼看到。于是"初始条件决定一切"在这里变成"初始条件的第十位小数决定第十个纪元"。</p>
+      <p><b style="color:var(--ink)">它为什么重要。</b>Misner 1969 年提出 Mixmaster，本想用"搅拌"解释宇宙为什么各向同性（视界问题）；结果发现搅拌得并不够，视界问题最后由暴胀解决。但 BKL 猜想——一般的时空奇点附近都是这种振荡——至今仍是广义相对论最深的未解问题之一，数值相对论在 2000 年后才在一般情形下看到它的迹象。装上足够大的 $\Lambda$（④里拨正），膨胀把各向异性抹平：这就是"宇宙无毛"定理（Wald 1983），暴胀抹平初始各向异性的原型。</p>
+      <p class="note">标签：三根轴、指数、时代序列全是方程的数值解（模拟）；椭球只是形状的示意（真实的空间是一个被各向异性拉扯的三维球面），轴长用了对数压缩（指数差 300 只画成 1 : 13），不然靠近奇点的比例是 $e^{100}$，画出来只剩一条线；"尘埃 / Λ"的宇宙离奇点远时三根轴被均匀减速，Σp² ≠ 1 但并不是在反弹。时代表只数跨 ln T > 5 的 Kasner 段，两次反弹之间的过渡不算。</p>
+    </details>
+  </div>
+</section>

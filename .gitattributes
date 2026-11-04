@@ -3,6 +3,8 @@
 # Built pages: generated from each project's src/ by its build script. Do not edit by hand.
 # Marked linguist-generated so pull-request diffs collapse them and show only source changes.
 
+genesis-lab/index.html                linguist-generated=true
+genesis-lab/quantum/index.html        linguist-generated=true
 gravity-slingshot/index.html          linguist-generated=true
 jieya/index.html                      linguist-generated=true
 nobel-lab/index.html                  linguist-generated=true

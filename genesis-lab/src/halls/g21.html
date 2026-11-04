@@ -1,0 +1,41 @@
+<!-- Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。 -->
+<!-- ================= 2+1 维引力 ================= -->
+<section class="hall" id="hall-g21" hidden>
+  <p class="lede">放弃一个空间维度：两维空间加一维时间里的广义相对论。这里 Riemann 张量完全由 Ricci 张量决定——真空处处局部平坦，没有引力波，也没有牛顿式的吸引。可它一点也不无聊：质点把平面剪掉一个角，光绕过它会出现双像；Λ &lt; 0 时有真正的黑洞（BTZ），有温度、有熵；尘埃宇宙不减速。下面全部按 2+1 维的方程算。</p>
+  <div class="grid g-godel" style="margin-top:14px">
+    <div class="card">
+      <h3><span data-g="cone">① 质点是一个锥：双像，但不弯</span> <span class="tag sim">模拟</span></h3>
+      <p class="note">左图是"剪开的平面"：质点（中心）的全部效应就是去掉一个角 $\delta = 8\pi G m$ 并把两条边粘上，光线是直线。右图是粘起来之后你看到的样子。拖动光源（金点；紫点是你，不能拖），看它在质点正后方时怎么分成两个像——远处光源的两像夹角恰好是 $\delta$，和距离无关。</p>
+      <div class="grid g2"><canvas id="c-g21-cut" width="300" height="300" style="cursor:grab;touch-action:none"></canvas><canvas id="c-g21-glue" width="300" height="300"></canvas></div>
+      <div class="ctl" style="margin-top:8px"><label><span data-g="cone">亏角 $\delta = 8\pi G m$</span><b class="mono" id="g21-v-delta"></b></label><input type="range" id="g21-delta" min="0" max="2.6" step="0.01" value="0.6"><div class="sub">弧度；质量越大，剪掉的角越大；总亏角到 $2\pi$ 远处合拢成圆柱，到 $4\pi$（Gauss–Bonnet）空间闭合成球</div></div>
+      <div class="kv" id="g21-cone-cards"></div>
+    </div>
+    <div class="card">
+      <h3><span data-g="btz">② BTZ 黑洞：没有牛顿引力也有黑洞</span> <span class="tag sim">模拟</span></h3>
+      <p class="note">$\Lambda = -1/\ell^2$ 时，$ds^2 = -f\,dt^2 + dr^2/f + r^2d\varphi^2$，$f = r^2/\ell^2 - M$。视界 $r_+ = \ell\sqrt M$，外面局部就是 AdS₃。放一个粒子（或一束光），给它能量 $E$ 和角动量 $L$，看它的轨道：AdS 像一口井，什么都飞不远；而 BTZ 里没有稳定圆轨道，有质量的东西最后都掉进去。$E$ 不够从出发点 $r_0 = r_+ + 2\ell$ 往外飞时，就从它的折返点出发往里落。</p>
+      <canvas id="c-g21-orbit" width="520" height="360"></canvas>
+      <div class="bar"><label class="note"><input type="radio" name="g21-kind" value="massive" checked style="accent-color:var(--gold)"> 有质量的粒子</label><label class="note"><input type="radio" name="g21-kind" value="photon" style="accent-color:var(--gold)"> 光</label><button class="btn small" id="g21-shoot">✦ 发射</button><span class="note mono" id="g21-fate"></span></div>
+      <div class="ctl"><label><span>黑洞质量 $M$</span><b class="mono" id="g21-v-M"></b></label><input type="range" id="g21-M" min="0.1" max="4" step="0.05" value="1"></div>
+      <div class="ctl"><label><span>能量 $E$</span><b class="mono" id="g21-v-E"></b></label><input type="range" id="g21-E" min="0.5" max="12" step="0.05" value="5"></div>
+      <div class="ctl"><label><span>角动量 $L$</span><b class="mono" id="g21-v-L"></b></label><input type="range" id="g21-L" min="0" max="4" step="0.05" value="1.5"></div>
+      <canvas id="c-g21-pot" width="520" height="200"></canvas>
+      <div class="kv" id="g21-btz-cards" style="margin-top:8px"></div>
+    </div>
+  </div>
+  <div class="grid g-godel" style="margin-top:14px">
+    <div class="card">
+      <h3><span data-g="flrw21">③ 2+1 维的宇宙学</span> <span class="tag sim">模拟</span></h3>
+      <p class="note">2+1 维的弗里德曼方程：$H^2 + k/a^2 = 8\pi G\rho$，$\ddot a/a = -8\pi G p$。减速只来自压强：尘埃（$p=0$）的宇宙匀速膨胀，像根本没有引力；辐射才减速，Λ 才加速。巧合：2+1 维只有辐射时 $a\propto t^{2/3}$，和 3+1 维的尘埃宇宙是同一条曲线。</p>
+      <canvas id="c-g21-flrw" width="520" height="280"></canvas>
+      <div class="legend"><span><i style="background:var(--gold)"></i>只有尘埃</span><span><i style="background:var(--teal)"></i>只有辐射</span><span><i style="background:var(--violet)"></i>只有 Λ</span><span><i style="background:var(--coral)"></i>3+1 维的尘埃宇宙（对照；和 2+1 维"只有辐射"恰好同一条 $a\propto t^{2/3}$）</span></div>
+    </div>
+    <div class="card">
+      <h3><span data-g="btz">④ 读完你自己的发现之后再看：这个宇宙在说什么</span></h3>
+      <p><b style="color:var(--ink)">为什么没有引力。</b>三维时空里 Riemann 张量有 6 个独立分量，Ricci 张量也是 6 个：爱因斯坦方程 $R_{\mu\nu} - \tfrac12 g_{\mu\nu}R + \Lambda g_{\mu\nu} = 8\pi G T_{\mu\nu}$ 把曲率完全钉死在物质所在处，真空里曲率为零（或等于 Λ 给的常曲率）。没有传播的自由度：没有引力波，两个质点之间也没有力——它们各自只是一个锥。</p>
+      <p><b style="color:var(--ink)">锥。</b>质点 $m$ 的时空是 $ds^2 = -dt^2 + dr^2 + (1-4Gm)^2r^2d\varphi^2$：绕一圈只有 $2\pi(1-4Gm)$，亏角 $\delta = 8\pi Gm$（Deser、Jackiw、't Hooft 1984）。光走直线，但从质点两侧绕过的两条直线在粘合后都到你眼睛：双像，夹角 $\delta$。质量总和到 $1/4G$（总亏角 $2\pi$）时远处合拢成圆柱，这是 DJH 对开放空间的质量上限；到 $1/2G$（总亏角 $4\pi = 2\pi\chi(S^2)$，Gauss–Bonnet）平面闭合成球面——这就是 2+1 维的"封闭宇宙"。宇宙弦在 3+1 维里也是这样的锥。</p>
+      <p><b style="color:var(--ink)">BTZ。</b>1992 年 Bañados、Teitelboim、Zanelli 发现 Λ &lt; 0 时有黑洞解。它局部就是 AdS₃（没有曲率奇点），整体是 AdS₃ 的商空间，却有视界、霍金温度 $T = r_+/2\pi\ell^2$、熵 $S = 2\pi r_+/4G$。它成了量子引力的最佳试验场：Strominger 1998 年用 Brown–Henneaux 的边界中心荷 $c = 3\ell/2G$ 和 Cardy 公式算出了同一个熵——全息对偶最早的硬证据之一。</p>
+      <p><b style="color:var(--ink)">宇宙学。</b>2+1 维里 $G_{tt} = (\dot a/a)^2 + k/a^2$ 只有一项，$\ddot a/a = -8\pi G p$：尘埃不减速，这是"没有引力吸引"的宇宙学版本。③里对照的 3+1 维尘埃宇宙则按 $\ddot a/a = -4\pi G\rho/3$ 减速。</p>
+      <p class="note">标签：双像、轨道、势、膨胀全是方程算的（模拟）；BTZ 的熵与 Cardy 公式的对应引自文献。</p>
+    </div>
+  </div>
+</section>

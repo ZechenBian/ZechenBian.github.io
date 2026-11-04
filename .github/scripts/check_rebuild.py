@@ -8,7 +8,7 @@
 在本地跑，它检查的是"磁盘上的页面和磁盘上的源码一致"；不一致时构建已经把页面更新了，把它们一起提交即可。
 
 用法（仓库根目录）：python3 .github/scripts/check_rebuild.py
-策略实验室的构建要 KaTeX 和 acorn：先在 strategy-lab/ 里 npm install；天下棋局的地图要 d3-geo：先在 tianxia/_source/ 里 npm install。
+策略实验室的构建要 KaTeX 和 acorn：先在 strategy-lab/ 里 npm install；创世实验室也要 KaTeX：在 genesis-lab/ 里 npm install；天下棋局的地图要 d3-geo：先在 tianxia/_source/ 里 npm install。
 """
 import hashlib, pathlib, subprocess, sys
 
@@ -18,6 +18,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 # 要比对的目录省略时就是运行的目录；天下棋局的源码在 tianxia/_source，产物写到四个版本的目录里。
 TIANXIA_PAGES = ["tianxia", "tianxia-v2", "tianxia-v3", "tianxia-v4"]
 BUILDS = [
+    ("创世实验室 genesis-lab",      "genesis-lab",       ["node", "build.js"]),
     ("引力弹弓 gravity-slingshot", "gravity-slingshot", ["node", "build.js"]),
     ("深夜解压铺 jieya",           "jieya",             ["node", "build.js"]),
     ("诺奖实验室 nobel-lab",       "nobel-lab",         ["python3", "build.py", "--github", "."]),

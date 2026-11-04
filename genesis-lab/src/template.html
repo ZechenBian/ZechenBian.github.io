@@ -1,0 +1,393 @@
+<!doctype html>
+<!--
+  Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+  Not open source: no copying, modification, redistribution, commercial use or AI/ML training without written permission.
+  非开源：未经书面许可，不得复制、修改、再分发、商用或用于 AI/机器学习训练。
+  License: https://github.com/ZechenBian/zechenbian.github.io/blob/main/LICENSE
+
+  创世实验室 · Genesis Lab — 由 src/ 构建（node build.js），不要手改这个文件。
+-->
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="author" content="Zechen Bian">
+<meta name="copyright" content="© 2026 Zechen Bian. All rights reserved.">
+<meta name="robots" content="noai, noimageai">
+<link rel="license" href="https://github.com/ZechenBian/zechenbian.github.io/blob/main/LICENSE">
+<title>__TITLE__</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+__KATEX_CSS__
+<style>
+:root{
+  --bg:#070b17; --bg2:#0b1124; --panel:#111a33; --panel2:#162044; --line:#243256; --line2:#34467a;
+  --ink:#e9edf9; --dim:#98a4c7; --faint:#5f6b90;
+  --gold:#f2c14e; --teal:#5fe0cf; --coral:#ff6f87; --violet:#b08cff; --sky:#6fb5ff; --lime:#b6ef6a;
+  --ok:#5fe0a0; --warn:#f2c14e; --dead:#ff6f87;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth}
+body{margin:0;background:radial-gradient(1200px 600px at 20% -10%,#17224a 0%,var(--bg) 55%),var(--bg);color:var(--ink);
+  font-family:'Space Grotesk',-apple-system,BlinkMacSystemFont,'PingFang SC','Hiragino Sans GB','Noto Sans CJK SC','Microsoft YaHei',sans-serif;font-size:16px;line-height:1.55;min-height:100vh}
+.mono{font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;font-variant-numeric:tabular-nums}
+a{color:var(--teal)}
+h1,h2,h3{margin:0;font-weight:600;letter-spacing:.01em}
+h1{font-size:30px}
+h2{font-size:22px}
+h3{font-size:16px;color:var(--gold)}
+p{margin:.4em 0}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.top{padding:18px 0 8px;border-bottom:1px solid var(--line)}
+header.top .row{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.title small{display:block;color:var(--dim);font-size:14px;font-weight:400;margin-top:2px}
+nav.tabs{display:flex;gap:6px;flex-wrap:wrap}
+nav.tabs button{font:inherit;font-weight:600;font-size:14px;color:var(--dim);background:transparent;border:1px solid var(--line);border-radius:999px;padding:7px 14px;cursor:pointer}
+nav.tabs button:hover{color:var(--ink);border-color:var(--line2)}
+nav.tabs button.on{color:#1a1200;background:var(--gold);border-color:var(--gold)}
+nav.tabs button:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+section.hall{padding:22px 0 40px}
+.lede{color:var(--dim);max-width:70ch}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:1fr 1fr}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g-forge{grid-template-columns:340px 1fr}
+.g-godel{grid-template-columns:1fr 1fr}
+.g-inv{grid-template-columns:1fr 360px}
+.g-allsky{grid-template-columns:1fr 300px}
+.grid>*{min-width:0}
+@media (max-width:960px){.g-forge,.g-godel,.g-inv,.g-allsky,.g3,.g2{grid-template-columns:1fr}}
+.as-scroll{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}
+.mix-tbl{overflow-x:auto}.mix-tbl td{padding:1px 8px 1px 0;white-space:nowrap}
+@media (max-width:600px){.as-scroll canvas{min-width:640px}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;min-width:0}
+.card.tight{padding:10px 12px}
+.card h3{margin-bottom:8px}
+.card .note{color:var(--dim);font-size:13px}
+.tag{display:inline-block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:4px;border:1px solid var(--line2);color:var(--dim);vertical-align:middle;margin-left:6px}
+.tag.real{color:#1a1200;background:var(--gold);border-color:var(--gold)}
+.tag.sim{color:var(--teal);border-color:var(--teal)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font:inherit;font-size:13px;font-weight:600;color:var(--ink);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:6px 10px;cursor:pointer;text-align:left;line-height:1.25}
+.chip small{display:block;font-weight:400;color:var(--dim);font-size:11px}
+.chip:hover{border-color:var(--line2)}
+.chip.on{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold) inset}
+.btn{font:inherit;font-weight:600;font-size:14px;color:var(--ink);background:var(--panel2);border:1px solid var(--line2);border-radius:8px;padding:8px 14px;cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:var(--dim)}
+.btn:focus-visible,.chip:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+.btn.primary{background:var(--gold);color:#1a1200;border-color:var(--gold)}
+.btn.ghost{background:transparent}
+.btn.small{font-size:12px;padding:5px 9px}
+.btn.on{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold) inset}
+.btn:disabled{opacity:.45;cursor:default}
+.ctl{margin:10px 0}
+.ctl label{display:flex;justify-content:space-between;align-items:baseline;font-size:14px;color:var(--dim)}
+.ctl label b{color:var(--ink);font-weight:500}
+.ctl input[type=range]{width:100%;margin:4px 0 0;accent-color:var(--gold)}
+.ctl .sub{font-size:12px;color:var(--faint)}
+.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(136px,1fr));gap:8px}
+.kv .k{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:9px 11px}
+.kv .k small{display:block;color:var(--dim);font-size:12px;letter-spacing:.04em}
+.kv .k b{display:block;font-size:19px;font-weight:600;line-height:1.2;margin-top:2px}
+.kv .k i{display:block;font-style:normal;color:var(--dim);font-size:12px;margin-top:2px}
+.kv .k.gold b{color:var(--gold)}.kv .k.teal b{color:var(--teal)}.kv .k.coral b{color:var(--coral)}.kv .k.violet b{color:var(--violet)}
+canvas{display:block;width:100%;height:auto;border-radius:10px;background:#060913;border:1px solid var(--line)}
+canvas.pointer{cursor:crosshair}
+.movie{position:relative}
+.movie .hud{position:absolute;left:10px;top:8px;font-size:12px;color:var(--dim);pointer-events:none;text-shadow:0 1px 2px #000}
+.movie .hud b{color:var(--ink);font-weight:500}
+.movie .hud{background:rgba(6,9,19,0.55);padding:4px 8px;border-radius:6px}
+.movie.nb .hud{left:auto;right:8px;max-width:200px;line-height:1.45;font-size:11px;white-space:nowrap}
+@media (max-width:600px){.movie .hud{position:static;background:transparent;padding:4px 0 0;font-size:11px}.movie.nb .hud{max-width:none;white-space:normal}}
+.sticky-sum{position:fixed;left:0;right:0;bottom:0;z-index:8;display:none;gap:10px;align-items:center;flex-wrap:wrap;padding:6px max(16px,env(safe-area-inset-left,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-right,0px));background:rgba(11,17,36,0.96);border-top:1px solid var(--line2);font-size:12px;color:var(--dim)}
+.sticky-sum span{white-space:nowrap}.sticky-sum a{margin-left:auto;color:var(--teal);font-weight:600;text-decoration:none}
+@media (max-width:960px){.sticky-sum:not([hidden]){display:flex}body{padding-bottom:56px}}
+.epoch-line{margin-top:6px;font-size:13px;color:var(--gold);font-weight:600;min-height:20px}
+.bar{display:flex;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap}
+.bar input[type=range]{flex:1;min-width:160px;accent-color:var(--gold)}
+.timeline{position:relative;height:44px;margin-top:4px}
+.timeline .mk{position:absolute;top:0;transform:translateX(-50%);font-size:10px;color:var(--dim);white-space:nowrap;text-align:center}
+.timeline .mk::before{content:'';display:block;width:1px;height:8px;background:var(--line2);margin:0 auto 1px;transform:translateX(var(--tk,0px))}
+.timeline .mk.alt{top:0}.timeline .mk.alt::before{height:22px}
+.diag{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.diag li{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:9px 11px}
+.diag .lv{width:10px;height:10px;border-radius:50%;margin-top:7px}
+.diag .lv.ok{background:var(--ok);box-shadow:0 0 8px var(--ok)}.diag .lv.warn{background:var(--warn);box-shadow:0 0 8px var(--warn)}.diag .lv.dead{background:var(--dead);box-shadow:0 0 8px var(--dead)}
+.diag b{display:block;font-weight:600}
+.diag span{color:var(--dim);font-size:13px}
+.verdict{display:inline-block;font-weight:700;padding:3px 10px;border-radius:999px;font-size:13px;border:1px solid}
+.verdict.alive{color:var(--ok);border-color:var(--ok)}.verdict.marginal{color:var(--warn);border-color:var(--warn)}.verdict.dead{color:var(--dead);border-color:var(--dead)}
+details{border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin-top:10px;background:var(--bg2);min-width:0;max-width:100%}
+details summary{cursor:pointer;color:var(--gold);font-weight:600}
+details p{color:var(--dim);font-size:14px}
+.eq{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--ink);background:#0a0f22;border:1px solid var(--line);border-radius:8px;padding:8px 10px;overflow-x:auto;white-space:nowrap}
+.eq .n{color:var(--gold)}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--dim);margin-top:6px}
+.legend i{display:inline-block;width:12px;height:3px;vertical-align:middle;margin-right:5px;border-radius:2px}
+.steps{counter-reset:s;display:grid;gap:10px;margin:0;padding:0;list-style:none}
+.steps li{position:relative;padding-left:34px;color:var(--dim)}
+.steps li::before{counter-increment:s;content:counter(s);position:absolute;left:0;top:0;width:24px;height:24px;border-radius:50%;background:var(--panel2);border:1px solid var(--line2);color:var(--gold);font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center}
+.steps li b{color:var(--ink)}
+.quality{height:8px;border-radius:4px;background:var(--panel2);border:1px solid var(--line);overflow:hidden;margin-top:6px}
+.quality i{display:block;height:100%;background:linear-gradient(90deg,var(--dead),var(--warn),var(--ok));transition:width .2s}
+.reveal{border:1px solid var(--gold);background:#1a1a12;border-radius:12px;padding:14px 16px;margin-top:12px}
+.stars{font-size:20px;letter-spacing:4px;color:var(--gold)}
+.pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;border:1px solid var(--line2);color:var(--dim);margin:2px 2px 2px 0}
+.pill.y{color:var(--ok);border-color:var(--ok)}.pill.n{color:var(--dead);border-color:var(--dead)}
+input.num{font:inherit;font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--ink);background:#0a0f22;border:1px solid var(--line2);border-radius:8px;padding:6px 10px;width:120px}
+.overview .card{min-height:150px}
+.overview ul{margin:6px 0 0;padding-left:18px;color:var(--dim)}
+.overview ul li{margin:3px 0}
+footer{border-top:1px solid var(--line);padding:18px 0 28px;color:var(--faint);font-size:12px;text-align:center}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--gold);color:#1a1200;font-weight:600;padding:8px 14px;border-radius:999px;box-shadow:0 6px 24px #0008;opacity:0;transition:opacity .25s;pointer-events:none;z-index:9}
+.toast.show{opacity:1}
+.sr{position:absolute;left:-9999px}
+.qb{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;margin-left:6px;border-radius:50%;border:1px solid var(--line2);background:var(--panel2);color:var(--teal);font:600 11px/1 'Space Grotesk',sans-serif;cursor:pointer;vertical-align:middle;padding:0}
+.qb:hover{border-color:var(--teal)}.qb:focus-visible{outline:2px solid var(--teal);outline-offset:1px}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(440px,100%);background:var(--panel);border-left:1px solid var(--line2);z-index:20;display:flex;flex-direction:column;box-shadow:-12px 0 32px #0009;padding-top:env(safe-area-inset-top,0px)}
+.drawer-head{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px max(16px,env(safe-area-inset-right,0px)) 12px 16px;border-bottom:1px solid var(--line)}
+.drawer-head b{font-size:16px}
+.drawer-body{padding:12px max(16px,env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) 16px;overflow:auto;flex:1;min-height:0;font-size:14px}
+.drawer-body p{margin:.5em 0}.gloss-s{color:var(--gold);font-weight:600}
+#chat-fab{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:9;border-radius:999px;box-shadow:0 6px 24px #0008;padding:10px 16px}
+@media (max-width:960px){#chat-fab{bottom:calc(64px + env(safe-area-inset-bottom,0px))}}
+@media (max-width:600px){#chat-fab{padding:6px 10px;font-size:11px;opacity:.8;right:6px}}
+#chat-fab.away{opacity:0;pointer-events:none;transition:opacity .2s}
+.chat-log{display:flex;flex-direction:column;gap:8px;min-height:120px}
+.msg{padding:8px 11px;border-radius:10px;max-width:96%;line-height:1.5;overflow-wrap:anywhere}.msg.user{align-self:flex-end;background:var(--panel2)}.msg.assistant{background:var(--bg2);border:1px solid var(--line)}
+.msg p{margin:.3em 0}.msg ul,.msg ol{margin:.3em 0;padding-left:20px}.msg code{font-family:'JetBrains Mono',monospace;font-size:12px;background:#0a0f22;padding:1px 4px;border-radius:4px}
+.chat-form{margin-top:10px}.chat-form textarea{width:100%;font:inherit;font-size:14px;color:var(--ink);background:#0a0f22;border:1px solid var(--line2);border-radius:8px;padding:8px 10px;resize:vertical}
+.katex-display{overflow-x:auto;overflow-y:hidden;padding:2px 0}.katex{font-size:1.04em}
+.eqtex{overflow-x:auto;max-width:100%}
+@media (max-width:600px){h1{font-size:24px}.kv .k b{font-size:17px}}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <div class="row">
+    <div class="title"><h1>创世实验室 <span style="color:var(--dim);font-weight:400">·</span> Genesis Lab__EDITION_BADGE__</h1><small>输入创世参数，真的解爱因斯坦方程，看会生出什么样的宇宙——再反过来，只凭观测猜出宇宙的样子。__EDITION_LINK__</small></div>
+    <nav class="tabs" id="tabs">
+      <button data-hall="overview" class="on">总览</button>
+      <button data-hall="forge">创世台</button>__Q_TAB__
+      <button data-hall="godel">哥德尔旋转宇宙</button>
+      <button data-hall="mix">Mixmaster</button>
+      <button data-hall="ltb">空洞宇宙</button>
+      <button data-hall="bubble">泡泡宇宙</button>
+      <button data-hall="topo">多连通宇宙</button>
+      <button data-hall="g21">2+1 维引力</button>
+      <button data-hall="inverse">反推台</button>
+    </nav>
+  </div>
+</div></header>
+
+<main class="wrap">
+
+<!-- ================= 总览 ================= -->
+<section class="hall overview" id="hall-overview">
+  <p class="lede">宇宙学的全部"创世参数"其实没几个。这个实验室不讲课：每个展区先把现象、数据或当年真实的困难摆在你面前，让你自己拨参数、做实验，把结论重新发现出来。</p>
+  <div class="grid g3" style="margin-top:14px">
+    <div class="card"><h3>研究这个问题需要什么</h3>
+      <ul>
+        <li><b style="color:var(--ink)">广义相对论</b>：爱因斯坦方程把时空几何和物质能量绑在一起。</li>
+        <li><b style="color:var(--ink)">对称性假设</b>：假设宇宙处处一样、各向一样（FLRW），十个方程就缩成一个——弗里德曼方程。放弃各向同性（哥德尔、Kasner），就会出现旋转、各向异性膨胀这些怪物。</li>
+        <li><b style="color:var(--ink)">物质清单</b>：辐射、物质、宇宙学常数 Λ（或更一般的暗能量 w）、曲率。它们就是创世参数。</li>
+        <li><b style="color:var(--ink)">观测</b>：标准烛光（超新星）、标准尺（声学视界）、最老恒星、CMB。只能从这些反推。</li>
+      </ul></div>
+    <div class="card"><h3>各理论为什么冲突</h3>
+      <ul>
+        <li>1917 爱因斯坦：宇宙该是<b style="color:var(--ink)">静止</b>的，于是加了 Λ；弗里德曼（1922）和勒梅特（1927）算出它必然膨胀或收缩，哈勃 1929 证实膨胀。</li>
+        <li>1949 哥德尔：同一套方程允许一个<b style="color:var(--ink)">旋转</b>的宇宙，里面可以回到自己的过去——那"时间"还算数吗？</li>
+        <li>1998：超新星偏暗，宇宙在<b style="color:var(--ink)">加速</b>；被爱因斯坦抛弃的 Λ 回来了，但它为什么这么小？温伯格的回答：太大的 Λ 根本长不出星系，也就没人能问这个问题。</li>
+      </ul></div>
+    <div class="card"><h3>这个实验室打算让你看到什么</h3>
+      <ul>
+        <li><a href="#forge" data-go="forge" style="color:var(--teal);font-weight:600">创世台</a>：随手拨出来的宇宙大多死寂；诊断会告诉你死在哪一步，并给你十一组方程允许、各有性格的宇宙。</li>
+        <li><a href="#godel" data-go="godel" style="color:var(--teal);font-weight:600">哥德尔旋转宇宙</a>：精确解里亲手发一束光，看它绕回来；看光锥一点点倾倒，直到可以沿一个圈走回过去。</li>
+        <li><a href="#mix" data-go="mix" style="color:var(--teal);font-weight:600">Mixmaster</a>：放弃各向同性，看三根轴在奇点附近混沌地跳无穷多次，并亲手核对 BKL 的跳法规则。</li>
+        <li><a href="#ltb" data-go="ltb" style="color:var(--teal);font-weight:600">空洞宇宙</a>：放弃均匀性，住进一个几十亿光年的空洞中心——没有暗能量也能骗过超新星，再看它怎么被戳穿。</li>
+        <li><a href="#bubble" data-go="bubble" style="color:var(--teal);font-weight:600">泡泡宇宙</a>：放弃"只有一个宇宙"，看永恒暴胀的泡沫怎么按成核率长出来、你被哪个泡吞没、抽到的 Λ 能不能长出星系。</li>
+        <li><a href="#topo" data-go="topo" style="color:var(--teal);font-weight:600">多连通宇宙</a>：放弃"空间无限"，住进一个有限无边的三维环面——鬼像、天上的匹配圆、被截断的大角度功率，全从一个周期随机场里采出来。</li>
+        <li><a href="#g21" data-go="g21" style="color:var(--teal);font-weight:600">2+1 维引力</a>：少一个空间维度，引力消失了，却还有锥形的双像、BTZ 黑洞的温度和熵、不减速的尘埃宇宙。</li>
+        <li><a href="#inverse" data-go="inverse" style="color:var(--teal);font-weight:600">反推台</a>：只给你一个隐藏宇宙的观测数据，你来判断它的形状和命运。</li>
+      </ul>
+      <p style="margin-top:10px"><button class="btn primary" data-go="forge">开始创世 →</button>__Q_OVERVIEW_BTN__</p></div>
+  </div>
+  <p class="note" style="margin-top:14px;color:var(--faint);font-size:13px">数据标签：<span class="tag real">真实</span> = 真实测量（会注明来源）；<span class="tag sim">模拟</span> = 由本页方程算出、加了噪声的模拟观测。本页所有图表、影片都由浏览器里实时积分方程生成，没有预渲染的素材。</p>
+</section>
+
+<!-- ================= 创世台 ================= -->
+<section class="hall" id="hall-forge" hidden>
+  <div class="grid g-forge">
+    <div>
+      <div class="card">
+        <h3>创世参数</h3>
+        <p class="note">四个数决定一个均匀各向同性的宇宙（曲率由它们算出）。拨一拨，旁边的宇宙会实时重新解方程。</p>
+        <div class="ctl"><label><span data-g="H0">哈勃常数 $H_0$</span><b class="mono" id="v-H0"></b></label><input type="range" id="s-H0" min="20" max="120" step="0.5"><div class="sub">今天的膨胀率，km/s/Mpc</div></div>
+        <div class="ctl"><label><span data-g="Om">物质 $\Omega_m$</span><b class="mono" id="v-Om"></b></label><input type="range" id="s-Om" min="0" max="4" step="0.005"><div class="sub">普通物质 + 暗物质，占临界密度的比例</div></div>
+        <div class="ctl"><label><span data-g="Or">辐射 $\Omega_r$</span><b class="mono" id="v-Or"></b></label><input type="range" id="s-Or" min="-7" max="0" step="0.02"><div class="sub">光子和中微子（对数刻度；最左 = 0）</div></div>
+        <div class="ctl"><label><span data-g="OL">暗能量 $\Omega_\Lambda$</span><b class="mono" id="v-OL"></b></label><input type="range" id="s-OL" min="-3" max="3" step="0.005"><div class="sub">宇宙学常数，可以为负</div></div>
+        <div class="ctl"><label><span data-g="w">暗能量状态方程 $w$</span><b class="mono" id="v-w"></b></label><input type="range" id="s-w" min="-2" max="0" step="0.01"><div class="sub">$p = w\rho$；$w=-1$ 就是 $\Lambda$，$w<-1$ 是幻影能量</div></div>
+        <div class="ctl"><label><span data-g="Ok">曲率 $\Omega_k = 1-\Omega_m-\Omega_r-\Omega_\Lambda$</span><b class="mono" id="v-Ok"></b></label><div class="sub" id="v-Okword"></div></div>
+        <div class="bar"><button class="btn" id="b-dice">🎲 掷骰子创世</button><button class="btn ghost small" id="b-planck">回到我们的宇宙</button></div>
+      </div>__Q_PANEL__
+      <div class="card" style="margin-top:14px">
+        <h3>内置的宇宙 <span class="note" style="font-weight:400">方程允许、各有性格的十一组</span></h3>
+        <div class="chips" id="presets"></div>
+        <p class="note" id="preset-blurb" style="margin-top:10px"></p>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <h3><span data-g="movie">创世影片</span> <span class="tag sim">模拟</span> <span class="note" style="font-weight:400" id="movie-sub">共动网格上的星系随尺度因子 a(t) 伸缩；颜色随背景温度变化</span></h3>
+        <div class="bar" style="margin:4px 0 8px"><span class="note">画法</span><button class="btn small on" id="nb-off">共动点阵</button><button class="btn small" id="nb-on">真引力 N 体</button><span data-g="nbody"></span><span id="nb-bar" hidden><button class="btn small" id="nb-run">▶ 从头播放（a = aᵢ 起）</button><button class="btn small" id="nb-reseed">⟲ 换随机相位</button></span></div>
+        <div class="movie"><canvas id="c-movie" width="900" height="420"></canvas>
+          <div class="hud" id="movie-hud"></div></div>
+        <div class="epoch-line" id="movie-epoch"></div>
+        <div class="bar"><button class="btn small" id="b-play">▶ 播放</button><input type="range" id="s-frame" min="0" max="599" step="1" value="300"><span class="note mono" id="v-frame" style="min-width:150px;text-align:right"></span></div>
+        <div class="timeline" id="timeline"></div>
+      </div>
+      <div class="kv" id="fate-cards" style="margin-top:14px"></div>__Q_CARDS__
+      <div class="grid g2" style="margin-top:14px">
+        <div class="card tight"><h3 style="font-size:14px"><span data-g="scale">尺度因子 $a(t)$</span> <span class="note" style="font-weight:400">今天 = 0</span></h3><canvas id="c-a" width="520" height="300"></canvas>
+          <div class="bar"><button class="btn small" id="b-alog">对数刻度</button></div></div>
+        <div class="card tight"><h3 style="font-size:14px"><span data-g="growth">结构能不能长出来：线性扰动 $\delta(a)$</span></h3><canvas id="c-growth" width="520" height="300"></canvas>
+          <div class="legend"><span><i style="background:var(--coral)"></i>第一批星系（10⁸ M☉ 的 3σ 峰）</span><span><i style="background:var(--teal)"></i>典型星系（10¹² M☉，1σ）</span><span><i style="background:var(--violet)"></i>星系团（8 h⁻¹Mpc，1σ）</span><span><i style="background:var(--gold)"></i>坍缩阈值 1.686</span></div></div>
+      </div>
+      <div class="card" style="margin-top:14px">
+        <h3><span data-g="pmap">参数空间地图</span> <span class="tag sim">模拟</span> <span class="note" style="font-weight:400">每个格点都完整解一遍方程；$H_0$、$\Omega_r$、$w$ 取当前值。点地图把那组参数装进创世台</span></h3>
+        <div class="grid g2">
+          <div><canvas id="c-pmap" width="440" height="440" style="cursor:crosshair;touch-action:pan-y"></canvas></div>
+          <div>
+            <div class="bar" style="margin-top:0"><label class="note">图层 <select id="pmap-layer" class="num" style="width:auto;padding:4px 8px"><option value="fate">命运 × 宜居</option><option value="age">年龄</option><option value="first">第一批星系何时出现</option></select></label><span class="note mono" id="pmap-status"></span></div>
+            <div class="legend" id="pmap-legend" style="margin-top:8px"></div>
+            <div class="kv" id="pmap-read" style="margin-top:10px"></div>
+            <p class="note" style="margin-top:10px">白虚线是平坦（$\Omega_k = 0$），点线是 $q_0 = 0$（今天恰好不加速也不减速）。灰色区没有大爆炸：往回追溯会在某个 $a_{\min}$ 反弹。小圆点是内置的宇宙（空心 = 它的 $w$ 或 $\Omega_r$ 和这张图不同，位置仅供参考），十字是你现在的参数。触屏上点一下看读数，再点同一格装入。</p>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:14px">
+        <h3><span data-g="diag">宜居诊断（粗略）</span> <span id="verdict"></span></h3>
+        <p class="note">三道关：有没有热的开端、扰动能不能长成星系、星系形成后恒星还有多少时间。假设各宇宙在 $a = 10^{-5}$ 时的原初扰动幅度和我们的一样。</p>
+        <ul class="diag" id="diag"></ul>
+        <details><summary>方程里现在填的数</summary><div id="eqs"></div></details>
+      </div>
+    </div>
+  </div>
+</section>
+
+__Q_HALL__
+<!-- ================= 哥德尔 ================= -->
+<section class="hall" id="hall-godel" hidden>
+  <p class="lede">1949 年，哥德尔送给爱因斯坦一份生日礼物：爱因斯坦方程的一个精确解。在这个宇宙里，物质整体在旋转。下面所有画面都是从这份度规直接数值积分出来的——先玩，再读解释。</p>
+  <div class="grid g-godel" style="margin-top:14px">
+    <div class="card">
+      <h3><span data-g="omega">① 你醒来，发现星空在转</span> <span class="tag sim">模拟</span></h3>
+      <p class="note">你手里有一个陀螺仪（画面以它为准，保持不转）。远处所有星系都在绕着你慢慢转圈。量一量周期——这就是反推这个宇宙的全部线索。按下秒表后，金色标记星系会留下轨迹；它回到出发点就是一圈（影片里约 18 秒）。</p>
+      <canvas id="c-sky" width="520" height="360"></canvas>
+      <div class="bar"><button class="btn small" id="b-sky-watch">⏱ 秒表：开始</button><button class="btn small ghost" id="b-sky-reset">归零</button><span class="mono note" id="v-sky-watch">0.0 亿年</span><span class="note">（影片加速播放，秒表按宇宙时间走）</span></div>
+      <div class="bar" style="margin-top:10px"><label class="note">你量到的周期 T =</label><input class="num" id="i-period" placeholder="亿年" inputmode="decimal"><span class="note">亿年</span><button class="btn small primary" id="b-period">反推这个宇宙</button></div>
+      <div id="godel-puzzle-out" class="note" style="margin-top:8px"></div>
+    </div>
+    <div class="card">
+      <h3><span data-g="geodesic">② 发一束光，看它去哪</span> <span class="tag sim">模拟</span></h3>
+      <p class="note">你站在轴上（画面中心），按下闪光。每个方向的光子都按零测地线方程走。俯视图；颜色越亮，坐标时 t 越晚。</p>
+      <canvas id="c-light" width="520" height="360" class="pointer"></canvas>
+      <div class="bar"><button class="btn small primary" id="b-flash">✦ 闪光</button><label class="note">发光点半径 r₀ <input type="range" id="s-r0" min="0" max="1.6" step="0.05" value="0" style="width:120px;vertical-align:middle;accent-color:var(--gold)"> <b class="mono" id="v-r0">0</b></label><button class="btn small ghost" id="b-light-clear">清空</button></div>
+      <div class="note mono" id="light-readout" style="margin-top:6px"></div>
+    </div>
+  </div>
+  <div class="grid g-godel" style="margin-top:14px">
+    <div class="card">
+      <h3><span data-g="ctc">③ 光锥在倾倒</span> <span class="tag sim">模拟</span></h3>
+      <p class="note">每个点的光锥（未来一半）按度规算出。拖动旋转视角。离轴越远，光锥越向转动方向倾倒；越过金色的圈（sinh r = 1），绕轴一圈的路线整个落进光锥里——沿着它走，你会回到出发的那一刻。</p>
+      <canvas id="c-cones" width="520" height="400" class="pointer"></canvas>
+      <div class="bar"><label class="note">看哪个半径的圈 r = <input type="range" id="s-ring" min="0.2" max="1.6" step="0.02" value="1.2" style="width:140px;vertical-align:middle;accent-color:var(--gold)"> <b class="mono" id="v-ring">1.20</b></label><span class="note mono" id="ring-readout"></span></div>
+    </div>
+    <div class="card">
+      <h3><span data-g="godel">④ 这个宇宙的创世参数</span></h3>
+      <p class="note">哥德尔宇宙只有一个旋钮：物质密度 $\rho$（或等价的转动角速度 $\omega = \sqrt{4\pi G\rho}$）。宇宙学常数被方程锁死为 $\Lambda = -\omega^2$，你调不了它。这个旋钮是换算器：①里的星空是另一个密度未知的宇宙，②③用坐标单位画，形状和 $\omega$ 无关——变的只是它们对应多少光年、多少年。</p>
+      <div class="ctl"><label><span>物质密度 ρ / ρ<sub>m,我们</sub></span><b class="mono" id="v-rho"></b></label><input type="range" id="s-rho" min="-2" max="3" step="0.02" value="0"><div class="sub">相对我们宇宙今天的物质密度（对数刻度）</div></div>
+      <div class="kv" id="godel-cards"></div>
+      <details open><summary>读完你自己的发现之后再看：这个宇宙在说什么</summary>
+        <p><b style="color:var(--ink)">为什么转动会制造时间机器？</b>在旋转的宇宙里，远处的物质相对你的陀螺仪在动，光锥（"未来"允许的方向）被拖着一起倾倒。倾倒的角度随半径增大，到 sinh r = 1 时，"原地绕轴转一圈"这条闭合曲线恰好变成光速可走；再往外，它就落进光锥内部，成为一条<b style="color:var(--ink)">闭合类时曲线</b>——一艘火箭沿它飞，手表一直在走，却回到了出发的那个事件。哥德尔由此论证：既然相对论允许这样的宇宙，"客观流逝的时间"就不是物理定律必然给出的东西。</p>
+        <p><b style="color:var(--ink)">为什么光回来了？</b>从轴发出的光，角动量为零，径向速度在 sinh r = 1 处被拖到零，然后折回，在坐标时 t ≈ 1.29（哥德尔单位）全部重新聚焦到轴上。轴上的观察者永远看不到 r_c 之外——这是哥德尔宇宙的"视界"。</p>
+        <p><b style="color:var(--ink)">它是我们的宇宙吗？</b>不是：它不膨胀，Λ 还是负的。但它是合法的解。观测上，CMB 的各向同性把今天宇宙的整体转动压到极小：Planck 数据给出与涡度相关的各向异性 (σ<sub>V</sub>/H)<sub>0</sub> &lt; 4.7×10⁻¹¹（95%，Saadeh 等 2016）。如果我们的宇宙是哥德尔式的、物质密度就是今天的 ρ<sub>m</sub>，星空每 <span id="godel-ours-T">…</span> 转一圈，而时间机器的圈在 <span id="godel-ours-R">…</span> 之外。</p>
+      </details>
+    </div>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <h3><span data-g="allsky">⑤ 站在轴上看整个天空</span> <span class="tag sim">模拟</span> <span class="note" style="font-weight:400">每个像素一条零测地线，从你眼睛倒着追到星系；没有红移，面亮度守恒</span></h3>
+    <p class="note">全天图（横轴方位角 ψ，纵轴和转轴的夹角 θ，像地图一样摊开）。星系按坐标固定在旋转的尘埃上；每一束光都按②里的方程往回追，光绕回轴几次都算上。指到（或点一下）天上的任何一点，右边会画出那束光走过的路。"来回数"只决定追多远：大多数像在第一个来回里就出现了，所以 2 和 3 个来回看到的星系数常常一样。</p>
+    <div class="grid g-allsky">
+      <div><div class="as-scroll"><canvas id="c-allsky" width="720" height="360" style="cursor:crosshair;touch-action:pan-x pan-y"></canvas></div>
+        <div class="bar"><label class="note">追踪 <select id="as-returns" class="num" style="width:auto;padding:4px 8px"><option value="1">1 个来回</option><option value="2" selected>2 个来回</option><option value="3">3 个来回</option></select></label><label class="note"><input type="checkbox" id="as-home" checked style="accent-color:var(--gold)"> 把你自己的星系也画上</label><button class="btn small" id="as-reseed">⟲ 重新布置星系</button><span class="note mono" id="as-status"></span></div></div>
+      <div><canvas id="c-allsky-map" width="300" height="300"></canvas><div class="note mono" id="as-read" style="margin-top:6px;min-height:60px;font-size:12px"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 反推台 ================= -->
+__MIX_HALL__
+__LTB_HALL__
+__BUBBLE_HALL__
+__TOPO_HALL__
+__G21_HALL__
+<section class="hall" id="hall-inverse" hidden>
+  <p class="lede">第一关 · 命运之谜。实验室随机藏起一个宇宙，只把它的观测数据给你（全部<span class="tag sim">模拟</span>：由隐藏参数算出、加上真实量级的噪声）。请判断：它是开放还是封闭？会永远膨胀、还是终将坍缩？</p>
+  <div class="grid g-inv" style="margin-top:14px">
+    <div>
+      <div class="card tight"><h3 style="font-size:14px"><span data-g="candle">标准烛光：Ia 型超新星的距离模数 $\mu(z)$</span> <span class="note" style="font-weight:400">烛光已定标，60 颗</span></h3><canvas id="c-sn" width="760" height="300" data-minh="230"></canvas>
+        <div class="legend"><span><i style="background:var(--gold)"></i>你的模型</span><span><i style="background:var(--faint)"></i>空宇宙（米尔恩）作参照</span><span><i style="background:var(--teal)"></i>数据（1σ 误差棒）</span></div>
+        <h3 style="font-size:14px;margin-top:12px"><span data-g="residual">同一批数据，减去空宇宙的预期：$\Delta\mu = \mu - \mu_{\text{空}}$</span> <span class="note" style="font-weight:400">1998 年的那张图就是这么画的</span></h3><canvas id="c-snres" width="760" height="220" data-minh="190"></canvas></div>
+      <div class="grid g2" style="margin-top:14px">
+        <div class="card tight"><h3 style="font-size:14px"><span data-g="ruler">标准尺：声学视界（147 Mpc）的张角 $\theta(z)$</span></h3><canvas id="c-ruler" width="380" height="240" data-minh="200"></canvas></div>
+        <div class="card tight"><h3 style="font-size:14px"><span data-g="oldest">最老的恒星</span></h3><div class="kv"><div class="k teal"><small>观测到的最老恒星年龄</small><b class="mono" id="v-oldest"></b><i>银河系里最老恒星的年龄不能超过宇宙年龄</i></div><div class="k gold"><small>你的模型给的宇宙年龄</small><b class="mono" id="v-model-age"></b><i id="v-age-ok"></i></div></div>
+          <h3 style="font-size:14px;margin-top:12px"><span data-g="chi2">拟合质量</span> <span class="mono note" id="v-chi2"></span></h3><div class="quality"><i id="q-bar" style="width:0%"></i></div><p class="note" id="v-quality"></p><p class="note" id="v-hints" style="color:var(--teal)"></p></div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <h3>你的猜测</h3>
+        <div class="ctl"><label><span>H₀</span><b class="mono" id="pv-H0"></b></label><input type="range" id="ps-H0" min="40" max="100" step="0.5" value="70"></div>
+        <div class="ctl"><label><span>Ω<sub>m</sub></span><b class="mono" id="pv-Om"></b></label><input type="range" id="ps-Om" min="0" max="2.5" step="0.01" value="0.5"></div>
+        <div class="ctl"><label><span>Ω<sub>Λ</sub></span><b class="mono" id="pv-OL"></b></label><input type="range" id="ps-OL" min="-1" max="2" step="0.01" value="0"></div>
+        <div class="kv" id="guess-cards"></div>
+        <div class="bar" style="margin-top:12px"><button class="btn small" id="b-nolambda">检验假设：$\Omega_\Lambda = 0$ 能解释这些数据吗？</button> <span data-g="nolambda"></span></div>
+        <div class="note" id="nolambda-out" style="margin-top:6px"></div>
+        <div class="bar" style="margin-top:12px"><button class="btn primary" id="b-lock">锁定答案</button><button class="btn ghost small" id="b-new">换一个隐藏宇宙</button><button class="btn ghost small" id="b-csv">下载数据 CSV</button></div>
+        <div id="reveal" hidden></div>
+      </div>
+      <div class="card" style="margin-top:14px"><h3>怎么玩</h3>
+        <ol class="steps">
+          <li><b>先看低红移</b>：z ≲ 0.1 的超新星只认 H₀——斜率定了它。</li>
+          <li><b>再看高红移弯不弯</b>：高 z 的烛光比空宇宙的参照线更暗还是更亮？暗 = 走得更远 = 加速过。</li>
+          <li><b>标准尺定曲率</b>：同一把尺在封闭宇宙里显得大、开放宇宙里显得小。</li>
+          <li><b>年龄做底线</b>：模型给的年龄不能比最老的恒星还小。</li>
+          <li>拟合质量 χ²/N 接近 1 就锁定答案，看看你猜中了形状和命运没有。</li>
+        </ol></div>
+    </div>
+  </div>
+</section>
+
+</main>
+<footer><div class="wrap">© 2026 Zechen Bian · All rights reserved · 保留所有权利 · 创世实验室 Genesis Lab · 所有画面由本页实时积分方程生成 · 公式排版 KaTeX（MIT）</div></footer>
+<div class="toast" id="toast"></div>
+<script>
+__COSMO__
+__NBODY__
+__GODEL__
+__PRESETS__
+__PUZZLES__
+__Q_ENGINES__
+__GLOSS__
+__QLAI__
+__APP__
+__Q_APP__
+__HALLS__
+__HELP__
+GENESIS.start();
+</script>
+__KATEX_JS__
+</body>
+</html>
