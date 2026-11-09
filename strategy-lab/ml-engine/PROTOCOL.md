@@ -345,3 +345,33 @@ def update(model, y_new)                   # 可选
 
 页面这一侧（src/ml/engine.js）：请求体不超过 30 万字符时直接 `run_start({job})`，否则先 `run_upload` 分块；事件一轮一轮地取，拼好分块的那一条再处理，
 和 HTTP 的事件流用同一段代码。`python -m mllab_engine --claude-config` 打印要加进 Claude 桌面版 `claude_desktop_config.json` 的那一段。
+
+## 12. 练习：`api: "exercise"`（亲手写 · 语言模型，`ml/lm/`）
+
+引擎在 `/ml/lm/`（和 `/ml/` 用同一个令牌）提供"亲手写 · 语言模型"那一页：它和 `ml/index.html` 在同一个目录下的 `lm/index.html`。
+那一页把你写的代码交给引擎，引擎在子进程里运行**引擎自带的测试**（`mllab_engine/exercises.py`），把每一项的结果交回来。打分在引擎里做（和监督学习相反），
+因为裁判要用 numpy 独立地算答案，而且最后一步要在引擎里训练模型。
+
+```json
+{ "api": "exercise", "code": "整个文件：各步的代码按顺序拼好", "params": { "steps": 1500, "d": 64 }, "seed": 123, "budgetMs": 30000,
+  "data": { "exercise": "softmax" | "cross_entropy" | "linear" | "embedding" | "attention" | "train_tiny", "backend": "auto" | "numpy" } }
+```
+
+* `backend`：`auto` 有 PyTorch 就把输入做成 CPU 上的 float32 张量（下标是 int64 张量），没有就用 numpy 数组；`numpy` 一律用 numpy 数组。答案都只用 numpy（float64）算。
+* `params` 只有 `train_tiny` 用：`steps`（步数）、`d`（向量维数）、`block`、`batch`、`lr`。
+* 静态检查：代码里写成 `模块.名字` 的库里现成的 softmax、交叉熵、线性层、嵌入、注意力，以及任何对象上的 `.softmax`、`.log_softmax`、`.logsumexp`，
+  都算"没从零写"，结果里多一项没通过（`line` 是第一处的行号）。调用自己写的同名函数不算。
+* 事件：每做完一项检查发一条 `progress {phase: "test", msg, test, n}`；`train_tiny` 训练时和监督学习一样发 `progress {phase: "fit", step, point: {step, loss, validLoss?}, n}`，
+  第一次用时下载莎士比亚的文本（`progress {phase: "data"}`，存在 `~/.cache/mllab-engine/tinyshakespeare.txt`；环境变量 `MLLAB_SHAKESPEARE` 可以指向自己的文件）。
+* 缺函数、没装 PyTorch（只有 `train_tiny` 要）、下载不到数据：`error` 事件，`message` 是一句中文。你的代码在某一项检查里抛了异常：那一项记成没通过（带 `line`），接着做下一项。
+
+结果：
+
+```json
+{ "api": "exercise", "kind": "exercise", "exercise": "softmax", "backend": "torch" | "numpy",
+  "tests": [ { "name": "大数不溢出：…", "ok": false, "msg": "结果里有 3 个不是有限的数……", "err": 0.0, "tol": 1e-5, "line": 4 }, … ],
+  "passed": 4, "total": 5, "ms": 12.3,
+  // 只有 train_tiny：
+  "curve": [ … ], "valLoss": 2.01, "baselines": { "uniform": 4.17, "unigram": 3.3, "bigram": 2.5 }, "sample": "400 个字符",
+  "steps": 1500, "seconds": 41.2, "params": 120000, "device": "mps", "vocab": 65, "config": { … } }
+```

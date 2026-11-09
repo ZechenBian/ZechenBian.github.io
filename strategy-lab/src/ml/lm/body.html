@@ -1,0 +1,24 @@
+<div class="app ml lm" id="app" data-tab="res">
+  <header class="top">
+    <div class="brand"><h1>亲手写 · 语言模型</h1><small>五个零件 → 一个会写莎士比亚的小模型</small></div>
+    <div class="top-world"><span id="topStep"></span></div>
+    <div class="top-actions">
+      <a class="btn" id="btnBack" href="../" title="回到机器学习实验室"><span class="lang-long">机器学习实验室</span><span class="lang-short">实验室</span></a>
+      <button class="btn" id="btnLedger" type="button" title="每次运行前写下的预测，和结果对照">预测台账</button>
+      <button class="btn" id="btnEngine" type="button" title="本机 Python 引擎：在你自己的电脑上运行你写的代码">本机引擎</button>
+    </div>
+  </header>
+  <nav class="tabs" id="tabs" role="tablist" aria-label="面板">
+    <button type="button" role="tab" data-tab="ctl" aria-selected="false">步骤</button>
+    <button type="button" role="tab" data-tab="res" aria-selected="true">题目</button>
+  </nav>
+  <div class="shell">
+    <aside class="pane pane-ctl" id="paneCtl" aria-label="步骤">
+      <section class="blk" id="blkSteps"></section>
+      <section class="blk" id="blkEngine"></section>
+      <p class="lm-foot">© 2026 Zechen Bian · All rights reserved / 保留所有权利</p>
+    </aside>
+    <main class="pane pane-res" id="paneRes" aria-live="polite"></main>
+  </div>
+</div>
+<div id="overlays"></div>

@@ -15,6 +15,8 @@
     Array.prototype.forEach.call($("tabs").children, function (b) { b.addEventListener("click", function () { A.setTab(b.dataset.tab); if (b.dataset.tab === "ai") A.openAI(true); }); });
     $("btnGuide").addEventListener("click", function () { A.openGuide(); });
     $("btnAI").addEventListener("click", function () { A.openAI(); });
+    var lm = $("btnLM");      // 亲手写 · 语言模型：从引擎打开的页面，跳过去时带上令牌（?engine=…）
+    if (lm && window.QLML_ENGINE && window.QLML_ENGINE.token && location.search) lm.href = "lm/" + location.search;
     var be = $("btnEngine");
     if (A.openEngine) be.addEventListener("click", function () { A.openEngine(); });
     else be.hidden = true;

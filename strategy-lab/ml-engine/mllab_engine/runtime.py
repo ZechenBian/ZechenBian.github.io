@@ -609,6 +609,7 @@ class Algo:
         def fn(name):
             f = ns.get(name)
             return f if callable(f) else None
+        self.ns = ns                # 整个模块：练习（api = exercise）要从里面找你写的函数和类
         self.fit, self.predict, self.forecast, self.update, self.inspect = fn("fit"), fn("predict"), fn("forecast"), fn("update"), fn("inspect")
         self.predict_n = False
         if self.predict is not None:
@@ -916,4 +917,10 @@ def run(job, algo, chan, lib):
     warnings.filterwarnings("ignore", message=".*NumPy array is not writable.*")   # 数据是只读的，torch.as_tensor 会唠叨一句
     if job.get("api") == "forecast":
         return run_forecast(job, algo, chan, lib)
+    if job.get("api") == "exercise":
+        from .exercises import ExerciseError, run_exercise
+        try:
+            return run_exercise(job, algo.ns, chan, lib)
+        except ExerciseError as e:
+            raise EngineError(str(e))
     return run_supervised(job, algo, chan, lib)

@@ -319,8 +319,8 @@ class Engine:
         if not isinstance(req, dict):
             return 400, {"error": "请求体应该是一个 JSON 对象。"}
         api = req.get("api")
-        if api not in ("supervised", "forecast"):
-            return 400, {"error": "api 只能是 supervised 或 forecast。"}
+        if api not in ("supervised", "forecast", "exercise"):
+            return 400, {"error": "api 只能是 supervised、forecast 或 exercise。"}
         code = req.get("code")
         if not isinstance(code, str) or not code.strip():
             return 400, {"error": "缺少算法代码（code）。"}
@@ -332,7 +332,13 @@ class Engine:
         data = req.get("data")
         if not isinstance(data, dict):
             return 400, {"error": "缺少数据（data）。"}
-        kind = "forecast" if api == "forecast" else (data.get("kind") or req.get("kind"))
+        kind = "forecast" if api == "forecast" else "exercise" if api == "exercise" else (data.get("kind") or req.get("kind"))
+        if api == "exercise":
+            from .exercises import EXERCISES
+            if data.get("exercise") not in EXERCISES:
+                return 400, {"error": "没有这个练习：%s。" % str(data.get("exercise"))[:40]}
+            if data.get("backend") not in (None, "auto", "numpy"):
+                return 400, {"error": "backend 只能是 auto 或 numpy。"}
         if api == "supervised" and kind not in ("regression", "classification"):
             return 400, {"error": "监督学习的 kind 只能是 regression 或 classification。"}
         try:
@@ -598,11 +604,17 @@ class Handler(http.server.BaseHTTPRequestHandler):
             return self._send(301, b"", "text/plain; charset=utf-8", {"Location": "/ml/" + ("?" + url.query if url.query else "")})
         if path in ("/ml/", "/ml/index.html"):
             return self._page(q)
+        if path == "/ml/lm":
+            return self._send(301, b"", "text/plain; charset=utf-8", {"Location": "/ml/lm/" + ("?" + url.query if url.query else "")})
+        if path in ("/ml/lm/", "/ml/lm/index.html"):
+            return self._page(q, "lm")        # 亲手写 · 语言模型：机器学习实验室旁边的一页（ml/lm/index.html），同一个令牌
         return self._send(404, "没有这个页面。".encode("utf-8"), "text/plain; charset=utf-8")
 
-    def _page(self, q):
+    def _page(self, q, sub=None):
         eng = self.server.engine
         path, explicit = eng.page_path()
+        if sub:
+            path = os.path.join(os.path.dirname(path), sub, "index.html")
         extra = {"X-Frame-Options": "DENY"}       # 别的网站不能把这一页嵌进去（防点击劫持：这一页里有令牌）
         try:
             with open(path, encoding="utf-8") as f:

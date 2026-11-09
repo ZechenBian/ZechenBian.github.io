@@ -1074,6 +1074,8 @@ table.ml-lb .good { color: var(--good-ink); } table.ml-lb .bad { color: var(--cr
 
 /* 要再点一次确认的按钮（views.js 的 twoStep） */
 .btn.danger { color: var(--crit-ink); border-color: var(--crit-ink); background: var(--crit-wash); }
+/* 顶栏的“亲手写”：要连电脑上的本机引擎才用得上，很窄的手机上让位给别的按钮 */
+@media (max-width: 459.9px) { #btnLM { display: none; } }
 
 </style>
 <style>
@@ -1091,6 +1093,7 @@ table.ml-lb .good { color: var(--good-ink); } table.ml-lb .bad { color: var(--cr
     <div class="top-actions">
       <a class="btn" id="btnLab" href="../" title="回到策略实验室"><span class="lang-long">策略实验室</span><span class="lang-short">实验室</span></a>
       <a class="btn" id="btnCases" href="../cases/" title="数据分析案例：几个完整的例子，按八步从定义问题走到验证"><span class="lang-long">数据分析案例</span><span class="lang-short">案例</span></a>
+      <a class="btn" id="btnLM" href="lm/" title="亲手写 · 语言模型：从零写 softmax、交叉熵、线性层、嵌入、注意力，拼成一个小模型训练"><span class="lang-long">亲手写</span><span class="lang-short">手写</span></a>
       <button class="btn" id="btnEngine" type="button" title="本机 Python 引擎：在你自己的电脑上用 Python / PyTorch 跑算法">本机引擎</button>
       <button class="btn" id="btnGuide" type="button" title="说明：每种任务、每个数据集、每个算法、每张图、每种检验">手册 <kbd>?</kbd></button>
       <button class="btn primary" id="btnAI" type="button" aria-pressed="false">AI</button>
@@ -19289,6 +19292,8 @@ if (typeof MLA !== "undefined") (function (A) {
     Array.prototype.forEach.call($("tabs").children, function (b) { b.addEventListener("click", function () { A.setTab(b.dataset.tab); if (b.dataset.tab === "ai") A.openAI(true); }); });
     $("btnGuide").addEventListener("click", function () { A.openGuide(); });
     $("btnAI").addEventListener("click", function () { A.openAI(); });
+    var lm = $("btnLM");      // 亲手写 · 语言模型：从引擎打开的页面，跳过去时带上令牌（?engine=…）
+    if (lm && window.QLML_ENGINE && window.QLML_ENGINE.token && location.search) lm.href = "lm/" + location.search;
     var be = $("btnEngine");
     if (A.openEngine) be.addEventListener("click", function () { A.openEngine(); });
     else be.hidden = true;

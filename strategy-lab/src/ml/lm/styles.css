@@ -1,0 +1,51 @@
+/* Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+   Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。 */
+/* 亲手写 · 语言模型：在机器学习实验室的样式（src/styles.css、src/ml/styles.css）之上，只补这一页自己的几样东西 */
+.app.lm .shell { grid-template-columns: 280px minmax(0, 1fr); }
+.lm-foot { margin: 0; padding: 12px 16px; font-size: 11.5px; color: var(--muted); }
+@media (max-width: 779.9px) { .app.lm .shell { grid-template-columns: minmax(0, 1fr); } }
+
+/* 左栏：步骤 */
+ol.lm-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.lm-step { all: unset; box-sizing: border-box; width: 100%; display: grid; grid-template-columns: 20px minmax(0, 1fr) auto; gap: 8px; align-items: baseline; padding: 6px 8px; border-radius: 5px; cursor: pointer; font-size: 13px; color: var(--ink2); }
+.lm-step:hover { background: var(--surface-2); }
+.lm-step:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.lm-step.cur { background: var(--accent-wash); color: var(--ink); font-weight: 600; box-shadow: inset 2px 0 0 var(--accent); }
+.lm-mark { font: 600 13px var(--font-mono); text-align: center; color: var(--muted); }
+.lm-step.ok .lm-mark { color: var(--good-ink); }
+.lm-step.half .lm-mark { color: var(--warn-ink); }
+.lm-name { min-width: 0; overflow-wrap: anywhere; }
+.lm-score { font-size: 11.5px; color: var(--muted); }
+.lm-eng { font-size: 12.5px; color: var(--ink2); margin: 0 0 8px; }
+.lm-eng.ok { color: var(--good-ink); }
+
+/* 中栏 */
+.pane-res .lm-card { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; margin: 0 auto 14px; max-width: 860px; min-width: 0; }
+.lm-kicker { font-size: 12px; color: var(--muted); letter-spacing: 0.04em; }
+.lm-h { margin: 2px 0 8px; font: 700 19px/1.35 var(--font-display); letter-spacing: 0.04em; }
+.lm-card h3 { margin: 0 0 6px; font-size: 14px; font-weight: 600; }
+.lm-codehead { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; margin-bottom: 6px; }
+.lm-codehead .note { flex: 1 1 200px; min-width: 0; overflow-wrap: anywhere; }
+textarea.lm-code { min-height: 240px; width: 100%; box-sizing: border-box; }
+.lm-pred { display: grid; gap: 8px; margin: 8px 0 10px; }
+.lm-pred label { font-size: 13px; color: var(--ink2); display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.lm-pnum { width: 90px; }
+.lm-ptext { width: 100%; box-sizing: border-box; resize: vertical; min-height: 40px; }
+.lm-param { font-size: 12.5px; color: var(--ink2); display: inline-flex; align-items: center; gap: 6px; }
+.lm-actions { margin-top: 6px; }
+.lm-hints { display: grid; gap: 8px; margin-top: 10px; }
+.lm-hint { border-left: 2px solid var(--c-warn); padding: 2px 0 2px 10px; }
+.lm-hint b { font-size: 12.5px; }
+.lm-outhead { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; margin-bottom: 6px; }
+.lm-outhead .a-status { display: inline-flex; gap: 8px; align-items: center; font-size: 12.5px; color: var(--ink2); }
+pre.lm-err, pre.lm-log, pre.lm-sample { white-space: pre-wrap; overflow-wrap: anywhere; font: 12.5px/1.55 var(--font-mono); margin: 6px 0 0; }
+pre.lm-sample { background: var(--surface-2); border: 1px solid var(--line); border-radius: 4px; padding: 10px 12px; max-height: 320px; overflow: auto; }
+pre.lm-log { color: var(--muted); }
+.lm-chart { margin: 10px 0 6px; }
+.lm-chart canvas { width: 100%; }
+.lm-base { margin: 8px 0 4px; max-width: 420px; }
+.lm-base tr.me td { font-weight: 600; color: var(--ink); }
+.lm-nav { max-width: 860px; margin: 0 auto 30px; }
+.lm-ledger { display: grid; gap: 8px; }
+.lm-ledger .tablewrap { max-height: 50vh; }
+@media (max-width: 559.9px) { .pane-res .lm-card { padding: 12px; } .lm-h { font-size: 17px; } }

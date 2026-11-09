@@ -335,6 +335,13 @@ def update(model, y_new):    # 可选：新的观测到来时更新模型的状�
 
 ---
 
+### 6.5 亲手写 · 语言模型（`/ml/lm/`）
+
+引擎启动后，把打印的网址里的 `/ml/` 换成 `/ml/lm/`（或者在机器学习实验室的顶栏点“亲手写”），打开“亲手写 · 语言模型”：
+一步写一个零件（softmax、交叉熵、线性层、嵌入、因果注意力），引擎用 `mllab_engine/exercises.py` 里的测试检查，最后拼成一个小模型在莎士比亚全集上训练。
+有 PyTorch 就用 PyTorch 写，没有就用 numpy 写（训练那一步要 PyTorch）。接口见 [PROTOCOL.md](PROTOCOL.md) §12。
+`tests/test_exercises.py` 里有两份参考实现，**是答案**：自己写完之前别看。
+
 ## 7. 常见问题（Mac / MPS）
 
 **`python3: command not found`，或者版本低于 3.10**
