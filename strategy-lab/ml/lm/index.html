@@ -1128,6 +1128,13 @@ pre.lm-log { color: var(--muted); }
 .lm-ledger { display: grid; gap: 8px; }
 .lm-ledger .tablewrap { max-height: 50vh; }
 @media (max-width: 559.9px) { .pane-res .lm-card { padding: 12px; } .lm-h { font-size: 17px; } }
+.lm-q { font-size: 13px; color: var(--ink2); }
+.lm-q .md { font-size: 13px; }
+.lm-ol { margin: 6px 0; padding-left: 20px; font-size: 13px; line-height: 1.7; }
+.lm-ol code, .warn p code { font: 12px var(--font-mono); background: var(--surface-2); padding: 1px 4px; border-radius: 3px; }
+.lm-ledger table.data td.txt { white-space: normal; min-width: 140px; }
+@media (max-width: 779.9px) { .lm-kbd { display: none; } }
+@media (max-width: 559.9px) { textarea.lm-code { white-space: pre-wrap; overflow-wrap: anywhere; } }
 
 </style>
 <style>
@@ -1292,7 +1299,7 @@ var LMSTEPS = (function () {
 
   var STEPS = [
     {
-      id: "softmax", n: 1, title: "softmax：把分数变成概率",
+      id: "softmax", n: 1, title: "softmax：把分数变成概率", tests: 5,
       text: [
         "模型对每个候选的字给一个实数分数（logit）。要把分数变成概率，常用的是",
         "$$\\mathrm{softmax}(x)_i = \\frac{e^{x_i}}{\\sum_j e^{x_j}}.$$",
@@ -1300,7 +1307,7 @@ var LMSTEPS = (function () {
         "",
         "要写的：`softmax(x, dim=-1)`，沿第 `dim` 维做 softmax，返回和 `x` 同形状的张量，不改动传进来的 `x`。"
       ].join("\n"),
-      predict: "照公式直接写的那一版，你预计五项里能过几项？挂的会是哪一项？",
+      predict: "照公式直接写的那一版，挂的会是哪一项？为什么？",
       hints: [
         "float32 能表示的最大的数大约是 $3.4\\times10^{38}$，而 $e^{1000}$ 远比它大。对所有的 $x_i$ 减去同一个数 $c$，softmax 的结果变不变？",
         "减去这一维上的最大值：PyTorch 写 `x - x.max(dim=dim, keepdim=True).values`，numpy 写 `x - x.max(axis=dim, keepdims=True)`。最大的那一项变成 $e^0 = 1$，分母至少是 1。"
@@ -1311,7 +1318,7 @@ var LMSTEPS = (function () {
       }
     },
     {
-      id: "cross_entropy", n: 2, title: "交叉熵：猜得有多准",
+      id: "cross_entropy", n: 2, title: "交叉熵：猜得有多准", tests: 4,
       text: [
         "训练的时候，模型给真正出现的那个字的概率是 $p$，这一处的损失就是 $-\\ln p$：猜得越准越接近 0，把握满满地猜错会非常大。一批位置取平均：",
         "$$\\ell = \\frac1N\\sum_{n=1}^{N}\\Big(\\ln\\sum_j e^{z_{n,j}} - z_{n,y_n}\\Big),$$",
@@ -1319,7 +1326,7 @@ var LMSTEPS = (function () {
         "",
         "要写的：`cross_entropy(logits, targets)`。`logits` 的形状是 (…, V)，`targets` 是前面几维相同的整数编号；返回所有位置的平均，一个数。",
         "",
-        "最后一步训练时要对它求导，所以从头到尾都用张量运算，不要转成 numpy，也不要用 `.item()`、`float()`。"
+        "用 PyTorch 写时：最后一步训练要对它求导，所以从头到尾都用张量运算，中间不要转成 numpy，也不要用 `.item()`、`float()`。用 numpy 写时没有求导，不用管这一条。"
       ].join("\n"),
       predict: "所有 logits 都相等时（模型完全不知道），损失应该是多少？用 V 写出来。",
       hints: [
@@ -1332,13 +1339,13 @@ var LMSTEPS = (function () {
       }
     },
     {
-      id: "linear", n: 3, title: "线性层：一个矩阵",
+      id: "linear", n: 3, title: "线性层：一个矩阵", tests: 3,
       text: [
         "线性层就是乘一个矩阵：$y = xW^\\top$，$W$ 的形状是（输出维数, 输入维数）。现在的语言模型里，线性层大多不带偏置，这里也不带。",
         "",
         "要写的：`class Linear`。`Linear(in_features, out_features)` 把权重放在 `self.weight`；`layer(x)` 时 `x` 的最后一维是 `in_features`，前面几维随意。",
         "",
-        "用 PyTorch 时：继承 `nn.Module`，权重用 `nn.Parameter` 包起来（优化器靠它找到要训练的参数），前向写在 `forward` 里。用 numpy 时：写 `__call__`。",
+        "用 PyTorch 写时：继承 `nn.Module`，权重用 `nn.Parameter` 包起来（优化器靠它找到要训练的参数），前向写在 `forward` 里。用 numpy 写时：权重是一个 numpy 数组，前向写在 `__call__` 里。",
         "",
         "**初始化**：权重取随机数。标准差取多少？测试会查它在 $1/\\sqrt{\\text{in}}$ 的 0.3 到 3 倍之间。"
       ].join("\n"),
@@ -1353,7 +1360,7 @@ var LMSTEPS = (function () {
       }
     },
     {
-      id: "embedding", n: 4, title: "嵌入：编号变成向量",
+      id: "embedding", n: 4, title: "嵌入：编号变成向量", tests: 2,
       text: [
         "文字先变成编号（这一页的莎士比亚文本里一共有 65 种字符），编号再变成向量。嵌入层就是一张表：第 $i$ 行是编号 $i$ 的向量，训练时和别的权重一起学。",
         "",
@@ -1372,7 +1379,7 @@ var LMSTEPS = (function () {
       }
     },
     {
-      id: "attention", n: 5, title: "因果注意力：回头看",
+      id: "attention", n: 5, title: "因果注意力：回头看", tests: 4,
       text: [
         "只看上一个字是不够的：要猜 “Romeo and Jul” 后面是什么，得看见好几个字之前的 “Romeo”。注意力让每个位置自己决定该看前面的哪些位置、各看多少：",
         "$$\\mathrm{Attn}(Q,K,V) = \\mathrm{softmax}\\!\\Big(\\frac{QK^\\top}{\\sqrt d} + M\\Big)V,$$",
@@ -1391,7 +1398,7 @@ var LMSTEPS = (function () {
       }
     },
     {
-      id: "train_tiny", n: 6, title: "拼起来，训练", train: true,
+      id: "train_tiny", n: 6, title: "拼起来，训练", train: true, tests: 2,
       text: [
         "五个零件拼成一个一层的字符级语言模型：",
         "",
@@ -1592,7 +1599,7 @@ var LMSTEPS = (function () {
   function onBackendKnown() {
     if (!ready()) return;
     var want = hasTorch() ? "torch" : "numpy";
-    if (want !== backend) { backend = want; store.set("backend", backend); render(); toast(want === "torch" ? "引擎里有 PyTorch：起始代码换成 PyTorch 的写法。" : "引擎里没有 PyTorch：起始代码换成 numpy 的写法（训练那一步要 PyTorch）。", 4200); }
+    if (want !== backend) { backend = want; store.set("backend", backend); render(); }
   }
 
   /** 第 1…upto 步的代码拼成一个文件；lines 记下每一步从拼好的文件第几行开始，用来把引擎报的行号换回"第几步第几行" */
@@ -1613,6 +1620,8 @@ var LMSTEPS = (function () {
     for (var i = 0; i < map.length; i++) { var m = map[i]; if (ln >= m.start && ln < m.start + m.n) return "第 " + m.step + " 步的第 " + (ln - m.start + 1) + " 行"; }
     return ln < (map[0] ? map[0].start : 1) ? "开头的 import 那几行" : "第 " + ln + " 行";
   }
+
+  function remap(map, text) { return String(text || "").replace(/（第 (\d+) 行）/g, function (_, n) { return "（" + where(map, +n) + "）"; }).replace(/\bline (\d+)\b/g, function (_, n) { return where(map, +n); }); }
 
   /* ---------- 左栏 ---------- */
   function paintSteps() {
@@ -1642,7 +1651,7 @@ var LMSTEPS = (function () {
       b.appendChild(h("button", { class: "btn small", type: "button", text: MODE === "mcp" ? "连接本机引擎" : "怎么启动", onclick: openEngine }));
       btn.textContent = "本机引擎";
     }
-    b.appendChild(h("p", { class: "note", text: "现在的起始代码：" + (backend === "torch" ? "PyTorch" : "numpy") + "。" }));
+    b.appendChild(h("p", { class: "note", text: "现在的起始代码：" + (backend === "torch" ? "PyTorch" : "numpy") + "。" + (ready() && !hasTorch() ? "第 1–5 步可以用 numpy 写；第 6 步训练要 PyTorch，怎么装见“本机引擎”。" : "") }));
   }
 
   var START = [
@@ -1656,9 +1665,24 @@ var LMSTEPS = (function () {
     "# 终端里打印 http://127.0.0.1:8765/ml/?engine=…",
     "# 把网址里的 /ml/ 换成 /ml/lm/ 打开这一页（或者在机器学习实验室的顶栏点“亲手写”）"
   ].join("\n");
+  /* 没有 PyTorch：怎么装、装完以后会怎样（训练那一步和引擎弹窗共用） */
+  function torchHelp() {
+    return h("div", { class: "warn" }, h("div", null,
+      h("b", { text: "训练这一步要 PyTorch，现在的引擎里没有。" }),
+      h("ol", { class: "lm-ol" },
+        h("li", { text: "在终端里按 Ctrl+C 停掉引擎。" }),
+        h("li", null, "在启动引擎的那个环境里装上 PyTorch（装引擎时建的 .venv：先 ", h("code", { text: "source .venv/bin/activate" }), "），运行 ", h("code", { text: "pip install torch" }), "。"),
+        h("li", null, "重新运行 ", h("code", { text: "python -m mllab_engine" }), "，用新打印的网址打开这一页（把 /ml/ 换成 /ml/lm/）。")),
+      h("p", { class: "note", text: "装好以后起始代码会换成 PyTorch 的写法，前五步要用 PyTorch 再写一遍、再通过一次（第 6 步用的是 PyTorch 版本）。你的 numpy 版本会留着，引擎换回没有 PyTorch 时还在。" })));
+  }
   function openEngine() {
     var body = h("div", { class: "ml-eng" });
-    if (ready()) body.appendChild(h("p", { text: "已连上本机引擎。你的代码在你自己的电脑上运行，权限和你一样；只运行你看过、信得过的代码。" }));
+    if (ready()) {
+      var tt = info.torch || {};
+      body.appendChild(h("p", { text: "已连上本机引擎：Python " + info.python + "，" + (tt.available ? "PyTorch " + tt.version + "，设备 " + tt.device + "。" : "没有 PyTorch。") }));
+      if (!tt.available) body.appendChild(torchHelp());
+      body.appendChild(h("p", { class: "note", text: "你的代码在你自己的电脑上运行，权限和你一样；只运行你看过、信得过的代码。" }));
+    }
     else if (MODE === "mcp") {
       body.appendChild(h("p", { text: "你是在 Claude 里打开的这一页：经 Claude 桌面版调用本机引擎（本地 MCP 服务器 mllab-engine）。设置方法和机器学习实验室一样：装好引擎，运行 python -m mllab_engine --claude-config，把打印出来的那一段并进桌面版的 claude_desktop_config.json，完全退出再打开桌面版。" }));
       if (infoErr) body.appendChild(h("div", { class: "warn err", text: infoErr }));
@@ -1706,15 +1730,24 @@ var LMSTEPS = (function () {
 
     // 先预测，再运行
     var runCard = h("section", { class: "lm-card" });
-    var predNum = h("input", { type: "number", class: "lm-pnum", step: st.predictNumber ? "0.01" : "1", min: "0", max: st.predictNumber ? "10" : "20", "aria-label": st.predictNumber ? "预测的验证集 loss" : "预计通过几项", placeholder: st.predictNumber ? "例如 2.10" : "例如 5" });
-    var predText = h("textarea", { class: "lm-ptext", rows: "2", placeholder: "为什么这么想（可以不写）", "aria-label": "预测的理由" });
+    var predNum = h("input", { type: "number", class: "lm-pnum", step: st.predictNumber ? "0.01" : "1", min: "0", max: st.predictNumber ? "10" : String(st.tests), "aria-label": st.predictNumber ? "预测的验证集 loss" : "预计通过几项", placeholder: st.predictNumber ? "例如 2.10" : "0–" + st.tests });
+    var predText = h("textarea", { class: "lm-ptext", rows: "2", placeholder: st.predictNumber ? "为什么是这个数（可以不写）" : "你的回答，写在运行之前（可以不写）", "aria-label": st.predictNumber ? "预测的理由" : "这一步的问题，你的回答" });
     var draft = store.get("draft." + st.id, null);
     if (draft) { predNum.value = draft.num || ""; predText.value = draft.text || ""; }
     function saveDraft() { store.set("draft." + st.id, { num: predNum.value, text: predText.value }); }
     predNum.addEventListener("input", saveDraft); predText.addEventListener("input", saveDraft);
     runCard.appendChild(h("h3", { text: "先预测，再运行" }));
-    runCard.appendChild(md(st.predict));
-    runCard.appendChild(h("div", { class: "lm-pred" }, h("label", null, st.predictNumber ? "预计验证集 loss " : "预计通过 ", predNum, st.predictNumber ? "" : " 项"), predText));
+    if (st.train && ready() && !hasTorch()) runCard.appendChild(torchHelp());
+    if (st.predictNumber) {
+      runCard.appendChild(md(st.predict));
+      var lb = store.get("last." + st.id, null);
+      runCard.appendChild(h("p", { class: "note", text: lb && lb.baselines ? "上一次运行算出的参照：只看上一个字符 " + fmt(lb.baselines.bigram) + "，只看频率 " + fmt(lb.baselines.unigram) + "，均匀乱猜 " + fmt(lb.baselines.uniform) + "。" : "参照只知道一个：均匀乱猜是 ln 65 ≈ 4.17；另外两个基线第一次训练时由引擎算出来。" }));
+      runCard.appendChild(h("div", { class: "lm-pred" }, h("label", null, "预计验证集 loss ", predNum), predText));
+    } else {
+      runCard.appendChild(h("div", { class: "lm-pred" },
+        h("label", null, "预计通过 ", predNum, " 项（这一步共 " + st.tests + " 项测试，调用了库里现成的实现时多一项）"),
+        h("div", { class: "lm-q" }, h("b", { text: "这一步的问题：" }), md(st.predict)), predText));
+    }
     var params = null;
     if (st.train) {
       var sel = function (key, label, opts, def) {
@@ -1725,7 +1758,7 @@ var LMSTEPS = (function () {
       params.forEach(function (p) { p.el.addEventListener("change", function () { store.set("p." + p.key, +p.el.value); }); });
       runCard.appendChild(h("div", { class: "row" }, params.map(function (p) { return p.wrap; }), h("span", { class: "note", text: "批量 32、上下文 64 个字符、学习率 0.002（带预热和余弦衰减）。" })));
     }
-    var btnRun = h("button", { class: "btn primary", type: "button", text: st.train ? "开始训练" : "运行测试", onclick: function () { doRun(st); } });
+    var btnRun = h("button", { class: "btn primary", type: "button", text: st.train ? "开始训练" : "运行测试", disabled: !!(st.train && ready() && !hasTorch()), onclick: function () { doRun(st); } });
     var btnStop = h("button", { class: "btn", type: "button", text: "停下", hidden: true, onclick: function () { if (running && running.state.cancel) running.state.cancel(); } });
     var hintsShown = store.get("hints." + st.id, 0);
     var hintBox = h("div", { class: "lm-hints" });
@@ -1736,7 +1769,7 @@ var LMSTEPS = (function () {
     var btnHint = h("button", { class: "btn ghost", type: "button", text: "看一条提示", onclick: function () { if (hintsShown < st.hints.length) { hintsShown++; store.set("hints." + st.id, hintsShown); paintHints(); } if (hintsShown >= st.hints.length) btnHint.disabled = true; } });
     if (hintsShown >= st.hints.length) btnHint.disabled = true;
     paintHints();
-    runCard.appendChild(h("div", { class: "row lm-actions" }, btnRun, btnStop, btnHint, h("span", { class: "note", text: st.starter ? "⌘/Ctrl + Enter 也能运行" : "" })));
+    runCard.appendChild(h("div", { class: "row lm-actions" }, btnRun, btnStop, btnHint, h("span", { class: "note lm-kbd", text: st.starter ? "⌘/Ctrl + Enter 也能运行" : "" })));
     runCard.appendChild(hintBox);
     main.appendChild(runCard);
 
@@ -1775,6 +1808,7 @@ var LMSTEPS = (function () {
     var t0 = Date.now();
     function paintLive() { paintResult(out, st, { live: true, tests: live.tests, curve: live.curve, msg: live.msg, log: live.log, map: a.map }, false); }
     paintLive();
+    try { out.scrollIntoView({ behavior: "smooth", block: "start" }); } catch (e) { out.scrollIntoView(); }
     run(job, function (name, d) {
       if (name === "progress") {
         if (d.phase === "test" && d.test) live.tests.push(d.test);
@@ -1794,6 +1828,7 @@ var LMSTEPS = (function () {
     }, function (e) {
       var ev = e.ev || {};
       var res = { error: ev.message || e.message, where: where(a.map, ev.line), cancelled: !!ev.cancelled, timeout: !!ev.timeout, tests: live.tests, curve: live.curve, map: a.map };
+      res.error = remap(a.map, res.error);
       if (!ev.cancelled) record(st, pnum, ptext, { passed: 0, total: 0, failed: true });
       paintResult(out, st, res, false);
     }).then(function () {
@@ -1817,17 +1852,18 @@ var LMSTEPS = (function () {
     var half = Math.floor(scored.length / 2), a = scored.slice(0, half), b = scored.slice(half);
     function rate(xs) { return xs.length ? Math.round(100 * xs.filter(function (e) { return e.hit; }).length / xs.length) + "%" : "—"; }
     body.appendChild(h("p", null, "写了预测的运行 ", h("b", { class: "num", text: String(scored.length) }), " 次，猜中 ", h("b", { class: "num", text: String(hits) }), " 次。前一半命中率 ", h("b", { class: "num", text: rate(a) }), "，后一半 ", h("b", { class: "num", text: rate(b) }), "。"));
-    body.appendChild(h("p", { class: "note", text: "“猜中”的算法：测试那几步，预计通过的项数和实际一样；训练那一步，预测的验证集 loss 和实际相差不超过 0.15。没写预测的运行也记下来，但不计分。" }));
+    body.appendChild(h("p", { class: "note", text: "“猜中”的算法：测试那几步，预计通过的项数和实际一样；训练那一步，预测的验证集 loss 和实际相差不超过 0.15。没写预测的运行也记下来，但不计分。“理由”一栏是你对这一步问题的回答，不自动打分：回头对着结果自己看。表格在手机上可以左右滑。" }));
     if (!ledger.length) body.appendChild(h("p", { class: "note", text: "还没有记录。每次运行之前在“先预测，再运行”里写一个数。" }));
     else {
       var tb = h("tbody");
       ledger.slice().reverse().slice(0, 100).forEach(function (e) {
-        tb.appendChild(h("tr", null, h("td", { text: new Date(e.at).toLocaleString() }), h("td", { text: "第 " + e.step + " 步" }),
+        var dt = new Date(e.at), pad = function (x) { return (x < 10 ? "0" : "") + x; };
+        tb.appendChild(h("tr", null, h("td", { text: (dt.getMonth() + 1) + "/" + dt.getDate() + " " + pad(dt.getHours()) + ":" + pad(dt.getMinutes()) }), h("td", { text: String(e.step) }),
           h("td", { class: "num", text: e.pred == null ? "—" : String(e.pred) }),
           h("td", { class: "num", text: e.actual == null ? "出错" : e.kind === "loss" ? fmt(e.actual) : e.actual + "/" + e.total }),
           h("td", { text: e.hit == null ? "" : e.hit ? "✓" : "✗" }), h("td", { class: "txt", text: e.why })));
       });
-      body.appendChild(h("div", { class: "tablewrap" }, h("table", { class: "data" }, h("thead", null, h("tr", null, h("th", { text: "时间" }), h("th", { text: "步" }), h("th", { text: "预测" }), h("th", { text: "实际" }), h("th", { text: "中" }), h("th", { text: "理由" }))), tb)));
+      body.appendChild(h("div", { class: "tablewrap" }, h("table", { class: "data" }, h("thead", null, h("tr", null, h("th", { text: "时间" }), h("th", { text: "第几步" }), h("th", { text: "预测" }), h("th", { text: "实际" }), h("th", { text: "中" }), h("th", { text: "理由" }))), tb)));
     }
     var foot = [
       h("button", { class: "btn", type: "button", text: "导出（JSON）", onclick: function () {
@@ -1856,9 +1892,10 @@ var LMSTEPS = (function () {
       var ul = h("ul", { class: "ck-list" });
       r.tests.forEach(function (t) {
         var note = [t.msg || ""];
-        if (t.line) note.push("位置：" + where(r.map || [], t.line) + "。");
+        var lns = t.lines && t.lines.length ? t.lines : t.line ? [t.line] : [];
+        if (lns.length) note.push("位置：" + lns.map(function (n) { return where(r.map || [], n); }).join("；") + "。");
         if (t.err != null && t.ok) note.push("最大误差 " + t.err.toExponential(1) + "（容差 " + (t.tol != null ? t.tol.toExponential(1) : "—") + "）");
-        ul.appendChild(h("li", { class: "ck " + (t.ok ? "pass" : "fail") }, h("span", { class: "ck-i", text: t.ok ? "✓" : "✗" }), h("span", { class: "ck-say", text: t.name }), h("span", { class: "ck-note", text: note.filter(Boolean).join(" ") })));
+        ul.appendChild(h("li", { class: "ck " + (t.ok ? "pass" : "fail") }, h("span", { class: "ck-i", text: t.ok ? "✓" : "✗" }), h("span", { class: "ck-say", text: t.name }), h("span", { class: "ck-note", text: remap(r.map || [], note.filter(Boolean).join(" ")) })));
       });
       out.appendChild(ul);
     }

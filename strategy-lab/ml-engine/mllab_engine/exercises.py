@@ -116,8 +116,11 @@ def forbidden_uses(code):
             for a in node.names:
                 if a.name in FORBID_ANY or a.name in FORBID_MOD - {"special"}:
                     out.append((node.lineno, "from %s import %s" % (node.module, a.name)))
-    out.sort()
-    return out
+    best = {}                     # 同一行只留最长的那个写法（scipy.special.softmax 不再另报一个 scipy.special）
+    for ln, txt in out:
+        if ln not in best or len(txt) > len(best[ln]):
+            best[ln] = txt
+    return sorted(best.items())
 
 
 # ---------------------------------------------------------------- 参照答案（numpy，float64）
@@ -336,7 +339,9 @@ def ex_linear(ns, be, rep, rng):
         w = be.out(weight_of(C(n_in, n_out), (n_out, n_in), "Linear"), "Linear.weight")
         s, target = float(w.std()), 1 / math.sqrt(n_in)
         ok = 0.3 * target <= s <= 3 * target and abs(float(w.mean())) < 3 * target / math.sqrt(w.size) * 10
-        return ok, "" if ok else "Linear(256, 128) 的初始权重标准差是 %.4g；常见的取法在 1/√in ≈ %.4g 附近（0.3 到 3 倍之间都算对）。" % (s, target), s, target
+        if ok:
+            return True, "Linear(256, 128) 的初始权重标准差是 %.4f，1/√256 = %.4f。" % (s, target), None, None
+        return False, "Linear(256, 128) 的初始权重标准差是 %.4g；常见的取法在 1/√in ≈ %.4g 附近（0.3 到 3 倍之间都算对）。" % (s, target), None, None
     rep.check("初始化的尺度：权重标准差约为 1/√in", t2)
 
     def t3():
@@ -360,8 +365,8 @@ def ex_embedding(ns, be, rep, rng):
             return False, "weight 要用 nn.Parameter 包起来（也要继承 torch.nn.Module）。", None, None
         s = float(be.out(w, "Embedding.weight").std())
         if not (0.005 <= s <= 3):
-            return False, "初始权重的标准差是 %.4g：太%s了。常见的取法是标准差 1 左右（或者 0.02）。" % (s, "小" if s < 0.005 else "大"), s, None
-        return True, "", None, None
+            return False, "初始权重的标准差是 %.4g：太%s了。常见的取法是标准差 1 左右（或者 0.02）。" % (s, "小" if s < 0.005 else "大"), None, None
+        return True, "初始权重的标准差是 %.4f。" % s, None, None
     rep.check("构造：weight 的形状是 (词表大小, 维数)，初始化合理", t1)
 
     def t2():
@@ -581,8 +586,9 @@ def run_exercise(job, ns, chan, lib):
          "embedding": ex_embedding, "attention": ex_attention}[ex](ns, be, rep, rng)
     if bad:
         rep.add("从零写：没有调用库里现成的实现", False,
-                "；".join("第 %d 行 %s" % (ln, s) for ln, s in bad[:5]) + "：这些要你自己写。", None, None)
+                "用了 " + "、".join(dict.fromkeys(s for ln, s in bad[:5])) + "：这些要你自己写。", None, None)
         rep.tests[-1]["line"] = bad[0][0]
+        rep.tests[-1]["lines"] = [ln for ln, s in bad[:5]]
     out = {"api": "exercise", "kind": "exercise", "exercise": ex, "backend": be.name, "tests": rep.tests,
            "passed": sum(1 for t in rep.tests if t["ok"]), "total": len(rep.tests), "ms": (time.time() - t0) * 1000.0}
     if extra:

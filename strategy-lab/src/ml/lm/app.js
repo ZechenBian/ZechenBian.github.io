@@ -167,7 +167,7 @@
   function onBackendKnown() {
     if (!ready()) return;
     var want = hasTorch() ? "torch" : "numpy";
-    if (want !== backend) { backend = want; store.set("backend", backend); render(); toast(want === "torch" ? "引擎里有 PyTorch：起始代码换成 PyTorch 的写法。" : "引擎里没有 PyTorch：起始代码换成 numpy 的写法（训练那一步要 PyTorch）。", 4200); }
+    if (want !== backend) { backend = want; store.set("backend", backend); render(); }
   }
 
   /** 第 1…upto 步的代码拼成一个文件；lines 记下每一步从拼好的文件第几行开始，用来把引擎报的行号换回"第几步第几行" */
@@ -188,6 +188,8 @@
     for (var i = 0; i < map.length; i++) { var m = map[i]; if (ln >= m.start && ln < m.start + m.n) return "第 " + m.step + " 步的第 " + (ln - m.start + 1) + " 行"; }
     return ln < (map[0] ? map[0].start : 1) ? "开头的 import 那几行" : "第 " + ln + " 行";
   }
+
+  function remap(map, text) { return String(text || "").replace(/（第 (\d+) 行）/g, function (_, n) { return "（" + where(map, +n) + "）"; }).replace(/\bline (\d+)\b/g, function (_, n) { return where(map, +n); }); }
 
   /* ---------- 左栏 ---------- */
   function paintSteps() {
@@ -217,7 +219,7 @@
       b.appendChild(h("button", { class: "btn small", type: "button", text: MODE === "mcp" ? "连接本机引擎" : "怎么启动", onclick: openEngine }));
       btn.textContent = "本机引擎";
     }
-    b.appendChild(h("p", { class: "note", text: "现在的起始代码：" + (backend === "torch" ? "PyTorch" : "numpy") + "。" }));
+    b.appendChild(h("p", { class: "note", text: "现在的起始代码：" + (backend === "torch" ? "PyTorch" : "numpy") + "。" + (ready() && !hasTorch() ? "第 1–5 步可以用 numpy 写；第 6 步训练要 PyTorch，怎么装见“本机引擎”。" : "") }));
   }
 
   var START = [
@@ -231,9 +233,24 @@
     "# 终端里打印 http://127.0.0.1:8765/ml/?engine=…",
     "# 把网址里的 /ml/ 换成 /ml/lm/ 打开这一页（或者在机器学习实验室的顶栏点“亲手写”）"
   ].join("\n");
+  /* 没有 PyTorch：怎么装、装完以后会怎样（训练那一步和引擎弹窗共用） */
+  function torchHelp() {
+    return h("div", { class: "warn" }, h("div", null,
+      h("b", { text: "训练这一步要 PyTorch，现在的引擎里没有。" }),
+      h("ol", { class: "lm-ol" },
+        h("li", { text: "在终端里按 Ctrl+C 停掉引擎。" }),
+        h("li", null, "在启动引擎的那个环境里装上 PyTorch（装引擎时建的 .venv：先 ", h("code", { text: "source .venv/bin/activate" }), "），运行 ", h("code", { text: "pip install torch" }), "。"),
+        h("li", null, "重新运行 ", h("code", { text: "python -m mllab_engine" }), "，用新打印的网址打开这一页（把 /ml/ 换成 /ml/lm/）。")),
+      h("p", { class: "note", text: "装好以后起始代码会换成 PyTorch 的写法，前五步要用 PyTorch 再写一遍、再通过一次（第 6 步用的是 PyTorch 版本）。你的 numpy 版本会留着，引擎换回没有 PyTorch 时还在。" })));
+  }
   function openEngine() {
     var body = h("div", { class: "ml-eng" });
-    if (ready()) body.appendChild(h("p", { text: "已连上本机引擎。你的代码在你自己的电脑上运行，权限和你一样；只运行你看过、信得过的代码。" }));
+    if (ready()) {
+      var tt = info.torch || {};
+      body.appendChild(h("p", { text: "已连上本机引擎：Python " + info.python + "，" + (tt.available ? "PyTorch " + tt.version + "，设备 " + tt.device + "。" : "没有 PyTorch。") }));
+      if (!tt.available) body.appendChild(torchHelp());
+      body.appendChild(h("p", { class: "note", text: "你的代码在你自己的电脑上运行，权限和你一样；只运行你看过、信得过的代码。" }));
+    }
     else if (MODE === "mcp") {
       body.appendChild(h("p", { text: "你是在 Claude 里打开的这一页：经 Claude 桌面版调用本机引擎（本地 MCP 服务器 mllab-engine）。设置方法和机器学习实验室一样：装好引擎，运行 python -m mllab_engine --claude-config，把打印出来的那一段并进桌面版的 claude_desktop_config.json，完全退出再打开桌面版。" }));
       if (infoErr) body.appendChild(h("div", { class: "warn err", text: infoErr }));
@@ -281,15 +298,24 @@
 
     // 先预测，再运行
     var runCard = h("section", { class: "lm-card" });
-    var predNum = h("input", { type: "number", class: "lm-pnum", step: st.predictNumber ? "0.01" : "1", min: "0", max: st.predictNumber ? "10" : "20", "aria-label": st.predictNumber ? "预测的验证集 loss" : "预计通过几项", placeholder: st.predictNumber ? "例如 2.10" : "例如 5" });
-    var predText = h("textarea", { class: "lm-ptext", rows: "2", placeholder: "为什么这么想（可以不写）", "aria-label": "预测的理由" });
+    var predNum = h("input", { type: "number", class: "lm-pnum", step: st.predictNumber ? "0.01" : "1", min: "0", max: st.predictNumber ? "10" : String(st.tests), "aria-label": st.predictNumber ? "预测的验证集 loss" : "预计通过几项", placeholder: st.predictNumber ? "例如 2.10" : "0–" + st.tests });
+    var predText = h("textarea", { class: "lm-ptext", rows: "2", placeholder: st.predictNumber ? "为什么是这个数（可以不写）" : "你的回答，写在运行之前（可以不写）", "aria-label": st.predictNumber ? "预测的理由" : "这一步的问题，你的回答" });
     var draft = store.get("draft." + st.id, null);
     if (draft) { predNum.value = draft.num || ""; predText.value = draft.text || ""; }
     function saveDraft() { store.set("draft." + st.id, { num: predNum.value, text: predText.value }); }
     predNum.addEventListener("input", saveDraft); predText.addEventListener("input", saveDraft);
     runCard.appendChild(h("h3", { text: "先预测，再运行" }));
-    runCard.appendChild(md(st.predict));
-    runCard.appendChild(h("div", { class: "lm-pred" }, h("label", null, st.predictNumber ? "预计验证集 loss " : "预计通过 ", predNum, st.predictNumber ? "" : " 项"), predText));
+    if (st.train && ready() && !hasTorch()) runCard.appendChild(torchHelp());
+    if (st.predictNumber) {
+      runCard.appendChild(md(st.predict));
+      var lb = store.get("last." + st.id, null);
+      runCard.appendChild(h("p", { class: "note", text: lb && lb.baselines ? "上一次运行算出的参照：只看上一个字符 " + fmt(lb.baselines.bigram) + "，只看频率 " + fmt(lb.baselines.unigram) + "，均匀乱猜 " + fmt(lb.baselines.uniform) + "。" : "参照只知道一个：均匀乱猜是 ln 65 ≈ 4.17；另外两个基线第一次训练时由引擎算出来。" }));
+      runCard.appendChild(h("div", { class: "lm-pred" }, h("label", null, "预计验证集 loss ", predNum), predText));
+    } else {
+      runCard.appendChild(h("div", { class: "lm-pred" },
+        h("label", null, "预计通过 ", predNum, " 项（这一步共 " + st.tests + " 项测试，调用了库里现成的实现时多一项）"),
+        h("div", { class: "lm-q" }, h("b", { text: "这一步的问题：" }), md(st.predict)), predText));
+    }
     var params = null;
     if (st.train) {
       var sel = function (key, label, opts, def) {
@@ -300,7 +326,7 @@
       params.forEach(function (p) { p.el.addEventListener("change", function () { store.set("p." + p.key, +p.el.value); }); });
       runCard.appendChild(h("div", { class: "row" }, params.map(function (p) { return p.wrap; }), h("span", { class: "note", text: "批量 32、上下文 64 个字符、学习率 0.002（带预热和余弦衰减）。" })));
     }
-    var btnRun = h("button", { class: "btn primary", type: "button", text: st.train ? "开始训练" : "运行测试", onclick: function () { doRun(st); } });
+    var btnRun = h("button", { class: "btn primary", type: "button", text: st.train ? "开始训练" : "运行测试", disabled: !!(st.train && ready() && !hasTorch()), onclick: function () { doRun(st); } });
     var btnStop = h("button", { class: "btn", type: "button", text: "停下", hidden: true, onclick: function () { if (running && running.state.cancel) running.state.cancel(); } });
     var hintsShown = store.get("hints." + st.id, 0);
     var hintBox = h("div", { class: "lm-hints" });
@@ -311,7 +337,7 @@
     var btnHint = h("button", { class: "btn ghost", type: "button", text: "看一条提示", onclick: function () { if (hintsShown < st.hints.length) { hintsShown++; store.set("hints." + st.id, hintsShown); paintHints(); } if (hintsShown >= st.hints.length) btnHint.disabled = true; } });
     if (hintsShown >= st.hints.length) btnHint.disabled = true;
     paintHints();
-    runCard.appendChild(h("div", { class: "row lm-actions" }, btnRun, btnStop, btnHint, h("span", { class: "note", text: st.starter ? "⌘/Ctrl + Enter 也能运行" : "" })));
+    runCard.appendChild(h("div", { class: "row lm-actions" }, btnRun, btnStop, btnHint, h("span", { class: "note lm-kbd", text: st.starter ? "⌘/Ctrl + Enter 也能运行" : "" })));
     runCard.appendChild(hintBox);
     main.appendChild(runCard);
 
@@ -350,6 +376,7 @@
     var t0 = Date.now();
     function paintLive() { paintResult(out, st, { live: true, tests: live.tests, curve: live.curve, msg: live.msg, log: live.log, map: a.map }, false); }
     paintLive();
+    try { out.scrollIntoView({ behavior: "smooth", block: "start" }); } catch (e) { out.scrollIntoView(); }
     run(job, function (name, d) {
       if (name === "progress") {
         if (d.phase === "test" && d.test) live.tests.push(d.test);
@@ -369,6 +396,7 @@
     }, function (e) {
       var ev = e.ev || {};
       var res = { error: ev.message || e.message, where: where(a.map, ev.line), cancelled: !!ev.cancelled, timeout: !!ev.timeout, tests: live.tests, curve: live.curve, map: a.map };
+      res.error = remap(a.map, res.error);
       if (!ev.cancelled) record(st, pnum, ptext, { passed: 0, total: 0, failed: true });
       paintResult(out, st, res, false);
     }).then(function () {
@@ -392,17 +420,18 @@
     var half = Math.floor(scored.length / 2), a = scored.slice(0, half), b = scored.slice(half);
     function rate(xs) { return xs.length ? Math.round(100 * xs.filter(function (e) { return e.hit; }).length / xs.length) + "%" : "—"; }
     body.appendChild(h("p", null, "写了预测的运行 ", h("b", { class: "num", text: String(scored.length) }), " 次，猜中 ", h("b", { class: "num", text: String(hits) }), " 次。前一半命中率 ", h("b", { class: "num", text: rate(a) }), "，后一半 ", h("b", { class: "num", text: rate(b) }), "。"));
-    body.appendChild(h("p", { class: "note", text: "“猜中”的算法：测试那几步，预计通过的项数和实际一样；训练那一步，预测的验证集 loss 和实际相差不超过 0.15。没写预测的运行也记下来，但不计分。" }));
+    body.appendChild(h("p", { class: "note", text: "“猜中”的算法：测试那几步，预计通过的项数和实际一样；训练那一步，预测的验证集 loss 和实际相差不超过 0.15。没写预测的运行也记下来，但不计分。“理由”一栏是你对这一步问题的回答，不自动打分：回头对着结果自己看。表格在手机上可以左右滑。" }));
     if (!ledger.length) body.appendChild(h("p", { class: "note", text: "还没有记录。每次运行之前在“先预测，再运行”里写一个数。" }));
     else {
       var tb = h("tbody");
       ledger.slice().reverse().slice(0, 100).forEach(function (e) {
-        tb.appendChild(h("tr", null, h("td", { text: new Date(e.at).toLocaleString() }), h("td", { text: "第 " + e.step + " 步" }),
+        var dt = new Date(e.at), pad = function (x) { return (x < 10 ? "0" : "") + x; };
+        tb.appendChild(h("tr", null, h("td", { text: (dt.getMonth() + 1) + "/" + dt.getDate() + " " + pad(dt.getHours()) + ":" + pad(dt.getMinutes()) }), h("td", { text: String(e.step) }),
           h("td", { class: "num", text: e.pred == null ? "—" : String(e.pred) }),
           h("td", { class: "num", text: e.actual == null ? "出错" : e.kind === "loss" ? fmt(e.actual) : e.actual + "/" + e.total }),
           h("td", { text: e.hit == null ? "" : e.hit ? "✓" : "✗" }), h("td", { class: "txt", text: e.why })));
       });
-      body.appendChild(h("div", { class: "tablewrap" }, h("table", { class: "data" }, h("thead", null, h("tr", null, h("th", { text: "时间" }), h("th", { text: "步" }), h("th", { text: "预测" }), h("th", { text: "实际" }), h("th", { text: "中" }), h("th", { text: "理由" }))), tb)));
+      body.appendChild(h("div", { class: "tablewrap" }, h("table", { class: "data" }, h("thead", null, h("tr", null, h("th", { text: "时间" }), h("th", { text: "第几步" }), h("th", { text: "预测" }), h("th", { text: "实际" }), h("th", { text: "中" }), h("th", { text: "理由" }))), tb)));
     }
     var foot = [
       h("button", { class: "btn", type: "button", text: "导出（JSON）", onclick: function () {
@@ -431,9 +460,10 @@
       var ul = h("ul", { class: "ck-list" });
       r.tests.forEach(function (t) {
         var note = [t.msg || ""];
-        if (t.line) note.push("位置：" + where(r.map || [], t.line) + "。");
+        var lns = t.lines && t.lines.length ? t.lines : t.line ? [t.line] : [];
+        if (lns.length) note.push("位置：" + lns.map(function (n) { return where(r.map || [], n); }).join("；") + "。");
         if (t.err != null && t.ok) note.push("最大误差 " + t.err.toExponential(1) + "（容差 " + (t.tol != null ? t.tol.toExponential(1) : "—") + "）");
-        ul.appendChild(h("li", { class: "ck " + (t.ok ? "pass" : "fail") }, h("span", { class: "ck-i", text: t.ok ? "✓" : "✗" }), h("span", { class: "ck-say", text: t.name }), h("span", { class: "ck-note", text: note.filter(Boolean).join(" ") })));
+        ul.appendChild(h("li", { class: "ck " + (t.ok ? "pass" : "fail") }, h("span", { class: "ck-i", text: t.ok ? "✓" : "✗" }), h("span", { class: "ck-say", text: t.name }), h("span", { class: "ck-note", text: remap(r.map || [], note.filter(Boolean).join(" ")) })));
       });
       out.appendChild(ul);
     }

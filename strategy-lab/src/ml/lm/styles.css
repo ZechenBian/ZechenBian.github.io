@@ -49,3 +49,10 @@ pre.lm-log { color: var(--muted); }
 .lm-ledger { display: grid; gap: 8px; }
 .lm-ledger .tablewrap { max-height: 50vh; }
 @media (max-width: 559.9px) { .pane-res .lm-card { padding: 12px; } .lm-h { font-size: 17px; } }
+.lm-q { font-size: 13px; color: var(--ink2); }
+.lm-q .md { font-size: 13px; }
+.lm-ol { margin: 6px 0; padding-left: 20px; font-size: 13px; line-height: 1.7; }
+.lm-ol code, .warn p code { font: 12px var(--font-mono); background: var(--surface-2); padding: 1px 4px; border-radius: 3px; }
+.lm-ledger table.data td.txt { white-space: normal; min-width: 140px; }
+@media (max-width: 779.9px) { .lm-kbd { display: none; } }
+@media (max-width: 559.9px) { textarea.lm-code { white-space: pre-wrap; overflow-wrap: anywhere; } }

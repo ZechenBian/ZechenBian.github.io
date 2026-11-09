@@ -30,7 +30,7 @@ var LMSTEPS = (function () {
 
   var STEPS = [
     {
-      id: "softmax", n: 1, title: "softmax：把分数变成概率",
+      id: "softmax", n: 1, title: "softmax：把分数变成概率", tests: 5,
       text: [
         "模型对每个候选的字给一个实数分数（logit）。要把分数变成概率，常用的是",
         "$$\\mathrm{softmax}(x)_i = \\frac{e^{x_i}}{\\sum_j e^{x_j}}.$$",
@@ -38,7 +38,7 @@ var LMSTEPS = (function () {
         "",
         "要写的：`softmax(x, dim=-1)`，沿第 `dim` 维做 softmax，返回和 `x` 同形状的张量，不改动传进来的 `x`。"
       ].join("\n"),
-      predict: "照公式直接写的那一版，你预计五项里能过几项？挂的会是哪一项？",
+      predict: "照公式直接写的那一版，挂的会是哪一项？为什么？",
       hints: [
         "float32 能表示的最大的数大约是 $3.4\\times10^{38}$，而 $e^{1000}$ 远比它大。对所有的 $x_i$ 减去同一个数 $c$，softmax 的结果变不变？",
         "减去这一维上的最大值：PyTorch 写 `x - x.max(dim=dim, keepdim=True).values`，numpy 写 `x - x.max(axis=dim, keepdims=True)`。最大的那一项变成 $e^0 = 1$，分母至少是 1。"
@@ -49,7 +49,7 @@ var LMSTEPS = (function () {
       }
     },
     {
-      id: "cross_entropy", n: 2, title: "交叉熵：猜得有多准",
+      id: "cross_entropy", n: 2, title: "交叉熵：猜得有多准", tests: 4,
       text: [
         "训练的时候，模型给真正出现的那个字的概率是 $p$，这一处的损失就是 $-\\ln p$：猜得越准越接近 0，把握满满地猜错会非常大。一批位置取平均：",
         "$$\\ell = \\frac1N\\sum_{n=1}^{N}\\Big(\\ln\\sum_j e^{z_{n,j}} - z_{n,y_n}\\Big),$$",
@@ -57,7 +57,7 @@ var LMSTEPS = (function () {
         "",
         "要写的：`cross_entropy(logits, targets)`。`logits` 的形状是 (…, V)，`targets` 是前面几维相同的整数编号；返回所有位置的平均，一个数。",
         "",
-        "最后一步训练时要对它求导，所以从头到尾都用张量运算，不要转成 numpy，也不要用 `.item()`、`float()`。"
+        "用 PyTorch 写时：最后一步训练要对它求导，所以从头到尾都用张量运算，中间不要转成 numpy，也不要用 `.item()`、`float()`。用 numpy 写时没有求导，不用管这一条。"
       ].join("\n"),
       predict: "所有 logits 都相等时（模型完全不知道），损失应该是多少？用 V 写出来。",
       hints: [
@@ -70,13 +70,13 @@ var LMSTEPS = (function () {
       }
     },
     {
-      id: "linear", n: 3, title: "线性层：一个矩阵",
+      id: "linear", n: 3, title: "线性层：一个矩阵", tests: 3,
       text: [
         "线性层就是乘一个矩阵：$y = xW^\\top$，$W$ 的形状是（输出维数, 输入维数）。现在的语言模型里，线性层大多不带偏置，这里也不带。",
         "",
         "要写的：`class Linear`。`Linear(in_features, out_features)` 把权重放在 `self.weight`；`layer(x)` 时 `x` 的最后一维是 `in_features`，前面几维随意。",
         "",
-        "用 PyTorch 时：继承 `nn.Module`，权重用 `nn.Parameter` 包起来（优化器靠它找到要训练的参数），前向写在 `forward` 里。用 numpy 时：写 `__call__`。",
+        "用 PyTorch 写时：继承 `nn.Module`，权重用 `nn.Parameter` 包起来（优化器靠它找到要训练的参数），前向写在 `forward` 里。用 numpy 写时：权重是一个 numpy 数组，前向写在 `__call__` 里。",
         "",
         "**初始化**：权重取随机数。标准差取多少？测试会查它在 $1/\\sqrt{\\text{in}}$ 的 0.3 到 3 倍之间。"
       ].join("\n"),
@@ -91,7 +91,7 @@ var LMSTEPS = (function () {
       }
     },
     {
-      id: "embedding", n: 4, title: "嵌入：编号变成向量",
+      id: "embedding", n: 4, title: "嵌入：编号变成向量", tests: 2,
       text: [
         "文字先变成编号（这一页的莎士比亚文本里一共有 65 种字符），编号再变成向量。嵌入层就是一张表：第 $i$ 行是编号 $i$ 的向量，训练时和别的权重一起学。",
         "",
@@ -110,7 +110,7 @@ var LMSTEPS = (function () {
       }
     },
     {
-      id: "attention", n: 5, title: "因果注意力：回头看",
+      id: "attention", n: 5, title: "因果注意力：回头看", tests: 4,
       text: [
         "只看上一个字是不够的：要猜 “Romeo and Jul” 后面是什么，得看见好几个字之前的 “Romeo”。注意力让每个位置自己决定该看前面的哪些位置、各看多少：",
         "$$\\mathrm{Attn}(Q,K,V) = \\mathrm{softmax}\\!\\Big(\\frac{QK^\\top}{\\sqrt d} + M\\Big)V,$$",
@@ -129,7 +129,7 @@ var LMSTEPS = (function () {
       }
     },
     {
-      id: "train_tiny", n: 6, title: "拼起来，训练", train: true,
+      id: "train_tiny", n: 6, title: "拼起来，训练", train: true, tests: 2,
       text: [
         "五个零件拼成一个一层的字符级语言模型：",
         "",

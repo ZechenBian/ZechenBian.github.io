@@ -160,6 +160,7 @@ class ExerciseTest(unittest.TestCase):
         self.assertIn("从零写", last["name"])
         self.assertIn("scipy.special.softmax", last["msg"])
         self.assertEqual(last["line"], 6)
+        self.assertEqual(last["lines"], [6])
 
     def test_static_check_rules(self):
         f = exercises.forbidden_uses

@@ -62,7 +62,7 @@ const GOOD = {
     r = await runStep(1, GOOD.softmax, 5);
     ok(/全部通过：5 \/ 5/.test(r.head), "减去最大值：全部通过", JSON.stringify(r));
     r = await runStep(1, "import scipy.special\ndef softmax(x, dim=-1):\n    return scipy.special.softmax(x, axis=dim)\n");
-    ok(r.fails.some((f) => /从零写/.test(f)) && r.notes.some((n) => /第 1 步的第 3 行/.test(n)), "调用现成的 softmax：被抓到，位置换算成第几步第几行", JSON.stringify(r));
+    ok(r.fails.some((f) => /从零写/.test(f)) && r.notes.some((n) => /第 1 步的第 3 行/.test(n) && !/第 [0-9]+ 行 scipy/.test(n)), "调用现成的 softmax：被抓到，位置换算成第几步第几行（不再露出拼好的文件里的行号）", JSON.stringify(r));
     await runStep(1, GOOD.softmax, 5);
 
     section("第 2—5 步");
@@ -74,7 +74,7 @@ const GOOD = {
     ok(r.fails.some((f) => /因果性/.test(f)), "去掉掩码：因果性那一项挂掉", JSON.stringify(r.fails));
     await runStep(5, GOOD.attention);
     r = await runStep(2, GOOD.cross_entropy.replace("    t = targets", "    t = targets +\n"));
-    ok(/语法错误|SyntaxError/.test(r.err) && /第 2 步的第 \d+ 行/.test(r.err), "语法错误：报出是第 2 步的哪一行", r.err.slice(0, 200));
+    ok(/语法错误|SyntaxError/.test(r.err) && /第 2 步的第 \d+ 行/.test(r.err) && !/（第 \d+ 行）/.test(r.err), "语法错误：报出是第 2 步的哪一行，只有这一种行号", r.err.slice(0, 200));
     await runStep(2, GOOD.cross_entropy);
     const marks = await page.locator(".lm-step.ok").count();
     ok(marks === 5, "左栏 5 步打了勾", String(marks));
@@ -82,9 +82,9 @@ const GOOD = {
     section("第 6 步：没有 PyTorch 时不让训练");
     await page.locator(".lm-step").nth(6).click();
     ok(await page.locator("textarea.lm-code").count() === 0, "训练这一步不用写代码");
-    await page.locator(".lm-actions .btn.primary").click();
-    await page.waitForSelector(".toast", { timeout: 5000 });
-    ok(/PyTorch/.test(await page.locator(".toast").last().innerText()), "提示要装 PyTorch");
+    ok(await page.locator(".lm-actions .btn.primary").isDisabled(), "没有 PyTorch：训练按钮不可点");
+    const help = await page.locator(".lm-card .warn").first().innerText();
+    ok(/pip install torch/.test(help) && /Ctrl\+C/.test(help) && /再写一遍/.test(help), "页面上一直留着怎么装 PyTorch、装完要做什么", help.slice(0, 160));
 
     section("预测台账");
     await page.locator("#btnLedger").click();
