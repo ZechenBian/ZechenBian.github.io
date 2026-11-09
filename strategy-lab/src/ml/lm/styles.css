@@ -56,3 +56,4 @@ pre.lm-log { color: var(--muted); }
 .lm-ledger table.data td.txt { white-space: normal; min-width: 140px; }
 @media (max-width: 779.9px) { .lm-kbd { display: none; } }
 @media (max-width: 559.9px) { textarea.lm-code { white-space: pre-wrap; overflow-wrap: anywhere; } }
+.btn.armed { border-color: var(--c-crit); color: var(--crit-ink); }

@@ -51,6 +51,16 @@
     var f = box.querySelector("button, a, input, textarea, select"); if (f) f.focus();
     return { close: close, box: box };
   }
+  /* 要确认的按钮：第一次点只换成“再点一次……”，3 秒内再点才执行（在 Claude 里 confirm() 弹不出来，一律当成“取消”） */
+  function twoStep(btn, ask, action) {
+    var armed = false, label = btn.textContent, t = null;
+    btn.addEventListener("click", function () {
+      if (armed) { clearTimeout(t); armed = false; btn.textContent = label; btn.classList.remove("armed"); action(); return; }
+      armed = true; btn.textContent = ask; btn.classList.add("armed");
+      t = setTimeout(function () { armed = false; btn.textContent = label; btn.classList.remove("armed"); }, 3000);
+    });
+    return btn;
+  }
   function fmt(x, d) { return x == null || !isFinite(x) ? "—" : Number(x).toFixed(d == null ? 3 : d); }
 
   /* ---------- 本机引擎（PROTOCOL.md §1、§5、§6、§11） ---------- */
@@ -291,7 +301,7 @@
         if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); doRun(st); }
       });
       codeCard.appendChild(h("div", { class: "lm-codehead" }, h("h3", { text: "你的代码" }), h("span", { class: "note", text: (backend === "torch" ? "PyTorch" : "numpy") + " · 前面已经有 " + S.PRE[backend].trim().split("\n").join("；") }),
-        h("button", { class: "btn small ghost", type: "button", text: "恢复起始代码", onclick: function () { if (confirm("把这一步的代码换回起始代码？你写的会丢掉。")) { ed.value = st.starter[backend]; setCode(st, ed.value); } } })));
+        twoStep(h("button", { class: "btn small ghost", type: "button", text: "恢复起始代码" }), "再点一次：你写的会丢掉", function () { ed.value = st.starter[backend]; setCode(st, ed.value); })));
       codeCard.appendChild(ed);
       main.appendChild(codeCard);
     }
@@ -356,13 +366,19 @@
   var current = null;
 
   /* ---------- 运行 ---------- */
-  function doRun(st) {
+  function doRun(st, force) {
     if (running) return;
     if (!ready()) { openEngine(); return; }
     if (st.train && !hasTorch()) { toast("训练这一步要 PyTorch：在启动引擎的 Python 环境里 pip install torch，再重启引擎。", 5200); return; }
     if (st.train) {
       var missing = STEPS.filter(function (s) { return s.starter && !done(s); });
-      if (missing.length && !confirm("第 " + missing.map(function (s) { return s.n; }).join("、") + " 步还没全部通过，训练多半会出错。还是要训练吗？")) return;
+      if (missing.length && !force) {
+        var c0 = current;
+        clear(c0.out); c0.out.hidden = false;
+        c0.out.appendChild(h("div", { class: "warn" }, h("div", null, "第 " + missing.map(function (s) { return s.n; }).join("、") + " 步还没全部通过，训练多半会出错。",
+          h("div", { class: "row", style: { marginTop: "8px" } }, h("button", { class: "btn small", type: "button", text: "还是要训练", onclick: function () { doRun(st, true); } })))));
+        return;
+      }
     }
     var c = current, pnum = c.predNum.value.trim(), ptext = c.predText.value.trim();
     var a = assemble(st.train ? STEPS.length : st.n);
