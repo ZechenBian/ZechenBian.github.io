@@ -316,6 +316,7 @@ async function shot(page, name) { if (shots) await page.screenshot({ path: path.
   const ent = await page.evaluate(() => DL.CODE_SOURCES.map((S) => S.p.reduce((a, v) => a - v * Math.log2(v), 0).toFixed(3)));
   const found = await page.locator('.widget .w-reveal').innerText();
   ok(ent.join() === '1.750,1.357,2.000' && /1\.75 bits for the first source, 1\.357 for the second, 2 for the third/.test(found), 'week 2 figure: the entropies its text states are those of its three sources');
+  ok(await page.evaluate(() => DL.EXPERIMENTS.every((e) => (e.presets || []).every((p) => !/\$|\\[a-zA-Z]/.test(p.q + ' ' + p.opts.join(' '))))), 'every prediction question and option is plain text: the question box shows no TeX source');
   await page.goto(srv.url + '#u2-train'); await page.waitForTimeout(500);
   const ac = page.locator('.exp[data-exp="u02_arithmetic_coding"]');
   await ac.locator('.predict label').nth(2).click();
