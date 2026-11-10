@@ -20,9 +20,9 @@ if __name__ == "__main__":
     out = []
     for r in runs:
         script = os.path.join(HERE, "..", "src", "experiments", r["exp"] + ".py")
-        rows = []
+        rows, data = [], run_local.local_data(script)
         for seed in range(1, n + 1):
-            final, _ = run_local.run_job(run_local.build_job(script, r["set"], 120, seed)[0], echo=False)
+            final, _ = run_local.run_job(run_local.build_job(script, r["set"], 120, seed, data)[0], echo=False)
             rows.append(json.loads(final[1]["result"]["internals"]["extra"]["json"])["results"] if final and final[0] == "done" else None)
         out.append(rows)
         sys.stderr.write("%s %s: %d seeds\n" % (r["exp"], json.dumps(r["set"]), n))

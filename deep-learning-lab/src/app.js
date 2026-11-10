@@ -121,9 +121,14 @@
   function secId(text) { var m = /^(\d+)\./.exec(text); return m ? m[1] : text.toLowerCase().replace(/[^a-z0-9]+/g, "").slice(0, 24) || "x"; }
   function toSection(id) { var el = document.getElementById("sec-" + id); if (!el) return; DL.reveal(el.parentNode, "start"); if (el.animate) el.animate([{ background: "var(--sel)" }, { background: "transparent" }], { duration: 1400 }); }
   function askNow(u, q) { DL.remarks.compose({ unit: u.id, tab: "read", q: q, go: true }); }
+  /** "1, 2, 4 and 7": the weeks whose notes are written */
+  function fullWeeks() {
+    var w = DL.COURSE.units.filter(function (u) { return u.status === "full"; }).map(function (u) { return String(u.week); });
+    return w.length > 1 ? w.slice(0, -1).join(", ") + " and " + w[w.length - 1] : w.join("");
+  }
   function renderPlanned(col, u) {
     var box = h("article", { class: "sheet planned", id: "sheet" });
-    box.appendChild(h("div", { class: "blk" }, DL.md("**The notes for this week are not written yet.** This lab has full units for weeks 1, 4 and 7. For this week it offers the syllabus, the sources, a scratch bench for experiments, and the tutor, which answers from its own knowledge here. Check what it says against the lecture notes and the references.", "lede")));
+    box.appendChild(h("div", { class: "blk" }, DL.md("**The notes for this week are not written yet.** This lab has full units for weeks " + fullWeeks() + ". For this week it offers the syllabus, the sources, a scratch bench for experiments, and the tutor, which answers from its own knowledge here. Check what it says against the lecture notes and the references.", "lede")));
     box.appendChild(h("div", { class: "blk" }, h("h2", { text: "What the course covers this week" })));
     box.appendChild(h("div", { class: "blk" }, h("ul", { class: "src-list", style: "font-family:var(--f-read);font-size:17px" }, u.topics.map(function (t) {
       return h("li", {}, [t, " ", h("button", { class: "linkbtn", text: "ask about this", onclick: function () { DL.remarks.compose({ unit: u.id, tab: "read", q: "Explain this topic of the week: " + t + ". Give the definitions, the main statement, and why it matters for what comes later in the course." }); } })]);
@@ -177,7 +182,7 @@
       ["Ask", "Select any text and press Ask. The answer stays in the margin, attached to the line it is about: short first, in depth when you ask for it. Your remarks are searchable, so a question asked twice is found."],
       ["Train", "Every experiment starts with a question and asks you to predict the outcome. Then it runs on your own Mac, on the Apple GPU where that helps, and tells you what happened and why. Scripts are short, readable and editable."]
     ].map(function (c, i) { return h("div", { class: "card card-pad" }, [h("div", { class: "kicker", text: "Step " + (i + 1) }), h("h3", { text: c[0] }), h("p", { text: c[1] })]); })));
-    col.appendChild(h("div", { class: "card card-pad" }, [h("b", { text: "Where to start" }), h("p", { class: "hint", style: "font-size:13.5px" }, ["Weeks 1, 4 and 7 are written out in full, with seven experiments between them. Each is meant for two sittings: the notes, then the experiments. Start with week 1; week 7 ends with a small transformer trained on Shakespeare in a few minutes."]),
+    col.appendChild(h("div", { class: "card card-pad" }, [h("b", { text: "Where to start" }), h("p", { class: "hint", style: "font-size:13.5px" }, ["Weeks " + fullWeeks() + " are written out in full, with " + (function (n) { return n === 7 ? "seven" : n === 9 ? "nine" : String(n); })(DL.EXPERIMENTS.length) + " experiments between them. Each is meant for two sittings: the notes, then the experiments. Start with week 1; week 7 ends with a small transformer trained on Shakespeare in a few minutes."]),
       h("div", { class: "runbar" }, [h("button", { class: "btn", text: "Begin with week 1", onclick: function () { nav("u1"); } }), sc.n || nr ? h("span", { class: "stat-row" }, [h("span", {}, ["predictions that held ", h("b", { text: sc.hits + " of " + sc.n })]), h("span", {}, ["remarks kept ", h("b", { text: String(nr) })])]) : null])]));
     var map = h("div", { class: "map" });
     C.parts.forEach(function (p) {

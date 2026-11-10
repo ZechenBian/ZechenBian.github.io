@@ -3,6 +3,8 @@
 /* The figures you can play with at the top of each written unit, and the two static diagrams.
  * Each widget is one phenomenon to find by hand before the notes name it:
  *   hinge       (week 1)  fitting a curve with three ReLU hinges is choosing six numbers; a rule can choose them for you
+ *   codelen     (week 2)  a letter costs −log₂ q bits; the shortest message comes from the true frequencies, and
+ *                         a letter the model thinks rare is expensive
  *   gdquad      (week 4)  the stiff direction caps the step size, the soft direction then crawls; momentum helps
  *   softlookup  (week 7)  attention is a lookup made soft: sharp scores pick one value, flat scores average all of them
  * A widget is a function (host) -> { destroy }. Nothing here is saved; these are sketches, the experiments are the measurements. */
@@ -160,6 +162,119 @@
     ]);
     var unwatch = watch(cv, draw); draw();
     return { destroy: function () { stop(); unwatch(); } };
+  };
+
+  /* ================= week 2: what a message costs under a model ================= */
+  /** Three sources of four letters; each message has exactly the source's frequencies (40 letters), in a fixed order. */
+  DL.CODE_SOURCES = [
+    { name: "Four letters, unequal", p: [0.5, 0.25, 0.125, 0.125] },
+    { name: "One letter dominates", p: [0.7, 0.1, 0.1, 0.1] },
+    { name: "All four equally likely", p: [0.25, 0.25, 0.25, 0.25] }];
+  DL.codeMessage = function (p) {
+    var m = [], s = 7, i, j, t;
+    p.forEach(function (pi, k) { for (i = 0; i < Math.round(pi * 40); i++) m.push(k); });
+    for (i = m.length - 1; i > 0; i--) { s = (s * 1103515245 + 12345) % 2147483648; j = s % (i + 1); t = m[i]; m[i] = m[j]; m[j] = t; }
+    return m;
+  };
+  /** Bits for a message under the model q: the sum of −log₂ q(letter) */
+  DL.codeCost = function (msg, q) { return msg.reduce(function (a, x) { return a + -Math.log(q[x]) / Math.LN2; }, 0); };
+  DL.WIDGETS.codelen = function (host) {
+    var L = ["A", "B", "C", "D"], src = 0, msg = DL.codeMessage(DL.CODE_SOURCES[0].p), q = [0.25, 0.25, 0.25, 0.25], best = [null, null, null], drag = -1, QMIN = 0.002;
+    var bars = h("canvas", { class: "w-canvas", role: "img", "aria-label": "The model's probability for each letter; drag a bar to change it" });
+    var strip = h("canvas", { class: "w-canvas", role: "img", "aria-label": "The message laid out at its cost: each letter is as wide as the bits it costs" });
+    var read = h("div", { class: "w-read" });
+    function lg2(v) { return Math.log(v) / Math.LN2; }
+    function H(p) { return p.reduce(function (a, v) { return a - (v > 0 ? v * lg2(v) : 0); }, 0); }
+    /** Set q[i] = v and rescale the others in proportion so that the four still add up to 1 */
+    function setQ(i, v) {
+      v = Math.max(QMIN, Math.min(1 - 3 * QMIN, v));
+      var rest = 0, k; for (k = 0; k < 4; k++) if (k !== i) rest += q[k];
+      for (k = 0; k < 4; k++) if (k !== i) q[k] = Math.max(QMIN, rest > 0 ? q[k] * (1 - v) / rest : (1 - v) / 3);
+      rest = 0; for (k = 0; k < 4; k++) if (k !== i) rest += q[k];
+      for (k = 0; k < 4; k++) if (k !== i) q[k] *= (1 - v) / rest;
+      q[i] = v;
+    }
+    var sl = L.map(function (name, i) { return slider("q(" + name + ") ", 0, 1, 0.005, q[i], function (v) { return v.toFixed(3); }, function (v) { setQ(i, v); draw(); }); });
+    function syncSliders() { sl.forEach(function (s, i) { s.set(q[i]); }); }
+    var geo = null;
+    function draw() {
+      var P = pal(), cost = DL.codeCost(msg, q), per = cost / msg.length, Hs = H(DL.CODE_SOURCES[src].p);
+      // bars: the model's probabilities, with each letter's cost underneath
+      var c = fit(bars, 168), ctx = c.ctx, W = c.W, top = 22, base = 128, colW = Math.min(110, (W - 40) / 4), x0 = (W - 4 * colW) / 2;
+      ctx.fillStyle = P.surface; ctx.fillRect(0, 0, W, c.H);
+      ctx.strokeStyle = P.grid; ctx.lineWidth = 1; ctx.font = "11px " + P.font; ctx.fillStyle = P.ink2; ctx.textAlign = "right"; ctx.textBaseline = "middle";
+      [0, 0.25, 0.5, 0.75, 1].forEach(function (v) { var y = Math.round(base - v * (base - top)) + 0.5; line(ctx, [[x0 - 4, y], [x0 + 4 * colW, y]]); });
+      ctx.fillText("1", x0 - 6, top); ctx.fillText("0", x0 - 6, base);
+      geo = { x0: x0, colW: colW, top: top, base: base };
+      for (var i = 0; i < 4; i++) {
+        var bx = x0 + i * colW + colW * 0.2, bw = colW * 0.6, by = base - q[i] * (base - top);
+        ctx.fillStyle = P.s[i]; ctx.globalAlpha = drag === i ? 1 : 0.85; ctx.fillRect(bx, by, bw, base - by); ctx.globalAlpha = 1;
+        ctx.fillStyle = P.ink; ctx.textAlign = "center"; ctx.textBaseline = "alphabetic"; ctx.font = "12px " + P.mono;
+        ctx.fillText(q[i].toFixed(3), bx + bw / 2, Math.max(13, by - 5));
+        ctx.font = "bold 13px " + P.font; ctx.fillText(L[i], bx + bw / 2, base + 16);
+        ctx.font = "11px " + P.font; ctx.fillStyle = P.ink2; ctx.fillText(lg2(1 / q[i]).toFixed(2) + (colW >= 90 ? " bits each" : " bits"), bx + bw / 2, base + 31);
+      }
+      // the strip: the message, each letter as wide as its cost, wrapped into rows of a fixed number of bits
+      var Ws = Math.max(220, Math.floor(strip.clientWidth)), bitW = 16, perRow = Math.max(12, Math.floor((Ws - 16) / bitW / 4) * 4), rows = Math.min(9, Math.ceil(cost / perRow - 1e-9)), rowH = 24, gap = 6;
+      var s = fit(strip, 16 + Math.max(2, rows) * (rowH + gap)), g = s.ctx, sx = 8, sy = 8;
+      g.fillStyle = P.surface; g.fillRect(0, 0, s.W, s.H);
+      g.strokeStyle = P.grid; g.lineWidth = 1;
+      for (var r = 0; r < Math.max(2, rows); r++) for (var b = 0; b <= perRow; b++) { var gx = Math.round(sx + b * bitW) + 0.5; line(g, [[gx, sy + r * (rowH + gap)], [gx, sy + r * (rowH + gap) + rowH]]); }
+      var pos = 0, cut = 9 * perRow;
+      msg.forEach(function (x) {
+        var w = lg2(1 / q[x]), a = pos, e = Math.min(pos + w, cut); pos += w; if (a >= cut) return;
+        while (a < e - 1e-9) {
+          var row = Math.floor(a / perRow + 1e-9), end = Math.min(e, (row + 1) * perRow), px = sx + (a - row * perRow) * bitW, pw = (end - a) * bitW, py = sy + row * (rowH + gap);
+          g.fillStyle = P.s[x]; g.globalAlpha = 0.5; g.fillRect(px + 0.5, py + 1, Math.max(0.6, pw - 1), rowH - 2); g.globalAlpha = 1;
+          if (pw >= 11) { g.fillStyle = P.ink; g.font = "bold 11px " + P.font; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(L[x], px + pw / 2, py + rowH / 2 + 0.5); }
+          a = end;
+        }
+      });
+      if (pos > cut) { g.fillStyle = P.crit; g.font = "12px " + P.font; g.textAlign = "right"; g.textBaseline = "bottom"; g.fillText("… " + Math.round(pos - cut) + " more bits", s.W - 6, s.H - 1); }
+      if (best[src] == null || cost < best[src]) best[src] = cost;
+      DL.clear(read);
+      DL.add(read, [
+        h("span", {}, ["the 40 letters cost ", h("b", { text: cost.toFixed(1) + " bits" })]),
+        h("span", {}, ["per letter ", h("b", { text: per.toFixed(3) })]),
+        h("span", {}, ["your shortest for this source ", h("b", { text: best[src].toFixed(1) + " bits" })]),
+        per <= Hs + 0.01 ? h("span", {}, [h("b", { text: "✓ no model does better: " + (Hs * 40).toFixed(1) + " bits is the minimum" })]) : null
+      ]);
+    }
+    function colAt(e) {
+      var r = bars.getBoundingClientRect(), x = e.clientX - r.left; if (!geo) return -1;
+      var i = Math.floor((x - geo.x0) / geo.colW); return i >= 0 && i < 4 ? i : -1;
+    }
+    function valAt(e) { var r = bars.getBoundingClientRect(); return (geo.base - (e.clientY - r.top)) / (geo.base - geo.top); }
+    bars.style.touchAction = "pan-y";
+    bars.addEventListener("pointerdown", function (e) { var i = colAt(e); if (i < 0) return; drag = i; try { bars.setPointerCapture(e.pointerId); } catch (x) {} setQ(i, valAt(e)); syncSliders(); draw(); e.preventDefault(); });
+    bars.addEventListener("touchstart", function (e) { var t = e.touches && e.touches[0]; if (t && colAt(t) >= 0) e.preventDefault(); }, { passive: false });
+    bars.addEventListener("pointermove", function (e) { if (drag < 0) return; setQ(drag, valAt(e)); syncSliders(); draw(); });
+    function endDrag() { if (drag >= 0) { drag = -1; draw(); } }
+    bars.addEventListener("pointerup", endDrag); bars.addEventListener("pointercancel", endDrag);
+    var srcBtns = DL.CODE_SOURCES.map(function (S, i) {
+      return h("button", { class: "chip", "aria-pressed": String(i === 0), text: S.name, onclick: function () { src = i; msg = DL.codeMessage(S.p); srcBtns.forEach(function (b, j) { b.setAttribute("aria-pressed", String(j === i)); }); draw(); } });
+    });
+    function setModel(v) { q = v.slice(); syncSliders(); draw(); }
+    var body = reveal("What you found", "- The message is shortest when the model's probabilities equal the letters' frequencies. The cost per letter is then the **entropy** $H(p) = -\\sum_x p(x)\\log_2 p(x)$: 1.75 bits for the first source, 1.357 for the second, 2 for the third. Any other model costs more, by exactly the **KL divergence** $D(p\\,\\|\\,q)$ per letter (sections 1, 3 and 4).\n- A letter the model thinks rare is expensive: it costs $-\\log_2 q$ bits, which grows without bound as $q \\to 0$. A few underrated letters dominate the total, while overrating a letter only makes the others a little dearer. $D$ is not symmetric (section 3).\n- No model beats 2 bits per letter on the third source: with four letters, the uniform distribution has the largest entropy, $\\log_2 4$ (section 1).\n\nCan a real code spend $-\\log_2 q$ bits on a letter when that is not a whole number? One letter at a time, no: lengths must be rounded up (section 4). A whole message at once, yes, to within two bits for the entire message: arithmetic coding (section 5) does it, and the first experiment runs it.");
+    body.appendChild(h("div", { class: "w-row" }, [
+      h("button", { class: "btn quiet small", text: "Set the model to the letter frequencies", onclick: function () { setModel(DL.CODE_SOURCES[src].p.map(function (v) { return Math.max(QMIN, v); })); } }),
+      h("button", { class: "btn quiet small", text: "Reset to equal probabilities", onclick: function () { setModel([0.25, 0.25, 0.25, 0.25]); } })
+    ]));
+    DL.add(host, [
+      h("div", { class: "w-h" }, [h("span", { class: "tag sim", text: "Sketch" }), h("b", { text: "Pay for surprise" })]),
+      h("p", { class: "w-task", text: "A source writes letters A to D; below are 40 of them. Your model gives each letter a probability q, and a letter costs log₂(1/q) bits: a letter with probability ½ costs 1 bit, one with probability ⅛ costs 3. The strip lays the message out at that cost, one grid square per bit. At the start every letter gets ¼, which is 2 bits each." }),
+      h("ol", { class: "w-task", style: "margin:0;padding-left:24px" }, [
+        h("li", { text: "Drag the bars (or use the sliders) to make the message as short as you can. How short does it get, and what does your model look like then?" }),
+        h("li", { text: "Drag D's probability towards zero. Where in the strip does the cost go, and how fast does it grow?" }),
+        h("li", { text: "Choose “All four equally likely”. Can any model beat 2 bits per letter?" })
+      ]),
+      h("div", { class: "w-row" }, [h("span", { class: "hint", text: "Source:" })].concat(srcBtns)),
+      bars, strip, read,
+      h("div", { class: "w-ctl" }, sl.map(function (s) { return s.el; })),
+      body
+    ]);
+    var un1 = watch(bars, draw); draw();
+    return { destroy: function () { un1(); } };
   };
 
   /* ================= week 4: gradient descent on a quadratic bowl ================= */
@@ -426,6 +541,92 @@
       b += txt(f1(X(-1.55)), 116, 'ts e a', 'attacked,') + txt(f1(X(-1.55)), 132, 'ts e a', 'd = 1024');
       b += txt(f1(X(0) + 7), base - 12, 'ts', '42%');
       return svg("0 0 624 216", 520, "The attack shifts the score distribution left by epsilon times the square root of the dimension", b);
+    },
+    /* week 2, section 2: the information diagram for two variables */
+    infovenn: function () {
+      var b = '', cy = 116, r = 92, c1 = 250, c2 = 370;
+      b += '<circle cx="' + c1 + '" cy="' + cy + '" r="' + r + '" class="ar"/><circle cx="' + c2 + '" cy="' + cy + '" r="' + r + '" class="ar"/>';
+      b += '<circle cx="' + c1 + '" cy="' + cy + '" r="' + r + '" class="ln"/><circle cx="' + c2 + '" cy="' + cy + '" r="' + r + '" class="ln"/>';
+      b += txt(c1 - 52, cy + 5, 'tx c', 'H(X | Y)') + txt((c1 + c2) / 2, cy + 5, 'tx c', 'I(X; Y)') + txt(c2 + 52, cy + 5, 'tx c', 'H(Y | X)');
+      b += txt(c1 - r + 6, 22, 'tx e', 'H(X)') + txt(c2 + r - 6, 22, 'tx', 'H(Y)');
+      b += '<path d="M' + (c1 - r + 10) + ',26 L' + (c1 - 50) + ',' + (cy - 70) + '" class="ln d"/><path d="M' + (c2 + r - 10) + ',26 L' + (c2 + 50) + ',' + (cy - 70) + '" class="ln d"/>';
+      b += txt((c1 + c2) / 2, cy + r + 26, 'ts c', 'H(X, Y) is everything inside either circle, and I(X; Y) = H(X) + H(Y) − H(X, Y)');
+      return svg("0 0 620 236", 460, "Two overlapping circles: the entropies of X and Y, their overlap the mutual information, the crescents the conditional entropies", b);
+    },
+    /* week 2, section 3: one Gaussian fitted to a mixture of two, by minimizing the KL divergence in each direction */
+    klfit: function () {
+      var X0 = 40, X1 = 600, base = 176, top = 18, lo = -6, hi = 6, ymax = 0.62, n = 481, xs = [], i, b = '';
+      function N(x, m, s) { return Math.exp(-(x - m) * (x - m) / (2 * s * s)) / (s * Math.sqrt(2 * Math.PI)); }
+      function p(x) { return 0.5 * N(x, -2, 0.7) + 0.5 * N(x, 2, 0.7); }
+      for (i = 0; i < n; i++) xs.push(lo + (hi - lo) * i / (n - 1));
+      var dx = (hi - lo) / (n - 1), px = xs.map(p);
+      function rev(m, s) { var d = 0; for (var k = 0; k < n; k++) { var qv = N(xs[k], m, s); if (qv > 1e-300) d += qv * Math.log(qv / Math.max(px[k], 1e-300)) * dx; } return d; }
+      // reverse fit: coarse grid, then a finer one around the best point (the mirror image at -m is equally good)
+      var bm = 0, bs = 1, bd = Infinity, m, s, d;
+      for (m = 0; m <= 3.0001; m += 0.1) for (s = 0.3; s <= 3.0001; s += 0.05) { d = rev(m, s); if (d < bd) { bd = d; bm = m; bs = s; } }
+      var cm = bm, cs = bs;
+      for (m = cm - 0.1; m <= cm + 0.1001; m += 0.005) for (s = Math.max(0.2, cs - 0.05); s <= cs + 0.0501; s += 0.0025) { d = rev(m, s); if (d < bd) { bd = d; bm = m; bs = s; } }
+      var fs = Math.sqrt(0.49 + 4);      // forward fit: match the mean (0) and the variance (0.7² + 2²) of p
+      function X(x) { return X0 + (X1 - X0) * (x - lo) / (hi - lo); }
+      function Y(v) { return base - (base - top) * v / ymax; }
+      function curve(f) { return xs.map(function (x) { return [X(x), Y(f(x))]; }); }
+      b += '<polygon points="' + [[X(lo), base]].concat(curve(p), [[X(hi), base]]).map(function (q) { return f1(q[0]) + ',' + f1(q[1]); }).join(' ') + '" class="ar"/>';
+      b += '<line x1="' + X0 + '" y1="' + base + '" x2="' + X1 + '" y2="' + base + '" class="gr"/>';
+      [-4, -2, 0, 2, 4].forEach(function (v) { b += '<line x1="' + f1(X(v)) + '" y1="' + base + '" x2="' + f1(X(v)) + '" y2="' + (base + 5) + '" class="gr"/>' + txt(f1(X(v)), base + 19, 'ts c', String(v).replace('-', '−')); });
+      b += poly(curve(p), 'ln') + poly(curve(function (x) { return N(x, 0, fs); }), 'ln s1') + poly(curve(function (x) { return N(x, bm, bs); }), 'ln s2');
+      b += txt(f1(X(-2)), f1(Y(p(-2)) - 8), 'ts c', 'p');
+      var ly = 30;
+      b += '<line x1="' + X0 + '" y1="' + ly + '" x2="' + (X0 + 22) + '" y2="' + ly + '" class="ln s1"/>' + txt(X0 + 28, ly + 4, 'ts', 'q minimizing D(p ‖ q): mean 0, sd ' + fs.toFixed(2));
+      b += '<line x1="' + X0 + '" y1="' + (ly + 18) + '" x2="' + (X0 + 22) + '" y2="' + (ly + 18) + '" class="ln s2"/>' + txt(X0 + 28, ly + 22, 'ts', 'q minimizing D(q ‖ p): mean ' + bm.toFixed(2) + ', sd ' + bs.toFixed(2));
+      b += txt(X0, ly + 40, 'ts', 'p: two humps, means ±2, sd 0.7 (shaded)');
+      return svg("0 0 620 " + (base + 30), 480, "A two-humped density and two Gaussian fits: a broad one covering both humps and a narrow one on a single hump", b);
+    },
+    /* week 2, section 4: a prefix code as a tree and as dyadic intervals */
+    codetree: function () {
+      var X0 = 40, X1 = 600, b = '', Yd = [26, 66, 106, 146], iy = 186, ih = 26;
+      function X(t) { return X0 + (X1 - X0) * t; }
+      var nodes = { r: [0.5, 0], n1: [0.75, 1], n2: [0.875, 2], A: [0.25, 1], B: [0.625, 2], C: [0.8125, 3], D: [0.9375, 3] };
+      var edges = [['r', 'A', '0'], ['r', 'n1', '1'], ['n1', 'B', '0'], ['n1', 'n2', '1'], ['n2', 'C', '0'], ['n2', 'D', '1']];
+      function at(k) { return [X(nodes[k][0]), Yd[nodes[k][1]]]; }
+      edges.forEach(function (e) { var a = at(e[0]), c = at(e[1]); b += '<line x1="' + f1(a[0]) + '" y1="' + a[1] + '" x2="' + f1(c[0]) + '" y2="' + c[1] + '" class="ln"/>' + txt(f1((a[0] + c[0]) / 2 + (e[2] === '0' ? -8 : 8)), f1((a[1] + c[1]) / 2 + 2), 'ts c', e[2]); });
+      ['r', 'n1', 'n2'].forEach(function (k) { var a = at(k); b += '<circle cx="' + f1(a[0]) + '" cy="' + a[1] + '" r="4" class="nd"/>'; });
+      var leaves = [['A', '0', '1/2', 0, 0.5], ['B', '10', '1/4', 0.5, 0.75], ['C', '110', '1/8', 0.75, 0.875], ['D', '111', '1/8', 0.875, 1]];
+      leaves.forEach(function (l) {
+        var a = at(l[0]);
+        b += '<circle cx="' + f1(a[0]) + '" cy="' + a[1] + '" r="12" class="nd"/>' + txt(f1(a[0]), a[1] + 5, 'tx c', l[0]);
+        b += '<line x1="' + f1(a[0]) + '" y1="' + (a[1] + 12) + '" x2="' + f1(a[0]) + '" y2="' + iy + '" class="ln d"/>';
+        b += '<rect x="' + f1(X(l[3])) + '" y="' + iy + '" width="' + f1(X(l[4]) - X(l[3])) + '" height="' + ih + '" class="cell"/>';
+        b += txt(f1((X(l[3]) + X(l[4])) / 2), iy + 17, 'ts c', l[1]);
+      });
+      b += txt(f1(X(0.25) - 18), Yd[1] + 5, 'ts e', 'p = 1/2, 1 bit') + txt(f1(X(0.625) - 18), Yd[2] + 5, 'ts e', 'p = 1/4, 2 bits') + txt(f1(X(0.8125) - 18), Yd[3] + 5, 'ts e', 'p = 1/8, 3 bits');
+      [[0, '0'], [0.5, '1/2'], [0.75, '3/4'], [0.875, '7/8'], [1, '1']].forEach(function (t) { b += txt(f1(X(t[0])), iy + ih + 16, 'ts c', t[1]); });
+      return svg("0 0 640 " + (iy + ih + 24), 500, "The prefix code A = 0, B = 10, C = 110, D = 111 drawn as a binary tree above the dyadic intervals it names", b);
+    },
+    /* week 2, section 5: arithmetic coding of B, A, D with q = (1/2, 1/4, 1/8, 1/8) */
+    arith: function () {
+      var X0 = 92, X1 = 560, b = '', rh = 24, gap = 46, q = [0.5, 0.25, 0.125, 0.125], L = ['A', 'B', 'C', 'D'];
+      var rows = [{ lo: 0, w: 1, pick: 1, name: 'start', ends: ['0', '1'] }, { lo: 0.5, w: 0.25, pick: 0, name: 'after B', ends: ['1/2', '3/4'] }, { lo: 0.5, w: 0.125, pick: 3, name: 'after B A', ends: ['1/2', '5/8'] }];
+      rows.forEach(function (r, i) {
+        var y = 14 + i * (rh + gap), a = 0;
+        b += txt(X0 - 10, y + 16, 'ts e', r.name);
+        q.forEach(function (v, k) {
+          var xa = X0 + (X1 - X0) * a, xb = X0 + (X1 - X0) * (a + v);
+          b += '<rect x="' + f1(xa) + '" y="' + y + '" width="' + f1(xb - xa) + '" height="' + rh + '" class="cell' + (k === r.pick ? ' on' : '') + '"/>' + txt(f1((xa + xb) / 2), y + 16, 'ts c', L[k]);
+          if (k === r.pick) {
+            var yn = y + rh + gap;
+            b += '<path d="M' + f1(xa) + ',' + (y + rh) + ' L' + X0 + ',' + yn + ' M' + f1(xb) + ',' + (y + rh) + ' L' + X1 + ',' + yn + '" class="ln d"/>';
+          }
+          a += v;
+        });
+        b += txt(X0 - 4, y + rh + 12, 'ts e', r.ends[0]) + txt(X1 + 4, y + rh + 12, 'ts', r.ends[1]);
+        b += txt(X1 + 10, y + 16, 'ts', 'width ' + ['1', '1/4', '1/8'][i]);
+      });
+      var y = 14 + 3 * (rh + gap);
+      b += txt(X0 - 10, y + 16, 'ts e', 'after B A D');
+      b += '<rect x="' + X0 + '" y="' + y + '" width="' + (X1 - X0) + '" height="' + rh + '" class="cell on"/>' + txt((X0 + X1) / 2, y + 16, 'tx c', '[39/64, 40/64) = [0.100111, 0.101000) in binary');
+      b += txt(X0 - 4, y + rh + 12, 'ts e', '39/64') + txt(X1 + 4, y + rh + 12, 'ts', '40/64') + txt(X1 + 10, y + 16, 'ts', 'width 1/64');
+      b += txt((X0 + X1) / 2, y + rh + 34, 'ts c a', 'codeword 100111: 6 bits = 2 + 1 + 3, the surprisals of B, A, D');
+      return svg("0 0 640 " + (y + rh + 44), 520, "Arithmetic coding narrows the unit interval letter by letter; the final interval is named by six binary digits", b);
     },
     /* week 7, section 2: the attention weights of a causal layer, T = 6. */
     mask: function () {

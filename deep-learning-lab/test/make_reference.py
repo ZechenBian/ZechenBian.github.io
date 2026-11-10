@@ -3,6 +3,7 @@
 """Record the reference runs the page shows next to each preset.
 
     python3 test/make_reference.py            # runs every numpy preset through the engine code, writes src/reference.json
+    python3 test/make_reference.py u02        # re-records only the experiments whose name starts with u02, keeps the rest
 
 The numpy experiments run here (the same job the page sends, through strategy-lab/ml-engine). The PyTorch experiments cannot
 run on a machine without PyTorch: their reference runs were recorded on a MacBook Air M5 and are kept by hand in
@@ -22,6 +23,8 @@ PRESETS = [   # (experiment, reference name, parameters that differ from the def
     ("u01_backprop_numpy", "default", {}),
     ("u01_backprop_numpy", "zero", {"init_scale": 0}),
     ("u01_backprop_numpy", "bigstep", {"lr": 3.0}),
+    ("u02_arithmetic_coding", "default", {}),
+    ("u02_shakespeare_ngrams", "default", {}),
     ("u04_optimizers_quadratic", "default", {}),
     ("u04_optimizers_quadratic", "rotate", {"rotate": True}),
     ("u04_init_depth", "default", {}),
@@ -58,9 +61,14 @@ def main():
     import numpy
     where = "the lab's build machine (%s, numpy %s, CPU)" % (platform.system(), numpy.__version__)
     when = datetime.date.today().isoformat()
-    ref = {}
+    only = sys.argv[1:]          # e.g. "u02": re-record only the presets whose experiment starts with one of these
+    out = os.path.join(ROOT, "src", "reference.json")
+    ref = json.load(open(out, encoding="utf8")) if only and os.path.exists(out) else {}
     for exp, name, params in PRESETS:
-        job, n_lines = run_local.build_job(os.path.join(ROOT, "src", "experiments", exp + ".py"), params, 60, 1)
+        if only and not any(exp.startswith(o) for o in only):
+            continue
+        script = os.path.join(ROOT, "src", "experiments", exp + ".py")
+        job, n_lines = run_local.build_job(script, params, 60, 1, run_local.local_data(script))
         final, _ = run_local.run_job(job, echo=False)
         if not final or final[0] != "done":
             raise SystemExit("reference run failed: %s/%s: %s" % (exp, name, final))
@@ -74,7 +82,6 @@ def main():
     mac = os.path.join(ROOT, "src", "reference_mac.json")
     if os.path.exists(mac):
         ref.update(json.load(open(mac, encoding="utf8")))
-    out = os.path.join(ROOT, "src", "reference.json")
     json.dump(ref, open(out, "w", encoding="utf8"), ensure_ascii=False, separators=(",", ":"), sort_keys=True)
     print("wrote", out, os.path.getsize(out), "bytes,", len(ref), "entries")
 

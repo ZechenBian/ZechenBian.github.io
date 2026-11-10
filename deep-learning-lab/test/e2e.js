@@ -236,13 +236,13 @@ async function shot(page, name) { if (shots) await page.screenshot({ path: path.
   await shot(page, 'e2e-ledger');
 
   /* ---------- other units ---------- */
-  for (const u of ['u4', 'u7']) {
+  for (const u of ['u2', 'u4', 'u7']) {
     await page.goto(srv.url + '#' + u); await page.waitForTimeout(700);
     ok((await page.locator('.katex-error').count()) === 0 && (await page.locator('.sheet .blk').count()) > 50 && (await page.locator('.widget canvas').count()) >= 1, u + ': notes and widget render');
     await shot(page, 'e2e-' + u);
   }
   // no display formula is wider than the reading column at this width
-  for (const u of ['u1', 'u4', 'u7']) {
+  for (const u of ['u1', 'u2', 'u4', 'u7']) {
     await page.goto(srv.url + '#' + u); await page.waitForTimeout(600);
     const wide = await page.evaluate(() => { document.querySelectorAll('.sheet details').forEach((d) => { d.open = true; }); return [...document.querySelectorAll('.sheet .katex-display')].filter((el) => el.scrollWidth > el.clientWidth + 1).length; });
     ok(wide === 0, u + ': every display formula fits the column');
@@ -299,6 +299,45 @@ async function shot(page, name) { if (shots) await page.screenshot({ path: path.
   await page.waitForFunction(() => { const c = document.querySelector('.exp[data-exp="u04_optimizers_quadratic"]'); return c && c.querySelector('.verdict'); }, null, { timeout: 60000 });
   ok(/Your prediction held/.test(await opt.locator('.verdict').innerText()), 'week 4: the rotation question is judged from the run');
   await shot(page, 'e2e-u4-train');
+  /* ---------- week 2 ---------- */
+  await page.goto(srv.url + '#u2'); await page.waitForTimeout(700);
+  ok((await page.locator('#rail-secs a').count()) === 9 && (await page.locator('.sheet .figure svg').count()) === 4, 'week 2: the course map lists seven sections, the check questions and the experiments; four diagrams render');
+  const w2 = async () => (await page.locator('.widget .w-read').innerText()).replace(/\s+/g, ' ');
+  ok(/the 40 letters cost 80\.0 bits/.test(await w2()) && !/✓/.test(await w2()), 'week 2 figure: equal probabilities cost 2 bits per letter, 80 in all');
+  await page.click('.widget summary:has-text("What you found")');
+  await page.click('.widget button:has-text("Set the model to the letter frequencies")'); await page.waitForTimeout(150);
+  ok(/the 40 letters cost 70\.0 bits/.test(await w2()) && /✓ no model does better: 70\.0 bits is the minimum/.test(await w2()), 'week 2 figure: the letter frequencies give the entropy, 1.75 bits per letter, and the tick');
+  await page.locator('.widget input[type=range]').nth(3).evaluate((el) => { el.value = '0.005'; el.dispatchEvent(new Event('input', { bubbles: true })); });
+  const dz = +(/cost ([\d.]+) bits/.exec(await w2()) || [])[1];
+  ok(dz > 80 && !/✓/.test(await w2()), 'week 2 figure: a model that nearly rules out D makes the message longer than equal probabilities do (' + dz + ' bits)');
+  await page.click('.widget .chip:has-text("All four equally likely")');
+  await page.click('.widget button:has-text("Set the model to the letter frequencies")'); await page.waitForTimeout(150);
+  ok(/the 40 letters cost 80\.0 bits/.test(await w2()) && /✓/.test(await w2()), 'week 2 figure: on the uniform source nothing beats 2 bits per letter');
+  const ent = await page.evaluate(() => DL.CODE_SOURCES.map((S) => S.p.reduce((a, v) => a - v * Math.log2(v), 0).toFixed(3)));
+  const found = await page.locator('.widget .w-reveal').innerText();
+  ok(ent.join() === '1.750,1.357,2.000' && /1\.75 bits for the first source, 1\.357 for the second, 2 for the third/.test(found), 'week 2 figure: the entropies its text states are those of its three sources');
+  await page.goto(srv.url + '#u2-train'); await page.waitForTimeout(500);
+  const ac = page.locator('.exp[data-exp="u02_arithmetic_coding"]');
+  await ac.locator('.predict label').nth(2).click();
+  await ac.locator('button:has-text("Lock in and run")').click();
+  await page.waitForFunction(() => { const c = document.querySelector('.exp[data-exp="u02_arithmetic_coding"]'); return c && c.querySelector('.verdict'); }, null, { timeout: 60000 });
+  ok(/Your prediction held/.test(await ac.locator('.verdict').innerText()) && /0\.0796 per letter/.test(await ac.locator('.verdict').innerText()), 'week 2: arithmetic coding is run by the engine and spends 0.0796 bits per letter (seed 1)');
+  ok(/6\.645/.test(await ac.innerText()) && /0\.01449/.test(await ac.innerText()) && /0\.2084/.test(await ac.innerText()) && /0\.1029/.test(await ac.innerText()), 'week 2: the numbers the explanations quote are on the screen');
+  await shot(page, 'e2e-u2-train');
+  const ng = page.locator('.exp[data-exp="u02_shakespeare_ngrams"]');
+  await ng.locator('.predict label').nth(2).click();
+  await ng.locator('button:has-text("Lock in and run")').click();
+  await page.waitForFunction(() => { const c = document.querySelector('.exp[data-exp="u02_shakespeare_ngrams"]'); return c && (c.querySelector('.verdict') || c.querySelector('.err')); }, null, { timeout: 120000 });
+  const ngText = await ng.innerText();
+  ok(/Your prediction held/.test(await ng.locator('.verdict').innerText()) && /0\.366 bits per character/.test(ngText) && !/not sent by the page/.test(ngText), 'week 2: the counting experiment gets Tiny Shakespeare from the page and its plug-in estimate at k = 9 is 0.366 bits');
+  await ng.locator('.chip:has-text("Score the held-out text")').click();
+  await ng.locator('.predict label').nth(1).click();
+  await ng.locator('button:has-text("Lock in and show the reference run")').click(); await page.waitForTimeout(400);
+  ok(/Your prediction held/.test(await ng.locator('.verdict').innerText()) && /lowest at k = 4 \(2\.408\)/.test(await ng.locator('.verdict').innerText()), 'week 2: the held-out question is answered by the reference run (minimum 2.408 bits at k = 4)');
+  await page.goto(srv.url + '#u5'); await page.waitForTimeout(400);
+  ok(/full units for weeks 1, 2, 4 and 7\./.test(await page.locator('.sheet').innerText()), 'a planned week names the written weeks, week 2 among them');
+  await page.goto(srv.url + '#'); await page.waitForTimeout(400);
+  ok(/Weeks 1, 2, 4 and 7 are written out in full, with nine experiments between them/.test(await page.locator('.col.home').innerText()), 'the overview counts the written weeks and the experiments');
   await page.goto(srv.url + '#u5'); await page.waitForTimeout(400);
   ok(/not written yet/.test(await page.locator('.sheet').innerText()) && (await page.locator('.sheet button:has-text("Ask the tutor")').count()) === 3, 'a planned week shows its syllabus and three questions');
   await page.click('.sheet button:has-text("Ask the tutor") >> nth=0');
@@ -312,10 +351,12 @@ async function shot(page, name) { if (shots) await page.screenshot({ path: path.
   /* ================= phone ================= */
   console.log('phone');
   ({ ctx, page, errors } = await open({ w: 390, h: 844, mobile: true }));
-  for (const r of ['home', 'u1', 'u1-train', 'u4', 'u7', 'u7-train', 'u9', 'u9-sources', 'ledger']) {
+  for (const r of ['home', 'u1', 'u1-train', 'u2', 'u2-train', 'u4', 'u7', 'u7-train', 'u9', 'u9-sources', 'ledger']) {
     await page.goto(srv.url + '#' + r); await page.waitForTimeout(500);
     ok(await noOverflow(page), 'phone: no horizontal overflow on #' + r);
   }
+  await page.goto(srv.url + '#u2'); await page.waitForTimeout(700);
+  ok((await page.evaluate(() => { document.querySelectorAll('.sheet details').forEach((d) => { d.open = true; }); return [...document.querySelectorAll('.sheet .katex-display')].filter((el) => el.scrollWidth > el.clientWidth + 1).length; })) === 0, 'phone: every display formula of week 2 fits the column, proofs included');
   await page.goto(srv.url + '#u1'); await page.waitForTimeout(700);
   ok((await page.locator('.sheet .figure .can-scroll').count()) === 2 && (await page.evaluate(() => [...document.querySelectorAll('.sheet .katex-display')].filter((el) => el.scrollWidth > el.clientWidth + 1).length)) === 0, 'phone: the two diagrams are marked as scrolling sideways, and every display formula fits');
   ok(await page.evaluate(() => [...document.querySelectorAll('.sheet .figure .can-scroll')].every((el) => { const c = el.nextElementSibling, r = c && c.getBoundingClientRect(), b = el.getBoundingClientRect(); return c && c.classList.contains('scroll-cue') && /scroll/.test(c.textContent) && getComputedStyle(c).visibility === 'visible' && r.height >= 10 && r.top >= b.bottom - 4 && r.right <= window.innerWidth; })) && !(await page.locator('#toast').isVisible()), 'phone: each block that scrolls sideways has a small “scroll” tag below it, over nothing, and no message covers the page');

@@ -19,6 +19,16 @@ DUMMY = {"kind": "regression", "train": {"X": [[0], [1]], "y": [0, 1], "n": 2, "
          "valid": {"X": [[0]], "y": [0], "n": 1, "d": 1}, "test": {"X": [[0]], "n": 1, "d": 1}}
 
 
+DATASETS = {"tinyshakespeare": os.path.join(ROOT, "data", "tinyshakespeare.txt")}
+
+
+def local_data(script_path):
+    """The datasets a script reads with lab.dataset("name"), from data/, as the page would send them (None if none)."""
+    code = open(script_path, encoding="utf8").read()
+    names = [n for n in DATASETS if 'lab.dataset("%s")' % n in code]
+    return {n: open(DATASETS[n], encoding="utf8").read() for n in names} or None
+
+
 def build_job(script_path, params, budget_s=20, seed=1, data=None):
     code = open(script_path, encoding="utf8").read()
     if not code.endswith("\n"):
@@ -94,7 +104,7 @@ if __name__ == "__main__":
         except ValueError:
             params[k] = v
         i += 1
-    job, n_lines = build_job(script, params, budget, seed)
+    job, n_lines = build_job(script, params, budget, seed, local_data(script))
     final, events = run_job(job)
     res = summarize(final, n_lines)
     if out and res:
