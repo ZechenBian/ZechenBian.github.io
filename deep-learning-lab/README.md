@@ -80,7 +80,7 @@ Tony Feng 的课程 Math 270 “A Survey of Deep Learning for Mathematicians”�
 
 - `mcp`：读者 Mac 上的本机引擎（`strategy-lab/ml-engine`，在 Claude 桌面应用里登记的名字是 `mllab-engine`）。
 - `sample`：页边的助教。`db` 和 `user`：批注、预测、运行记录、改过的脚本，按人私有地存。`downloads`：下载脚本。
-- 用 Artifact 工具“从文件发布”时，页面所在的外壳定义了 AMD 的 `define` 或 `module`/`exports`，UMD 格式的 KaTeX 会注册到那里而不是 `window.katex`，结果整页公式不排版（2026-11-10 第 2 周试写时遇到）。`build.js` 现在把内联的 KaTeX 包在一个遮住这三个名字的函数里，`test/e2e.js` 有一项模拟这种外壳。
+- `--artifact` 变体保留开头的 `<!DOCTYPE html>`。用 Artifact 工具“从文件发布”时页面原样送到浏览器；没有 doctype 就进入 quirks 模式，KaTeX 拒绝排版，所有公式都显示成 TeX 源码（2026-11-10 第 2 周试写时遇到，作为单个文档发布的那个 Artifact 不受影响）。`test/e2e.js` 有一项检查这个变体。
 - 仓库主人平时用的那个 Artifact 叫 “Deep Learning Lab”。试验性的版本发成另一个 Artifact，不要覆盖它；要更新它，先用 Artifact 工具读它，再往它的网址发布。
 
 ## 独立试玩

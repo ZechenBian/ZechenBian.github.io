@@ -99,9 +99,7 @@ function build() {
   const fill = (slot, text) => { if (!t.includes(slot)) throw new Error('template.html has no slot ' + slot); t = t.replace(slot, () => text); };
   fill('__STYLES__', read('src', 'styles.css').replace(/^\/\* Copyright[\s\S]*?\*\/\n/, ''));
   fill('__KATEX_CSS__', '<style>\n/* KaTeX ' + KATEX_VER + ': MIT License, (c) Khan Academy and other contributors; fonts under the SIL Open Font License 1.1. See THIRD-PARTY-NOTICES.md */\n' + katexCss() + '\n</style>');
-  // KaTeX is a UMD bundle: where the page's host defines define (AMD) or module/exports, it registers itself there instead
-  // of on window, and nothing gets typeset. Hiding those names makes it set window.katex in any host.
-  fill('__KATEX_JS__', '<script>\n/* KaTeX ' + KATEX_VER + ', MIT License, (c) Khan Academy and other contributors. https://github.com/KaTeX/KaTeX */\n(function (define, exports, module) {\n' + katexJs + '\n})();\n</script>');
+  fill('__KATEX_JS__', '<script>\n/* KaTeX ' + KATEX_VER + ', MIT License, (c) Khan Academy and other contributors. https://github.com/KaTeX/KaTeX */\n' + katexJs + '\n</script>');
   fill('__SCRIPTS__', scripts());
   return t;
 }
@@ -109,12 +107,14 @@ const page = build();
 fs.writeFileSync(path.join(__dirname, 'index.html'), page);
 console.log('index.html written,', page.length, 'characters');
 
-// The Artifact variant: Claude wraps the page in its own document skeleton, so the skeleton tags are removed here.
+// The Artifact variant: Claude wraps the page in its own document skeleton, so the skeleton tags are removed here. The
+// doctype stays: an Artifact published from files is served as it is, and without a doctype the page runs in quirks mode,
+// where KaTeX refuses to render (every formula then shows its TeX source).
 const ai = process.argv.indexOf('--artifact');
 if (ai > 0 && process.argv[ai + 1]) {
   let a = page.replace(/<!doctype html>\s*<!--[\s\S]*?-->\s*/i, '').replace(/<html[^>]*>|<\/html>|<head>|<\/head>|<body>|<\/body>/g, '').replace(/<meta charset="utf-8">\s*/, '').replace(/<meta name="viewport"[^>]*>\s*/, '');
   a = a.replace('<title>Deep Learning Lab</title>', '<title>Deep Learning Lab</title>\n<meta name="claude:viewport-fit-sides" content="cover">');
-  a = '<!-- Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。 -->\n' + a.replace(/^\s+/, '');
+  a = '<!DOCTYPE html>\n<!-- Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。 -->\n' + a.replace(/^\s+/, '');
   fs.writeFileSync(process.argv[ai + 1], a);
   console.log('artifact variant written to', process.argv[ai + 1] + ',', a.length, 'characters');
 }

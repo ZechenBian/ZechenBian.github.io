@@ -436,16 +436,17 @@ async function shot(page, name) { if (shots) await page.screenshot({ path: path.
   await ctx.close();
 
   /* ================= no Claude runtime capabilities ================= */
-  /* ================= a host page that defines AMD define and module/exports (as an Artifact published from files does) ================= */
-  console.log('host with define, module and exports');
+  /* ================= the variant published as a Claude Artifact ================= */
+  console.log('artifact variant');
   {
+    const out = path.join(require('os').tmpdir(), 'dl-artifact-' + process.pid + '.html');
+    require('child_process').execFileSync('node', [path.join(__dirname, '..', 'build.js'), '--artifact', out], { stdio: 'ignore' });
     const c = await browser.newContext({ viewport: { width: 1200, height: 800 }, deviceScaleFactor: 1 });
-    await c.route('**/*', (r) => (r.request().url().startsWith(srv.url) ? r.continue() : r.abort()));
-    await c.addInitScript(() => { window.define = function () {}; window.define.amd = {}; window.module = { exports: {} }; window.exports = window.module.exports; });
+    await c.route('**/*', (r) => (r.request().url().startsWith('file:') ? r.continue() : r.abort()));
     const p = await c.newPage();
-    await p.goto(srv.url + '#u2'); await p.waitForTimeout(900);
-    ok(await p.evaluate(() => !!window.katex && document.querySelectorAll('.sheet .katex').length > 100 && document.querySelectorAll('.tex:not(.done)').length === 0), 'formulas are typeset even where the host defines define, module and exports (KaTeX is a UMD bundle)');
-    await c.close();
+    await p.goto('file://' + out + '#u2'); await p.waitForTimeout(900);
+    ok(/^<!DOCTYPE html>/.test(fs.readFileSync(out, 'utf8')) && await p.evaluate(() => document.compatMode === 'CSS1Compat' && document.querySelectorAll('.sheet .tex').length > 100 && [...document.querySelectorAll('.sheet .tex')].every((t) => t.querySelector('.katex'))), 'the Artifact variant starts with a doctype, runs in standards mode, and typesets its formulas (in quirks mode KaTeX refuses)');
+    await c.close(); fs.unlinkSync(out);
   }
 
   console.log('without tutor and engine');
