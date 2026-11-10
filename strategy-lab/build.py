@@ -238,7 +238,8 @@ if "ml/main.js" in ML_JS:
 
 # 亲手写 · 语言模型（ml/lm/index.html）：机器学习实验室旁边的一页，中文。源码在 src/ml/lm/（steps.js 题目、app.js 页面）；
 # 测试和训练在本机引擎里（ml-engine/mllab_engine/exercises.py，api = exercise）。共用机器学习实验室的样式和公式渲染。
-LM_JS = ["md.js", "ml/lm/steps.js", "ml/lm/app.js"]
+# 右栏的 AI 助教（tutor.js）：独立网页里用 src/ai.js 的 QLAI（和机器学习实验室共用设置），在 Claude 里用 sample 能力。
+LM_JS = ["md.js", "ai.js", "ml/lm/steps.js", "ml/lm/app.js", "ml/lm/tutor.js"]
 lm_page = ""
 if ml_page and all(os.path.exists(os.path.join(ROOT, "src", f)) for f in LM_JS):
     lm_js = "/* %s\n   Not open source. %s */\n" % (COPY, LICENSE_URL) + "\n".join("/* ===== %s ===== */\n%s" % (f, src(f)) for f in LM_JS)
@@ -267,8 +268,9 @@ if ml_page and all(os.path.exists(os.path.join(ROOT, "src", f)) for f in LM_JS):
         "</body>", "</html>", ""])
     os.makedirs(os.path.join(ROOT, "ml/lm"), exist_ok=True)
     open(os.path.join(ROOT, "ml/lm/index.html"), "w", encoding="utf8").write(lm_page)
-    # 在 Claude 里打开的版本（dist/ml-lm.html）：发布成 Artifact 时声明 mcp 能力，经 Claude 桌面版调用 host:mllab-engine
-    # （工具 info、run_start、run_events、run_cancel）。回到机器学习实验室的链接改成网站的绝对地址。
+    # 在 Claude 里打开的版本（dist/ml-lm.html）：发布成 Artifact 时声明 sample 能力（AI 助教用打开页面的人自己的 Claude）和 mcp 能力
+    # （经 Claude 桌面版调用 host:mllab-engine 的 info、run_start、run_events、run_cancel）。回到机器学习实验室的链接改成网站的绝对地址。
+    # 发布时的 capabilities：{"sample": {}, "mcp": {"servers": [{"server": "host:mllab-engine", "tools": ["info", "run_start", "run_events", "run_cancel"]}]}}
     lm_body = rd("src/ml/lm/body.html"); lm_body_claude = lm_body.replace('href="../"', 'href="%sml/" target="_blank" rel="noopener"' % SITE)
     assert lm_body_claude != lm_body, "回到机器学习实验室的链接变了：改一下这里"
     lm_claude = "\n".join([
@@ -282,6 +284,9 @@ if ml_page and all(os.path.exists(os.path.join(ROOT, "src", f)) for f in LM_JS):
         "<script>\n/* KaTeX %s — MIT License, (c) Khan Academy and other contributors. https://github.com/KaTeX/KaTeX */\n%s\n</script>" % (KATEX_VER, katex_js),
         "<script>\n" + lm_js + "\n</script>"])
     open(os.path.join(ROOT, "dist/ml-lm.html"), "w", encoding="utf8").write(lm_claude)
+    # 测试用：套上和 Artifact 一样的骨架（test/ui-ml-lm-ai.js 在里面装一个假的 window.claude）
+    open(os.path.join(ROOT, "dist/ml-lm-preview.html"), "w", encoding="utf8").write(
+        '<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>' + RESET + '</style></head><body>' + lm_claude + '</body></html>')
 
 # 数据分析案例（cases/index.html）：另一张独立的页面，中文，不进英文版的翻译流程。源码在 src/cases/：
 # 八步框架下的几个完整案例（真实数据与模拟数据），每一步的数字都在浏览器里现算；共用策略实验室的内核（随机数）、图表和公式渲染

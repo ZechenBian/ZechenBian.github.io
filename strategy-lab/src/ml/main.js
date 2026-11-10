@@ -21,6 +21,8 @@
     if (A.openEngine) be.addEventListener("click", function () { A.openEngine(); });
     else be.hidden = true;
     if (A.initAI) A.initAI();
+    // 从“亲手写 · 语言模型”的 AI 助教点“去接入 AI”过来：直接弹出接入 AI 的设置（两页同一个网站，共用这一份设置）
+    if (location.hash === "#ai-setup" && A.openAiSettings && !A.aiHost && window.QLAI) { A.openAI(true); A.openAiSettings(); }
     A.renderLeft(); A.renderSummary(); A.renderViews();
     A.dataChanged(true);
     if (A.initEngine) A.initEngine();

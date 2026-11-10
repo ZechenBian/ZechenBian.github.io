@@ -3,6 +3,8 @@
 // 亲手写 · 语言模型（ml/lm/）+ 本机引擎：起一个真的引擎（只要 numpy），从 /ml/lm/?engine=令牌 打开页面，
 // 像学的人一样：先交起始代码（应该报"还没写"）、再交照公式直接写的 softmax（应该只挂"大数不溢出"）、再交对的；
 // 后面四步交 numpy 的写法，全部通过；预测台账记下了预测；行号换算成"第几步第几行"；手机宽度没有横向滚动。
+// AI 助教（独立网页的接法）：没接入时给出"去接入 AI"，链到机器学习实验室并直接弹出设置；接入一个假的兼容 OpenAI 的服务商（mock-openai.js）以后，
+// 问一句，请求里带着规矩和这一步的代码。
 // 用法：node test/ui-ml-lm.js   （先 python3 build.py；没有 python3 或 numpy 时跳过）
 const { spawn, execFileSync } = require("child_process"), path = require("path");
 function need(name, fallback) { try { return require(name); } catch (e) { return require(fallback); } }
@@ -100,6 +102,33 @@ const GOOD = {
     await page.locator(".lm-step").nth(3).click();
     ok((await page.locator("textarea.lm-code").inputValue()).indexOf("class Linear") >= 0, "代码还在");
     ok(/全部通过/.test(await page.locator(".lm-outhead").innerText()), "上一次的结果还在");
+
+    section("AI 助教：独立网页里用机器学习实验室接入的 AI");
+    ok(await page.locator("#app.ai-open").count() === 1, "宽屏默认打开 AI 助教");
+    const setup = page.locator("#aiOff a", { hasText: "去接入 AI" });
+    ok(await setup.count() === 1 && await page.locator("#aiInput").isDisabled(), "还没接入：关掉输入，给出“去接入 AI”");
+    const href = await setup.getAttribute("href");
+    ok(/^\.\.\/\?engine=[A-Za-z0-9_-]+#ai-setup$/.test(href), "链到机器学习实验室（带令牌），网址带 #ai-setup", href);
+    const lab = await ctx.newPage();
+    lab.on("pageerror", (e) => logs.push("[pageerror lab] " + e.message));
+    await lab.route((u) => u.hostname !== "127.0.0.1", (rt) => rt.abort());
+    await lab.goto(new URL(href, page.url()).href);
+    await lab.waitForSelector(".modal .modal-h", { timeout: 15000 });
+    ok(/接入 AI/.test(await lab.locator(".modal .modal-h").innerText()), "机器学习实验室直接弹出“接入 AI”的设置");
+    await lab.close();
+    const ai = await require("./mock-openai.js").start();
+    await page.evaluate((cfg) => localStorage.setItem("ql.ai.v1", cfg), JSON.stringify({ p: "custom", by: { custom: { base: "http://127.0.0.1:" + ai.port + "/v1", key: "test-key-ok", model: "mock-pro" } } }));
+    await page.reload();
+    await page.waitForSelector("#blkEngine .lm-eng.ok", { timeout: 20000 });
+    await page.locator(".lm-step").nth(3).click();
+    ok(/mock-pro/.test(await page.locator("#aiProv").innerText()) && !(await page.locator("#aiInput").isDisabled()), "接入以后：右上角显示服务商和模型，可以问", await page.locator("#aiProv").innerText());
+    await page.locator(".lm-quick button", { hasText: "从哪下手？" }).click();
+    await page.waitForFunction(() => document.querySelector("#aiStop").hidden && document.querySelectorAll("#aiLog .msg-a").length === 1, null, { timeout: 20000 });
+    const req = ai.calls.filter((c) => c.method === "POST").pop() || { body: { messages: [] } }, msgs = req.body.messages || [];
+    const all = msgs.map((m) => m.content).join("\n");   // 连着的几条 user 消息，接口层会并成一条
+    ok(/硬规矩/.test(msgs[0] && msgs[0].content) && /第 3 步/.test(all) && /class Linear/.test(all) && /【他的问题】\n我不知道从哪下手。/.test(all), "请求里带着规矩、第 3 步和你的代码", JSON.stringify(msgs.map((m) => m.content.slice(0, 60))));
+    ok((await page.locator("#aiLog .msg-a").innerText()).length > 20 && !(await page.locator("#aiLog .warn").count()), "回答显示出来", (await page.locator("#aiLog .msg-a").innerText()).slice(0, 120));
+    await ai.close();
 
     section("手机宽度");
     const m = await browser.newContext({ viewport: { width: 375, height: 760 }, isMobile: true, hasTouch: true }), mp = await m.newPage();
