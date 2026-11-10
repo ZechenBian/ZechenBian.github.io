@@ -58,6 +58,18 @@ Tony Feng 的课程 Math 270 “A Survey of Deep Learning for Mathematicians”�
 - 第 7 周的图：读者自己发现“注意力是可微的查表：锐 → 查表，平 → 平均；查询的长度等于锐度”。
 - 第 1 周实验：读者发现“手写的反向传播和数值微分一致到舍入误差；全零初始化学不动；步长过大学不动”。
 
+## 发布到 Claude Artifact
+
+`node build.js --artifact <路径>/deep-learning-lab.html` 出一份不带文档骨架的变体，用 Artifact 工具发布那个文件。页面用到的运行时能力在首次发布时声明（同一路径重发会沿用）：
+
+```json
+{"mcp": {"servers": [{"server": "host:mllab-engine", "tools": ["info", "run_start", "run_upload", "run_events", "run_cancel"]}]}, "sample": {}, "db": {}, "user": {}, "downloads": true}
+```
+
+- `mcp`：读者 Mac 上的本机引擎（`strategy-lab/ml-engine`，在 Claude 桌面应用里登记的名字是 `mllab-engine`）。
+- `sample`：页边的助教。`db` 和 `user`：批注、预测、运行记录、改过的脚本，按人私有地存。`downloads`：下载脚本。
+- 仓库主人平时用的那个 Artifact 叫 “Deep Learning Lab”。试验性的版本发成另一个 Artifact，不要覆盖它；要更新它，先用 Artifact 工具读它，再往它的网址发布。
+
 ## 独立试玩
 
 上一节的设计目标没有给试玩者看。发给试玩者的全部文字和它交回的全部文字原样存在 `test/playtest/`（`roundN-prompt.txt`、`roundN-report.txt`）。试玩者是没看过设计、没读过源码的新子 agent，只用 Playwright 操作页面，电脑宽度（1360×900）和手机宽度（390×844）各走一遍。测试构建和正式页面有两处不同，都事先告诉了它：助教是固定回答；引擎是真的，但那台机器没有 PyTorch，也不会先征求同意。
