@@ -99,7 +99,9 @@ function build() {
   const fill = (slot, text) => { if (!t.includes(slot)) throw new Error('template.html has no slot ' + slot); t = t.replace(slot, () => text); };
   fill('__STYLES__', read('src', 'styles.css').replace(/^\/\* Copyright[\s\S]*?\*\/\n/, ''));
   fill('__KATEX_CSS__', '<style>\n/* KaTeX ' + KATEX_VER + ': MIT License, (c) Khan Academy and other contributors; fonts under the SIL Open Font License 1.1. See THIRD-PARTY-NOTICES.md */\n' + katexCss() + '\n</style>');
-  fill('__KATEX_JS__', '<script>\n/* KaTeX ' + KATEX_VER + ', MIT License, (c) Khan Academy and other contributors. https://github.com/KaTeX/KaTeX */\n' + katexJs + '\n</script>');
+  // KaTeX is a UMD bundle: where the page's host defines define (AMD) or module/exports, it registers itself there instead
+  // of on window, and nothing gets typeset. Hiding those names makes it set window.katex in any host.
+  fill('__KATEX_JS__', '<script>\n/* KaTeX ' + KATEX_VER + ', MIT License, (c) Khan Academy and other contributors. https://github.com/KaTeX/KaTeX */\n(function (define, exports, module) {\n' + katexJs + '\n})();\n</script>');
   fill('__SCRIPTS__', scripts());
   return t;
 }
