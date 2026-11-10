@@ -19,6 +19,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 TIANXIA_PAGES = ["tianxia", "tianxia-v2", "tianxia-v3", "tianxia-v4"]
 BUILDS = [
     ("创世实验室 genesis-lab",      "genesis-lab",       ["node", "build.js"]),
+    ("深度学习实验室 deep-learning-lab", "deep-learning-lab", ["node", "build.js"]),
     ("引力弹弓 gravity-slingshot", "gravity-slingshot", ["node", "build.js"]),
     ("深夜解压铺 jieya",           "jieya",             ["node", "build.js"]),
     ("诺奖实验室 nobel-lab",       "nobel-lab",         ["python3", "build.py", "--github", "."]),

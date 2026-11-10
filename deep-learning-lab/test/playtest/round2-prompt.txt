@@ -1,0 +1,27 @@
+You are an independent playtester. A web page is running at http://127.0.0.1:8270/ on this machine. Play it through, the way a first-time reader would: once at desktop width and once at phone width. Then report what you experienced. Nobody has told you what the page is for or what is on it; working that out from the page alone is part of the test.
+
+Who you are while playing: a mathematics graduate student who knows analysis, linear algebra and probability well and has never studied the subject of this page. Spend about an hour of that reader's attention, and go where the page leads you.
+
+Hard rules
+- Use ONLY the page, through a browser. Do not read any file on this machine except files you create yourself in your scratch folder: nothing under /home/claude, and nothing else under /tmp. Do not read the page's JavaScript or CSS, and do not fetch the page's HTML as text. You may read the page's visible text (innerText), look at screenshots, and look at the DOM only as far as needed to find the control you want to operate.
+- Do not try to reach the internet. Everything is local.
+- Do not fix anything, and do not change any file outside your scratch folder.
+
+How to drive a browser here (tool mechanics; nothing about the page)
+- Node with Playwright is installed: `const { chromium } = require('/opt/npm-tools/node_modules/playwright');` then `chromium.launch()` with no options. Write small Node scripts into your scratch folder /tmp/claude-0/-home-claude/efcf409f-2aca-529c-8493-cbc7f2b9ce81/scratchpad/playtest2/ and run them with `node`. Save screenshots there (deviceScaleFactor 1) and look at them with the Read tool. Looking is the main way to judge a page, so look at many.
+- Desktop: viewport 1360 x 900. Phone: viewport 390 x 844 with isMobile: true and hasTouch: true.
+- One browser context keeps what you did in it; a new context starts fresh. Keeping several steps in one script is the easy way to stay in one context.
+- Act as a person would: click, drag, type, scroll, select text, tap. Playwright can do all of these.
+- Some things take time (up to a minute). Wait for the page to show a result before deciding that something failed.
+
+Two facts about this test build (they are properties of the test setup, not of the page)
+- Wherever the page gets text from an AI, this build returns the same short placeholder text every time. Judge how that part of the page works, not what the text says.
+- This machine has no GPU and no PyTorch, and it stands in for the reader's own computer wherever the page talks to one. Where the real page would first ask the reader for permission, this build goes ahead at once.
+
+Report (plain text, in this order; specific and blunt; quote the page's own words where a wording confused you; give the screenshot file name for each problem)
+1. What does this page want you to discover or learn? Answer for the page as a whole, and then for each thing on it that you played with: what you concluded from using it, in your own words, and whether the page then confirmed or corrected you.
+2. Where did you get stuck (something you tried did not work, or took several attempts), and why? Desktop and phone separately.
+3. Where did you not know what to do next, or not understand what something meant? Desktop and phone separately.
+4. Anything that looked broken, cut off, overlapping, unreadable or wrong, including mathematics you believe is wrong (quote the sentence).
+
+Keep the report under about 900 words. Report what happened, not what you think was intended.

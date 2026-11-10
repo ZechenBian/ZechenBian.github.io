@@ -1,0 +1,120 @@
+{
+ "u07_char_transformer/n2": {
+  "params": {
+   "positional": false
+  },
+  "results": {
+   "bigram_table": 2.48189,
+   "bits_per_char": 2.37191,
+   "device": "mps",
+   "loss_at_step_0": 4.25002,
+   "n_params": 824832,
+   "seconds": 242.095,
+   "steps": 2000,
+   "steps_per_second": 8.26122,
+   "train_loss": 1.42504,
+   "uniform": 4.17439,
+   "unigram_table": 3.34733,
+   "val_loss": 1.64409
+  },
+  "seconds": 244.01,
+  "seed": 2,
+  "sha": "f047bab8ed1be94ddb4d6780b934a3e0687b7c732459dda25315398528e4efbb",
+  "when": "2026-11-10",
+  "where": "MacBook Air M5, PyTorch 2.15.0 on the Apple GPU (mps), Python 3.12.14, numpy 2.5.4"
+ },
+ "u07_char_transformer/q2": {
+  "params": {
+   "eval_every": 50,
+   "max_steps": 300
+  },
+  "results": {
+   "bigram_table": 2.48189,
+   "bits_per_char": 3.23519,
+   "device": "mps",
+   "loss_at_step_0": 4.2479,
+   "n_params": 824832,
+   "seconds": 41.2379,
+   "steps": 300,
+   "steps_per_second": 7.27487,
+   "train_loss": 2.21462,
+   "uniform": 4.17439,
+   "unigram_table": 3.34733,
+   "val_loss": 2.24246
+  },
+  "seconds": 43.99,
+  "seed": 2,
+  "sha": "f047bab8ed1be94ddb4d6780b934a3e0687b7c732459dda25315398528e4efbb",
+  "when": "2026-11-10",
+  "where": "MacBook Air M5, PyTorch 2.15.0 on the Apple GPU (mps), Python 3.12.14, numpy 2.5.4"
+ },
+ "u07_char_transformer/q3": {
+  "params": {
+   "eval_every": 50,
+   "max_steps": 300
+  },
+  "results": {
+   "bigram_table": 2.48189,
+   "bits_per_char": 3.22378,
+   "device": "mps",
+   "loss_at_step_0": 4.20052,
+   "n_params": 824832,
+   "seconds": 40.3806,
+   "steps": 300,
+   "steps_per_second": 7.42931,
+   "train_loss": 2.21467,
+   "uniform": 4.17439,
+   "unigram_table": 3.34733,
+   "val_loss": 2.23456
+  },
+  "seconds": 42.06,
+  "seed": 3,
+  "sha": "f047bab8ed1be94ddb4d6780b934a3e0687b7c732459dda25315398528e4efbb",
+  "when": "2026-11-10",
+  "where": "MacBook Air M5, PyTorch 2.15.0 on the Apple GPU (mps), Python 3.12.14, numpy 2.5.4"
+ },
+ "u07_char_transformer/t2": {
+  "params": {},
+  "results": {
+   "bigram_table": 2.48189,
+   "bits_per_char": 2.27629,
+   "device": "mps",
+   "loss_at_step_0": 4.2479,
+   "n_params": 824832,
+   "seconds": 234.032,
+   "steps": 2000,
+   "steps_per_second": 8.54585,
+   "train_loss": 1.33547,
+   "uniform": 4.17439,
+   "unigram_table": 3.34733,
+   "val_loss": 1.57781
+  },
+  "seconds": 235.51,
+  "seed": 2,
+  "sha": "f047bab8ed1be94ddb4d6780b934a3e0687b7c732459dda25315398528e4efbb",
+  "when": "2026-11-10",
+  "where": "MacBook Air M5, PyTorch 2.15.0 on the Apple GPU (mps), Python 3.12.14, numpy 2.5.4"
+ },
+ "u07_char_transformer/t3": {
+  "params": {},
+  "results": {
+   "bigram_table": 2.48189,
+   "bits_per_char": 2.27571,
+   "device": "mps",
+   "loss_at_step_0": 4.20052,
+   "n_params": 824832,
+   "seconds": 233.716,
+   "steps": 2000,
+   "steps_per_second": 8.55739,
+   "train_loss": 1.33652,
+   "uniform": 4.17439,
+   "unigram_table": 3.34733,
+   "val_loss": 1.5774
+  },
+  "seconds": 235.2,
+  "seed": 3,
+  "sha": "f047bab8ed1be94ddb4d6780b934a3e0687b7c732459dda25315398528e4efbb",
+  "when": "2026-11-10",
+  "where": "MacBook Air M5, PyTorch 2.15.0 on the Apple GPU (mps), Python 3.12.14, numpy 2.5.4"
+ }
+}

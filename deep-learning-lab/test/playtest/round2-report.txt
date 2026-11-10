@@ -1,0 +1,54 @@
+PLAYTEST REPORT: http://127.0.0.1:8270/ (desktop 1360x900, phone 390x844, about 50 scripted sessions, all through the browser)
+
+1. WHAT THE PAGE WANTS ME TO LEARN
+
+Whole page: "Deep Learning Lab", a study companion to a Berkeley course on deep learning for mathematicians. Three verbs: Read (weeks 1, 4, 7 are written; the other nine are a topic list plus tutor), Ask (select text; the answer stays in the margin as a "remark"), Train (predict, run a script, get a verdict; a "Prediction ledger" keeps score). It wants me to commit to a guess before each run. The Ask machinery worked on desktop: quote, answer, "Go deeper", follow-up, own note, search, "Show the place", R1 chip in the text.
+
+- Week 1 hinge figure: I concluded three hinges give the hat exactly (kinks -1/2, 0, 1/2; bends 2, -4, 2), and that gradient descent finds it from the default start but, from kinks 0.2/0.4/0.6, pushes every kink to x = 1 and stalls at loss 0.166. "What you just did" confirmed both.
+- Week 1 experiment 1: Q1 (backprop equals finite differences to rounding): "Your prediction held", 1.86e-8. Q2 I guessed "Clearly worse, but above chance": "Not what you predicted", 33.0%, 0 of 64 units active; the explanation corrected me. Q3 (step size 3.0): held, 7 of 64 units alive. A free run at 1.0 gave 94.0%, as the text promised.
+- Week 1 experiment 2 and week 7 Shakespeare: no PyTorch here, so only the recorded "reference run"; both predictions held.
+- Week 4 valley figure: blow-up at eta x kappa = 2 for kappa 25 and 100; fewest steps (87) at 1.92; 24 steps with momentum 0.44. "What you found" confirmed all three.
+- Week 4 experiments: about 300 steps (286), 10^-15 (5.35e-16), below 60% (42.9%, formula 42%): all held.
+- Week 7 lookup figure: attention is a softmax-weighted average; sharpness 0 gives 3.00; query length acts like sharpness. Confirmed.
+- Week 7 experiment 1: held (91.4% against 16.2%).
+
+2. STUCK
+
+Desktop
+- Typed a question in the "Ask…" box and pressed Enter: nothing sent, only a new line. Ctrl+Enter or the Ask button works; nothing says so. /tmp/claude-0/-home-claude/efcf409f-2aca-529c-8493-cbc7f2b9ce81/scratchpad/playtest2/d11-04-after-enter.png
+- "Compare with the next run": pressed it on my step-size-0.3 run, picked question 3, ran: no dotted curves, and History had silently reverted to "Compare with the next run". Choosing another question cancels it. It worked only when both runs already existed. Two attempts. /tmp/claude-0/-home-claude/efcf409f-2aca-529c-8493-cbc7f2b9ce81/scratchpad/playtest2/d24-02-compared-chart.png (failed), /tmp/claude-0/-home-claude/efcf409f-2aca-529c-8493-cbc7f2b9ce81/scratchpad/playtest2/d25-01-overlay.png (worked)
+- Followed the link "section 2" from section 7, pressed browser Back: landed at the top of the unit, not where I was reading (scroll 8170 to 0). /tmp/claude-0/-home-claude/efcf409f-2aca-529c-8493-cbc7f2b9ce81/scratchpad/playtest2/d49-01-after-back.png
+
+Phone
+- Asking about a line: a long press gave no selection and no Ask button in the emulated phone (/tmp/claude-0/-home-claude/efcf409f-2aca-529c-8493-cbc7f2b9ce81/scratchpad/playtest2/p06-02-after-longpress.png). When a selection exists, the "Ask… / Explain" pill appears and Explain, Go deeper and follow-up work (/tmp/claude-0/-home-claude/efcf409f-2aca-529c-8493-cbc7f2b9ce81/scratchpad/playtest2/p07-01-selection-no-mouse.png). Real touch selection is unverified.
+- Hinge dots: a touch must start within about 18 px of the dot; from 22 px nothing happens. My first three drags did nothing (/tmp/claude-0/-home-claude/efcf409f-2aca-529c-8493-cbc7f2b9ce81/scratchpad/playtest2/p03-02-after-drag1.png). A diagonal drag also scrolled the page and stopped short, kink -0.03 instead of 0 (/tmp/claude-0/-home-claude/efcf409f-2aca-529c-8493-cbc7f2b9ce81/scratchpad/playtest2/p04-02-dots.png). Sliders, the week 7 arrow, menu, section list, Train and ledger all worked by touch.
+
+3. DID NOT KNOW WHAT TO DO / DID NOT UNDERSTAND
+
+Desktop
+- "Mac engine" opens a wall of setup text (uv, "mcpServers", claude_desktop_config.json) before I know whether reading needs it. /tmp/claude-0/-home-claude/efcf409f-2aca-529c-8493-cbc7f2b9ce81/scratchpad/playtest2/d02-mac-engine.png
+- "Saved to your Claude account (private to you)." appears three times on the overview and never says what is saved. /tmp/claude-0/-home-claude/efcf409f-2aca-529c-8493-cbc7f2b9ce81/scratchpad/playtest2/d02-overview-bottom.png
+- "Let gradient descent finish" is over in about half a second (12,531 steps): I saw the answer, not the descent. /tmp/claude-0/-home-claude/efcf409f-2aca-529c-8493-cbc7f2b9ce81/scratchpad/playtest2/d06-a-gd-default.png
+- Week 7, "Move the query until the output is 4.00": the query exactly on D gives 3.92 and no tick (/tmp/claude-0/-home-claude/efcf409f-2aca-529c-8493-cbc7f2b9ce81/scratchpad/playtest2/d35-01-on-D.png); the tick "the output is the value of D" came at 3.96 (/tmp/claude-0/-home-claude/efcf409f-2aca-529c-8493-cbc7f2b9ce81/scratchpad/playtest2/d35-02-beyond-D.png).
+- Returning to an answered question shows "PREDICT FIRST" with nothing selected and a small "Your last run here… Show it"; I could not tell whether I may predict again. /tmp/claude-0/-home-claude/efcf409f-2aca-529c-8493-cbc7f2b9ce81/scratchpad/playtest2/d18-06-back-q1.png
+- After "Run without predicting" the question box is headed "YOUR PREDICTION" (page text; no screenshot shows it).
+- Overview: "Your remarks are searchable, so a question asked twice is found." I asked "What is a logit?" twice and got two separate remarks, R2 and R3, with no pointer to the first. /tmp/claude-0/-home-claude/efcf409f-2aca-529c-8493-cbc7f2b9ce81/scratchpad/playtest2/d49-04-asked-twice.png
+- The remark list titles an Explain remark "Explain this.", not the passage, so such remarks cannot be told apart. /tmp/claude-0/-home-claude/efcf409f-2aca-529c-8493-cbc7f2b9ce81/scratchpad/playtest2/d14-02-list-two.png
+
+Phone
+- "Engine" opens 1,160 px of Mac setup instructions. /tmp/claude-0/-home-claude/efcf409f-2aca-529c-8493-cbc7f2b9ce81/scratchpad/playtest2/p12-02-engine-modal-b.png
+- Tapping "Remarks" reopens the last thread, not the list. /tmp/claude-0/-home-claude/efcf409f-2aca-529c-8493-cbc7f2b9ce81/scratchpad/playtest2/p09-06-remarks-list.png
+
+4. BROKEN, CUT OFF, WRONG
+
+- Remark list preview shows raw TeX: "\delta^L = p - e_y". /tmp/claude-0/-home-claude/efcf409f-2aca-529c-8493-cbc7f2b9ce81/scratchpad/playtest2/d13-03-list.png
+- Phone: the toast "Wide formulas, tables and figures scroll sideways." covers the "Let gradient descent finish" button for about 4 s. /tmp/claude-0/-home-claude/efcf409f-2aca-529c-8493-cbc7f2b9ce81/scratchpad/playtest2/p02-04-week1-fig.png
+- Phone: the third panel of the tent-map figure is off-screen (/tmp/claude-0/-home-claude/efcf409f-2aca-529c-8493-cbc7f2b9ce81/scratchpad/playtest2/p11-02.png); the backprop diagram is cut at "× W" (/tmp/claude-0/-home-claude/efcf409f-2aca-529c-8493-cbc7f2b9ce81/scratchpad/playtest2/p11-05-backprop-thm.png); the result table's fourth column is cut (/tmp/claude-0/-home-claude/efcf409f-2aca-529c-8493-cbc7f2b9ce81/scratchpad/playtest2/p10-07-result-0.png). All scroll sideways; the only cue is a faint fade.
+- Phone: code lines are cut at about 40 characters, and swiping sideways takes the line numbers out of view. /tmp/claude-0/-home-claude/efcf409f-2aca-529c-8493-cbc7f2b9ce81/scratchpad/playtest2/p15-03-code-sideways.png
+- No horizontal page scroll at phone width. The sandbox blocked a font download, so fonts in my screenshots may be fallbacks.
+
+Mathematics. I worked through the statements and folded proofs of weeks 1, 4 and 7 (citations not checked) and found no outright error. Two sentences claim too much:
+- "When d>n there are more parameters than examples, the minimizers are not unique, and all of them fit the data exactly." False without rank X = n: two equal inputs with different targets cannot be fitted.
+- "It also shows that curvature puts a hard ceiling on the step size, η<2/β". The descent lemma gives a sufficient condition only. The page's own run then says "The ceiling is a slope, not a cliff."
+
+Not covered: syllabus weeks other than week 2; live PyTorch runs; real long-press selection.

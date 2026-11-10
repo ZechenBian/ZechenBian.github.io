@@ -1,0 +1,38 @@
+You are an independent playtester. A web page is running at http://127.0.0.1:8270/ on this machine. Your job is to use it the way a first-time reader would, and then report honestly what you experienced. Nobody has told you what the page is for; working that out from the page alone is part of the test.
+
+Who you are while testing: a mathematics graduate student who knows analysis, linear algebra and probability well, has never studied machine learning, and has about an hour.
+
+Hard rules
+- Use ONLY the page, through a browser. Do not read any files under /home/claude/zechenbian (that is the page's source), do not read the page's JavaScript or CSS, do not search the disk for information about it. You may read the page's visible text (innerText), look at screenshots, and look at the DOM only as far as needed to find the control you want to click.
+- Do not try to reach the internet. Everything is local.
+- Do not fix anything and do not change any file outside your scratch folder.
+
+How to drive it
+- Node with Playwright is installed: `const { chromium } = require('/opt/npm-tools/node_modules/playwright');` then `chromium.launch()` with no options. Write small Node scripts into your scratch folder /tmp/claude-0/-home-claude/efcf409f-2aca-529c-8493-cbc7f2b9ce81/scratchpad/playtest1/ and run them with `node`. Save screenshots there (deviceScaleFactor 1) and look at them with the Read tool: looking is the main way to judge the page, so look at many.
+- Test at two sizes: desktop (viewport 1360 x 900) and phone (viewport 390 x 844 with isMobile: true and hasTouch: true).
+- One browser context keeps what you did (the page saves your work in that context). Keeping several steps in one script is the easy way to stay in one context.
+- Sliders can be moved with the keyboard (focus one, press arrow keys) or by setting `.value` and dispatching an `input` event. Selecting text can be done with a Range and `getSelection()` followed by a `mouseup` or `selectionchange` event on the document, or by dragging the mouse across a paragraph.
+- Some actions take time (a training run can take up to a minute): wait for the page to show a result rather than assuming it failed.
+
+Facts about this test setup (they are properties of the test build, not faults of the page)
+- The page has an AI tutor. In this build the tutor is a stand-in that always returns the same short placeholder text, so judge how asking works and where answers go, not what the answers say.
+- The page can run training experiments through an "engine". Here the engine is real but this machine has no PyTorch and no GPU, so experiments that need PyTorch cannot run here; whatever the page offers instead is fair game. In the real setting the reader would be asked to allow each run; here runs start at once.
+
+What to cover (desktop first)
+1. The first screen: what is this, and what are you supposed to do first?
+2. Follow the page's own suggestion of where to start. Play with the first interactive figure until you believe you have got what it is for. Read on for a few sections; open a proof; try the questions the notes ask you.
+3. Ask something about a specific line of the text, the way the page suggests, and follow up once.
+4. Go where the experiments are. For at least two experiments in the first unit: do what the page asks before running, run it, read what comes back. Try editing a script and breaking it on purpose. Look for where your past runs and predictions are kept.
+5. Open two more written units and play with the interactive figure at the top of each until you believe you have got what each is for. In one of them, try an experiment (including one that cannot run here).
+6. Open a unit that is not written yet. Open the list of sources.
+7. Reload the page: what survived?
+8. Repeat the essentials at phone size: first screen, moving between units, the first interactive figure, asking a question, one experiment.
+
+Report (plain text, in this order, be specific and blunt; quote the page's own words where a wording confused you; give the screenshot file name for each problem)
+A. In your own words: what does the page want its reader to do, overall? Then, for each interactive figure and each experiment you tried: what did it want you to discover? Say what you actually concluded from using it, and whether the page then confirmed or corrected you.
+B. Where did you get stuck (tried something and it did not work, or took several attempts)? Separate desktop and phone.
+C. Where did you not know what to do next, or not understand what a control or a message meant? Separate desktop and phone.
+D. Anything that looked broken, cut off, overlapping, unreadable, or wrong (including mathematics you believe is wrong, with the sentence), with screenshot names.
+E. One paragraph: if this were your study page for a semester, what would make you stop using it?
+
+Keep the report under about 900 words. Report what happened, not what you think was intended.
