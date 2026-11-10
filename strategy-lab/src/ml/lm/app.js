@@ -4,7 +4,8 @@
  * 最后拼成一个小模型训练。题目在 steps.js；测试和训练在 ml-engine/mllab_engine/exercises.py。
  * 连引擎的两条路和机器学习实验室一样（src/ml/engine.js）：从引擎打开的页面走 HTTP（同源，带令牌）；
  * 在 Claude 里打开时经 Claude 桌面版调用本地 MCP 服务器 host:mllab-engine。这里只用到运行和取事件，代码写得更短。
- * 你的代码、每一步的状态、预测台账只存在这台设备的浏览器里（localStorage，取不到时照常能用，只是不保存）。 */
+ * 你的代码、每一步的状态、预测台账只存在这台设备的浏览器里（localStorage，取不到时照常能用，只是不保存）。
+ * 右栏的 AI 助教在 tutor.js：这里在启动时把它要用的东西交给它（LMTUTOR.init），换步骤、运行完以后让它刷新。 */
 (function () {
   "use strict";
   var S = LMSTEPS, STEPS = S.STEPS;
@@ -170,6 +171,7 @@
   var cur = Math.max(0, Math.min(STEPS.length, store.get("cur", 0) | 0));   // 0 = 总览，1…6 = 各步
   var status = store.get("status", {});                  // id → { passed, total, at }
   var ledger = store.get("ledger", []);                  // 预测台账
+  var aided = store.get("aided", {});                    // 哪几步让 AI 助教给过完整写法
   var running = null;
   function codeOf(st) { var c = store.get("code." + backend + "." + st.id, null); return c == null ? (st.starter ? st.starter[backend] : "") : c; }
   function setCode(st, text) { store.set("code." + backend + "." + st.id, text); }
@@ -212,7 +214,7 @@
       var s = status[st.id], mark = done(st) ? "✓" : s ? "◐" : "○", cls = done(st) ? " ok" : s ? " half" : "";
       list.appendChild(h("li", null, h("button", { type: "button", class: "lm-step" + cls + (cur === st.n ? " cur" : ""), "aria-current": cur === st.n ? "true" : null, onclick: function () { go(st.n); } },
         h("span", { class: "lm-mark", "aria-label": done(st) ? "已通过" : s ? "试过，还没全过" : "还没做", text: mark }),
-        h("span", { class: "lm-name", text: st.n + " · " + st.title }),
+        h("span", { class: "lm-name" }, st.n + " · " + st.title, aided[st.id] ? h("span", { class: "lm-aided", title: "AI 助教给过这一步的完整写法", text: "看过写法" }) : null),
         s && s.total ? h("span", { class: "lm-score num", text: s.passed + "/" + s.total }) : null)));
     });
     b.appendChild(list);
@@ -402,7 +404,7 @@
       } else if (name === "log" && d.text) { live.log.push(d.text); if (live.log.length > 60) live.log.shift(); }
       else if (name === "ready") { live.msg = "引擎准备好了，开始运行"; paintLive(); }
     }, state).then(function (res) {
-      res.map = a.map; res.at = Date.now(); res.wall = Date.now() - t0;
+      res.map = a.map; res.at = Date.now(); res.wall = Date.now() - t0; if (st.starter) res.code = codeOf(st);
       status[st.id] = { passed: res.passed, total: res.total, at: res.at }; store.set("status", status);
       record(st, pnum, ptext, res);
       store.set("last." + st.id, slim(res));
@@ -413,11 +415,12 @@
       var ev = e.ev || {};
       var res = { error: ev.message || e.message, where: where(a.map, ev.line), cancelled: !!ev.cancelled, timeout: !!ev.timeout, tests: live.tests, curve: live.curve, map: a.map };
       res.error = remap(a.map, res.error);
-      if (!ev.cancelled) record(st, pnum, ptext, { passed: 0, total: 0, failed: true });
+      if (!ev.cancelled) { record(st, pnum, ptext, { passed: 0, total: 0, failed: true }); res.at = Date.now(); if (st.starter) res.code = codeOf(st); store.set("last." + st.id, slim(res)); }
       paintResult(out, st, res, false);
     }).then(function () {
       running = null; c.btnRun.disabled = false; c.btnStop.hidden = true;
       store.set("draft." + st.id, null);
+      tutorRefresh();
     });
   }
   function slim(res) { var r = Object.assign({}, res); if (r.curve && r.curve.length > 400) { var k = Math.ceil(r.curve.length / 400); r.curve = r.curve.filter(function (p, i) { return i % k === 0 || p.validLoss != null; }); } return r; }
@@ -475,11 +478,7 @@
     if (r.tests && r.tests.length) {
       var ul = h("ul", { class: "ck-list" });
       r.tests.forEach(function (t) {
-        var note = [t.msg || ""];
-        var lns = t.lines && t.lines.length ? t.lines : t.line ? [t.line] : [];
-        if (lns.length) note.push("位置：" + lns.map(function (n) { return where(r.map || [], n); }).join("；") + "。");
-        if (t.err != null && t.ok) note.push("最大误差 " + t.err.toExponential(1) + "（容差 " + (t.tol != null ? t.tol.toExponential(1) : "—") + "）");
-        ul.appendChild(h("li", { class: "ck " + (t.ok ? "pass" : "fail") }, h("span", { class: "ck-i", text: t.ok ? "✓" : "✗" }), h("span", { class: "ck-say", text: t.name }), h("span", { class: "ck-note", text: remap(r.map || [], note.filter(Boolean).join(" ")) })));
+        ul.appendChild(h("li", { class: "ck " + (t.ok ? "pass" : "fail") }, h("span", { class: "ck-i", text: t.ok ? "✓" : "✗" }), h("span", { class: "ck-say", text: t.name }), h("span", { class: "ck-note", text: testNote(t, r.map) })));
       });
       out.appendChild(ul);
     }
@@ -498,6 +497,19 @@
     if (st.train && r.sample && !r.live) out.appendChild(h("div", null, h("h3", { text: "它写的（温度 0.8，400 个字符）" }), h("pre", { class: "lm-sample", text: r.sample })));
     if (!r.live && !r.error && st.train && r.passed === r.total) out.appendChild(md("比一比：字符级的 nanoGPT 在默认设置（6 层、384 维、上下文 256）下验证集 loss 大约 1.47。差距来自哪里——层数、维数、上下文还是训练步数？可以先预测，再在后面的步骤里一个个加上去试。"));
     if (r.log && r.log.length && r.live) out.appendChild(h("pre", { class: "lm-log", text: r.log.slice(-6).join("\n") }));
+    var bad = !r.live && !r.cancelled && (r.error || (r.tests || []).some(function (t) { return !t.ok; }));
+    if (window.LMTUTOR && LMTUTOR.available() && !r.live && !r.cancelled && (bad || st.train))
+      out.appendChild(h("div", { class: "row lm-askai" }, h("button", { class: "btn small", type: "button", text: st.train ? "问 AI 助教：怎么看这次结果？" : "问 AI 助教：为什么没过？", onclick: function () {
+        LMTUTOR.ask(st.train ? "怎么看这次训练的结果？哪里还能改进？" : "上一次运行为什么没过？");
+      } })));
+  }
+
+  function testNote(t, map) {
+    var note = [t.msg || ""];
+    var lns = t.lines && t.lines.length ? t.lines : t.line ? [t.line] : [];
+    if (lns.length) note.push("位置：" + lns.map(function (n) { return where(map || [], n); }).join("；") + "。");
+    if (t.err != null && t.ok) note.push("最大误差 " + t.err.toExponential(1) + "（容差 " + (t.tol != null ? t.tol.toExponential(1) : "—") + "）");
+    return remap(map || [], note.filter(Boolean).join(" "));
   }
 
   /* 学习曲线：训练 loss（平滑过的）、验证 loss（点），三条基线的虚线 */
@@ -535,6 +547,46 @@
     pts.forEach(function (p) { if (p.validLoss == null) return; g.beginPath(); g.arc(X(p.step), Y(p.validLoss), 3, 0, 2 * Math.PI); g.fill(); });
   }
 
+  /* ---------- 交给 AI 助教的东西（tutor.js） ---------- */
+  function failed(st) { var r = store.get("last." + st.id, null); return !!(r && !r.cancelled && (r.error || (r.tests || []).some(function (t) { return !t.ok; }) || st.train)); }
+  /** 上一次运行，写成给 AI 读的几行字 */
+  function describeLast(st) {
+    var r = store.get("last." + st.id, null);
+    if (!r) return "还没运行过。";
+    var out = [], when = r.at ? "（" + new Date(r.at).toLocaleString() + "）" : "";
+    if (r.error) out.push((r.timeout ? "超时了" : "没能运行完") + when + (r.where ? "，出错的位置：" + r.where : "") + "。报错：\n" + String(r.error).slice(0, 2500));
+    else if (st.train) {
+      var b = r.baselines || {};
+      out.push("训练完了" + when + "：" + (r.steps || "?") + " 步，向量维数 " + (r.config && r.config.d || "?") + "，参数 " + (r.params || 0) + " 个，设备 " + (r.device || "?") + "，用了 " + fmt(r.seconds, 0) + " 秒。");
+      out.push("验证集 loss " + fmt(r.valLoss) + "；参照：只看上一个字符 " + fmt(b.bigram) + "，只看频率 " + fmt(b.unigram) + "，均匀乱猜 " + fmt(b.uniform) + "。");
+      var pts = (r.curve || []).filter(function (p) { return p.loss != null; }), vs = (r.curve || []).filter(function (p) { return p.validLoss != null; });
+      if (pts.length) out.push("训练 loss：第 " + pts[0].step + " 步 " + fmt(pts[0].loss) + " → 第 " + pts[pts.length - 1].step + " 步 " + fmt(pts[pts.length - 1].loss) + "。验证 loss：" + vs.map(function (p) { return "第 " + p.step + " 步 " + fmt(p.validLoss); }).join("，") + "。");
+    } else out.push("通过 " + r.passed + " / " + r.total + when + "。");
+    (r.tests || []).forEach(function (t) { var n = testNote(t, r.map); out.push((t.ok ? "✓ " : "✗ ") + t.name + (n ? "：" + n : "")); });
+    if (st.train && r.sample) out.push("它写的样本（开头 300 个字符）：\n" + r.sample.slice(0, 300));
+    if (st.starter && r.code != null && r.code !== codeOf(st)) out.push("（注意：那次运行以后，这一步的代码又改过了；上面的结果对应的是改之前的代码。）");
+    return out.join("\n");
+  }
+  /** 这一步之前（训练那一步：前五步）的代码，按步骤标好 */
+  function prevCode(st) {
+    return STEPS.filter(function (s) { return s.starter && s.n < st.n; }).map(function (s) { return "# ===== 第 " + s.n + " 步：" + s.title + (done(s) ? "（已通过）" : "（还没全部通过）") + " =====\n" + codeOf(s).replace(/\s+$/, ""); }).join("\n\n");
+  }
+  function tutorRefresh() { if (window.LMTUTOR) try { LMTUTOR.refresh(); } catch (e) { console.error(e); } }
+  var LMAPP = {
+    h: h, clear: clear, store: store, toast: toast, twoStep: twoStep,
+    md: function (el, src) { clear(el); try { QLMD.mount(el, src); } catch (e) { el.textContent = src; } },
+    steps: STEPS, overview: S.OVERVIEW,
+    step: function () { return cur === 0 ? null : STEPS[cur - 1]; },
+    backend: function () { return backend; }, pre: function () { return S.PRE[backend]; },
+    code: codeOf, prevCode: prevCode, done: done, failed: failed, describeLast: describeLast,
+    hintsShown: function (st) { return store.get("hints." + st.id, 0) | 0; },
+    trainParams: function () { return "训练步数 " + store.get("p.steps", 1500) + "，向量维数 " + store.get("p.d", 64) + "，批量 32，上下文 64 个字符，学习率 0.002（预热 + 余弦衰减），AdamW。"; },
+    markAided: function (st) { if (aided[st.id]) return; aided[st.id] = true; store.set("aided", aided); paintSteps(); },
+    setTab: function (t) { setTab(t); },
+    /** AI 能不能用变了：重画结果卡片（“问 AI 助教”那个按钮跟着出现或消失） */
+    aiChanged: function () { if (running || !current || !current.out || current.out.hidden) return; var last = store.get("last." + current.st.id, null); if (last) paintResult(current.out, current.st, last, true); }
+  };
+
   /* ---------- 页面 ---------- */
   function go(n) {
     if (running) { toast("正在运行：等它结束或者先停下。", 2600); return; }
@@ -547,6 +599,7 @@
     var main = clear($("paneRes"));
     if (cur === 0) renderOverview(main); else renderStep(main, STEPS[cur - 1]);
     $("topStep").textContent = cur === 0 ? "总览" : "第 " + cur + " 步 · " + STEPS[cur - 1].title;
+    tutorRefresh();
   }
   function setTab(t) {
     $("app").setAttribute("data-tab", t);
@@ -557,6 +610,7 @@
     $("btnEngine").addEventListener("click", openEngine);
     $("btnLedger").addEventListener("click", openLedger);
     var back = $("btnBack"); if (back && location.search && MODE === "http") back.href = "../" + location.search;   // 回到实验室时带上令牌
+    if (window.LMTUTOR) try { LMTUTOR.init(LMAPP); } catch (e) { console.error(e); }
     window.addEventListener("resize", function () { var cv = document.querySelector(".lm-chart canvas"); if (cv && current && current.out && !current.out.hidden) { var last = store.get("last." + current.st.id, null); if (last && last.curve) draw(cv, last); } });
     render();
     if (MODE === "http") connect();
