@@ -1,0 +1,2410 @@
+{
+ "u01_autograd_torch/default": {
+  "curve": [
+   {
+    "step": 25,
+    "train_loss": 0.87104,
+    "val_acc": 0.53,
+    "val_loss": 0.87898
+   },
+   {
+    "step": 50,
+    "train_loss": 0.55831,
+    "val_acc": 0.81333,
+    "val_loss": 0.55082
+   },
+   {
+    "step": 75,
+    "train_loss": 0.31311,
+    "val_acc": 0.88,
+    "val_loss": 0.32892
+   },
+   {
+    "step": 100,
+    "train_loss": 0.20818,
+    "val_acc": 0.93,
+    "val_loss": 0.23302
+   },
+   {
+    "step": 125,
+    "train_loss": 0.14575,
+    "val_acc": 0.94333,
+    "val_loss": 0.17192
+   },
+   {
+    "step": 150,
+    "train_loss": 0.10851,
+    "val_acc": 0.95333,
+    "val_loss": 0.13872
+   },
+   {
+    "step": 175,
+    "train_loss": 0.086039,
+    "val_acc": 0.95667,
+    "val_loss": 0.12218
+   },
+   {
+    "step": 200,
+    "train_loss": 0.07305,
+    "val_acc": 0.96,
+    "val_loss": 0.11971
+   },
+   {
+    "step": 225,
+    "train_loss": 0.06492,
+    "val_acc": 0.95333,
+    "val_loss": 0.12199
+   },
+   {
+    "step": 250,
+    "train_loss": 0.060758,
+    "val_acc": 0.96,
+    "val_loss": 0.11991
+   },
+   {
+    "step": 275,
+    "train_loss": 0.055942,
+    "val_acc": 0.95667,
+    "val_loss": 0.1234
+   },
+   {
+    "step": 300,
+    "train_loss": 0.052699,
+    "val_acc": 0.96,
+    "val_loss": 0.12505
+   },
+   {
+    "step": 325,
+    "train_loss": 0.05008,
+    "val_acc": 0.96333,
+    "val_loss": 0.12875
+   },
+   {
+    "step": 350,
+    "train_loss": 0.049287,
+    "val_acc": 0.96333,
+    "val_loss": 0.14097
+   },
+   {
+    "step": 375,
+    "train_loss": 0.045951,
+    "val_acc": 0.96333,
+    "val_loss": 0.13424
+   },
+   {
+    "step": 400,
+    "train_loss": 0.044374,
+    "val_acc": 0.96333,
+    "val_loss": 0.13466
+   },
+   {
+    "step": 425,
+    "train_loss": 0.043035,
+    "val_acc": 0.96333,
+    "val_loss": 0.13753
+   },
+   {
+    "step": 450,
+    "train_loss": 0.041872,
+    "val_acc": 0.96,
+    "val_loss": 0.14422
+   },
+   {
+    "step": 475,
+    "train_loss": 0.040707,
+    "val_acc": 0.96,
+    "val_loss": 0.14118
+   },
+   {
+    "step": 500,
+    "train_loss": 0.039629,
+    "val_acc": 0.96,
+    "val_loss": 0.14171
+   },
+   {
+    "step": 525,
+    "train_loss": 0.038627,
+    "val_acc": 0.96,
+    "val_loss": 0.15162
+   },
+   {
+    "step": 550,
+    "train_loss": 0.037769,
+    "val_acc": 0.96,
+    "val_loss": 0.14754
+   },
+   {
+    "step": 575,
+    "train_loss": 0.036217,
+    "val_acc": 0.96,
+    "val_loss": 0.15602
+   },
+   {
+    "step": 600,
+    "train_loss": 0.035542,
+    "val_acc": 0.96,
+    "val_loss": 0.16718
+   },
+   {
+    "step": 625,
+    "train_loss": 0.034463,
+    "val_acc": 0.96,
+    "val_loss": 0.1592
+   },
+   {
+    "step": 650,
+    "train_loss": 0.034146,
+    "val_acc": 0.96,
+    "val_loss": 0.15832
+   },
+   {
+    "step": 675,
+    "train_loss": 0.033186,
+    "val_acc": 0.96,
+    "val_loss": 0.16208
+   },
+   {
+    "step": 700,
+    "train_loss": 0.032608,
+    "val_acc": 0.96333,
+    "val_loss": 0.16311
+   },
+   {
+    "step": 725,
+    "train_loss": 0.032129,
+    "val_acc": 0.96333,
+    "val_loss": 0.16031
+   },
+   {
+    "step": 750,
+    "train_loss": 0.031365,
+    "val_acc": 0.96,
+    "val_loss": 0.15841
+   },
+   {
+    "step": 775,
+    "train_loss": 0.030877,
+    "val_acc": 0.96,
+    "val_loss": 0.15224
+   },
+   {
+    "step": 800,
+    "train_loss": 0.03053,
+    "val_acc": 0.96,
+    "val_loss": 0.15151
+   },
+   {
+    "step": 825,
+    "train_loss": 0.029813,
+    "val_acc": 0.96,
+    "val_loss": 0.15138
+   },
+   {
+    "step": 850,
+    "train_loss": 0.029336,
+    "val_acc": 0.96,
+    "val_loss": 0.15168
+   },
+   {
+    "step": 875,
+    "train_loss": 0.028733,
+    "val_acc": 0.96,
+    "val_loss": 0.15109
+   },
+   {
+    "step": 900,
+    "train_loss": 0.028297,
+    "val_acc": 0.96,
+    "val_loss": 0.15184
+   },
+   {
+    "step": 925,
+    "train_loss": 0.027909,
+    "val_acc": 0.96,
+    "val_loss": 0.15272
+   },
+   {
+    "step": 950,
+    "train_loss": 0.027546,
+    "val_acc": 0.96333,
+    "val_loss": 0.15348
+   },
+   {
+    "step": 975,
+    "train_loss": 0.027225,
+    "val_acc": 0.96333,
+    "val_loss": 0.15187
+   },
+   {
+    "step": 1000,
+    "train_loss": 0.027052,
+    "val_acc": 0.96333,
+    "val_loss": 0.14918
+   },
+   {
+    "step": 1025,
+    "train_loss": 0.027653,
+    "val_acc": 0.95667,
+    "val_loss": 0.15272
+   },
+   {
+    "step": 1050,
+    "train_loss": 0.02621,
+    "val_acc": 0.96,
+    "val_loss": 0.15116
+   },
+   {
+    "step": 1075,
+    "train_loss": 0.025709,
+    "val_acc": 0.96,
+    "val_loss": 0.14908
+   },
+   {
+    "step": 1100,
+    "train_loss": 0.025631,
+    "val_acc": 0.96,
+    "val_loss": 0.15017
+   },
+   {
+    "step": 1125,
+    "train_loss": 0.025271,
+    "val_acc": 0.96,
+    "val_loss": 0.15538
+   },
+   {
+    "step": 1150,
+    "train_loss": 0.025097,
+    "val_acc": 0.96,
+    "val_loss": 0.15215
+   },
+   {
+    "step": 1175,
+    "train_loss": 0.024778,
+    "val_acc": 0.96,
+    "val_loss": 0.15315
+   },
+   {
+    "step": 1200,
+    "train_loss": 0.024462,
+    "val_acc": 0.96,
+    "val_loss": 0.15922
+   },
+   {
+    "step": 1225,
+    "train_loss": 0.024267,
+    "val_acc": 0.96,
+    "val_loss": 0.15436
+   },
+   {
+    "step": 1250,
+    "train_loss": 0.023935,
+    "val_acc": 0.95667,
+    "val_loss": 0.16145
+   },
+   {
+    "step": 1275,
+    "train_loss": 0.024291,
+    "val_acc": 0.95667,
+    "val_loss": 0.16246
+   },
+   {
+    "step": 1300,
+    "train_loss": 0.023467,
+    "val_acc": 0.95667,
+    "val_loss": 0.16694
+   },
+   {
+    "step": 1325,
+    "train_loss": 0.023047,
+    "val_acc": 0.95667,
+    "val_loss": 0.16623
+   },
+   {
+    "step": 1350,
+    "train_loss": 0.023152,
+    "val_acc": 0.95667,
+    "val_loss": 0.16313
+   },
+   {
+    "step": 1375,
+    "train_loss": 0.023553,
+    "val_acc": 0.95667,
+    "val_loss": 0.17045
+   },
+   {
+    "step": 1400,
+    "train_loss": 0.022523,
+    "val_acc": 0.95667,
+    "val_loss": 0.17397
+   },
+   {
+    "step": 1425,
+    "train_loss": 0.022135,
+    "val_acc": 0.96,
+    "val_loss": 0.17359
+   },
+   {
+    "step": 1450,
+    "train_loss": 0.022378,
+    "val_acc": 0.95667,
+    "val_loss": 0.182
+   },
+   {
+    "step": 1475,
+    "train_loss": 0.022679,
+    "val_acc": 0.95667,
+    "val_loss": 0.18236
+   },
+   {
+    "step": 1500,
+    "train_loss": 0.021737,
+    "val_acc": 0.96,
+    "val_loss": 0.18156
+   }
+  ],
+  "log": [
+   "autograd vs hand-written backprop: largest difference 4.86e-17 (loss 1.160909)",
+   "width   32: CPU 0.13 ms per step, mps 0.83 ms per step",
+   "width  256: CPU 0.45 ms per step, mps 1.12 ms per step",
+   "width 2048: CPU 9.65 ms per step, mps 6.37 ms per step"
+  ],
+  "note": "Recorded on the Mac.",
+  "outputs": [
+   {
+    "columns": [
+     "parameter",
+     "shape",
+     "largest gradient entry",
+     "largest difference"
+    ],
+    "kind": "table",
+    "rows": [
+     [
+      "W1",
+      "2 x 32",
+      0.0322839,
+      6.93889e-18
+     ],
+     [
+      "b1",
+      "32",
+      0.0522658,
+      3.46945e-17
+     ],
+     [
+      "W2",
+      "32 x 32",
+      0.0766203,
+      2.08167e-17
+     ],
+     [
+      "b2",
+      "32",
+      0.0359983,
+      4.85723e-17
+     ],
+     [
+      "W3",
+      "32 x 3",
+      0.0850655,
+      4.16334e-17
+     ],
+     [
+      "b3",
+      "3",
+      0.0452208,
+      2.77556e-17
+     ]
+    ],
+    "title": "Autograd versus the hand-written backward pass"
+   },
+   {
+    "columns": [
+     "width",
+     "parameters",
+     "CPU ms",
+     "GPU ms",
+     "CPU time / GPU time"
+    ],
+    "kind": "table",
+    "rows": [
+     [
+      32,
+      1251,
+      0.132957,
+      0.826846,
+      0.1608
+     ],
+     [
+      256,
+      67331,
+      0.450133,
+      1.1201,
+      0.401869
+     ],
+     [
+      2048,
+      4208643,
+      9.64511,
+      6.36983,
+      1.51418
+     ]
+    ],
+    "title": "One training step on 600 points: CPU versus mps"
+   },
+   {
+    "cls": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEAAAAAAAABAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAgICAgIBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQECAgICAgICAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQECAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQICAgICAgICAgICAgICAgICAgEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQICAgICAgICAgICAgICAgICAgIBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAgICAgICAgICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQECAgICAgICAgICAgICAgICAgICAgICAgIBAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAABAQEBAQEBAQECAgICAgICAgICAAICAgICAgICAgICAgICAQEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAABAQEBAQEBAQICAgICAgICAgAAAAAAAgICAgICAgICAgICAgEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAABAQEBAQEBAgICAgICAgICAAAAAAAAAAAAAAICAgICAgICAgEBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAQEBAQEBAgICAgICAgIAAAAAAAAAAAAAAAACAgICAgICAgIBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAQEBAQEBAgICAgICAgAAAAAAAAAAAAAAAAAAAgICAgICAgICAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQICAgICAgIAAAAAAAAAAAAAAAAAAgICAgICAgICAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQECAgICAgICAgEBAQAAAAAAAAAAAgICAgICAgIBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAABAQEBAQEBAQECAgICAgICAgEBAQEAAAAAAAAAAgICAgICAgIBAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAgICAgICAQEBAQEAAAAAAAAAAgICAgICAgICAQEBAQEBAQEBAAAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAgICAgIBAQEBAQEBAAAAAAAAAgICAgICAgIBAQEBAQEBAQEBAAAAAAAAAgICAgAAAAAAAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAgICAgICAgIBAQEBAQEBAQEBAAACAgICAgICAgAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAgICAgICAgIBAQEBAQEBAQEBAgICAgICAgICAgAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAQEBAAAAAAAAAgICAgICAgICAQEBAQEBAQEBAgICAgICAgICAgAAAAAAAAAAAQEBAQEBAQEBAQEBAQEBAQEAAAAAAAAAAgICAgICAgICAQEBAQEBAQEBAgICAgICAgICAgAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQAAAAAAAAAAAAICAgICAgICAQEBAQEBAQEBAgICAgICAgICAgAAAAAAAAAAAAAAAAAAAQEBAQEBAQEBAAAAAAAAAAAAAAICAgICAgICAQEBAQEBAQEBAgICAgICAgICAgAAAAAAAAAAAAAAAAAAAAAAAAEBAQEAAAAAAAAAAAAAAgICAgICAgICAgEBAQEBAQEBAgICAgICAgICAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgIBAQEBAQEBAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAICAgICAgICAgICAgIBAQEBAQEBAgICAgICAgICAgICAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgICAgICAgICAgICAgICAQEBAQEBAgICAgICAgICAgICAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgICAgICAgICAgICAgICAgEBAQEBAgICAgICAgICAgICAgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAgICAgICAgICAgICAgICAgEBAQEBAgICAgICAgICAgICAgICAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAICAgICAgICAgICAgICAgICAAABAQEBAgICAgICAgICAgICAgICAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgICAgICAgICAgICAgICAgICAAAAAQEBAgICAgICAgICAgICAgICAgAAAAAAAAAAAAAAAAAAAAAAAAICAgICAgICAgICAgICAgICAgICAgAAAAEBAgICAgICAgICAgICAgICAgICAgICAgIAAAAAAAAAAAACAgICAgICAgICAgICAgICAgICAgICAgAAAAABAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgAAAAAAAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAAAAAAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAAAAAAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAAAAAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAAAAAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgAAAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgAAAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC",
+    "conf": "/////////////////////////////////////////////////+v+/////////////////////////////////////////////////////////////////////////////4H//////////////////////////////////////////////////////////////////////////////sb/////////////////////////////////////////////////////////////////////////////7vr///////////////////////////////////////////////////////////z2/f7/////////////cv///////////////////////////////////////////////////////////ahWvOv5/f/////////90v//////////////////////////////////////////////////////////ktzw1olwyu/5+/z9/v/b+//////////////////////////////////////////////////////////+8f7+/vvwy3F+ob7T4eSA///////////////////////////////////////////////////////////7/////////fnr3Mqzk9b4///////////////////////////////////////////////////////////l///////////+/v38+v/////////////////////////////////////////////////////////////M/////////////////////////////////////////////////////////////////////////////6D/////////////////////////////////////////////////////////////////////////////+fv////////////////////////////////////////////////////////////////////////////+ZP7///////////////////////////////////////////////////////////////////////////+T5v3//////////////vTk9/z+/////////////////////////////////////////////////////7bY/P////////////7cpvbvzX26////////////////////////////////////////////////////z8L7///////////++lT4//////zg6vbJ2fT9///////////////////////////////////////////ho/r///////////7ruf3////////9+//////D8////////////////////////////////////////+x7+f7///////////mk/v//////////////////x/r//////////////////////////////////////5n2/v///////////kf8/////////////////////kT+////////////////////////////////////+Yb9////////////w/v///////////////////////rP/////////////////////////////////////OP+///////////z6f/////////////////////////g9////////////////////////////////////7r///////////2a/////////////v///////////////Gj8/////////////////////////////////6L9/////////4P9/////////txoc03u/v/9/f////////+B/f////////////////////////////////fr////////4vb////////+193///3mYfKKz/7////////+Sf7///////////////////////////////5u///////9zf/////////h0f7//////d7mRfn//////////nD////////////////////////////////N/P/////49////////+nC/f////////7++Gf5//////////zm///////////////////////////////64//////+hv7/////8q76//////////////xq+f////////+6/f//////////////////////////////T////////ZP////+51Dd/P78/f////////6y9P////////5O/v/////////////////////////////p+v///////9n2///////+7lfg2PD////////Y5/////////2h//////////////////////////////7d/v////////x8////////kf7///H+///////s4P////////54/////////////////////////////+rT/f////////6//P/////m+f/////Z///////p2f////////5C/v/////////////////////07/3///1h+f/////+/fiz7////cj2///////N//////625/////////1e/v////////////////uk2v7//Pz////p1f3+/v301LXl8KnE+v/////////9/P////7fwf7///////yS/v//////////+ZDf/v//////8v7////7lfD6+u7r+f3////////////////4/v/////1oP7///////5Q/v//////////////////////3/7////98C/f8vv+//////////////////+B///////4af3///////52/f//////////////////////tP/////++ek4+P7///////////////////j6///////5Q/v///////+w+///////////////////////eP//////////92H1/P7//////////////5v////////6S/j////////V9v//////////////////////2P///////////////OKoYvf////////9kv/////////6Wvf/////////X///////////////////////6f////////////////////moZ2Slz9r0//////////vDjPf//////////OT/////////////////////5e///////////////////////////////////////sLA+f///////////939/////////////////////9f1////////////////////////////////////7av8//////////////98///////////////////////C+f/////////////////////////////////4RPn////////////////29f//////////////////////pvv///////////////////////////////6s7////////////////v79gv7//////////////////////oL8//////////////////////////////G4/v///////////////fTl09P///////////////////////5b/f/////////////////////////+71z5/////////////////vapW5H0///////////////////////+T/7///////////////////////vPmPj///////////////////vUauzr9f///////////////////////Xj6///////////////////5xXfl/P////////////////////3rZNb77fT//////////////////////////vffrkDd+P3+/v7++LqV7f3///////////////////////72qKz2/vT0/////////////////////////////////////////v39///////////////////////////91Wvs/f/6///////////////////////////////////////////////////////////////////////+9nrW+////////////////////////////////////////////////////////////////////////////OCI9v7//////////////////////////////////////////////////////////////////////////vSb2v3///////////////////////////////////////////////////////////////////////////vaZvX///////////////////////////////////////////////////////////////////////////7xk8r9///////////////////////////////////////////////////////////////////////////60mLx///////////////////////////////////////////////////////////////////////////97oLB///////////////////////////////////////////////////////////////////////////++cl1/////////////////////////////////////////////////////////////////////////////etv/////////////////////////////////////////////////////////////////////////////vi+",
+    "extent": [
+     -1.25,
+     1.25,
+     -1.25,
+     1.25
+    ],
+    "frame": null,
+    "h": 60,
+    "k": 3,
+    "kind": "regions",
+    "labels": [
+     0,
+     0,
+     0,
+     2,
+     2,
+     0,
+     2,
+     1,
+     0,
+     2,
+     2,
+     0,
+     1,
+     0,
+     2,
+     0,
+     1,
+     2,
+     2,
+     1,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     1,
+     0,
+     0,
+     1,
+     1,
+     0,
+     1,
+     2,
+     1,
+     1,
+     1,
+     2,
+     1,
+     1,
+     2,
+     1,
+     1,
+     1,
+     0,
+     1,
+     0,
+     1,
+     2,
+     0,
+     2,
+     1,
+     2,
+     2,
+     1,
+     0,
+     0,
+     0,
+     2,
+     2,
+     0,
+     0,
+     0,
+     2,
+     2,
+     1,
+     2,
+     1,
+     1,
+     0,
+     1,
+     0,
+     2,
+     0,
+     1,
+     2,
+     0,
+     0,
+     2,
+     2,
+     1,
+     0,
+     1,
+     0,
+     2,
+     1,
+     2,
+     2,
+     0,
+     1,
+     2,
+     1,
+     2,
+     1,
+     1,
+     0,
+     0,
+     2,
+     0,
+     0,
+     2,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     0,
+     2,
+     2,
+     0,
+     2,
+     1,
+     1,
+     0,
+     1,
+     0,
+     2,
+     2,
+     2,
+     1,
+     2,
+     0,
+     1,
+     0,
+     1,
+     1,
+     1,
+     2,
+     1,
+     1,
+     0,
+     2,
+     0,
+     1,
+     1,
+     2,
+     0,
+     0,
+     2,
+     0,
+     1,
+     1,
+     2,
+     0,
+     0,
+     0,
+     2,
+     2,
+     0,
+     2,
+     0,
+     1,
+     1,
+     0,
+     0,
+     1,
+     1,
+     0,
+     1,
+     1,
+     2,
+     2,
+     0,
+     1,
+     1,
+     0,
+     0,
+     2,
+     2,
+     0,
+     0,
+     0,
+     0,
+     1,
+     2,
+     1,
+     0,
+     1,
+     2,
+     2,
+     0,
+     2,
+     2,
+     2,
+     0,
+     0,
+     2,
+     1,
+     2,
+     1,
+     2,
+     0,
+     0,
+     2,
+     2,
+     2,
+     1,
+     1,
+     0,
+     1,
+     1,
+     0,
+     1,
+     1,
+     1,
+     2,
+     2,
+     1,
+     1,
+     0,
+     1,
+     2,
+     1,
+     0,
+     1,
+     1,
+     2,
+     0,
+     1,
+     0,
+     0,
+     2,
+     0,
+     2,
+     2,
+     2,
+     0,
+     1,
+     1,
+     1,
+     2,
+     0,
+     2,
+     0,
+     2,
+     2,
+     1,
+     0,
+     0,
+     2,
+     2,
+     2,
+     2,
+     2,
+     1,
+     1,
+     1,
+     0,
+     0,
+     1,
+     1,
+     0,
+     2,
+     1,
+     2,
+     0,
+     0,
+     0,
+     0,
+     2,
+     0,
+     1,
+     2,
+     1,
+     2,
+     0,
+     2,
+     2,
+     0,
+     0,
+     1,
+     2,
+     0,
+     2,
+     2,
+     0,
+     2,
+     2,
+     2,
+     1,
+     2,
+     1,
+     0,
+     2,
+     2,
+     1,
+     1,
+     0,
+     2,
+     2,
+     1,
+     1,
+     0,
+     0,
+     1,
+     1,
+     2,
+     0,
+     1
+    ],
+    "points": [
+     [
+      0.302523,
+      -0.104512
+     ],
+     [
+      0.348763,
+      -0.0816548
+     ],
+     [
+      -0.479319,
+      -0.567248
+     ],
+     [
+      0.612924,
+      -0.678315
+     ],
+     [
+      -0.0618674,
+      0.481324
+     ],
+     [
+      -0.824591,
+      0.387347
+     ],
+     [
+      -0.321733,
+      -0.0850142
+     ],
+     [
+      -0.0923002,
+      -0.22223
+     ],
+     [
+      0.237981,
+      -0.625846
+     ],
+     [
+      -0.195251,
+      0.451205
+     ],
+     [
+      0.0922421,
+      -0.887191
+     ],
+     [
+      -0.724204,
+      -0.40227
+     ],
+     [
+      -0.455963,
+      0.394356
+     ],
+     [
+      -0.464082,
+      0.878612
+     ],
+     [
+      0.0400172,
+      -0.97694
+     ],
+     [
+      0.443818,
+      -0.218789
+     ],
+     [
+      0.120534,
+      0.742453
+     ],
+     [
+      0.521483,
+      -0.655921
+     ],
+     [
+      0.68851,
+      0.0127988
+     ],
+     [
+      -0.1115,
+      -0.241562
+     ],
+     [
+      0.0475768,
+      -0.0237544
+     ],
+     [
+      0.260645,
+      -0.863004
+     ],
+     [
+      0.154593,
+      -0.00891639
+     ],
+     [
+      0.354704,
+      0.759185
+     ],
+     [
+      -0.882555,
+      -0.198862
+     ],
+     [
+      0.531245,
+      0.684615
+     ],
+     [
+      0.0492974,
+      -0.038758
+     ],
+     [
+      -0.853906,
+      0.456409
+     ],
+     [
+      -0.906291,
+      -0.0533397
+     ],
+     [
+      -0.51956,
+      0.574261
+     ],
+     [
+      -0.195359,
+      0.485586
+     ],
+     [
+      0.115952,
+      -0.598061
+     ],
+     [
+      0.0534982,
+      -0.0177138
+     ],
+     [
+      -0.925962,
+      -0.333277
+     ],
+     [
+      -0.133145,
+      -0.204247
+     ],
+     [
+      -0.588079,
+      -0.117311
+     ],
+     [
+      -0.529666,
+      0.0102726
+     ],
+     [
+      -0.0970292,
+      -0.116575
+     ],
+     [
+      -0.417548,
+      -0.207402
+     ],
+     [
+      -0.137974,
+      -0.2782
+     ],
+     [
+      -0.0353426,
+      -0.0666242
+     ],
+     [
+      -0.497467,
+      0.115516
+     ],
+     [
+      -0.520865,
+      0.209823
+     ],
+     [
+      -0.189024,
+      -0.319122
+     ],
+     [
+      -0.00433824,
+      -0.596473
+     ],
+     [
+      -0.57649,
+      0.442531
+     ],
+     [
+      0.426871,
+      -0.162314
+     ],
+     [
+      0.66575,
+      0.607856
+     ],
+     [
+      -0.0757903,
+      -0.930195
+     ],
+     [
+      -0.0334368,
+      0.0492546
+     ],
+     [
+      0.710294,
+      -0.237652
+     ],
+     [
+      0.151201,
+      -0.230403
+     ],
+     [
+      0.629951,
+      -0.0433133
+     ],
+     [
+      0.513656,
+      0.142077
+     ],
+     [
+      -0.0702841,
+      -0.22349
+     ],
+     [
+      0.128428,
+      0.0920796
+     ],
+     [
+      0.274256,
+      0.0986874
+     ],
+     [
+      0.291615,
+      -0.0865256
+     ],
+     [
+      -0.21823,
+      -0.10872
+     ],
+     [
+      0.574147,
+      -0.247154
+     ],
+     [
+      0.0505236,
+      0.122607
+     ],
+     [
+      0.100322,
+      0.211714
+     ],
+     [
+      0.161439,
+      -0.607165
+     ],
+     [
+      -0.213669,
+      0.0586471
+     ],
+     [
+      0.782414,
+      0.0489943
+     ],
+     [
+      0.0854975,
+      -0.0320415
+     ],
+     [
+      0.54473,
+      -0.568184
+     ],
+     [
+      -0.379301,
+      -0.0757433
+     ],
+     [
+      -0.4411,
+      0.0907294
+     ],
+     [
+      0.252355,
+      0.110745
+     ],
+     [
+      -0.166816,
+      -0.239015
+     ],
+     [
+      0.217709,
+      0.102511
+     ],
+     [
+      0.111942,
+      -0.824037
+     ],
+     [
+      0.208609,
+      0.052922
+     ],
+     [
+      -0.471275,
+      0.429743
+     ],
+     [
+      -0.569022,
+      -0.818456
+     ],
+     [
+      -0.745435,
+      -0.232222
+     ],
+     [
+      -0.871194,
+      -0.0547083
+     ],
+     [
+      -0.0922452,
+      0.434291
+     ],
+     [
+      -0.0600063,
+      -0.0182118
+     ],
+     [
+      -0.560798,
+      0.10783
+     ],
+     [
+      0.431766,
+      -0.221538
+     ],
+     [
+      -0.319582,
+      0.581133
+     ],
+     [
+      -0.515282,
+      -0.543581
+     ],
+     [
+      -0.246602,
+      -0.834039
+     ],
+     [
+      -0.435309,
+      0.296313
+     ],
+     [
+      -0.111305,
+      -0.0525273
+     ],
+     [
+      0.564502,
+      -0.13578
+     ],
+     [
+      0.190115,
+      0.142277
+     ],
+     [
+      0.0959891,
+      0.694738
+     ],
+     [
+      0.0983723,
+      -0.944052
+     ],
+     [
+      0.00627292,
+      -0.142002
+     ],
+     [
+      0.300664,
+      0.470498
+     ],
+     [
+      0.069405,
+      -0.04324
+     ],
+     [
+      0.386742,
+      0.569772
+     ],
+     [
+      -0.378787,
+      -0.704452
+     ],
+     [
+      -0.431198,
+      -0.581063
+     ],
+     [
+      0.188744,
+      0.457404
+     ],
+     [
+      0.145202,
+      -0.00580572
+     ],
+     [
+      0.107013,
+      0.183056
+     ],
+     [
+      -0.141467,
+      -0.0138249
+     ],
+     [
+      -0.0388269,
+      -0.36567
+     ],
+     [
+      -0.115511,
+      -0.0321423
+     ],
+     [
+      -0.531449,
+      -0.536765
+     ],
+     [
+      -0.000555475,
+      -0.180267
+     ],
+     [
+      0.184224,
+      0.0984142
+     ],
+     [
+      -0.30674,
+      0.462753
+     ],
+     [
+      0.209436,
+      -0.416531
+     ],
+     [
+      -0.00286932,
+      0.50434
+     ],
+     [
+      0.655649,
+      0.07595
+     ],
+     [
+      0.00859668,
+      0.0492554
+     ],
+     [
+      -0.143969,
+      -0.0197491
+     ],
+     [
+      0.837108,
+      0.367476
+     ],
+     [
+      -0.637625,
+      0.25155
+     ],
+     [
+      0.0221295,
+      0.0483539
+     ],
+     [
+      0.752464,
+      0.507944
+     ],
+     [
+      -0.703298,
+      0.637404
+     ],
+     [
+      0.476785,
+      0.423622
+     ],
+     [
+      -0.0952905,
+      0.268722
+     ],
+     [
+      -0.101761,
+      0.290023
+     ],
+     [
+      0.147193,
+      -0.109481
+     ],
+     [
+      0.127401,
+      -0.805709
+     ],
+     [
+      -0.826556,
+      0.11691
+     ],
+     [
+      0.0579905,
+      -0.0134584
+     ],
+     [
+      -0.00641159,
+      0.106999
+     ],
+     [
+      -0.00252026,
+      -0.278751
+     ],
+     [
+      -0.209529,
+      0.592291
+     ],
+     [
+      -0.190244,
+      -0.284573
+     ],
+     [
+      0.59638,
+      -0.615484
+     ],
+     [
+      -0.370568,
+      0.47952
+     ],
+     [
+      0.640267,
+      0.525691
+     ],
+     [
+      -0.649045,
+      0.66176
+     ],
+     [
+      0.706468,
+      -0.141001
+     ],
+     [
+      0.279266,
+      -0.244089
+     ],
+     [
+      0.0780861,
+      -0.0531915
+     ],
+     [
+      0.0487149,
+      -0.0112631
+     ],
+     [
+      0.622055,
+      -0.461266
+     ],
+     [
+      0.278845,
+      -0.0732073
+     ],
+     [
+      -0.878257,
+      0.173086
+     ],
+     [
+      -0.0385453,
+      0.448682
+     ],
+     [
+      0.0294122,
+      0.0659822
+     ],
+     [
+      -0.173591,
+      -0.188864
+     ],
+     [
+      -0.0330865,
+      0.706918
+     ],
+     [
+      -0.155698,
+      0.0908548
+     ],
+     [
+      -0.51621,
+      -0.623376
+     ],
+     [
+      0.016098,
+      0.0801724
+     ],
+     [
+      0.144694,
+      0.163585
+     ],
+     [
+      0.0964856,
+      -0.97618
+     ],
+     [
+      0.509877,
+      -0.720228
+     ],
+     [
+      0.422543,
+      -0.225458
+     ],
+     [
+      -0.163563,
+      -0.0163791
+     ],
+     [
+      0.205022,
+      0.285932
+     ],
+     [
+      -0.435007,
+      0.431012
+     ],
+     [
+      0.559075,
+      0.670378
+     ],
+     [
+      0.13346,
+      0.0904166
+     ],
+     [
+      0.0143369,
+      0.0901717
+     ],
+     [
+      -0.200687,
+      0.642111
+     ],
+     [
+      0.0454887,
+      -0.220098
+     ],
+     [
+      -0.769908,
+      -0.204701
+     ],
+     [
+      -0.399372,
+      -0.154163
+     ],
+     [
+      -0.183135,
+      -0.369292
+     ],
+     [
+      0.148448,
+      -0.91174
+     ],
+     [
+      0.309912,
+      -0.913934
+     ],
+     [
+      -0.141161,
+      -0.696713
+     ],
+     [
+      -0.0157532,
+      0.926789
+     ],
+     [
+      -0.522634,
+      0.104315
+     ],
+     [
+      -0.458799,
+      -0.608029
+     ],
+     [
+      -0.590427,
+      -0.476194
+     ],
+     [
+      -0.0968442,
+      0.465791
+     ],
+     [
+      -0.0925636,
+      -0.0189406
+     ],
+     [
+      -0.512322,
+      -0.567954
+     ],
+     [
+      0.269752,
+      -0.220905
+     ],
+     [
+      0.392263,
+      -0.240014
+     ],
+     [
+      -0.869487,
+      0.330271
+     ],
+     [
+      0.718461,
+      0.358662
+     ],
+     [
+      -0.102778,
+      0.015984
+     ],
+     [
+      -0.511247,
+      0.307286
+     ],
+     [
+      -0.591191,
+      -0.454687
+     ],
+     [
+      -0.496425,
+      0.313178
+     ],
+     [
+      0.328183,
+      0.361788
+     ],
+     [
+      -0.365083,
+      -0.831218
+     ],
+     [
+      0.258937,
+      -0.501852
+     ],
+     [
+      -0.214169,
+      0.359619
+     ],
+     [
+      0.609957,
+      -0.546392
+     ],
+     [
+      -0.0578601,
+      0.0315153
+     ],
+     [
+      0.198803,
+      -0.548886
+     ],
+     [
+      -0.345007,
+      -0.639644
+     ],
+     [
+      0.360083,
+      -0.616606
+     ],
+     [
+      -0.53558,
+      -0.0240557
+     ],
+     [
+      -0.586592,
+      -0.758292
+     ],
+     [
+      -0.0215005,
+      -0.249242
+     ],
+     [
+      0.648886,
+      -0.679599
+     ],
+     [
+      0.199125,
+      0.117296
+     ],
+     [
+      -0.757206,
+      -0.203006
+     ],
+     [
+      0.667483,
+      -0.287474
+     ],
+     [
+      0.23929,
+      0.358796
+     ],
+     [
+      -0.231375,
+      0.155481
+     ],
+     [
+      -0.238235,
+      0.819937
+     ],
+     [
+      0.107167,
+      -0.00224646
+     ],
+     [
+      0.352883,
+      -0.213046
+     ],
+     [
+      0.172597,
+      -0.123171
+     ],
+     [
+      -0.151973,
+      0.697687
+     ],
+     [
+      0.431946,
+      0.0465644
+     ],
+     [
+      -0.321832,
+      0.69388
+     ],
+     [
+      0.0507467,
+      -0.0557912
+     ],
+     [
+      -0.176045,
+      -0.297267
+     ],
+     [
+      0.751558,
+      -0.0756062
+     ],
+     [
+      0.656063,
+      0.265349
+     ],
+     [
+      -0.287552,
+      -0.179786
+     ],
+     [
+      0.440439,
+      0.749965
+     ],
+     [
+      0.261077,
+      0.879458
+     ],
+     [
+      -0.420212,
+      0.382
+     ],
+     [
+      -0.0109313,
+      0.520119
+     ],
+     [
+      -0.392822,
+      -0.0159053
+     ],
+     [
+      -0.0104874,
+      -0.704437
+     ],
+     [
+      -0.273134,
+      -0.195608
+     ],
+     [
+      0.787719,
+      0.345606
+     ],
+     [
+      -0.0504671,
+      0.025078
+     ],
+     [
+      0.36312,
+      -0.0898867
+     ],
+     [
+      0.0670039,
+      -0.237728
+     ],
+     [
+      0.265148,
+      0.0467086
+     ],
+     [
+      0.344727,
+      -0.208113
+     ],
+     [
+      0.200801,
+      0.565047
+     ],
+     [
+      -0.711319,
+      0.680077
+     ],
+     [
+      0.560787,
+      0.283249
+     ],
+     [
+      0.0329614,
+      0.423636
+     ],
+     [
+      0.275301,
+      0.391897
+     ],
+     [
+      -0.505017,
+      -0.424972
+     ],
+     [
+      0.833859,
+      0.426177
+     ],
+     [
+      0.83131,
+      0.51472
+     ],
+     [
+      0.898438,
+      -0.150985
+     ],
+     [
+      0.0642384,
+      -0.825934
+     ],
+     [
+      -0.0288682,
+      -0.691203
+     ],
+     [
+      0.0325425,
+      0.337565
+     ],
+     [
+      0.317594,
+      -0.0881429
+     ],
+     [
+      -0.218194,
+      0.242781
+     ],
+     [
+      -0.0945432,
+      0.28577
+     ],
+     [
+      -0.520702,
+      0.249576
+     ],
+     [
+      0.374804,
+      -0.155688
+     ],
+     [
+      -0.485753,
+      -0.544836
+     ],
+     [
+      0.075649,
+      0.614087
+     ],
+     [
+      -0.407626,
+      -0.807645
+     ],
+     [
+      -0.0382151,
+      -0.852991
+     ],
+     [
+      -0.192447,
+      0.16961
+     ],
+     [
+      -0.328221,
+      0.151197
+     ],
+     [
+      0.208868,
+      0.798381
+     ],
+     [
+      0.591495,
+      0.667645
+     ],
+     [
+      -0.512687,
+      0.186784
+     ],
+     [
+      -0.640643,
+      0.520207
+     ],
+     [
+      0.121304,
+      0.124624
+     ],
+     [
+      -0.150812,
+      -0.223027
+     ],
+     [
+      -0.131652,
+      -0.291737
+     ],
+     [
+      0.0113068,
+      0.0552086
+     ],
+     [
+      0.215562,
+      0.657365
+     ],
+     [
+      -0.430065,
+      0.257325
+     ],
+     [
+      0.490672,
+      -0.623577
+     ],
+     [
+      -0.950778,
+      0.0545404
+     ],
+     [
+      -0.45165,
+      -0.359766
+     ],
+     [
+      0.0412675,
+      0.10578
+     ],
+     [
+      -0.502205,
+      -0.542769
+     ],
+     [
+      0.275499,
+      0.298021
+     ],
+     [
+      -0.774808,
+      -0.441916
+     ],
+     [
+      -0.164432,
+      0.769757
+     ],
+     [
+      0.138959,
+      0.44503
+     ],
+     [
+      0.729753,
+      0.606937
+     ],
+     [
+      0.0342761,
+      0.611415
+     ],
+     [
+      -0.62432,
+      -0.510061
+     ],
+     [
+      -0.086667,
+      0.0733576
+     ],
+     [
+      0.516826,
+      0.368276
+     ],
+     [
+      0.107997,
+      -0.378019
+     ],
+     [
+      -0.741751,
+      -0.211216
+     ],
+     [
+      -0.530927,
+      -0.0946487
+     ],
+     [
+      0.549145,
+      0.291903
+     ],
+     [
+      0.532499,
+      -0.145452
+     ],
+     [
+      0.212956,
+      0.418311
+     ],
+     [
+      0.311381,
+      0.334076
+     ],
+     [
+      0.249487,
+      -0.401352
+     ],
+     [
+      -0.0577548,
+      0.3374
+     ],
+     [
+      -0.115385,
+      0.395729
+     ],
+     [
+      0.243447,
+      -0.751871
+     ],
+     [
+      -0.0251869,
+      -0.3796
+     ],
+     [
+      -0.0631507,
+      -0.943876
+     ],
+     [
+      -0.0600748,
+      -0.196717
+     ],
+     [
+      0.292409,
+      0.0565451
+     ],
+     [
+      0.532677,
+      0.308478
+     ],
+     [
+      0.0296958,
+      0.471641
+     ],
+     [
+      0.0719756,
+      -0.0660058
+     ],
+     [
+      -0.0146965,
+      -0.316549
+     ],
+     [
+      -0.810366,
+      0.341192
+     ],
+     [
+      -0.0946843,
+      -0.0346815
+     ],
+     [
+      0.323054,
+      0.403713
+     ],
+     [
+      -0.369508,
+      0.512033
+     ],
+     [
+      -0.394305,
+      -0.288302
+     ],
+     [
+      0.287822,
+      -0.579817
+     ],
+     [
+      -0.0345473,
+      -0.592304
+     ],
+     [
+      0.521058,
+      0.727869
+     ],
+     [
+      -0.259604,
+      -0.176128
+     ],
+     [
+      -0.208668,
+      0.329441
+     ],
+     [
+      -0.802591,
+      0.0259358
+     ],
+     [
+      -0.426792,
+      -0.217307
+     ]
+    ],
+    "title": "Decision regions after training with autograd",
+    "w": 60
+   }
+  ],
+  "params": {},
+  "results": {
+   "autograd_max_difference": 4.85723e-17,
+   "device": "mps",
+   "n_params": 1251,
+   "speedup_width_2048": 1.51418,
+   "speedup_width_32": 0.1608,
+   "val_acc": 0.96
+  },
+  "seconds": 1.9,
+  "seed": 1,
+  "sha": "7f2f06b083da825a32f4abef0729ea8bd3d0d3970067142f03daa4e682717b33",
+  "when": "2026-11-10",
+  "where": "MacBook Air M5, PyTorch 2.15.0 on the Apple GPU (mps), Python 3.12.14, numpy 2.5.4"
+ },
+ "u07_char_transformer/default": {
+  "curve": [
+   {
+    "bigram_table": 2.4819,
+    "step": 0,
+    "train_loss": 4.2786,
+    "val_loss": 4.2686
+   },
+   {
+    "bigram_table": 2.4819,
+    "step": 100,
+    "train_loss": 2.492,
+    "val_loss": 2.4899
+   },
+   {
+    "bigram_table": 2.4819,
+    "step": 200,
+    "train_loss": 2.3102,
+    "val_loss": 2.326
+   },
+   {
+    "bigram_table": 2.4819,
+    "step": 300,
+    "train_loss": 2.1448,
+    "val_loss": 2.1929
+   },
+   {
+    "bigram_table": 2.4819,
+    "step": 400,
+    "train_loss": 1.9681,
+    "val_loss": 2.0498
+   },
+   {
+    "bigram_table": 2.4819,
+    "step": 500,
+    "train_loss": 1.8401,
+    "val_loss": 1.964
+   },
+   {
+    "bigram_table": 2.4819,
+    "step": 600,
+    "train_loss": 1.7382,
+    "val_loss": 1.88
+   },
+   {
+    "bigram_table": 2.4819,
+    "step": 700,
+    "train_loss": 1.6616,
+    "val_loss": 1.8287
+   },
+   {
+    "bigram_table": 2.4819,
+    "step": 800,
+    "train_loss": 1.6093,
+    "val_loss": 1.7869
+   },
+   {
+    "bigram_table": 2.4819,
+    "step": 900,
+    "train_loss": 1.5597,
+    "val_loss": 1.7544
+   },
+   {
+    "bigram_table": 2.4819,
+    "step": 1000,
+    "train_loss": 1.5198,
+    "val_loss": 1.7125
+   },
+   {
+    "bigram_table": 2.4819,
+    "step": 1100,
+    "train_loss": 1.4737,
+    "val_loss": 1.6822
+   },
+   {
+    "bigram_table": 2.4819,
+    "step": 1200,
+    "train_loss": 1.4556,
+    "val_loss": 1.6576
+   },
+   {
+    "bigram_table": 2.4819,
+    "step": 1300,
+    "train_loss": 1.4316,
+    "val_loss": 1.6313
+   },
+   {
+    "bigram_table": 2.4819,
+    "step": 1400,
+    "train_loss": 1.4123,
+    "val_loss": 1.6296
+   },
+   {
+    "bigram_table": 2.4819,
+    "step": 1500,
+    "train_loss": 1.4033,
+    "val_loss": 1.6192
+   },
+   {
+    "bigram_table": 2.4819,
+    "step": 1600,
+    "train_loss": 1.3808,
+    "val_loss": 1.59
+   },
+   {
+    "bigram_table": 2.4819,
+    "step": 1700,
+    "train_loss": 1.3697,
+    "val_loss": 1.5788
+   },
+   {
+    "bigram_table": 2.4819,
+    "step": 1800,
+    "train_loss": 1.3556,
+    "val_loss": 1.5791
+   },
+   {
+    "bigram_table": 2.4819,
+    "step": 1900,
+    "train_loss": 1.3502,
+    "val_loss": 1.5898
+   },
+   {
+    "bigram_table": 2.4819,
+    "step": 2000,
+    "train_loss": 1.3455,
+    "val_loss": 1.5761
+   }
+  ],
+  "log": [
+   "dataset 'tinyshakespeare' was not sent by the page: reading it from https://raw.githubusercontent.com/karpathy/char-rnn/master/data/tinyshakespeare/input.txt (kept in memory, nothing is saved)",
+   "1115394 characters, 65 distinct; uniform guess = ln 65 = 4.174 nats; unigram table 3.347; bigram table 2.482",
+   "model: 4 layers, 4 heads, d = 128, context 128 characters, 824832 parameters, on mps",
+   "step 500, val 1.964 | God suge, / Of bood charly head of that thee, here heiss, / Wen who sir. /  / CLAMY RIXENER: / Seear: it, a you thy meen; my be re",
+   "step 1000, val 1.713 | Of man lady brother, his confording hands: / State, being the bury dane, nights the made / Conder her of the snew for the ra",
+   "step 1500, val 1.619 | Hath livery's charge ere pleasure to your pastard / To do this body; but this solding was, for I / will be satisful of the s",
+   "step 2000, val 1.576 | First was children, country, get the duke! /  / COMINIUS: / Show I think it be dead / King of men: I have nothing could love the"
+  ],
+  "note": "Recorded on the Mac in one engine process that ran the three presets of this experiment one after another, with PyTorch's seed reset before each (the script draws no other random numbers). The engine fetched the text itself, as the first line of the log says; a run from the page sends the same text along instead.",
+  "outputs": [
+   {
+    "kind": "text",
+    "text": "Comfortaning, that profference to my cold.\nWho make the dance together the power that agone\nMy far out her cannot be but in aidies;\nWhen dead all do not he and decrived the grows of\nentreat was of a head a broken'd;\nI' the dange not what so as will shall speak.\nI am it the struce of grief away: I brawted\nEven them struck that you there chance and fear of\nthe percious of the does blood; the heart hear\nWith the bids of sworn sword now the rage\nTo Henry thousand folly tears; thou art Margalet:\nBeing with thy mother little castle;\nBut with him beaut hour ne'er in the means:\nThat beauteous that thi",
+    "title": "Sample from the trained model (temperature 0.8)"
+   }
+  ],
+  "params": {},
+  "results": {
+   "bigram_table": 2.48189,
+   "bits_per_char": 2.2738,
+   "device": "mps",
+   "loss_at_step_0": 4.26862,
+   "n_params": 824832,
+   "seconds": 102.151,
+   "steps": 2000,
+   "steps_per_second": 19.5789,
+   "train_loss": 1.34552,
+   "uniform": 4.17439,
+   "unigram_table": 3.34733,
+   "val_loss": 1.57608
+  },
+  "seconds": 102.151,
+  "seed": 1,
+  "sha": "f047bab8ed1be94ddb4d6780b934a3e0687b7c732459dda25315398528e4efbb",
+  "when": "2026-11-10",
+  "where": "MacBook Air M5, PyTorch 2.15.0 on the Apple GPU (mps), Python 3.12.14, numpy 2.5.4"
+ },
+ "u07_char_transformer/nopos": {
+  "curve": [
+   {
+    "bigram_table": 2.4819,
+    "step": 0,
+    "train_loss": 4.284,
+    "val_loss": 4.274
+   },
+   {
+    "bigram_table": 2.4819,
+    "step": 100,
+    "train_loss": 2.4739,
+    "val_loss": 2.4776
+   },
+   {
+    "bigram_table": 2.4819,
+    "step": 200,
+    "train_loss": 2.3312,
+    "val_loss": 2.3515
+   },
+   {
+    "bigram_table": 2.4819,
+    "step": 300,
+    "train_loss": 2.2266,
+    "val_loss": 2.2698
+   },
+   {
+    "bigram_table": 2.4819,
+    "step": 400,
+    "train_loss": 2.1311,
+    "val_loss": 2.1881
+   },
+   {
+    "bigram_table": 2.4819,
+    "step": 500,
+    "train_loss": 2.0065,
+    "val_loss": 2.0905
+   },
+   {
+    "bigram_table": 2.4819,
+    "step": 600,
+    "train_loss": 1.9072,
+    "val_loss": 2.0118
+   },
+   {
+    "bigram_table": 2.4819,
+    "step": 700,
+    "train_loss": 1.8173,
+    "val_loss": 1.9509
+   },
+   {
+    "bigram_table": 2.4819,
+    "step": 800,
+    "train_loss": 1.7549,
+    "val_loss": 1.9024
+   },
+   {
+    "bigram_table": 2.4819,
+    "step": 900,
+    "train_loss": 1.6957,
+    "val_loss": 1.8614
+   },
+   {
+    "bigram_table": 2.4819,
+    "step": 1000,
+    "train_loss": 1.6506,
+    "val_loss": 1.8284
+   },
+   {
+    "bigram_table": 2.4819,
+    "step": 1100,
+    "train_loss": 1.6016,
+    "val_loss": 1.7999
+   },
+   {
+    "bigram_table": 2.4819,
+    "step": 1200,
+    "train_loss": 1.5784,
+    "val_loss": 1.7667
+   },
+   {
+    "bigram_table": 2.4819,
+    "step": 1300,
+    "train_loss": 1.5524,
+    "val_loss": 1.7356
+   },
+   {
+    "bigram_table": 2.4819,
+    "step": 1400,
+    "train_loss": 1.536,
+    "val_loss": 1.7245
+   },
+   {
+    "bigram_table": 2.4819,
+    "step": 1500,
+    "train_loss": 1.5224,
+    "val_loss": 1.7168
+   },
+   {
+    "bigram_table": 2.4819,
+    "step": 1600,
+    "train_loss": 1.4972,
+    "val_loss": 1.6889
+   },
+   {
+    "bigram_table": 2.4819,
+    "step": 1700,
+    "train_loss": 1.486,
+    "val_loss": 1.6754
+   },
+   {
+    "bigram_table": 2.4819,
+    "step": 1800,
+    "train_loss": 1.4693,
+    "val_loss": 1.6692
+   },
+   {
+    "bigram_table": 2.4819,
+    "step": 1900,
+    "train_loss": 1.4665,
+    "val_loss": 1.6731
+   },
+   {
+    "bigram_table": 2.4819,
+    "step": 2000,
+    "train_loss": 1.4587,
+    "val_loss": 1.6628
+   }
+  ],
+  "log": [
+   "dataset 'tinyshakespeare' was not sent by the page: reading it from https://raw.githubusercontent.com/karpathy/char-rnn/master/data/tinyshakespeare/input.txt (kept in memory, nothing is saved)",
+   "1115394 characters, 65 distinct; uniform guess = ln 65 = 4.174 nats; unigram table 3.347; bigram table 2.482",
+   "model: 4 layers, 4 heads, d = 128, context 128 characters, 824832 parameters, on mps",
+   "step 500, val 2.090 | GRICIIUS: / O thou do moll he det a a so therd. /  / PAMIUM: / Aust ware ill this gaingued, note hap ye are / This and in merigur'",
+   "step 1000, val 1.828 | Of man last be that, his cold thee: have speak, / Thou say my be find end not mine the greant, / The body and noble of that ",
+   "step 1500, val 1.717 | Have I have putes with all. /  / MARCIUS: / And namen done dance you heart, but resolved / Of that good may built soul, of the s",
+   "step 2000, val 1.663 | For Even the kounds counturatied night. I seet, be / A with the were it be dead / King Henming and nover: and, if these the "
+  ],
+  "note": "Recorded on the Mac in one engine process that ran the three presets of this experiment one after another, with PyTorch's seed reset before each (the script draws no other random numbers). The engine fetched the text itself, as the first line of the log says; a run from the page sends the same text along instead.",
+  "outputs": [
+   {
+    "kind": "text",
+    "text": "Comf not be sit as pray ourage.\n\nMARCIUS:\nNull, he wound be met great, sir: where I'll do'er,\nFrom she heal another, but in a traitor.\n\nFirst Servingman:\nMy Besseech loved and 'tis gentleman, and unfectience,\nFor this for then at to hear so as word,\nAnd she drinken of truth the make of my must soul,\nWhere I do the sbeet to thy friend\nFrom our and fear of the prisonat,\nO, where I beet follow the mind\nDo do the by people. My son, sincly:\nI'll till merset of the which tear with head;\nMy inle thee of with thy morned since consule thing is destreed\ndow urging in the slave so hear but heart: have hi",
+    "title": "Sample from the trained model (temperature 0.8)"
+   }
+  ],
+  "params": {
+   "positional": false
+  },
+  "results": {
+   "bigram_table": 2.48189,
+   "bits_per_char": 2.39892,
+   "device": "mps",
+   "loss_at_step_0": 4.27399,
+   "n_params": 824832,
+   "seconds": 108.172,
+   "steps": 2000,
+   "steps_per_second": 18.489,
+   "train_loss": 1.45873,
+   "uniform": 4.17439,
+   "unigram_table": 3.34733,
+   "val_loss": 1.6628
+  },
+  "seconds": 108.172,
+  "seed": 1,
+  "sha": "f047bab8ed1be94ddb4d6780b934a3e0687b7c732459dda25315398528e4efbb",
+  "when": "2026-11-10",
+  "where": "MacBook Air M5, PyTorch 2.15.0 on the Apple GPU (mps), Python 3.12.14, numpy 2.5.4"
+ },
+ "u07_char_transformer/quick": {
+  "curve": [
+   {
+    "bigram_table": 2.4819,
+    "step": 0,
+    "train_loss": 4.2786,
+    "val_loss": 4.2686
+   },
+   {
+    "bigram_table": 2.4819,
+    "step": 50,
+    "train_loss": 2.57,
+    "val_loss": 2.583
+   },
+   {
+    "bigram_table": 2.4819,
+    "step": 100,
+    "train_loss": 2.4409,
+    "val_loss": 2.4515
+   },
+   {
+    "bigram_table": 2.4819,
+    "step": 150,
+    "train_loss": 2.3743,
+    "val_loss": 2.3911
+   },
+   {
+    "bigram_table": 2.4819,
+    "step": 200,
+    "train_loss": 2.2992,
+    "val_loss": 2.3133
+   },
+   {
+    "bigram_table": 2.4819,
+    "step": 250,
+    "train_loss": 2.259,
+    "val_loss": 2.2823
+   },
+   {
+    "bigram_table": 2.4819,
+    "step": 300,
+    "train_loss": 2.2428,
+    "val_loss": 2.2591
+   }
+  ],
+  "log": [
+   "dataset 'tinyshakespeare' was not sent by the page: reading it from https://raw.githubusercontent.com/karpathy/char-rnn/master/data/tinyshakespeare/input.txt (kept in memory, nothing is saved)",
+   "1115394 characters, 65 distinct; uniform guess = ln 65 = 4.174 nats; unigram table 3.347; bigram table 2.482",
+   "model: 4 layers, 4 heads, d = 128, context 128 characters, 824832 parameters, on mps",
+   "step 250, val 2.282 | MAJKE: / Sans il premy a, wild a chil seret isengad, sof st is coverers trorey ther. / Cher Sordqur Ie shimoowsh. /  /  / TENCIUKE"
+  ],
+  "note": "Recorded on the Mac in one engine process that ran the three presets of this experiment one after another, with PyTorch's seed reset before each (the script draws no other random numbers). The engine fetched the text itself, as the first line of the log says; a run from the page sends the same text along instead.",
+  "outputs": [
+   {
+    "kind": "text",
+    "text": "jw od ow tore the theath\nOnd beffop sthath inas avearch my\nme dilout 'dend thy thouce whecol thar whe yendt ind.\n\nDUTENEGAJS:\nSeis, be ceshe ualld tho blou thich at caves fim\nAvease the ongerdt lovenow:\nWilllle pres some omaptsth the bunke ols sefe\nTo, cese esthe at shetathe\nsend toret, deas:\nWhe pean the baly heth yars lo haleang.\n\nMinchaver gyow, tom thed yowe lif sir's\nRirors ithy lour sord coainc:\nFo byove; hod wice od hemout wam venely myou farghow didits'd!\nFome shar ored in!\n\nWhand tosthks fores herece orel berstaisss, brom thages\nBund ant if thoul bucend lons anst.\n\nINOGLEENN:\nMheans t",
+    "title": "Sample from the trained model (temperature 0.8)"
+   }
+  ],
+  "params": {
+   "eval_every": 50,
+   "max_steps": 300
+  },
+  "results": {
+   "bigram_table": 2.48189,
+   "bits_per_char": 3.25921,
+   "device": "mps",
+   "loss_at_step_0": 4.26862,
+   "n_params": 824832,
+   "seconds": 16.5391,
+   "steps": 300,
+   "steps_per_second": 18.1388,
+   "train_loss": 2.24284,
+   "uniform": 4.17439,
+   "unigram_table": 3.34733,
+   "val_loss": 2.25911
+  },
+  "seconds": 16.5391,
+  "seed": 1,
+  "sha": "f047bab8ed1be94ddb4d6780b934a3e0687b7c732459dda25315398528e4efbb",
+  "when": "2026-11-10",
+  "where": "MacBook Air M5, PyTorch 2.15.0 on the Apple GPU (mps), Python 3.12.14, numpy 2.5.4"
+ }
+}

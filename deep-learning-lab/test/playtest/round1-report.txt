@@ -1,0 +1,49 @@
+PLAYTEST REPORT (desktop 1360x900, phone 390x844)
+
+A. What it wants, and what I concluded
+
+A study companion to a deep-learning course for mathematicians. Per week: play with a figure, read labelled statements with folded proofs, ask a tutor about any line, then predict the outcome of a training run, run it, and learn whether the prediction held and why. The first screen says so plainly; "Begin with week 1" is obvious.
+
+- Week 1 figure (three hinges): a sum of ReLU hinges fits a curve; gradient descent does the fitting and can stall. Bends 2, -2, 2 made the loss worse (0.673); 2, -4, 2 at kinks -0.5, 0, 0.5 gave 0. "What you just did" confirmed those numbers, and its suggested bad start stalled as promised (0.166).
+- Week 1 experiments: backprop exactness, predicted "below 1e-6", held (1.86e-8). Zero init, predicted chance, held (33.0%); on the phone I chose "worse, but above chance" and was corrected. Step size x10, predicted failure, held, for a reason new to me ("Nothing overflowed": dead ReLUs). PyTorch (cannot run here): the reference run corrected me, GPU 7.5 times slower at width 32.
+- Week 4 figure (narrow valley): blow-up just above eta x kappa = 2 at kappa 25 and 100; momentum cut 76 steps to 18. Confirmed, but see D1.
+- Week 4 experiments: optimizers, predicted about 300 steps, held (286); adversarial, predicted 60-95%, corrected (42.9% at d = 1024).
+- Week 7 figure (soft lookup): output 4.00 with the query along D; sharpness 0 gives the plain average 3.00; query length acts exactly like sharpness. Confirmed.
+- Week 7 experiments: without 1/sqrt(d_k), predicted over 60%, held; transformer (cannot run), reference run, held.
+
+B. Stuck
+
+Desktop
+1. Week 1 figure: dragging the coloured kink dots does nothing; only the sliders work. [/tmp/claude-0/-home-claude/efcf409f-2aca-529c-8493-cbc7f2b9ce81/scratchpad/playtest1/d07_after_dot_drag.png]
+2. After a run with live curves the verdict is off-screen (run button at y = 600, verdict at y = 1037, window 900 high). [/tmp/claude-0/-home-claude/efcf409f-2aca-529c-8493-cbc7f2b9ce81/scratchpad/playtest1/d172_w1_q2_done_noscroll.png]
+3. After editing a script, "Reset to the original" is absent until I leave the Code tab and return. [/tmp/claude-0/-home-claude/efcf409f-2aca-529c-8493-cbc7f2b9ce81/scratchpad/playtest1/d58_code_edited.png]
+4. "Show line 65" opens the editor with that line just above the visible area. [/tmp/claude-0/-home-claude/efcf409f-2aca-529c-8493-cbc7f2b9ce81/scratchpad/playtest1/d165_show_line_again.png]
+5. PyTorch experiments: the banner says "no PyTorch", the button still says "Lock in and run on my Mac", then "The run failed"; the message never mentions the reference run. [/tmp/claude-0/-home-claude/efcf409f-2aca-529c-8493-cbc7f2b9ce81/scratchpad/playtest1/d71_exp2_after_run.png]
+6. Selecting the "Data." line, the prediction question or a table cell gives no Ask bubble, despite "Select any text in the notes, in an experiment or in an answer". [/tmp/claude-0/-home-claude/efcf409f-2aca-529c-8493-cbc7f2b9ce81/scratchpad/playtest1/d167_select_in_experiment.png]
+
+Phone
+1. Long-press selected nothing in this headless browser, so real touch selection is untested; with a scripted selection the bubble, bottom sheet and follow-up worked. [/tmp/claude-0/-home-claude/efcf409f-2aca-529c-8493-cbc7f2b9ce81/scratchpad/playtest1/m13_longpress.png]
+2. "Show the place": the notes scroll, but the sheet stays over the lower two thirds and hides the marked line. [/tmp/claude-0/-home-claude/efcf409f-2aca-529c-8493-cbc7f2b9ce81/scratchpad/playtest1/m18_show_place.png]
+3. After "Lock in and run" the screen looks unchanged; the verdict is below it (y = 1128 of 844). [/tmp/claude-0/-home-claude/efcf409f-2aca-529c-8493-cbc7f2b9ce81/scratchpad/playtest1/m50_phone_q3_done_noscroll.png]
+
+C. Not understood (all desktop; on the phone nothing beyond B and D)
+
+- The engine text addresses someone else: "the small Python engine from your strategy-lab repository", "each run asks for your approval in Claude", "README.md, section 4½". Nothing says how a newcomer gets it. [/tmp/claude-0/-home-claude/efcf409f-2aca-529c-8493-cbc7f2b9ce81/scratchpad/playtest1/d03_engine.png]
+- Fresh load: the overview ends "Not saved: storage is unavailable here." while the margin says "Saved to your Claude account (private to you)." [/tmp/claude-0/-home-claude/efcf409f-2aca-529c-8493-cbc7f2b9ce81/scratchpad/playtest1/d127_fresh_overview_bottom.png]
+- "Show the place" on a question not tied to a line jumps to the top of the unit; I lost my place. [/tmp/claude-0/-home-claude/efcf409f-2aca-529c-8493-cbc7f2b9ce81/scratchpad/playtest1/d35_show_place_unanchored.png]
+- Week 1 notes: "The first experiment lets you produce a disagreement on purpose." The experiment does not say how.
+- Unwritten unit (week 2): clear about its status; each "ask" link sends a ready-made question at once. Sources: a plain list of outside links (not followed, offline).
+- Reload kept unit, tab, engine connection, remarks, my note, edited script, run history, ledger; it lost scroll position, slider positions, open proofs and the last result panel.
+
+D. Broken or wrong
+1. Week 4 figure: "The buttons below set the optimal values so that you can compare them with your best." On the figure's own counter mine were better: 76 steps (eta 0.075) against the button's 87; with momentum, 18 against 27. "the best plain step is eta = 2/(1+kappa)" holds for the worst-case rate, not for the counter shown. [/tmp/claude-0/-home-claude/efcf409f-2aca-529c-8493-cbc7f2b9ce81/scratchpad/playtest1/d87_w4_best_plain.png] [/tmp/claude-0/-home-claude/efcf409f-2aca-529c-8493-cbc7f2b9ce81/scratchpad/playtest1/d156_w4_hand_best.png]
+2. Week 4 optimizers, WHY: "The run needs somewhat fewer because the stiff coordinates, which hold most of the initial loss, die out quickly." I believe this is wrong: at eta = 2/(lambda_1 + lambda_n) the stiffest coordinate contracts by the same (kappa-1)/(kappa+1) as the softest. [/tmp/claude-0/-home-claude/efcf409f-2aca-529c-8493-cbc7f2b9ce81/scratchpad/playtest1/d94_w4_q1_result_a.png]
+3. Run of a script I had broken (removed h'(z)): gradient error 1, accuracy 50.7%, yet "Your prediction held. IT WAS Around 1e-2: good enough to train", plus the stock WHY ("about 10^-8 relative here"). [/tmp/claude-0/-home-claude/efcf409f-2aca-529c-8493-cbc7f2b9ce81/scratchpad/playtest1/d61_buggy_run_b.png]
+4. Raw LaTeX: the title "Why divide by $\sqrt{d_k}$" [/tmp/claude-0/-home-claude/efcf409f-2aca-529c-8493-cbc7f2b9ce81/scratchpad/playtest1/d108_w7_sec1.png]; a quoted formula in the margin shown as "$$L(\theta^+) \le ...$$" [/tmp/claude-0/-home-claude/efcf409f-2aca-529c-8493-cbc7f2b9ce81/scratchpad/playtest1/d38_formula_explain.png].
+5. Formulas cut at the right edge. Desktop: the Adam update [/tmp/claude-0/-home-claude/efcf409f-2aca-529c-8493-cbc7f2b9ce81/scratchpad/playtest1/d163_w4_adam.png] and the block equations [/tmp/claude-0/-home-claude/efcf409f-2aca-529c-8493-cbc7f2b9ce81/scratchpad/playtest1/d109_w7_block.png]. Phone: 14 formulas, diagrams and tables, including the backpropagation theorem, with no cue that they scroll sideways [/tmp/claude-0/-home-claude/efcf409f-2aca-529c-8493-cbc7f2b9ce81/scratchpad/playtest1/m32_w1_backprop_diagram.png].
+6. Phone: the ledger table shows three of six columns; "It was" and held/missed are off-screen. [/tmp/claude-0/-home-claude/efcf409f-2aca-529c-8493-cbc7f2b9ce81/scratchpad/playtest1/m38_ledger_table.png]
+
+E. What would make me stop
+Nine of the twelve weeks are only a syllabus and a tutor. I could not obtain the engine as described, and the headline experiments need PyTorch, leaving reference runs to look at. Each unit is one scroll of 8,500 to 10,500 pixels with no section list, and "section 6" is not a link. Worst for trust: once a WHY box and an "optimal" button contradicted numbers on the same screen, I began rechecking every explanation; a study page I have to audit has lost its use.
+
+Notes: an early extraction script of mine accidentally printed a fragment of one inline script of the page; I did not use it. Nothing outside my scratch folder was changed; nothing here comes from memory.
