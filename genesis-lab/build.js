@@ -3,7 +3,7 @@
 // 把 src/ 里的引擎和页面逻辑内联进 template.html，生成单文件页面（GitHub Pages 不跑构建）。
 // 两个版本从同一份源码构建：经典版 index.html；量子版 quantum/index.html（多了 src/q/ 的引擎、旋钮面板和"最初三分钟"展区）。
 // 用法：node build.js            两个版本都构建
-//       node build.js --artifact <路径> [--artifact-q <路径>]   另外输出发到 Claude Artifact 的变体（去掉文档骨架）
+//       node build.js --artifact <路径> [--artifact-q <路径>] [--artifact-en <路径>] [--artifact-q-en <路径>]   另外输出发到 Claude Artifact 的变体（去掉文档骨架；-en 是英文版）
 const fs = require('fs'), path = require('path');
 let SRC_DIR = path.join(__dirname, 'src');                      // 英文版构建时指向 i18n/work/en-src（译好的源码）
 const src = (p) => fs.readFileSync(path.join(SRC_DIR, p), 'utf8');
@@ -81,6 +81,6 @@ function artifact(t, title) {
   a = a.replace('<script>\n', '<script>window.GENESIS_ARTIFACT = true; // Artifact 环境：下载按钮改为显示文本\n');
   return '<!-- Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。 -->\n' + a.replace(/^\s+/, '');
 }
-for (const [flag, q, title] of [['--artifact', false, '创世实验室 · Genesis Lab'], ['--artifact-q', true, '创世实验室 · 量子版']]) {
-  const i = process.argv.indexOf(flag); if (i > 0 && process.argv[i + 1]) { const a = artifact(build(q, true), title); fs.writeFileSync(process.argv[i + 1], a); console.log('artifact variant written to', process.argv[i + 1], a.length, 'bytes'); }
+for (const [flag, q, lang] of [['--artifact', false, 'zh'], ['--artifact-q', true, 'zh'], ['--artifact-en', false, 'en'], ['--artifact-q-en', true, 'en']]) {
+  const i = process.argv.indexOf(flag); if (i > 0 && process.argv[i + 1]) { if (lang === 'en' && !HAS_EN) { console.error(flag + ' 需要英文译文（i18n/en/）'); process.exit(1); } const a = artifact(build(q, true, lang), q ? TXT[lang].titleQ : TXT[lang].title); fs.writeFileSync(process.argv[i + 1], a); console.log('artifact variant written to', process.argv[i + 1], a.length, 'bytes'); }
 }
