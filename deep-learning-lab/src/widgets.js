@@ -11,6 +11,7 @@
  *                         over positions does not move at all
  *   bptt        (week 6)  feed one number back into itself 60 times: the gradient through time shrinks or saturates
  *                         for almost every weight; an additive path keeps it
+ *   isoflop     (week 8)  a fixed compute budget C = 6ND: find the model size with the lowest loss, and where GPT-3 sat
  *   gdquad      (week 4)  the stiff direction caps the step size, the soft direction then crawls; momentum helps
  *   softlookup  (week 7)  attention is a lookup made soft: sharp scores pick one value, flat scores average all of them
  * A widget is a function (host) -> { destroy }. Nothing here is saved; these are sketches, the experiments are the measurements. */
@@ -590,6 +591,58 @@
     return { destroy: function () { un(); } };
   };
 
+  /* ================= week 8: one compute budget, many ways to spend it ================= */
+  DL.CHIN = { E: 1.82, A: 482.01, B: 2085.43, a: 0.3478, b: 0.3658 };
+  DL.chinLoss = function (N, D) { var p = DL.CHIN; return p.E + p.A / Math.pow(N, p.a) + p.B / Math.pow(D, p.b); };
+  DL.chinBest = function (C) { var p = DL.CHIN, G = Math.pow(p.a * p.A / (p.b * p.B), 1 / (p.a + p.b)), N = G * Math.pow(C / 6, p.b / (p.a + p.b)); return { N: N, D: C / (6 * N), L: DL.chinLoss(N, C / (6 * N)) }; };
+  DL.WIDGETS.isoflop = function (host) {
+    var lc = 23, ln = 9.5;
+    var cv = h("canvas", { class: "w-canvas", role: "img", "aria-label": "Loss against model size for a fixed compute budget; the marker is your choice" });
+    var read = h("div", { class: "w-read" });
+    function fmt(x) { var e = Math.floor(Math.log10(x)), m = x / Math.pow(10, e); return m.toFixed(2) + "e" + e; }
+    function words(x) { return x >= 1e12 ? (x / 1e12).toFixed(2) + " trillion" : x >= 1e9 ? (x / 1e9).toFixed(1) + " billion" : (x / 1e6).toFixed(0) + " million"; }
+    function draw() {
+      var P = pal(), c = fit(cv, 250), ctx = c.ctx, W = c.W, H = c.H, L = 48, R = W - 12, top = 12, bot = H - 32, n0 = 7, n1 = 13;
+      var C = Math.pow(10, lc), N = Math.pow(10, ln), D = C / (6 * N), loss = DL.chinLoss(N, D), best = DL.chinBest(C);
+      var pts = [], ymin = Infinity, ymax = -Infinity, i;
+      for (i = 0; i <= 240; i++) { var x = n0 + (n1 - n0) * i / 240, v = DL.chinLoss(Math.pow(10, x), C / (6 * Math.pow(10, x))); pts.push([x, v]); ymin = Math.min(ymin, v); }
+      ymax = ymin + 0.6;
+      function X(x) { return L + (R - L) * (x - n0) / (n1 - n0); } function Y(v) { return bot - (bot - top) * (Math.min(v, ymax) - ymin + 0.02) / (ymax - ymin + 0.04); }
+      ctx.fillStyle = P.surface; ctx.fillRect(0, 0, W, H);
+      ctx.strokeStyle = P.grid; ctx.lineWidth = 1; ctx.fillStyle = P.ink2; ctx.font = "11px " + P.font; ctx.textAlign = "center";
+      for (var e = n0; e <= n1; e++) { line(ctx, [[X(e), top], [X(e), bot]]); ctx.fillText("1e" + e, X(e), bot + 14); }
+      ctx.fillText(W > 420 ? "parameters N (the rest of the budget is tokens: D = C / 6N)" : "parameters N (tokens D = C / 6N)", (L + R) / 2, bot + 28);
+      ctx.textAlign = "right"; ctx.fillText(ymin.toFixed(2), L - 4, Y(ymin) + 4); ctx.fillText((ymin + 0.5).toFixed(2), L - 4, Y(ymin + 0.5) + 4);
+      ctx.strokeStyle = P.accent; ctx.lineWidth = 2; line(ctx, pts.map(function (q) { return [X(q[0]), Y(q[1])]; }));
+      ctx.fillStyle = P.ink; ctx.beginPath(); ctx.arc(X(ln), Y(loss), 6, 0, 7); ctx.fill();
+      var ok = loss - best.L < 0.001;
+      DL.clear(read);
+      DL.add(read, [h("span", {}, ["budget C ", h("b", { text: fmt(C) })]), h("span", {}, ["model ", h("b", { text: words(N) + " parameters" })]),
+        h("span", {}, ["data ", h("b", { text: words(D) + " tokens" })]), h("span", {}, ["tokens per parameter ", h("b", { text: (D / N).toFixed(1) })]),
+        h("span", {}, ["loss ", h("b", { text: loss.toFixed(4) })]),
+        ok ? h("span", {}, [h("b", { text: "✓ the lowest loss for this budget" })]) : h("span", {}, ["above this budget's best by ", h("b", { text: (loss - best.L).toFixed(4) })])]);
+    }
+    var sc = slider("compute budget, log₁₀ C ", 19, 25.5, 0.05, lc, function (v) { return "1e" + v.toFixed(2); }, function (v) { lc = v; draw(); });
+    var sn = slider("model size, log₁₀ N ", 7, 13, 0.01, ln, function (v) { return v.toFixed(2); }, function (v) { ln = v; draw(); });
+    var body = reveal("What you found", "- For a fixed budget the loss is U-shaped in the model size: too small a model cannot use the data, too large a model sees too few tokens. Every budget has a **compute-optimal** model, and on this loss surface it trains on about 20 tokens per parameter, almost independently of the budget.\n- Raising the budget moves the optimum right, but less than proportionally: ten times the compute buys a model about $10^{0.51} \\approx 3.3$ times larger, and the rest goes to data. This is the **Chinchilla** scaling law (section 5); the closed form is $N^* \\propto C^{\\beta/(\\alpha+\\beta)}$.\n- GPT-3 put its budget into 175 billion parameters and 300 billion tokens, under 2 tokens per parameter. By this law it was several times too large for its compute. Labs now often go far the other way, past the optimum, because a smaller model is cheaper to run (section 5).");
+    body.appendChild(h("div", { class: "w-row" }, [
+      h("button", { class: "btn quiet small", text: "Set GPT-3's choice", onclick: function () { lc = Math.log10(6 * 175e9 * 300e9); ln = Math.log10(175e9); sc.set(lc); sn.set(ln); draw(); } }),
+      h("button", { class: "btn quiet small", text: "Jump to this budget's optimum", onclick: function () { ln = Math.log10(DL.chinBest(Math.pow(10, lc)).N); sn.set(ln); draw(); } })
+    ]));
+    DL.add(host, [
+      h("div", { class: "w-h" }, [h("span", { class: "tag sim", text: "Sketch" }), h("b", { text: "One budget, many ways to spend it" })]),
+      h("p", { class: "w-task", text: "Training a language model with N parameters on D tokens costs about C = 6·N·D operations. The curve is the loss predicted by a published fit (section 5) for every way of splitting a fixed budget C between N and D." }),
+      h("ol", { class: "w-task", style: "margin:0;padding-left:24px" }, [
+        h("li", { text: "At a budget of 1e23, move the model size to the lowest loss. How many tokens per parameter is that?" }),
+        h("li", { text: "Multiply the budget by 10 (one step of 1 in log₁₀ C) and find the best size again. By what factor did it grow?" }),
+        h("li", { text: "Open “What you found” and set GPT-3's choice. How far is it from the best model for the same budget?" })
+      ]),
+      cv, read, h("div", { class: "w-ctl" }, [sc.el, sn.el]), body
+    ]);
+    var un = watch(cv, draw); draw();
+    return { destroy: function () { un(); } };
+  };
+
   /* ================= week 7: a lookup made soft ================= */
   DL.softWeights = function (q, keys, beta) {
     var s = keys.map(function (k) { return beta * (q[0] * k[0] + q[1] * k[1]); }), m = Math.max.apply(null, s), e = s.map(function (v) { return Math.exp(v - m); }), z = e.reduce(function (a, b) { return a + b; }, 0);
@@ -767,6 +820,28 @@
       b += txt(f1(X(-1.55)), 116, 'ts e a', 'attacked,') + txt(f1(X(-1.55)), 132, 'ts e a', 'd = 1024');
       b += txt(f1(X(0) + 7), base - 12, 'ts', '42%');
       return svg("0 0 624 216", 520, "The attack shifts the score distribution left by epsilon times the square root of the dimension", b);
+    },
+    /* week 8, section 2: byte-pair encoding of one word */
+    bpefig: function () {
+      var b = '', rows = [['␣', 'l', 'o', 'w', 'e', 'r'], ['␣l', 'o', 'w', 'e', 'r'], ['␣l', 'ow', 'e', 'r'], ['␣low', 'e', 'r'], ['␣low', 'er']];
+      var notes = ['start: characters', 'merge ␣ + l (frequent in training)', 'merge o + w', 'merge ␣l + ow', 'merge e + r: 2 tokens'];
+      rows.forEach(function (r, i) {
+        var y = 16 + i * 40, x = 30;
+        r.forEach(function (t) { var w = 22 + 12 * t.length; b += '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="28" rx="4" class="cell' + (i === rows.length - 1 ? ' on' : '') + '"/>' + txt(x + w / 2, y + 19, 'tx c', t); x += w + 6; });
+        b += txt(300, y + 19, 'ts', notes[i]);
+      });
+      return svg("0 0 560 " + (16 + rows.length * 40), 440, "The word lower with its leading space, merged step by step from six characters into two tokens", b);
+    },
+    /* week 8, section 3: the stages of training a chat model */
+    stages: function () {
+      var b = '', y = 46, xs = [20, 220, 420], w = 180;
+      var t = [['pretraining', 'next-token prediction on', 'trillions of tokens of text'], ['supervised fine-tuning', 'imitate thousands of', 'written demonstrations'], ['preference tuning', 'RLHF or DPO on human', 'or AI comparisons (week 13)']];
+      xs.forEach(function (x, i) {
+        b += '<rect x="' + x + '" y="' + (y - 26) + '" width="' + w + '" height="78" rx="8" class="bx"/>' + txt(x + w / 2, y - 6, 'tx c', t[i][0]) + txt(x + w / 2, y + 16, 'ts c', t[i][1]) + txt(x + w / 2, y + 32, 'ts c', t[i][2]);
+        if (i) b += '<line x1="' + (xs[i - 1] + w + 2) + '" y1="' + (y + 12) + '" x2="' + (x - 3) + '" y2="' + (y + 12) + '" class="ln" marker-end="url(#ah-i)"/>';
+      });
+      b += txt(110, y + 70, 'ts c', 'almost all of the compute') + txt(410, y + 70, 'ts c', 'a small fraction: shapes behaviour, not knowledge');
+      return svg("0 0 620 " + (y + 80), 480, "Three boxes: pretraining, then supervised fine-tuning, then preference tuning", b);
     },
     /* week 6, section 1: a recurrent network and its unrolling */
     unroll: function () {

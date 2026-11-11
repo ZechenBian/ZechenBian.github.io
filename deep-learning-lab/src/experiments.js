@@ -414,6 +414,49 @@
           judge: function (r, run) { var v = r.val_loss, b = r.bigram_table, base = run && run.base; return !isNum(v) || !isNum(b) || !isNum(base) ? null : v >= b - 0.2 ? 0 : v - base > 0.03 ? 1 : 2; },
           happened: function (r, run) { return "Validation loss " + num(r.val_loss, 3) + " without positions, against " + num(run && run.base, 3) + " with them (" + ((run && run.baseFrom) || "the reference run") + "); the bigram table scores " + num(r.bigram_table, 3) + "."; },
           why: "Without the mask this model could not know order at all (permutation equivariance, section 2). With the causal mask it can: position $i$ averages over exactly $i$ positions, so a head that attends uniformly produces a signal that depends on $i$, and deeper layers see what earlier layers computed from each prefix (third check question; Haviv et al. 2022). Having to discover position costs something, but not much: on a MacBook Air M5 the loss rose from 1.576 to 1.663 with seed 1 and from 1.578 to 1.644 with seed 2. Two pairs of runs fix the direction, not the size of the gap: change the seed and see how far it moves." }]
+    },
+    /* ------------------------------ week 8 ------------------------------ */
+    { id: "u08_bpe", unit: "u8", lib: "numpy", budget: 60, time: "a few seconds", needs: ["tinyshakespeare"],
+      title: "Byte-pair encoding, learned on Shakespeare",
+      data: { kind: "real", text: "Tiny Shakespeare (1,115,394 characters; github.com/karpathy/char-rnn, retrieved 2026-11-10). Merges are learned on the first 90% and measured on the held-out 10%, the same split as weeks 2 and 7. The page sends the text to the engine with each run." },
+      desc: "Byte-pair encoding from scratch (section 2): cut the text into words with their leading spaces, start from single characters, and repeatedly merge the most frequent adjacent pair. The script measures how many tokens per character the held-out text needs after 100, 300, 1,000 and 3,000 merges, lists the first merges, and shows how some words, including words Shakespeare never used, are split.",
+      params: [{ k: "merges", label: "merges to learn", type: "int", def: 3000, min: 100, max: 10000 }],
+      chart: null,
+      tiles: [{ k: "tpc_100", label: "tokens per char, 100 merges", d: 3 }, { k: "tpc_1000", label: "1,000 merges", d: 3 }, { k: "tpc_3000", label: "3,000 merges", d: 3 }, { k: "unseen_words", label: "held-out words never seen in training" }],
+      presets: [
+        { id: "thousand", name: "A thousand merges", set: {}, ref: "u08_bpe/default",
+          q: "After 1,000 merges learned on the training text, how many tokens per character does the held-out text need? (Characters alone: exactly 1.)",
+          opts: ["About 0.9: merges learned on one text rarely fit new text", "Between 0.5 and 0.8", "Below 0.5: more than two characters per token"],
+          judge: function (r) { var v = r.tpc_1000; return !isNum(v) ? null : v > 0.8 ? 0 : v >= 0.5 ? 1 : 2; },
+          happened: function (r) { return "Held-out tokens per character: " + num(r.tpc_100, 3) + " after 100 merges, " + num(r.tpc_1000, 3) + " after 1,000, " + num(r.tpc_3000, 3) + " after 3,000. Of the held-out words, " + num(r.unseen_words) + " never occur in the training text."; },
+          why: "The merges capture what is common to English text, not to this play: the first ones join a space to a frequent letter, then frequent endings and whole frequent words (second table). Those patterns are just as frequent in the held-out text, so the gain carries over, and a word never seen in training is still split into a few familiar pieces rather than into letters (last table). Fewer tokens per character means shorter sequences, and the cost of a transformer grows with the sequence length, linearly in the dense layers and quadratically in attention (section 2)." },
+        { id: "more", name: "Three times as many", set: {}, ref: "u08_bpe/default",
+          q: "Going from 1,000 to 3,000 merges triples the number of merged symbols. By how much does it cut the held-out tokens per character?",
+          opts: ["By a third or more", "By 10% to 30%", "By less than 10%"],
+          judge: function (r) { var v = r.gain_1000_3000; return !isNum(v) ? null : v >= 0.3 ? 0 : v >= 0.1 ? 1 : 2; },
+          happened: function (r) { return "From " + num(r.tpc_1000, 3) + " to " + num(r.tpc_3000, 3) + " tokens per character: a cut of " + pct(r.gain_1000_3000) + "."; },
+          why: "Each merge removes as many tokens as the frequency of its pair, and pair frequencies fall off roughly like a power law, as word frequencies do (Zipf's law). The first merges join pairs that occur tens of thousands of times; the last ones join pairs that occur a few dozen times. Large vocabularies therefore buy shorter sequences at a falling rate, while each new symbol adds a row to the embedding and output matrices and is seen less often in training. Production tokenizers settle between about 32,000 and 200,000 symbols, learned on far more and more varied text than this (section 2)." }]
+    },
+    { id: "u08_compute_optimal", unit: "u8", lib: "numpy", budget: 60, time: "about a second",
+      title: "Spending a compute budget",
+      data: { kind: "simulated", text: "No training runs. The loss surface L(N, D) is the published Chinchilla fit: the refit of Besiroglu et al. (2024) and the original of Hoffmann et al. (2022). Part 3 adds 2% noise from the seed to losses computed from the refit surface." },
+      desc: "With the Chinchilla loss surface $L(N,D) = E + A/N^\\alpha + B/D^\\beta$ and the cost $C = 6ND$, the script finds the compute-optimal model for budgets from $10^{18}$ to $10^{25}$ operations and compares with the closed form of section 5. It then redoes the fit the way Kaplan et al. could have, with small budgets and only non-embedding parameters, and finally refits the surface from 49 noisy simulated runs.",
+      params: [],
+      chart: null,
+      tiles: [{ k: "growth10_refit", label: "10× compute: best N grows by", d: 2 }, { k: "exp_refit", label: "exponent of N in C (refit)", d: 3 }, { k: "tpp_refit_1e24", label: "tokens per parameter at 1e24 (refit)", d: 1 }, { k: "exp_kaplan_way", label: "exponent, counted Kaplan's way", d: 3 }],
+      presets: [
+        { id: "split", name: "Ten times the compute", set: {}, ref: "u08_compute_optimal/default",
+          q: "Under the refit Chinchilla law, a lab gets ten times the compute. By what factor should the number of parameters of its compute-optimal model grow?",
+          opts: ["About 10: spend it on a bigger model", "About 3: split it between parameters and data", "About 1.3: spend it on data"],
+          judge: function (r) { var v = r.growth10_refit; return !isNum(v) ? null : v > 6 ? 0 : v >= 1.8 ? 1 : 2; },
+          happened: function (r) { return "Optimal N grows by " + num(r.growth10_refit, 3) + " (exponent " + num(r.exp_refit, 3) + "; closed form " + num(r.exp_closed_refit, 3) + "), and the data by the rest. At 1e24 operations the optimum has " + num(r.tpp_refit_1e24, 3) + " tokens per parameter."; },
+          why: "Substituting $D = C/(6N)$ makes the loss a function of $N$ alone, with one term falling and one rising in $N$; setting the derivative to zero gives $N^* \\propto C^{\\beta/(\\alpha+\\beta)}$ and $D^* \\propto C^{\\alpha/(\\alpha+\\beta)}$ (proposition in section 5). With $\\alpha \\approx \\beta$ both exponents are close to $\\frac12$: parameters and tokens should grow together, which is Chinchilla's headline. The original fit of Hoffmann et al. has a smaller $\\beta$, an exponent below $\\frac12$ and many more tokens per parameter (first table); that fit is what Besiroglu et al. disputed (section 5)." },
+        { id: "kaplan", name: "Counting the Kaplan way", set: {}, ref: "u08_compute_optimal/default",
+          q: "Same true law, but now look only at budgets from 1e15 to 1e19 operations and count only the non-embedding parameters of each budget's best model, as Kaplan et al. did. The fitted exponent of N against C comes out…",
+          opts: ["About 0.5, as for Chinchilla", "Between 0.55 and 0.65", "Above 0.65, near Kaplan's 0.73"],
+          judge: function (r) { var v = r.exp_kaplan_way; return !isNum(v) ? null : v < 0.55 ? 0 : v <= 0.65 ? 1 : 2; },
+          happened: function (r) { return "Exponent of the best non-embedding parameter count against compute: " + num(r.exp_kaplan_way, 3) + ". Counting all parameters at the same small budgets: " + num(r.exp_small_total, 3) + "."; },
+          why: "In a small model the embedding matrix, 50,257 rows of width $d$, is a large share of all parameters (last column of the second table). As budgets grow, the best model's non-embedding part grows from almost nothing, so its count rises faster than the total. A fit in non-embedding parameters at small scale therefore finds a steep exponent even when the truth, in total parameters, says to split compute evenly. Pearce and Song (2024) argued that this accounts for much of the gap between Kaplan's 0.73 and Chinchilla's 0.5; other explanations, such as learning-rate schedules and optimizer tuning, are in section 5." }]
     }
   ];
 

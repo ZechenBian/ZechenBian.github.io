@@ -36,6 +36,8 @@ PRESETS = [   # (experiment, reference name, parameters that differ from the def
     ("u06_long_memory", "default", {}),
     ("u06_decoding", "default", {}),
     ("u07_attention_numpy", "default", {}),
+    ("u08_bpe", "default", {}),
+    ("u08_compute_optimal", "default", {}),
 ]
 
 

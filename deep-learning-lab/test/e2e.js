@@ -342,7 +342,8 @@ async function shot(page, name) { if (shots) await page.screenshot({ path: path.
     await card.locator('.predict label').nth(opt).click();
     await card.locator('button:has-text("Lock in and run")').click();
     await page.waitForFunction((id) => { const c = document.querySelector('.exp[data-exp="' + id + '"]'); return c && (c.querySelector('.verdict') || c.querySelector('.err')); }, exp, { timeout: 120000 });
-    ok(/Your prediction held/.test(await card.locator('.verdict').innerText()) && re.test(await card.innerText()), what);
+    const held = /Your prediction held/.test(await card.locator('.verdict').innerText()), txt = await card.innerText();
+    ok(held && re.test(txt), what + (held && re.test(txt) ? '' : ' [verdict: ' + (await card.locator('.verdict').innerText()).slice(0, 200).replace(/\s+/g, ' ') + ']'));
   };
   const weekRef = async (u, exp, chip, opt, re, what) => {
     await page.goto(srv.url + '#' + u + '-train'); await page.waitForTimeout(500);
@@ -405,6 +406,20 @@ async function shot(page, name) { if (shots) await page.screenshot({ path: path.
   }
   await weekRun('u6', 'u06_long_memory', 2, /for the plain RNN/, 'week 6: the engine trains both recurrent networks; the plain RNN\'s first-step gradient is more than 100 times smaller');
   await weekRef('u6', 'u06_decoding', 'Search for the most probable', 2, /0\.517 for beam search/, 'week 6: the reference run answers the beam-search question (0.517 bits per character)');
+  /* week 8 */
+  await weekNotes('u8', 6, 2);
+  {
+    const rd = async () => (await page.locator('.widget .w-read').innerText()).replace(/\s+/g, ' ');
+    ok(/above this budget's best by/.test(await rd()), 'week 8 figure: the starting model is not the best for its budget');
+    await page.click('.widget summary:has-text("What you found")');
+    await page.click('.widget button:has-text("Jump to this budget\'s optimum")'); await page.waitForTimeout(100);
+    const t1 = await rd();
+    await page.click('.widget button:has-text("Set GPT-3\'s choice")'); await page.waitForTimeout(100);
+    const t2 = await rd();
+    ok(/✓ the lowest loss for this budget/.test(t1) && /tokens per parameter 19\.\d/.test(t1) && /tokens per parameter 1\.7/.test(t2) && /above this budget's best by 0\.01\d\d/.test(t2), 'week 8 figure: at 1e23 the optimum has about 19 tokens per parameter; GPT-3 had 1.7 and sits above its budget\'s optimum');
+  }
+  await weekRun('u8', 'u08_compute_optimal', 1, /grows by 3\.256/, 'week 8: the engine computes the compute-optimal split (ten times the compute, 3.256 times the parameters)');
+  await weekRef('u8', 'u08_bpe', 'Three times as many', 1, /a cut of 1[67]/, 'week 8: the reference run answers the BPE question (about a sixth fewer tokens)');
   await page.goto(srv.url + '#u13'); await page.waitForTimeout(400);
   const fullW = await page.evaluate(() => { const w = DL.COURSE.units.filter((u) => u.status === 'full').map((u) => String(u.week)); return w.slice(0, -1).join(', ') + ' and ' + w[w.length - 1]; });
   ok(new RegExp('full units for weeks ' + fullW + '\\.').test(await page.locator('.sheet').innerText()) && /\b2, 3\b/.test(fullW), 'a planned week names the written weeks (' + fullW + ')');
@@ -423,11 +438,11 @@ async function shot(page, name) { if (shots) await page.screenshot({ path: path.
   /* ================= phone ================= */
   console.log('phone');
   ({ ctx, page, errors } = await open({ w: 390, h: 844, mobile: true }));
-  for (const r of ['home', 'u1', 'u1-train', 'u2', 'u2-train', 'u3', 'u3-train', 'u4', 'u5', 'u5-train', 'u6', 'u6-train', 'u7', 'u7-train', 'u9', 'u9-sources', 'ledger']) {
+  for (const r of ['home', 'u1', 'u1-train', 'u2', 'u2-train', 'u3', 'u3-train', 'u4', 'u5', 'u5-train', 'u6', 'u6-train', 'u8', 'u8-train', 'u7', 'u7-train', 'u9', 'u9-sources', 'ledger']) {
     await page.goto(srv.url + '#' + r); await page.waitForTimeout(500);
     ok(await noOverflow(page), 'phone: no horizontal overflow on #' + r);
   }
-  for (const u of ['u2', 'u3', 'u5', 'u6']) {
+  for (const u of ['u2', 'u3', 'u5', 'u6', 'u8']) {
     await page.goto(srv.url + '#' + u); await page.waitForTimeout(700);
     ok((await page.evaluate(() => { document.querySelectorAll('.sheet details').forEach((d) => { d.open = true; }); return [...document.querySelectorAll('.sheet .katex-display')].filter((el) => el.scrollWidth > el.clientWidth + 1).length; })) === 0, 'phone: every display formula of ' + u + ' fits the column, proofs included');
   }
