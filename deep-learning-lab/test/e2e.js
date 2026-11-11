@@ -389,6 +389,22 @@ async function shot(page, name) { if (shots) await page.screenshot({ path: path.
   }
   await weekRun('u5', 'u05_shifted_motif', 2, /with it on the right\./, 'week 5: the engine trains both models; the dense network is at chance on shifted patterns');
   await weekRef('u5', 'u05_residual_depth', 'Add the skips', 2, /residual against/, 'week 5: the reference run answers the residual question');
+  /* week 6 */
+  await weekNotes('u6', 5, 3);
+  {
+    const rd = async () => (await page.locator('.widget .w-read').innerText()).replace(/\s+/g, ' ');
+    const back = (t) => +(/plain, 60 steps back: ([\d.e+-]+)/.exec(t) || [])[1];
+    const g0 = back(await rd());
+    const set = async (i, v) => page.locator('.widget input[type=range]').nth(i).evaluate((el, v) => { el.value = v; el.dispatchEvent(new Event('input', { bubbles: true })); }, v);
+    await set(0, '1'); await set(1, '0.1'); await page.waitForTimeout(100);
+    const g1 = back(await rd());
+    await set(0, '3'); await page.waitForTimeout(100);
+    const g2 = back(await rd());
+    await page.click('.widget summary:has-text("What you found")'); await page.click('.widget button:has-text("Show the additive path")'); await page.waitForTimeout(100);
+    ok(g0 < 1e-8 && g1 > 0.05 && g2 < 1e-20 && /additive, 60 steps back: 1\.0e\+0/.test(await rd()), 'week 6 figure: the gradient through 60 steps vanishes at w = 0.9 (' + g0 + '), survives at w = 1 with small inputs (' + g1 + '), saturates away at w = 3, and the additive path keeps all of it');
+  }
+  await weekRun('u6', 'u06_long_memory', 2, /for the plain RNN/, 'week 6: the engine trains both recurrent networks; the plain RNN\'s first-step gradient is more than 100 times smaller');
+  await weekRef('u6', 'u06_decoding', 'Search for the most probable', 2, /0\.517 for beam search/, 'week 6: the reference run answers the beam-search question (0.517 bits per character)');
   await page.goto(srv.url + '#u13'); await page.waitForTimeout(400);
   const fullW = await page.evaluate(() => { const w = DL.COURSE.units.filter((u) => u.status === 'full').map((u) => String(u.week)); return w.slice(0, -1).join(', ') + ' and ' + w[w.length - 1]; });
   ok(new RegExp('full units for weeks ' + fullW + '\\.').test(await page.locator('.sheet').innerText()) && /\b2, 3\b/.test(fullW), 'a planned week names the written weeks (' + fullW + ')');
@@ -407,11 +423,11 @@ async function shot(page, name) { if (shots) await page.screenshot({ path: path.
   /* ================= phone ================= */
   console.log('phone');
   ({ ctx, page, errors } = await open({ w: 390, h: 844, mobile: true }));
-  for (const r of ['home', 'u1', 'u1-train', 'u2', 'u2-train', 'u3', 'u3-train', 'u4', 'u5', 'u5-train', 'u7', 'u7-train', 'u9', 'u9-sources', 'ledger']) {
+  for (const r of ['home', 'u1', 'u1-train', 'u2', 'u2-train', 'u3', 'u3-train', 'u4', 'u5', 'u5-train', 'u6', 'u6-train', 'u7', 'u7-train', 'u9', 'u9-sources', 'ledger']) {
     await page.goto(srv.url + '#' + r); await page.waitForTimeout(500);
     ok(await noOverflow(page), 'phone: no horizontal overflow on #' + r);
   }
-  for (const u of ['u2', 'u3', 'u5']) {
+  for (const u of ['u2', 'u3', 'u5', 'u6']) {
     await page.goto(srv.url + '#' + u); await page.waitForTimeout(700);
     ok((await page.evaluate(() => { document.querySelectorAll('.sheet details').forEach((d) => { d.open = true; }); return [...document.querySelectorAll('.sheet .katex-display')].filter((el) => el.scrollWidth > el.clientWidth + 1).length; })) === 0, 'phone: every display formula of ' + u + ' fits the column, proofs included');
   }

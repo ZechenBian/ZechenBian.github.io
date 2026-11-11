@@ -9,6 +9,8 @@
  *                         a corner, where a coordinate is exactly 0
  *   shiftconv   (week 5)  slide a shape: a convolution's output slides with it, a dense layer's does not; the maximum
  *                         over positions does not move at all
+ *   bptt        (week 6)  feed one number back into itself 60 times: the gradient through time shrinks or saturates
+ *                         for almost every weight; an additive path keeps it
  *   gdquad      (week 4)  the stiff direction caps the step size, the soft direction then crawls; momentum helps
  *   softlookup  (week 7)  attention is a lookup made soft: sharp scores pick one value, flat scores average all of them
  * A widget is a function (host) -> { destroy }. Nothing here is saved; these are sketches, the experiments are the measurements. */
@@ -537,6 +539,57 @@
     return { destroy: function () { un(); } };
   };
 
+  /* ================= week 6: a one-number recurrent network and its gradient through time ================= */
+  DL.bpttCurves = function (w, a, f, T) {
+    var xs = [], sd = 9, i;
+    for (i = 0; i < T; i++) { sd = (sd * 1103515245 + 12345) % 2147483648; var u1 = (sd + 1) / 2147483649; sd = (sd * 1103515245 + 12345) % 2147483648; xs.push(a * Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * sd / 2147483648)); }
+    var h = [0]; for (i = 1; i <= T; i++) h.push(Math.tanh(w * h[i - 1] + xs[i - 1]));
+    var plain = [1], prod = 1; for (var lag = 1; lag <= T; lag++) { var k = T - lag + 1; prod *= Math.abs(w * (1 - h[k] * h[k])); plain.push(prod); }
+    var add = []; for (var l2 = 0; l2 <= T; l2++) add.push(Math.pow(f, l2));
+    return { plain: plain, add: add, h: h };
+  };
+  DL.WIDGETS.bptt = function (host) {
+    var w = 0.9, a = 0.5, f = 1, T = 60, showAdd = false;
+    var cv = h("canvas", { class: "w-canvas", role: "img", "aria-label": "How much of the gradient survives going back through time, on a logarithmic scale, for each lag" });
+    var read = h("div", { class: "w-read" });
+    function draw() {
+      var P = pal(), c = fit(cv, 260), ctx = c.ctx, W = c.W, H = c.H, L = 52, R = W - 14, top = 14, bot = H - 30, lo = -12, hi = 4;
+      var cur = DL.bpttCurves(w, a, f, T);
+      function X(l) { return L + (R - L) * l / T; } function Y(v) { var g = Math.log(Math.max(v, 1e-300)) / Math.LN10; g = Math.max(lo, Math.min(hi, g)); return top + (bot - top) * (hi - g) / (hi - lo); }
+      ctx.fillStyle = P.surface; ctx.fillRect(0, 0, W, H);
+      ctx.strokeStyle = P.grid; ctx.lineWidth = 1; ctx.font = "11px " + P.font; ctx.fillStyle = P.ink2;
+      for (var e = lo; e <= hi; e += 4) { var y = Math.round(Y(Math.pow(10, e))) + 0.5; line(ctx, [[L, y], [R, y]]); ctx.textAlign = "right"; ctx.fillText(e === 0 ? "1" : "1e" + e, L - 6, y + 4); }
+      ctx.textAlign = "center"; [0, 20, 40, 60].forEach(function (l) { ctx.fillText(String(l), X(l), bot + 15); });
+      ctx.fillText("steps back in time", (L + R) / 2, bot + 27);
+      ctx.strokeStyle = P.accent; ctx.lineWidth = 2; line(ctx, cur.plain.map(function (v, l) { return [X(l), Y(v)]; }));
+      if (showAdd) { ctx.strokeStyle = P.s[1]; ctx.setLineDash([6, 4]); line(ctx, cur.add.map(function (v, l) { return [X(l), Y(v)]; })); ctx.setLineDash([]); }
+      ctx.textAlign = "left"; ctx.fillStyle = P.accent; ctx.fillText("plain: h = tanh(w h + x)", L + 6, top + 12);
+      if (showAdd) { ctx.fillStyle = P.s[1]; ctx.fillText("additive: c = f c + …", L + 6, top + 27); }
+      var g = cur.plain[T];
+      DL.clear(read);
+      DL.add(read, [h("span", {}, ["plain, 60 steps back: ", h("b", { text: g === 0 ? "0" : g.toExponential(1) })]),
+        h("span", {}, ["state at the end: ", h("b", { text: cur.h[T].toFixed(3) })]),
+        showAdd ? h("span", {}, ["additive, 60 steps back: ", h("b", { text: Math.pow(f, T).toExponential(1) })]) : null]);
+    }
+    var sw = slider("recurrent weight w ", 0, 4, 0.01, w, function (v) { return v.toFixed(2); }, function (v) { w = v; draw(); });
+    var sa = slider("input size a ", 0, 2, 0.05, a, function (v) { return v.toFixed(2); }, function (v) { a = v; draw(); });
+    var sf = slider("forget gate f ", 0.8, 1, 0.001, f, function (v) { return v.toFixed(3); }, function (v) { f = v; draw(); });
+    var body = reveal("What you found", "- For almost every $w$ the gradient dies exponentially with the lag. Below 1, each step multiplies it by at most $w$. Above 1, the state saturates near $\\pm1$, where $\\tanh' = 1 - h^2$ is small, and the factor $w(1 - h^2)$ drops below 1 again. Only near $w = 1$ with small inputs does it survive 60 steps: an unstable balance.\n- That is the **vanishing gradient problem** (section 2). With matrices instead of numbers, the factors are Jacobians $\\operatorname{diag}(1 - h_t^2)\\,U$, and large singular values can also make products *explode*.\n- An additive path, $c_t = f\\,c_{t-1} + (\\text{something new})$, contributes exactly $f^{\\text{lag}}$: with $f = 1$ the gradient reaches back unchanged, with $f = 0.99$ it keeps about half after 60 steps. That is the LSTM's cell state, and $f$ its forget gate (section 3).");
+    body.appendChild(h("div", { class: "w-row" }, [h("button", { class: "btn quiet small", text: "Show the additive path", onclick: function () { showAdd = true; draw(); } })]));
+    DL.add(host, [
+      h("div", { class: "w-h" }, [h("span", { class: "tag sim", text: "Sketch" }), h("b", { text: "How far back does the gradient reach?" })]),
+      h("p", { class: "w-task", text: "The smallest recurrent network: one number h, updated 60 times by h ← tanh(w·h + x) with small random inputs x. The curve shows how much of a gradient arriving at the last step is left after going back 1, 2, …, 60 steps (logarithmic scale)." }),
+      h("ol", { class: "w-task", style: "margin:0;padding-left:24px" }, [
+        h("li", { text: "Try w = 0.5, 0.9 and 1.5. How fast does the gradient die?" }),
+        h("li", { text: "Make w large, say 3. Does that stop the shrinking? Look at the state at the end." }),
+        h("li", { text: "Is there any w for which a sizeable gradient survives 60 steps? Try changing the input size too." })
+      ]),
+      cv, read, h("div", { class: "w-ctl" }, [sw.el, sa.el, sf.el]), body
+    ]);
+    var un = watch(cv, draw); draw();
+    return { destroy: function () { un(); } };
+  };
+
   /* ================= week 7: a lookup made soft ================= */
   DL.softWeights = function (q, keys, beta) {
     var s = keys.map(function (k) { return beta * (q[0] * k[0] + q[1] * k[1]); }), m = Math.max.apply(null, s), e = s.map(function (v) { return Math.exp(v - m); }), z = e.reduce(function (a, b) { return a + b; }, 0);
@@ -714,6 +767,60 @@
       b += txt(f1(X(-1.55)), 116, 'ts e a', 'attacked,') + txt(f1(X(-1.55)), 132, 'ts e a', 'd = 1024');
       b += txt(f1(X(0) + 7), base - 12, 'ts', '42%');
       return svg("0 0 624 216", 520, "The attack shifts the score distribution left by epsilon times the square root of the dimension", b);
+    },
+    /* week 6, section 1: a recurrent network and its unrolling */
+    unroll: function () {
+      var b = '', y = 80, xs = [210, 310, 410, 510];
+      b += '<rect x="30" y="' + (y - 20) + '" width="70" height="40" rx="6" class="bx"/>' + txt(65, y + 5, 'tx c', 'h');
+      b += '<path d="M100,' + (y - 8) + ' C140,' + (y - 50) + ' 130,' + (y + 50) + ' 100,' + (y + 8) + '" class="ln" marker-end="url(#ah-i)"/>' + txt(140, y + 4, 'ts', 'U');
+      b += '<line x1="65" y1="' + (y + 62) + '" x2="65" y2="' + (y + 22) + '" class="ln" marker-end="url(#ah-i)"/>' + txt(65, y + 76, 'ts c', 'x_t') + txt(165, y + 4, 'tx', '=');
+      xs.forEach(function (x, i) {
+        b += '<rect x="' + (x - 30) + '" y="' + (y - 20) + '" width="60" height="40" rx="6" class="bx"/>' + txt(x, y + 5, 'tx c', 'h' + (i + 1));
+        b += '<line x1="' + x + '" y1="' + (y + 62) + '" x2="' + x + '" y2="' + (y + 22) + '" class="ln" marker-end="url(#ah-i)"/>' + txt(x, y + 76, 'ts c', 'x' + (i + 1));
+        if (i > 0) b += '<line x1="' + (xs[i - 1] + 30) + '" y1="' + y + '" x2="' + (x - 32) + '" y2="' + y + '" class="ln" marker-end="url(#ah-i)"/>' + txt((xs[i - 1] + x) / 2, y - 6, 'ts c', 'U');
+        if (i > 0) b += '<line x1="' + (x - 32) + '" y1="' + (y + 14) + '" x2="' + (xs[i - 1] + 30) + '" y2="' + (y + 14) + '" class="ln a" marker-end="url(#ah-a)"/>';
+      });
+      b += '<line x1="540" y1="' + y + '" x2="580" y2="' + y + '" class="ln" marker-end="url(#ah-i)"/>' + txt(592, y + 4, 'ts', 'loss');
+      b += txt(360, y - 54, 'ts c', 'the same U and W at every step');
+      b += txt(360, y - 36, 'ts c a', 'backward (blue): one Jacobian per step');
+      return svg("0 0 640 170", 500, "A recurrent cell with a loop, and the same cell unrolled over four time steps with shared weights; gradients flow back through every step", b);
+    },
+    /* week 6, section 4: greedy decoding against beam search on a small tree */
+    beamtree: function () {
+      var b = '', x0 = 60, x1 = 250, x2 = 430;
+      var first = [['A', 0.5, 40], ['B', 0.4, 120], ['C', 0.1, 190]];
+      var second = { A: [['x', 0.4, 16], ['y', 0.3, 46], ['z', 0.3, 76]], B: [['x', 0.9, 104], ['y', 0.05, 128], ['z', 0.05, 152]] };
+      b += '<circle cx="' + x0 + '" cy="115" r="6" class="nd"/>';
+      first.forEach(function (n) {
+        b += '<line x1="' + (x0 + 6) + '" y1="115" x2="' + (x1 - 14) + '" y2="' + n[2] + '" class="ln' + (n[0] === 'A' ? ' d' : n[0] === 'B' ? ' a' : '') + '"/>' + txt(x1 - 18, n[2] - 10, 'ts e', String(n[1]));
+        b += '<circle cx="' + x1 + '" cy="' + n[2] + '" r="12" class="nd"/>' + txt(x1, n[2] + 5, 'tx c', n[0]);
+        (second[n[0]] || []).forEach(function (m) {
+          var good = n[0] === 'B' && m[0] === 'x', gr = n[0] === 'A' && m[0] === 'x';
+          b += '<line x1="' + (x1 + 12) + '" y1="' + n[2] + '" x2="' + (x2 - 12) + '" y2="' + m[2] + '" class="ln' + (gr ? ' d' : good ? ' a' : '') + '"/>' + '';
+          b += txt(x2, m[2] + 4, 'ts', n[0] + m[0] + ': ' + n[1] + ' × ' + m[1] + ' = ' + (n[1] * m[1]).toFixed(3).replace(/0+$/, '').replace(/\.$/, ''));
+        });
+      });
+      b += txt(330, 214, 'ts c', 'dashed: greedy takes A (0.5), then x (0.4): 0.2.   blue: a beam of width 2 keeps A and B and finds Bx: 0.36');
+      return svg("0 0 640 226", 520, "A two-step tree of next-token probabilities in which greedy decoding finds a sequence of probability 0.2 and beam search one of probability 0.36", b);
+    },
+    /* week 6, section 5: an encoder-decoder for translation */
+    encdec: function () {
+      var b = '', y = 70, xe = [40, 120, 200, 280], xd = [400, 480, 560];
+      var src = ['the', 'cat', 'sat', '&lt;end&gt;'], tgt = ['le', 'chat', "s'assit"];
+      xe.forEach(function (x, i) {
+        b += '<rect x="' + x + '" y="' + (y - 16) + '" width="56" height="32" rx="6" class="bx"/>' + txt(x + 28, y + 5, 'ts c', 'enc');
+        b += '<line x1="' + (x + 28) + '" y1="' + (y + 56) + '" x2="' + (x + 28) + '" y2="' + (y + 18) + '" class="ln" marker-end="url(#ah-i)"/>' + txt(x + 28, y + 70, 'ts c', src[i]);
+        if (i) b += '<line x1="' + (xe[i - 1] + 56) + '" y1="' + y + '" x2="' + (x - 2) + '" y2="' + y + '" class="ln" marker-end="url(#ah-i)"/>';
+      });
+      b += '<line x1="336" y1="' + y + '" x2="396" y2="' + y + '" class="ln a" marker-end="url(#ah-a)"/>' + txt(366, y - 10, 'ts c a', 'one vector');
+      xd.forEach(function (x, i) {
+        b += '<rect x="' + x + '" y="' + (y - 16) + '" width="56" height="32" rx="6" class="bx"/>' + txt(x + 28, y + 5, 'ts c', 'dec');
+        b += '<line x1="' + (x + 28) + '" y1="' + (y - 18) + '" x2="' + (x + 28) + '" y2="' + (y - 46) + '" class="ln" marker-end="url(#ah-i)"/>' + txt(x + 28, y - 52, 'ts c', tgt[i]);
+        if (i) { b += '<line x1="' + (xd[i - 1] + 56) + '" y1="' + y + '" x2="' + (x - 2) + '" y2="' + y + '" class="ln" marker-end="url(#ah-i)"/>';
+          b += '<path d="M' + (xd[i - 1] + 34) + ',' + (y - 46) + ' C' + (xd[i - 1] + 50) + ',' + (y - 20) + ' ' + (x - 10) + ',' + (y + 40) + ' ' + (x + 10) + ',' + (y + 18) + '" class="ln d"/>'; }
+      });
+      b += txt(320, y + 92, 'ts c', 'the encoder reads the source; its last state starts the decoder, which feeds each output back in');
+      return svg("0 0 640 172", 520, "An encoder RNN reads a source sentence into one vector, from which a decoder RNN generates the translation word by word", b);
     },
     /* week 5, section 2: a dense weight matrix against the matrix of a convolution on a cycle */
     circulant: function () {

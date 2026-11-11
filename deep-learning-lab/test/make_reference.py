@@ -33,6 +33,8 @@ PRESETS = [   # (experiment, reference name, parameters that differ from the def
     ("u04_fgsm_dimension", "default", {}),
     ("u05_shifted_motif", "default", {}),
     ("u05_residual_depth", "default", {}),
+    ("u06_long_memory", "default", {}),
+    ("u06_decoding", "default", {}),
     ("u07_attention_numpy", "default", {}),
 ]
 
