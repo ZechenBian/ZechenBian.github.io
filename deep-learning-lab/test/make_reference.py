@@ -25,6 +25,8 @@ PRESETS = [   # (experiment, reference name, parameters that differ from the def
     ("u01_backprop_numpy", "bigstep", {"lr": 3.0}),
     ("u02_arithmetic_coding", "default", {}),
     ("u02_shakespeare_ngrams", "default", {}),
+    ("u03_estimators", "default", {}),
+    ("u03_losses_priors", "default", {}),
     ("u04_optimizers_quadratic", "default", {}),
     ("u04_optimizers_quadratic", "rotate", {"rotate": True}),
     ("u04_init_depth", "default", {}),

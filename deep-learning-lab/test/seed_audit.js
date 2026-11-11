@@ -1,20 +1,20 @@
 // Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
 // Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。
 /* Does every question have one answer, whatever the random seed?
- *     node test/seed_audit.js [seeds = 40]
+ *     node test/seed_audit.js [seeds = 40] [experiment id prefix, e.g. u03]
  * Each preset of each numpy experiment is run with the seeds 1..N through the engine code, and its judge (the function
  * the page uses to say which option came true) is applied to every run. A preset passes when all seeds give the option
  * that its reference run gives. The reader can change the seed, so a question whose answer depends on it would tell
  * some readers that a correct prediction "missed". PyTorch presets are skipped here (they need the Mac).
  * Takes about ten minutes; it is not part of the automatic checks. */
 const fs = require('fs'), path = require('path'), os = require('os'), { spawnSync } = require('child_process');
-const root = path.join(__dirname, '..'), N = +process.argv[2] || 40;
+const root = path.join(__dirname, '..'), N = +process.argv[2] || 40, ONLY = process.argv[3] || '';   // e.g. 40 u03: only experiments whose id starts with u03
 global.window = global;
 global.DL = { num: String, pct: String, secs: String, SCRIPTS: {}, REF: JSON.parse(fs.readFileSync(path.join(root, 'src/reference.json'), 'utf8')) };
 (0, eval)(fs.readFileSync(path.join(root, 'src/experiments.js'), 'utf8'));
 
 const presets = [];
-for (const exp of DL.EXPERIMENTS) if (exp.lib === 'numpy') for (const p of exp.presets || []) presets.push({ exp, p });
+for (const exp of DL.EXPERIMENTS) if (exp.lib === 'numpy' && exp.id.startsWith(ONLY)) for (const p of exp.presets || []) presets.push({ exp, p });
 // presets of one experiment that use the same parameters share their runs
 const runs = [], key = (x) => x.exp.id + ' ' + JSON.stringify(Object.keys(x.p.set).sort().map((k) => [k, x.p.set[k]]));
 const index = new Map();

@@ -335,10 +335,50 @@ async function shot(page, name) { if (shots) await page.screenshot({ path: path.
   await ng.locator('.predict label').nth(1).click();
   await ng.locator('button:has-text("Lock in and show the reference run")').click(); await page.waitForTimeout(400);
   ok(/Your prediction held/.test(await ng.locator('.verdict').innerText()) && /lowest at k = 4 \(2\.408\)/.test(await ng.locator('.verdict').innerText()), 'week 2: the held-out question is answered by the reference run (minimum 2.408 bits at k = 4)');
+  /* ---------- weeks written after the sample: the same checks for each, then what is particular to it ---------- */
+  const weekRun = async (u, exp, opt, re, what) => {
+    await page.goto(srv.url + '#' + u + '-train'); await page.waitForTimeout(500);
+    const card = page.locator('.exp[data-exp="' + exp + '"]');
+    await card.locator('.predict label').nth(opt).click();
+    await card.locator('button:has-text("Lock in and run")').click();
+    await page.waitForFunction((id) => { const c = document.querySelector('.exp[data-exp="' + id + '"]'); return c && (c.querySelector('.verdict') || c.querySelector('.err')); }, exp, { timeout: 120000 });
+    ok(/Your prediction held/.test(await card.locator('.verdict').innerText()) && re.test(await card.innerText()), what);
+  };
+  const weekRef = async (u, exp, chip, opt, re, what) => {
+    await page.goto(srv.url + '#' + u + '-train'); await page.waitForTimeout(500);
+    const card = page.locator('.exp[data-exp="' + exp + '"]');
+    await card.locator('.chip:has-text("' + chip + '")').click();
+    await card.locator('.predict label').nth(opt).click();
+    await card.locator('button:has-text("Lock in and show the reference run")').click(); await page.waitForTimeout(400);
+    ok(/Your prediction held/.test(await card.locator('.verdict').innerText()) && re.test(await card.locator('.verdict').innerText()), what);
+  };
+  const weekNotes = async (u, secs, figs) => {
+    await page.goto(srv.url + '#' + u); await page.waitForTimeout(800);
+    const r = await page.evaluate(() => ({ rail: document.querySelectorAll('#rail-secs a').length, figs: document.querySelectorAll('.sheet .figure svg').length, err: document.querySelectorAll('.katex-error').length, raw: document.querySelectorAll('.sheet .tex:not(.done)').length, widget: !!document.querySelector('.sheet .widget canvas') }));
+    ok(r.rail === secs + 2 && r.figs === figs && r.err === 0 && r.raw === 0 && r.widget, u + ': ' + secs + ' sections, the check questions and the experiments in the course map; ' + figs + ' diagrams; every formula typeset; the hands-on figure draws');
+  };
+  /* week 3 */
+  await weekNotes('u3', 6, 2);
+  {
+    const rd = async () => (await page.locator('.widget .w-read').innerText()).replace(/\s+/g, ' ');
+    ok(/a coordinate exactly 0: no/.test(await rd()), 'week 3 figure: with the disk the constrained minimum has no zero coordinate');
+    await page.click('.widget .chip:has-text("Diamond")'); await page.waitForTimeout(100);
+    await page.click('.widget summary:has-text("What you found")');
+    await page.click('.widget button:has-text("Drop 200 random minima")'); await page.waitForTimeout(150);
+    const l1 = +(/random minima: (\d+) of 200/.exec(await rd()) || [])[1];
+    await page.click('.widget .chip:has-text("Disk")');
+    await page.click('.widget button:has-text("Drop 200 random minima")'); await page.waitForTimeout(150);
+    const l2 = +(/random minima: (\d+) of 200/.exec(await rd()) || [])[1];
+    ok(l1 > 60 && l2 === 0, 'week 3 figure: of 200 random minima, the diamond puts ' + l1 + ' on a corner and the disk none');
+    ok(await page.evaluate(() => { const s = DL.ballMin([3, 0.2], 'l1', 1); return Math.abs(s.w[0] - 1) < 1e-12 && s.w[1] === 0; }), 'week 3 figure: a minimum far out along the first axis lands exactly on the diamond\'s corner (1, 0)');
+  }
+  await weekRun('u3', 'u03_estimators', 2, /0\.18\d\d by n \+ 1/, 'week 3: the engine runs the variance estimators and dividing by n + 1 wins');
+  await weekRef('u3', 'u03_losses_priors', 'Weight decay as a prior', 2, /ratio 0\.1\d\d/, 'week 3: the reference run answers the ridge question (MAP far better than least squares)');
   await page.goto(srv.url + '#u5'); await page.waitForTimeout(400);
-  ok(/full units for weeks 1, 2, 4 and 7\./.test(await page.locator('.sheet').innerText()), 'a planned week names the written weeks, week 2 among them');
+  const fullW = await page.evaluate(() => { const w = DL.COURSE.units.filter((u) => u.status === 'full').map((u) => String(u.week)); return w.slice(0, -1).join(', ') + ' and ' + w[w.length - 1]; });
+  ok(new RegExp('full units for weeks ' + fullW + '\\.').test(await page.locator('.sheet').innerText()) && /\b2, 3\b/.test(fullW), 'a planned week names the written weeks (' + fullW + ')');
   await page.goto(srv.url + '#'); await page.waitForTimeout(400);
-  ok(/Weeks 1, 2, 4 and 7 are written out in full, with nine experiments between them/.test(await page.locator('.col.home').innerText()), 'the overview counts the written weeks and the experiments');
+  ok(new RegExp('Weeks ' + fullW + ' are written out in full, with [a-z-]+ experiments between them').test(await page.locator('.col.home').innerText()), 'the overview counts the written weeks and the experiments');
   await page.goto(srv.url + '#u5'); await page.waitForTimeout(400);
   ok(/not written yet/.test(await page.locator('.sheet').innerText()) && (await page.locator('.sheet button:has-text("Ask the tutor")').count()) === 3, 'a planned week shows its syllabus and three questions');
   await page.click('.sheet button:has-text("Ask the tutor") >> nth=0');
@@ -352,12 +392,14 @@ async function shot(page, name) { if (shots) await page.screenshot({ path: path.
   /* ================= phone ================= */
   console.log('phone');
   ({ ctx, page, errors } = await open({ w: 390, h: 844, mobile: true }));
-  for (const r of ['home', 'u1', 'u1-train', 'u2', 'u2-train', 'u4', 'u7', 'u7-train', 'u9', 'u9-sources', 'ledger']) {
+  for (const r of ['home', 'u1', 'u1-train', 'u2', 'u2-train', 'u3', 'u3-train', 'u4', 'u7', 'u7-train', 'u9', 'u9-sources', 'ledger']) {
     await page.goto(srv.url + '#' + r); await page.waitForTimeout(500);
     ok(await noOverflow(page), 'phone: no horizontal overflow on #' + r);
   }
-  await page.goto(srv.url + '#u2'); await page.waitForTimeout(700);
-  ok((await page.evaluate(() => { document.querySelectorAll('.sheet details').forEach((d) => { d.open = true; }); return [...document.querySelectorAll('.sheet .katex-display')].filter((el) => el.scrollWidth > el.clientWidth + 1).length; })) === 0, 'phone: every display formula of week 2 fits the column, proofs included');
+  for (const u of ['u2', 'u3']) {
+    await page.goto(srv.url + '#' + u); await page.waitForTimeout(700);
+    ok((await page.evaluate(() => { document.querySelectorAll('.sheet details').forEach((d) => { d.open = true; }); return [...document.querySelectorAll('.sheet .katex-display')].filter((el) => el.scrollWidth > el.clientWidth + 1).length; })) === 0, 'phone: every display formula of ' + u + ' fits the column, proofs included');
+  }
   await page.goto(srv.url + '#u1'); await page.waitForTimeout(700);
   ok((await page.locator('.sheet .figure .can-scroll').count()) === 2 && (await page.evaluate(() => [...document.querySelectorAll('.sheet .katex-display')].filter((el) => el.scrollWidth > el.clientWidth + 1).length)) === 0, 'phone: the two diagrams are marked as scrolling sideways, and every display formula fits');
   ok(await page.evaluate(() => [...document.querySelectorAll('.sheet .figure .can-scroll')].every((el) => { const c = el.nextElementSibling, r = c && c.getBoundingClientRect(), b = el.getBoundingClientRect(); return c && c.classList.contains('scroll-cue') && /scroll/.test(c.textContent) && getComputedStyle(c).visibility === 'visible' && r.height >= 10 && r.top >= b.bottom - 4 && r.right <= window.innerWidth; })) && !(await page.locator('#toast').isVisible()), 'phone: each block that scrolls sideways has a small “scroll” tag below it, over nothing, and no message covers the page');

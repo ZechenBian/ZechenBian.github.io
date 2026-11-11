@@ -5,6 +5,8 @@
  *   hinge       (week 1)  fitting a curve with three ReLU hinges is choosing six numbers; a rule can choose them for you
  *   codelen     (week 2)  a letter costs −log₂ q bits; the shortest message comes from the true frequencies, and
  *                         a letter the model thinks rare is expensive
+ *   ballmin     (week 3)  minimize a quadratic loss inside a disk or a diamond: the diamond's minimum keeps landing on
+ *                         a corner, where a coordinate is exactly 0
  *   gdquad      (week 4)  the stiff direction caps the step size, the soft direction then crawls; momentum helps
  *   softlookup  (week 7)  attention is a lookup made soft: sharp scores pick one value, flat scores average all of them
  * A widget is a function (host) -> { destroy }. Nothing here is saved; these are sketches, the experiments are the measurements. */
@@ -277,6 +279,109 @@
     return { destroy: function () { un1(); } };
   };
 
+  /* ================= week 3: a quadratic loss minimized inside a disk or a diamond ================= */
+  DL.ballMin = function (ws, shape, r) {
+    var c = Math.cos(25 * Math.PI / 180), sn = Math.sin(25 * Math.PI / 180), a = 1, b = 5;
+    var A = [[a * c * c + b * sn * sn, (a - b) * c * sn], [(a - b) * c * sn, a * sn * sn + b * c * c]];
+    function f(w) { var d0 = w[0] - ws[0], d1 = w[1] - ws[1]; return A[0][0] * d0 * d0 + 2 * A[0][1] * d0 * d1 + A[1][1] * d1 * d1; }
+    var inside = shape === "l1" ? Math.abs(ws[0]) + Math.abs(ws[1]) <= r : ws[0] * ws[0] + ws[1] * ws[1] <= r * r;
+    if (inside) return { w: ws.slice(), f: 0, A: A, inside: true };
+    var best = null, bf = Infinity, i;
+    if (shape === "l1") {
+      var V = [[r, 0], [0, r], [-r, 0], [0, -r]];
+      for (i = 0; i < 4; i++) {
+        var p = V[i], q = V[(i + 1) % 4], e = [q[0] - p[0], q[1] - p[1]], d = [p[0] - ws[0], p[1] - ws[1]];
+        var eAe = A[0][0] * e[0] * e[0] + 2 * A[0][1] * e[0] * e[1] + A[1][1] * e[1] * e[1];
+        var eAd = A[0][0] * e[0] * d[0] + A[0][1] * (e[0] * d[1] + e[1] * d[0]) + A[1][1] * e[1] * d[1];
+        var t = Math.max(0, Math.min(1, -eAd / eAe)), w = [p[0] + t * e[0], p[1] + t * e[1]];
+        if (t === 0 || t === 1) w = t === 0 ? p.slice() : q.slice();
+        var fv = f(w); if (fv < bf) { bf = fv; best = w; }
+      }
+    } else {
+      var bt = 0;
+      for (i = 0; i < 720; i++) { var th = i * Math.PI / 360, fv2 = f([r * Math.cos(th), r * Math.sin(th)]); if (fv2 < bf) { bf = fv2; bt = th; } }
+      var lo = bt - Math.PI / 360, hi = bt + Math.PI / 360;
+      for (i = 0; i < 60; i++) { var m1 = lo + (hi - lo) / 3, m2 = hi - (hi - lo) / 3; if (f([r * Math.cos(m1), r * Math.sin(m1)]) < f([r * Math.cos(m2), r * Math.sin(m2)])) hi = m2; else lo = m1; }
+      bt = (lo + hi) / 2; best = [r * Math.cos(bt), r * Math.sin(bt)]; bf = f(best);
+    }
+    return { w: best, f: bf, A: A, inside: false };
+  };
+  DL.WIDGETS.ballmin = function (host) {
+    var shape = "l2", r = 1, ws = [1.6, 0.9], drag = false, tally = { l1: [0, 0], l2: [0, 0] }, rain = null;
+    var cv = h("canvas", { class: "w-canvas", role: "img", "aria-label": "Level sets of a quadratic loss and the region it is minimized over; drag the unconstrained minimum" });
+    var read = h("div", { class: "w-read" }), geo = null, L = 2.4;
+    function zero(w) { return Math.abs(w[0]) < 1e-9 || Math.abs(w[1]) < 1e-9; }
+    function draw() {
+      var P = pal(), c = fit(cv, 330), ctx = c.ctx, W = c.W, H = c.H, S = Math.min(W - 20, H - 20) / (2 * L), cx = W / 2, cy = H / 2;
+      geo = { S: S, cx: cx, cy: cy };
+      function X(v) { return cx + v * S; } function Y(v) { return cy - v * S; }
+      ctx.fillStyle = P.surface; ctx.fillRect(0, 0, W, H);
+      ctx.strokeStyle = P.grid; ctx.lineWidth = 1; line(ctx, [[X(-L), Y(0)], [X(L), Y(0)]]); line(ctx, [[X(0), Y(-L)], [X(0), Y(L)]]);
+      ctx.fillStyle = P.ink2; ctx.font = "11px " + P.font; ctx.fillText("w₁", X(L) - 16, Y(0) - 6); ctx.fillText("w₂", X(0) + 6, Y(L) + 12);
+      // the region
+      ctx.fillStyle = P.accent; ctx.globalAlpha = 0.13; ctx.beginPath();
+      if (shape === "l1") { ctx.moveTo(X(r), Y(0)); ctx.lineTo(X(0), Y(r)); ctx.lineTo(X(-r), Y(0)); ctx.lineTo(X(0), Y(-r)); ctx.closePath(); }
+      else ctx.arc(X(0), Y(0), r * S, 0, 2 * Math.PI);
+      ctx.fill(); ctx.globalAlpha = 1; ctx.strokeStyle = P.accent; ctx.lineWidth = 1.5; ctx.stroke();
+      if (rain) rain.forEach(function (q) { ctx.fillStyle = zero(q) ? P.crit : P.ink2; ctx.globalAlpha = 0.55; ctx.beginPath(); ctx.arc(X(q[0]), Y(q[1]), 2.2, 0, 7); ctx.fill(); ctx.globalAlpha = 1; });
+      var sol = DL.ballMin(ws, shape, r), A = sol.A;
+      // level sets f = c through the solution and two others: w = ws + sqrt(c) A^(-1/2) u
+      var ev = [1, 5], ang = 25 * Math.PI / 180;
+      function ell(cval, cls, width, dash) {
+        var pts = []; for (var k = 0; k <= 120; k++) { var t = k * Math.PI / 60, u0 = Math.cos(t) * Math.sqrt(cval / ev[0]), u1 = Math.sin(t) * Math.sqrt(cval / ev[1]);
+          pts.push([X(ws[0] + Math.cos(ang) * u0 - Math.sin(ang) * u1), Y(ws[1] + Math.sin(ang) * u0 + Math.cos(ang) * u1)]); }
+        ctx.strokeStyle = cls; ctx.lineWidth = width; ctx.setLineDash(dash || []); line(ctx, pts); ctx.setLineDash([]);
+      }
+      var fs = sol.inside ? 0.6 : sol.f;
+      [0.25, 2.2].forEach(function (m) { ell(fs * m, P.grid, 1); });
+      if (!sol.inside) ell(sol.f, P.ink2, 1.2, [4, 3]);
+      ctx.fillStyle = P.ink; ctx.beginPath(); ctx.arc(X(ws[0]), Y(ws[1]), drag ? 7 : 6, 0, 7); ctx.fill();
+      ctx.font = "12px " + P.font; var rt = X(ws[0]) > W - 190; ctx.textAlign = rt ? "right" : "left"; ctx.fillText("unconstrained minimum (drag)", X(ws[0]) + (rt ? -9 : 9), Y(ws[1]) - 8); ctx.textAlign = "left";
+      ctx.fillStyle = zero(sol.w) && !sol.inside ? P.crit : P.accent; ctx.beginPath(); ctx.arc(X(sol.w[0]), Y(sol.w[1]), 5.5, 0, 7); ctx.fill();
+      DL.clear(read);
+      DL.add(read, [
+        h("span", {}, ["minimum in the region ", h("b", { text: "(" + sol.w[0].toFixed(3) + ", " + sol.w[1].toFixed(3) + ")" })]),
+        h("span", {}, ["a coordinate exactly 0: ", h("b", { text: sol.inside ? "no (the minimum is inside)" : zero(sol.w) ? "yes" : "no" })]),
+        h("span", {}, ["your drags so far: ", h("b", { text: (tally[shape][1] ? tally[shape][0] + " of " + tally[shape][1] : "none") + " with a zero" })]),
+        rain ? h("span", {}, ["random minima: ", h("b", { text: rain.filter(zero).length + " of " + rain.length + " land with a zero" })]) : null
+      ]);
+      return sol;
+    }
+    function at(e) { var b = cv.getBoundingClientRect(); return [(e.clientX - b.left - geo.cx) / geo.S, -(e.clientY - b.top - geo.cy) / geo.S]; }
+    cv.style.touchAction = "pan-y";
+    cv.addEventListener("pointerdown", function (e) { var p = at(e); if (Math.hypot(p[0] - ws[0], p[1] - ws[1]) * geo.S > 40) return; drag = true; try { cv.setPointerCapture(e.pointerId); } catch (x) {} e.preventDefault(); draw(); });
+    cv.addEventListener("touchstart", function (e) { var t = e.touches && e.touches[0]; if (!t || !geo) return; var p = at(t); if (Math.hypot(p[0] - ws[0], p[1] - ws[1]) * geo.S <= 40) e.preventDefault(); }, { passive: false });
+    cv.addEventListener("pointermove", function (e) { if (!drag) return; var p = at(e); ws = [Math.max(-L, Math.min(L, p[0])), Math.max(-L, Math.min(L, p[1]))]; rain = null; draw(); });
+    function end() { if (!drag) return; drag = false; var sol = draw(); if (!sol.inside) { tally[shape][1]++; if (zero(sol.w)) tally[shape][0]++; } draw(); }
+    cv.addEventListener("pointerup", end); cv.addEventListener("pointercancel", end);
+    var rs = slider("size of the region r ", 0.2, 2, 0.05, r, function (v) { return v.toFixed(2); }, function (v) { r = v; rain = null; draw(); });
+    var chips = [["l2", "Disk: w₁² + w₂² ≤ r²"], ["l1", "Diamond: |w₁| + |w₂| ≤ r"]].map(function (s) {
+      return h("button", { class: "chip", "aria-pressed": String(s[0] === shape), text: s[1], onclick: function () { shape = s[0]; rain = null; chips.forEach(function (b, j) { b.setAttribute("aria-pressed", String(["l2", "l1"][j] === shape)); }); draw(); } });
+    });
+    /** 200 unconstrained minima spread over the square, outside the region: where do their constrained minima land? */
+    DL.ballRain = function (sh, rr) {
+      var out = [], s = 11, k = 0;
+      while (out.length < 200 && k < 5000) { k++; s = (s * 1103515245 + 12345) % 2147483648; var u = s / 2147483648; s = (s * 1103515245 + 12345) % 2147483648; var v = s / 2147483648;
+        var p = [(2 * u - 1) * L, (2 * v - 1) * L]; var sol = DL.ballMin(p, sh, rr); if (!sol.inside) out.push(sol.w); }
+      return out;
+    };
+    var body = reveal("What you found", "- With the **disk**, the minimum lands on the boundary where a level set of the loss touches it, and that point has a coordinate exactly 0 only if the unconstrained minimum already lies on an axis. With the **diamond**, it lands on a corner for a whole range of positions, and at a corner one coordinate is exactly 0.\n- Shrinking $r$ makes the corners win more often.\n\nMinimizing a loss inside the disk is the same as adding a penalty $\\lambda(w_1^2 + w_2^2)$ for a suitable $\\lambda$ (Lagrange multipliers): that is **weight decay**, or **ridge**, and it is the MAP estimate under a Gaussian prior. The diamond corresponds to the penalty $\\lambda(\\lvert w_1\\rvert + \\lvert w_2\\rvert)$, the **lasso**, the MAP estimate under a Laplace prior (section 4). The corners are why the lasso sets coefficients exactly to zero and ridge only shrinks them; in one dimension this is soft thresholding against scaling (section 4).");
+    body.appendChild(h("div", { class: "w-row" }, [h("button", { class: "btn quiet small", text: "Drop 200 random minima", onclick: function () { rain = DL.ballRain(shape, r); draw(); } })]));
+    DL.add(host, [
+      h("div", { class: "w-h" }, [h("span", { class: "tag sim", text: "Sketch" }), h("b", { text: "Where does the minimum land?" })]),
+      h("p", { class: "w-task", text: "A quadratic loss of two weights has its minimum at the black dot; the ellipses are its level sets. Now minimize the same loss only over the shaded region. The coloured dot is where the minimum lands; it turns red when a coordinate is exactly 0." }),
+      h("ol", { class: "w-task", style: "margin:0;padding-left:24px" }, [
+        h("li", { text: "With the disk, drag the black dot around outside it. Can you make a coordinate of the constrained minimum exactly 0?" }),
+        h("li", { text: "Switch to the diamond and drag again. How often is a coordinate exactly 0 now?" }),
+        h("li", { text: "Make the region smaller. What changes? Then press “Drop 200 random minima” below “What you found” for each shape." })
+      ]),
+      h("div", { class: "w-row" }, chips),
+      cv, read, h("div", { class: "w-ctl" }, [rs.el]), body
+    ]);
+    var un = watch(cv, draw); draw();
+    return { destroy: function () { un(); } };
+  };
+
   /* ================= week 4: gradient descent on a quadratic bowl ================= */
   /** Heavy ball on f = (x^2 + kappa y^2) / 2 from (-1.8, 0.9); mu = 0 is gradient descent.
    *  hit = the number of steps after which BOTH coordinates stay below a thousandth of their starting size (null: not within n).
@@ -541,6 +646,37 @@
       b += txt(f1(X(-1.55)), 116, 'ts e a', 'attacked,') + txt(f1(X(-1.55)), 132, 'ts e a', 'd = 1024');
       b += txt(f1(X(0) + 7), base - 12, 'ts', '42%');
       return svg("0 0 624 216", 520, "The attack shifts the score distribution left by epsilon times the square root of the dimension", b);
+    },
+    /* week 3, section 1: standardized sums of exponential variables against the normal density */
+    clt: function () {
+      var X0 = 46, X1 = 600, base = 196, top = 14, lo = -3.5, hi = 4, ymax = 1.04, b = '';
+      function lgam(n) { var s = 0; for (var k = 2; k < n; k++) s += Math.log(k); return s; }
+      function dens(n, z) { var x = n + Math.sqrt(n) * z; if (x <= 0) return 0; return Math.sqrt(n) * Math.exp((n - 1) * Math.log(x) - x - lgam(n)); }
+      function X(v) { return X0 + (X1 - X0) * (v - lo) / (hi - lo); } function Y(v) { return base - (base - top) * v / ymax; }
+      function curve(f) { var p = []; for (var i = 0; i <= 300; i++) { var z = lo + (hi - lo) * i / 300; p.push([X(z), Y(Math.min(ymax, f(z)))]); } return p; }
+      b += '<line x1="' + X0 + '" y1="' + base + '" x2="' + X1 + '" y2="' + base + '" class="gr"/>';
+      [-3, -2, -1, 0, 1, 2, 3, 4].forEach(function (v) { b += '<line x1="' + f1(X(v)) + '" y1="' + base + '" x2="' + f1(X(v)) + '" y2="' + (base + 5) + '" class="gr"/>' + txt(f1(X(v)), base + 19, 'ts c', String(v).replace('-', '−')); });
+      b += '<polygon points="' + [[X(lo), base]].concat(curve(function (z) { return Math.exp(-z * z / 2) / Math.sqrt(2 * Math.PI); }), [[X(hi), base]]).map(function (q) { return f1(q[0]) + ',' + f1(q[1]); }).join(' ') + '" class="ar"/>';
+      var cls = { 1: 'ln s2', 2: 'ln d', 5: 'ln s1', 30: 'ln' };
+      [1, 2, 5, 30].forEach(function (n) { b += poly(curve(function (z) { return dens(n, z); }), cls[n]); });
+      [['ln s2', 'n = 1'], ['ln d', 'n = 2'], ['ln s1', 'n = 5'], ['ln', 'n = 30']].forEach(function (l, i) { var y = top + 10 + i * 17; b += '<line x1="430" y1="' + y + '" x2="456" y2="' + y + '" class="' + l[0] + '"/>' + txt(462, y + 4, 'ts', l[1]); });
+      b += '<rect x="430" y="' + (top + 74) + '" width="26" height="9" class="ar"/>' + txt(462, top + 83, 'ts', 'N(0, 1)');
+      return svg("0 0 620 " + (base + 28), 480, "Densities of the standardized sum of n exponential variables for n = 1, 2, 5 and 30, approaching the normal density", b);
+    },
+    /* week 3, section 3: losses as negative log-densities */
+    nll: function () {
+      var X0 = 60, X1 = 590, base = 178, top = 14, lo = -3, hi = 3, ymax = 4.6, b = '';
+      function X(v) { return X0 + (X1 - X0) * (v - lo) / (hi - lo); } function Y(v) { return base - (base - top) * v / ymax; }
+      function curve(f) { var p = []; for (var i = 0; i <= 240; i++) { var z = lo + (hi - lo) * i / 240; p.push([X(z), Y(f(z))]); } return p; }
+      var gn = 0.5 * Math.log(2 * Math.PI), bl = 1 / Math.sqrt(2), ln0 = Math.log(2 * bl);
+      b += '<line x1="' + X0 + '" y1="' + base + '" x2="' + X1 + '" y2="' + base + '" class="gr"/>' + '<line x1="' + f1(X(0)) + '" y1="' + top + '" x2="' + f1(X(0)) + '" y2="' + base + '" class="gr"/>';
+      [-3, -2, -1, 0, 1, 2, 3].forEach(function (v) { b += txt(f1(X(v)), base + 18, 'ts c', String(v).replace('-', '−')); });
+      [0, 1, 2, 3, 4].forEach(function (v) { b += txt(X0 - 8, f1(Y(v)) + 4, 'ts e', String(v)); });
+      b += poly(curve(function (z) { return z * z / 2 + gn; }), 'ln s1') + poly(curve(function (z) { return Math.abs(z) / bl + ln0; }), 'ln s2');
+      b += '<line x1="' + (X0 + 120) + '" y1="' + (top + 8) + '" x2="' + (X0 + 146) + '" y2="' + (top + 8) + '" class="ln s1"/>' + txt(X0 + 152, top + 12, 'ts', 'Gaussian: r²/2 + const (least squares)');
+      b += '<line x1="' + (X0 + 120) + '" y1="' + (top + 26) + '" x2="' + (X0 + 146) + '" y2="' + (top + 26) + '" class="ln s2"/>' + txt(X0 + 152, top + 30, 'ts', 'Laplace: √2 |r| + const (absolute deviations)');
+      b += txt(X1, base + 34, 'ts e', 'residual r (noise of variance 1); vertical: −ln density');
+      return svg("0 0 620 " + (base + 42), 480, "Negative log-densities of Gaussian and Laplace noise of variance 1: a parabola and a V", b);
     },
     /* week 2, section 2: the information diagram for two variables */
     infovenn: function () {
