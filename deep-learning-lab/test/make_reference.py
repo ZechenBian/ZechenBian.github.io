@@ -31,6 +31,8 @@ PRESETS = [   # (experiment, reference name, parameters that differ from the def
     ("u04_optimizers_quadratic", "rotate", {"rotate": True}),
     ("u04_init_depth", "default", {}),
     ("u04_fgsm_dimension", "default", {}),
+    ("u05_shifted_motif", "default", {}),
+    ("u05_residual_depth", "default", {}),
     ("u07_attention_numpy", "default", {}),
 ]
 

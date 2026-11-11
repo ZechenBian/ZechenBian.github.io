@@ -427,6 +427,7 @@ html { box-sizing: border-box; height: 100%; }
 .figure svg .ar { fill: var(--accent); fill-opacity: .13; stroke: none; }
 .figure svg .cell { fill: var(--surface-2); stroke: var(--rule); stroke-width: 1; }
 .figure svg .cell.on { fill: color-mix(in srgb, var(--accent) 55%, var(--paper)); stroke: var(--paper); }
+.figure svg .nd.on { fill: color-mix(in srgb, var(--accent) 45%, var(--paper)); }
 .editor pre, .editor textarea, .editor .ln { line-height: 19.4px; }
 .editor .errbar { position: absolute; left: 0; right: 0; height: 19.4px; background: color-mix(in srgb, var(--c-crit) 24%, transparent); pointer-events: none; }
 .editor .errbar[hidden] { display: none; }

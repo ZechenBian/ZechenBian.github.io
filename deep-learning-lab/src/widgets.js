@@ -7,6 +7,8 @@
  *                         a letter the model thinks rare is expensive
  *   ballmin     (week 3)  minimize a quadratic loss inside a disk or a diamond: the diamond's minimum keeps landing on
  *                         a corner, where a coordinate is exactly 0
+ *   shiftconv   (week 5)  slide a shape: a convolution's output slides with it, a dense layer's does not; the maximum
+ *                         over positions does not move at all
  *   gdquad      (week 4)  the stiff direction caps the step size, the soft direction then crawls; momentum helps
  *   softlookup  (week 7)  attention is a lookup made soft: sharp scores pick one value, flat scores average all of them
  * A widget is a function (host) -> { destroy }. Nothing here is saved; these are sketches, the experiments are the measurements. */
@@ -469,6 +471,72 @@
     return { destroy: function () { un1(); } };
   };
 
+  /* ================= week 5: a convolution and a dense layer applied to a shape you slide ================= */
+  DL.conv2same = function (img, k, N) {
+    var out = new Float64Array(N * N), r = (k.length - 1) / 2;
+    for (var i = 0; i < N; i++) for (var j = 0; j < N; j++) {
+      var s = 0; for (var a = -r; a <= r; a++) for (var b = -r; b <= r; b++) { var ii = i + a, jj = j + b; if (ii >= 0 && ii < N && jj >= 0 && jj < N) s += k[a + r][b + r] * img[ii * N + jj]; }
+      out[i * N + j] = s;
+    }
+    return out;
+  };
+  DL.WIDGETS.shiftconv = function (host) {
+    var N = 16, SHAPE = [[0, 0], [1, 0], [2, 0], [3, 0], [3, 1], [3, 2], [1, 1]], pos = [4, 5], drag = false, fk = 0;
+    var FILTERS = [["vertical edges", [[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]]], ["horizontal edges", [[-1, -2, -1], [0, 0, 0], [1, 2, 1]]], ["blur", [[1 / 9, 1 / 9, 1 / 9], [1 / 9, 1 / 9, 1 / 9], [1 / 9, 1 / 9, 1 / 9]]]];
+    var Wd = new Float64Array(N * N * N * N), sd = 5;
+    for (var q = 0; q < Wd.length; q += 2) { sd = (sd * 1103515245 + 12345) % 2147483648; var u1 = (sd + 1) / 2147483649; sd = (sd * 1103515245 + 12345) % 2147483648; var u2 = sd / 2147483648;
+      var rr = Math.sqrt(-2 * Math.log(u1)) / N; Wd[q] = rr * Math.cos(2 * Math.PI * u2); if (q + 1 < Wd.length) Wd[q + 1] = rr * Math.sin(2 * Math.PI * u2); }
+    var cv = h("canvas", { class: "w-canvas", role: "img", "aria-label": "Three grids: the input with a shape you can drag, the output of a convolution, the output of a dense layer" });
+    var read = h("div", { class: "w-read" }), geo = null;
+    function image() { var im = new Float64Array(N * N); SHAPE.forEach(function (c) { var i = pos[1] + c[0], j = pos[0] + c[1]; if (i >= 0 && i < N && j >= 0 && j < N) im[i * N + j] = 1; }); return im; }
+    function dense(im) { var out = new Float64Array(N * N); for (var o = 0; o < N * N; o++) { var s = 0, base = o * N * N; for (var i = 0; i < N * N; i++) if (im[i]) s += Wd[base + i]; out[o] = s; } return out; }
+    function maxOf(a) { var m = -Infinity; for (var i = 0; i < a.length; i++) if (a[i] > m) m = a[i]; return m; }
+    function draw() {
+      var P = pal(), im = image(), co = DL.conv2same(im, FILTERS[fk][1], N), de = dense(im);
+      var c = fit(cv, 0), W = c.W, gap = 14, side = Math.min(190, Math.floor((W - 2 * gap) / 3)), cell = side / N, Hh = side + 26;
+      c = fit(cv, Hh); var ctx = c.ctx; ctx.fillStyle = P.surface; ctx.fillRect(0, 0, W, c.H);
+      var x0 = (W - 3 * side - 2 * gap) / 2; geo = { x0: x0, cell: cell, top: 20 };
+      var wide = side >= 150;
+      [[wide ? "input (drag the shape)" : "input", im], [wide ? "convolution: " + FILTERS[fk][0] : "convolution", co], [wide ? "dense layer, random weights" : "dense layer", de]].forEach(function (pn, k) {
+        var ox = x0 + k * (side + gap), a = pn[1], m = 0; for (var i = 0; i < a.length; i++) m = Math.max(m, Math.abs(a[i]));
+        ctx.fillStyle = P.ink2; ctx.font = "11px " + P.font; ctx.textAlign = "left"; ctx.fillText(pn[0], ox, 13);
+        for (var i2 = 0; i2 < N; i2++) for (var j = 0; j < N; j++) {
+          var v = a[i2 * N + j] / (m || 1);
+          ctx.fillStyle = v >= 0 ? (k === 0 ? P.ink : P.accent) : P.crit; ctx.globalAlpha = Math.min(1, Math.abs(v)) * (k === 0 ? 0.9 : 0.85);
+          ctx.fillRect(ox + j * cell, 20 + i2 * cell, cell - 0.5, cell - 0.5); ctx.globalAlpha = 1;
+        }
+        ctx.strokeStyle = P.grid; ctx.lineWidth = 1; ctx.strokeRect(ox + 0.5, 20.5, side, side);
+      });
+      DL.clear(read);
+      DL.add(read, [h("span", {}, ["shape at ", h("b", { text: "(" + pos[0] + ", " + pos[1] + ")" })]),
+        h("span", {}, ["convolution, largest response ", h("b", { text: maxOf(co).toFixed(3) })]),
+        h("span", {}, ["dense layer, largest response ", h("b", { text: maxOf(de).toFixed(3) })])]);
+    }
+    function cellAt(e) { var b = cv.getBoundingClientRect(), x = e.clientX - b.left - geo.x0, y = e.clientY - b.top - geo.top; return [Math.floor(x / geo.cell), Math.floor(y / geo.cell)]; }
+    function move(dx, dy) { pos = [Math.max(-2, Math.min(N - 2, pos[0] + dx)), Math.max(-2, Math.min(N - 2, pos[1] + dy))]; draw(); }
+    cv.style.touchAction = "pan-y";
+    cv.addEventListener("pointerdown", function (e) { var c = cellAt(e); if (c[0] < 0 || c[0] >= N || c[1] < 0 || c[1] >= N) return; drag = true; try { cv.setPointerCapture(e.pointerId); } catch (x) {} pos = [c[0] - 1, c[1] - 2]; draw(); e.preventDefault(); });
+    cv.addEventListener("touchstart", function (e) { var t = e.touches && e.touches[0]; if (!t || !geo) return; var c = cellAt(t); if (c[0] >= 0 && c[0] < N && c[1] >= 0 && c[1] < N) e.preventDefault(); }, { passive: false });
+    cv.addEventListener("pointermove", function (e) { if (!drag) return; var c = cellAt(e); var np = [Math.max(-2, Math.min(N - 2, c[0] - 1)), Math.max(-2, Math.min(N - 2, c[1] - 2))]; if (np[0] !== pos[0] || np[1] !== pos[1]) { pos = np; draw(); } });
+    cv.addEventListener("pointerup", function () { drag = false; }); cv.addEventListener("pointercancel", function () { drag = false; });
+    var chips = FILTERS.map(function (f, i) { return h("button", { class: "chip", "aria-pressed": String(i === fk), text: f[0], onclick: function () { fk = i; chips.forEach(function (b, j) { b.setAttribute("aria-pressed", String(j === fk)); }); draw(); } }); });
+    var arrows = [["←", -1, 0, "left"], ["→", 1, 0, "right"], ["↑", 0, -1, "up"], ["↓", 0, 1, "down"]].map(function (a) { return h("button", { class: "btn quiet small", text: a[0], "aria-label": "Move the shape " + a[3], onclick: function () { move(a[1], a[2]); } }); });
+    var body = reveal("What you found", "- Moving the shape moves the convolution's output by the same amount and changes nothing else: the layer **commutes with translations**, it is *translation equivariant*. The dense layer's output changes completely, with no relation between the pictures before and after.\n- So the largest response of the convolution stays fixed as the shape moves, while the dense one jumps around. Taking the maximum (or the average) over positions turns an equivariant map into an *invariant* one: **pooling** (section 3).\n- Against the edge, the convolution's output is cut off: the zero padding outside the grid breaks the symmetry at the border.\n\nSection 2 proves that this is no accident of the three filters: a linear map on signals on a cycle commutes with all shifts if and only if it is a convolution. Locality, the small $3\\times3$ support, is a separate choice on top of that.");
+    DL.add(host, [
+      h("div", { class: "w-h" }, [h("span", { class: "tag sim", text: "Sketch" }), h("b", { text: "Slide the shape" })]),
+      h("p", { class: "w-task", text: "A 16 × 16 image with a small shape in it goes through two linear layers: a 3 × 3 convolution, and a dense layer whose 65,536 weights are random. Blue is positive, red negative." }),
+      h("ol", { class: "w-task", style: "margin:0;padding-left:24px" }, [
+        h("li", { text: "Drag the shape (or use the arrows). What does the middle picture do? And the right one?" }),
+        h("li", { text: "Watch the two “largest response” numbers as you move it. Which one stays put?" }),
+        h("li", { text: "Push the shape against an edge. Does the middle picture still simply move?" })
+      ]),
+      h("div", { class: "w-row" }, chips),
+      cv, h("div", { class: "w-row" }, [h("span", { class: "hint", text: "Move:" })].concat(arrows)), read, body
+    ]);
+    var un = watch(cv, draw); draw();
+    return { destroy: function () { un(); } };
+  };
+
   /* ================= week 7: a lookup made soft ================= */
   DL.softWeights = function (q, keys, beta) {
     var s = keys.map(function (k) { return beta * (q[0] * k[0] + q[1] * k[1]); }), m = Math.max.apply(null, s), e = s.map(function (v) { return Math.exp(v - m); }), z = e.reduce(function (a, b) { return a + b; }, 0);
@@ -646,6 +714,49 @@
       b += txt(f1(X(-1.55)), 116, 'ts e a', 'attacked,') + txt(f1(X(-1.55)), 132, 'ts e a', 'd = 1024');
       b += txt(f1(X(0) + 7), base - 12, 'ts', '42%');
       return svg("0 0 624 216", 520, "The attack shifts the score distribution left by epsilon times the square root of the dimension", b);
+    },
+    /* week 5, section 2: a dense weight matrix against the matrix of a convolution on a cycle */
+    circulant: function () {
+      var n = 12, c = 17, b = '', ox1 = 40, ox2 = 340, oy = 30, sd = 3, labs = ['a', 'b', 'c'];
+      b += txt(ox1 + n * c / 2, 18, 'tx c', 'dense: 144 free weights') + txt(ox2 + n * c / 2, 18, 'tx c', 'convolution on a cycle: 3 weights');
+      for (var i = 0; i < n; i++) for (var j = 0; j < n; j++) {
+        sd = (sd * 1103515245 + 12345) % 2147483648; var op = (0.12 + 0.75 * sd / 2147483648).toFixed(2);
+        b += '<rect x="' + (ox1 + j * c) + '" y="' + (oy + i * c) + '" width="' + (c - 1) + '" height="' + (c - 1) + '" class="cell on" style="fill-opacity:' + op + '"/>';
+        var d = ((j - i) % n + n) % n, k = d === n - 1 ? 0 : d === 0 ? 1 : d === 1 ? 2 : -1;
+        b += '<rect x="' + (ox2 + j * c) + '" y="' + (oy + i * c) + '" width="' + (c - 1) + '" height="' + (c - 1) + '" class="cell' + (k >= 0 ? ' on' : '') + '"/>';
+        if (k >= 0) b += txt(ox2 + j * c + (c - 1) / 2, oy + i * c + 12, 'ts c', labs[k]);
+      }
+      b += txt(ox2 + n * c / 2, oy + n * c + 18, 'ts c', 'row i is row i − 1 shifted one place, wrapping around');
+      return svg("0 0 600 " + (oy + n * c + 28), 460, "A dense matrix with 144 independent entries next to a circulant matrix with three repeated entries on three diagonals", b);
+    },
+    /* week 5, section 3: the receptive field of stacked 3-wide convolutions */
+    receptive: function () {
+      var n = 17, L = 4, dx = 30, ox = 66, b = '', mid = 8;
+      function Y(r) { return 26 + (L - r) * 44; } function X(i) { return ox + 10 + i * dx; }
+      for (var r = 1; r <= L; r++) { var hw = L - r; for (var i = mid - hw; i <= mid + hw; i++) for (var t = -1; t <= 1; t++)
+        b += '<line x1="' + X(i) + '" y1="' + (Y(r) + 6) + '" x2="' + X(i + t) + '" y2="' + (Y(r - 1) - 6) + '" class="ln" style="opacity:0.4"/>'; }
+      for (var r2 = 0; r2 <= L; r2++) {
+        var w = L - r2;
+        b += txt(ox - 12, Y(r2) + 4, 'ts e', r2 === 0 ? 'input' : 'layer ' + r2);
+        for (var k = 0; k < n; k++) b += '<circle cx="' + X(k) + '" cy="' + Y(r2) + '" r="6" class="nd' + (Math.abs(k - mid) <= w ? ' on' : '') + '"/>';
+      }
+      b += txt(X(mid), 12, 'ts c', 'one unit in layer 4');
+      b += txt(X(mid), Y(0) + 26, 'ts c', 'depends on 2·4 + 1 = 9 inputs: each layer of width-3 filters adds 2');
+      return svg("0 0 600 " + (Y(0) + 34), 480, "Five rows of units; one unit in the top layer depends on a window of inputs that widens by two per layer", b);
+    },
+    /* week 5, section 5: a residual block */
+    resblock: function () {
+      var b = '', y = 70;
+      function box(x, w, t) { return '<rect x="' + x + '" y="' + (y - 18) + '" width="' + w + '" height="36" rx="6" class="bx"/>' + txt(x + w / 2, y + 5, 'tx c', t); }
+      b += txt(40, y + 5, 'tx c', 'h');
+      b += '<line x1="56" y1="' + y + '" x2="118" y2="' + y + '" class="ln" marker-end="url(#ah-i)"/>' + box(120, 120, 'relu(W h + b)');
+      b += '<line x1="240" y1="' + y + '" x2="288" y2="' + y + '" class="ln" marker-end="url(#ah-i)"/>' + box(290, 80, 'V ·');
+      b += '<line x1="370" y1="' + y + '" x2="434" y2="' + y + '" class="ln" marker-end="url(#ah-i)"/>';
+      b += '<circle cx="450" cy="' + y + '" r="14" class="nd"/>' + txt(450, y + 6, 'tx c', '+');
+      b += '<line x1="464" y1="' + y + '" x2="528" y2="' + y + '" class="ln" marker-end="url(#ah-i)"/>' + txt(560, y + 5, 'tx c', 'h + F(h)');
+      b += '<path d="M70,' + (y - 10) + ' C70,10 450,10 450,' + (y - 16) + '" class="ln a" marker-end="url(#ah-a)"/>' + txt(260, 22, 'ts c a', 'identity: the skip connection');
+      b += txt(300, y + 42, 'ts c', 'F(h) = V relu(W h + b) is the residual; with V = 0 the block is exactly the identity');
+      return svg("0 0 620 130", 480, "A residual block: the input goes through a weight layer, ReLU and a second weight layer, and is added back to the result", b);
     },
     /* week 3, section 1: standardized sums of exponential variables against the normal density */
     clt: function () {

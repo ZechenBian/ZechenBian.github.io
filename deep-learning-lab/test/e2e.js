@@ -374,12 +374,27 @@ async function shot(page, name) { if (shots) await page.screenshot({ path: path.
   }
   await weekRun('u3', 'u03_estimators', 2, /0\.18\d\d by n \+ 1/, 'week 3: the engine runs the variance estimators and dividing by n + 1 wins');
   await weekRef('u3', 'u03_losses_priors', 'Weight decay as a prior', 2, /ratio 0\.1\d\d/, 'week 3: the reference run answers the ridge question (MAP far better than least squares)');
-  await page.goto(srv.url + '#u5'); await page.waitForTimeout(400);
+  /* week 5 */
+  await weekNotes('u5', 6, 3);
+  {
+    const rd = async () => (await page.locator('.widget .w-read').innerText()).replace(/\s+/g, ' ');
+    const grab = (t, k) => +(new RegExp(k + ', largest response (-?[\\d.]+)').exec(t) || [])[1];
+    const t0 = await rd();
+    await page.click('.widget button[aria-label="Move the shape right"]'); await page.click('.widget button[aria-label="Move the shape down"]'); await page.waitForTimeout(100);
+    const t1 = await rd();
+    ok(grab(t0, 'convolution') === grab(t1, 'convolution') && grab(t0, 'dense layer') !== grab(t1, 'dense layer') && /shape at \(5, 6\)/.test(t1), 'week 5 figure: moving the shape keeps the convolution\'s largest response and changes the dense layer\'s');
+    ok(await page.evaluate(() => { const N = 16, im = new Float64Array(N * N), sh = new Float64Array(N * N); im[5 * N + 6] = 1; im[6 * N + 6] = 1; sh[7 * N + 9] = 1; sh[8 * N + 9] = 1;
+      const k = [[0.3, -1, 2], [0.5, 1.5, -0.7], [1, 0.2, -2]], a = DL.conv2same(im, k, N), b = DL.conv2same(sh, k, N);
+      for (let i = 0; i < N - 3; i++) for (let j = 0; j < N - 4; j++) if (Math.abs(a[i * N + j] - b[(i + 2) * N + j + 3]) > 1e-12) return false; return true; }), 'week 5 figure: the convolution commutes with a shift away from the border, for an arbitrary filter');
+  }
+  await weekRun('u5', 'u05_shifted_motif', 2, /with it on the right\./, 'week 5: the engine trains both models; the dense network is at chance on shifted patterns');
+  await weekRef('u5', 'u05_residual_depth', 'Add the skips', 2, /residual against/, 'week 5: the reference run answers the residual question');
+  await page.goto(srv.url + '#u13'); await page.waitForTimeout(400);
   const fullW = await page.evaluate(() => { const w = DL.COURSE.units.filter((u) => u.status === 'full').map((u) => String(u.week)); return w.slice(0, -1).join(', ') + ' and ' + w[w.length - 1]; });
   ok(new RegExp('full units for weeks ' + fullW + '\\.').test(await page.locator('.sheet').innerText()) && /\b2, 3\b/.test(fullW), 'a planned week names the written weeks (' + fullW + ')');
   await page.goto(srv.url + '#'); await page.waitForTimeout(400);
   ok(new RegExp('Weeks ' + fullW + ' are written out in full, with [a-z-]+ experiments between them').test(await page.locator('.col.home').innerText()), 'the overview counts the written weeks and the experiments');
-  await page.goto(srv.url + '#u5'); await page.waitForTimeout(400);
+  await page.goto(srv.url + '#u13'); await page.waitForTimeout(400);
   ok(/not written yet/.test(await page.locator('.sheet').innerText()) && (await page.locator('.sheet button:has-text("Ask the tutor")').count()) === 3, 'a planned week shows its syllabus and three questions');
   await page.click('.sheet button:has-text("Ask the tutor") >> nth=0');
   await page.waitForFunction(() => /Canned answer/.test(document.querySelector('#m-body').innerText), null, { timeout: 8000 });
@@ -392,11 +407,11 @@ async function shot(page, name) { if (shots) await page.screenshot({ path: path.
   /* ================= phone ================= */
   console.log('phone');
   ({ ctx, page, errors } = await open({ w: 390, h: 844, mobile: true }));
-  for (const r of ['home', 'u1', 'u1-train', 'u2', 'u2-train', 'u3', 'u3-train', 'u4', 'u7', 'u7-train', 'u9', 'u9-sources', 'ledger']) {
+  for (const r of ['home', 'u1', 'u1-train', 'u2', 'u2-train', 'u3', 'u3-train', 'u4', 'u5', 'u5-train', 'u7', 'u7-train', 'u9', 'u9-sources', 'ledger']) {
     await page.goto(srv.url + '#' + r); await page.waitForTimeout(500);
     ok(await noOverflow(page), 'phone: no horizontal overflow on #' + r);
   }
-  for (const u of ['u2', 'u3']) {
+  for (const u of ['u2', 'u3', 'u5']) {
     await page.goto(srv.url + '#' + u); await page.waitForTimeout(700);
     ok((await page.evaluate(() => { document.querySelectorAll('.sheet details').forEach((d) => { d.open = true; }); return [...document.querySelectorAll('.sheet .katex-display')].filter((el) => el.scrollWidth > el.clientWidth + 1).length; })) === 0, 'phone: every display formula of ' + u + ' fits the column, proofs included');
   }
