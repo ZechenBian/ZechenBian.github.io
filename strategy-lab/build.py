@@ -218,7 +218,7 @@ if "ml/main.js" in ML_JS:
     # host:mllab-engine（python -m mllab_engine --mcp）和 host:claude_browser（桌面版自带的浏览器），见 src/ml/engine.js、web.js。
     # 发布时的 capabilities：{"sample": {}, "mcp": {"servers": [{"server": "host:mllab-engine", "tools": [info, examples, fetch_url, read_blob,
     # run_upload, run_start, run_events, run_cancel]}, {"server": "host:claude_browser", "tools": [preview_start, navigate, get_page_text]}]}}
-    ml_body = rd("src/ml/body.html"); ml_body_claude = ml_body.replace('href="../"', 'href="%s" target="_blank" rel="noopener"' % SITE).replace('href="../cases/"', 'href="%scases/" target="_blank" rel="noopener"' % SITE)
+    ml_body = rd("src/ml/body.html"); ml_body_claude = ml_body.replace('href="../"', 'href="%s" target="_blank" rel="noopener"' % SITE).replace('href="../cases/"', 'href="%scases/" target="_blank" rel="noopener"' % SITE).replace('href="lm/"', 'href="%sml/lm/" target="_blank" rel="noopener"' % SITE)
     assert ml_body_claude != ml_body, "回到策略实验室的链接变了：改一下这里"
     ml_claude = "\n".join([
         "<title>机器学习实验室</title>",
@@ -235,6 +235,53 @@ if "ml/main.js" in ML_JS:
     # 测试用：套上和 Artifact 一样的骨架（test/ui-ml-claude.js 在里面装一个假的 window.claude）
     open(os.path.join(ROOT, "dist/ml-preview.html"), "w", encoding="utf8").write(
         '<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>' + RESET + '</style></head><body>' + ml_claude + '</body></html>')
+
+# 亲手写 · 语言模型（ml/lm/index.html）：机器学习实验室旁边的一页，中文。源码在 src/ml/lm/（steps.js 题目、app.js 页面）；
+# 测试和训练在本机引擎里（ml-engine/mllab_engine/exercises.py，api = exercise）。共用机器学习实验室的样式和公式渲染。
+LM_JS = ["md.js", "ml/lm/steps.js", "ml/lm/app.js"]
+lm_page = ""
+if ml_page and all(os.path.exists(os.path.join(ROOT, "src", f)) for f in LM_JS):
+    lm_js = "/* %s\n   Not open source. %s */\n" % (COPY, LICENSE_URL) + "\n".join("/* ===== %s ===== */\n%s" % (f, src(f)) for f in LM_JS)
+    assert "</script" not in lm_js.lower(), "内联脚本里不能出现 </script"
+    lm_css = "\n".join("<style>\n" + src(f) + "\n</style>" for f in ["styles.css", "ml/styles.css", "ml/lm/styles.css"])
+    lm_page = "\n".join([
+        "<!doctype html>",
+        "<!--\n  %s\n  Not open source: no copying, modification, redistribution, commercial use or AI/ML training without written permission.\n  非开源：未经书面许可，不得复制、修改、再分发、商用或用于 AI/机器学习训练。\n  License: %s\n  Third-party code bundled in this page (KaTeX, MIT License) keeps its own license: see THIRD-PARTY-NOTICES.md.\n-->" % (COPY, LICENSE_URL),
+        '<html lang="zh-CN">', "<head>", '<meta charset="utf-8">', '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">',
+        '<meta name="author" content="Zechen Bian">', '<meta name="copyright" content="© 2026 Zechen Bian. All rights reserved.">', '<meta name="robots" content="noai, noimageai">',
+        '<link rel="license" href="%s">' % LICENSE_URL,
+        "<title>亲手写 · 语言模型 · 机器学习实验室</title>",
+        '<meta name="description" content="从零写出 softmax、交叉熵、线性层、嵌入和因果注意力，每一步由本机引擎在你的电脑上和独立算出的答案对照；最后拼成一个字符级小模型，在莎士比亚全集上训练。">',
+        '<link rel="icon" href="%s">' % ML_ICON,
+        '<link rel="preconnect" href="https://fonts.googleapis.com">',
+        '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>',
+        '<link rel="stylesheet" href="%s" media="print" onload="this.media=\'all\'">' % FONTS,
+        "<style>" + RESET + "</style>",
+        lm_css,
+        "<style>\n/* KaTeX %s 的样式，字体内联。KaTeX: MIT License, (c) Khan Academy and other contributors; 字体: SIL Open Font License 1.1。全文见 THIRD-PARTY-NOTICES.md */\n%s\n</style>" % (KATEX_VER, katex_css()),
+        "</head>", "<body>",
+        '<noscript><p style="padding:24px">这个页面要开着 JavaScript 才能用。</p></noscript>',
+        rd("src/ml/lm/body.html"),
+        "<script>\n/* KaTeX %s — MIT License, (c) Khan Academy and other contributors. https://github.com/KaTeX/KaTeX */\n%s\n</script>" % (KATEX_VER, katex_js),
+        "<script>\n" + lm_js + "\n</script>",
+        "</body>", "</html>", ""])
+    os.makedirs(os.path.join(ROOT, "ml/lm"), exist_ok=True)
+    open(os.path.join(ROOT, "ml/lm/index.html"), "w", encoding="utf8").write(lm_page)
+    # 在 Claude 里打开的版本（dist/ml-lm.html）：发布成 Artifact 时声明 mcp 能力，经 Claude 桌面版调用 host:mllab-engine
+    # （工具 info、run_start、run_events、run_cancel）。回到机器学习实验室的链接改成网站的绝对地址。
+    lm_body = rd("src/ml/lm/body.html"); lm_body_claude = lm_body.replace('href="../"', 'href="%sml/" target="_blank" rel="noopener"' % SITE)
+    assert lm_body_claude != lm_body, "回到机器学习实验室的链接变了：改一下这里"
+    lm_claude = "\n".join([
+        "<title>亲手写 · 语言模型</title>",
+        "<!-- %s Not open source: no copying, modification, redistribution, commercial use or AI/ML training without written permission. License: %s -->" % (COPY, LICENSE_URL),
+        '<link rel="stylesheet" href="%s">' % FONTS,
+        "<style>" + RESET + "</style>",
+        lm_css,
+        "<style>\n/* KaTeX %s 的样式，字体内联。KaTeX: MIT License, (c) Khan Academy and other contributors; 字体: SIL Open Font License 1.1 */\n%s\n</style>" % (KATEX_VER, katex_css()),
+        lm_body_claude,
+        "<script>\n/* KaTeX %s — MIT License, (c) Khan Academy and other contributors. https://github.com/KaTeX/KaTeX */\n%s\n</script>" % (KATEX_VER, katex_js),
+        "<script>\n" + lm_js + "\n</script>"])
+    open(os.path.join(ROOT, "dist/ml-lm.html"), "w", encoding="utf8").write(lm_claude)
 
 # 数据分析案例（cases/index.html）：另一张独立的页面，中文，不进英文版的翻译流程。源码在 src/cases/：
 # 八步框架下的几个完整案例（真实数据与模拟数据），每一步的数字都在浏览器里现算；共用策略实验室的内核（随机数）、图表和公式渲染
@@ -270,7 +317,8 @@ if all(os.path.exists(os.path.join(ROOT, "src", f)) for f in CASES_JS):
     os.makedirs(os.path.join(ROOT, "cases"), exist_ok=True)
     open(os.path.join(ROOT, "cases/index.html"), "w", encoding="utf8").write(cases_page)
 
-print("built: %.0f KB (js %.0f KB, katex css %.0f KB); index.html %.0f KB%s; teen/index.html %.0f KB%s%s" % (len(page.encode()) / 1024, len(js.encode()) / 1024, len(katex_css().encode()) / 1024, len(zh_page.encode()) / 1024,
+print("built: %.0f KB (js %.0f KB, katex css %.0f KB); index.html %.0f KB%s; teen/index.html %.0f KB%s%s%s" % (len(page.encode()) / 1024, len(js.encode()) / 1024, len(katex_css().encode()) / 1024, len(zh_page.encode()) / 1024,
       "; en/index.html %.0f KB" % (len(en_page.encode()) / 1024) if en_page else "; 没有 i18n/en，只生成了中文页", len(teen_page.encode()) / 1024,
       "; ml/index.html %.0f KB" % (len(ml_page.encode()) / 1024) if ml_page else "",
+      "; ml/lm/index.html %.0f KB" % (len(lm_page.encode()) / 1024) if lm_page else "",
       "; cases/index.html %.0f KB" % (len(cases_page.encode()) / 1024) if cases_page else ""))

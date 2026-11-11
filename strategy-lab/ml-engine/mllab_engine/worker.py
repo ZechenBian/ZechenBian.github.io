@@ -191,7 +191,7 @@ def child_main(job, conn, opts=None):
             return
         _seed_all(seed)
         code = job.get("code") or ""
-        if TORCH_WORDS.search(code):
+        if TORCH_WORDS.search(code) or job.get("api") == "exercise" and (job.get("data") or {}).get("backend") != "numpy":
             runtime.load_torch(seed)   # 代码里提到 torch：先导入好（要一两秒），不占算法的时间预算；没装的话这里静静地跳过
         chan.send("ready", {"pid": os.getpid(), "python": "%d.%d.%d" % sys.version_info[:3], "numpy": numpy.__version__,
                             "torch": runtime.engine_info()["torch"], "device": runtime.engine_info()["device"]})

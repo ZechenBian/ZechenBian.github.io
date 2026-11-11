@@ -143,3 +143,5 @@ table.ml-lb .good { color: var(--good-ink); } table.ml-lb .bad { color: var(--cr
 
 /* 要再点一次确认的按钮（views.js 的 twoStep） */
 .btn.danger { color: var(--crit-ink); border-color: var(--crit-ink); background: var(--crit-wash); }
+/* 顶栏的“亲手写”：要连电脑上的本机引擎才用得上，很窄的手机上让位给别的按钮 */
+@media (max-width: 459.9px) { #btnLM { display: none; } }
