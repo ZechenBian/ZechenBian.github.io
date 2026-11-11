@@ -4,6 +4,8 @@
     { "path": "index.html",                            "name": "主页 Homepage" },
     { "path": "genesis-lab/index.html",                "name": "创世实验室 Genesis Lab",    "generated": true },
     { "path": "genesis-lab/quantum/index.html",        "name": "创世实验室 · 量子版",       "generated": true },
+    { "path": "genesis-lab/en/index.html",             "name": "Genesis Lab (English)",     "generated": true },
+    { "path": "genesis-lab/quantum/en/index.html",     "name": "Genesis Lab · Quantum (English)", "generated": true },
     { "path": "gravity-slingshot/index.html",          "name": "引力弹弓 Gravity Slingshot", "generated": true },
     { "path": "jieya/index.html",                      "name": "深夜解压铺",                "generated": true },
     { "path": "nobel-lab/index.html",                  "name": "诺奖思想实验室",            "generated": true },
