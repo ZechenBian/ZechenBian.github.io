@@ -1,0 +1,173 @@
+{
+  "v": 1,
+  "day": "2026-10-24",
+  "id": "lot-inspection",
+  "title": {
+    "zh": "这批货收不收",
+    "en": "Accept the lot or not"
+  },
+  "summary": {
+    "zh": "一批货里次品有多少不知道。抽查一件花 1 分，查到什么时候该下决心，收还是退？",
+    "en": "A lot arrives with an unknown share of defects. Each inspected part costs 1. When do you stop inspecting and decide: accept or reject?"
+  },
+  "about": {
+    "zh": [
+      "一批 1000 件的零件送到门口，收不收由你定。这批货里次品的比例 q 你不知道：每一局换一个，在 0 到 0.2 之间均匀地抽。收下这批货，一件好的赚 0.6，一件次品赔 4.4，所以整批得 600 − 5000 × q 分（q 低于 0.12 才划算：q 是 0 得 600 分，q 是 0.2 亏 400 分）；退掉，得 0 分。",
+      "",
+      "拿不定主意可以先抽查：抽一件查一下花 1 分，这一件是不是次品立刻知道。每一件是次品的机会都是 q，互不相干。最多查 40 件。一局最多 41 个回合：前 40 个回合里，每个回合你可以收、退，或者再查一件；到了第 41 个回合就不能再查了，只能收或者退。",
+      "",
+      "**你的规则看到的**：`s.see.n` 是已经查了几件；`s.see.bad` 是其中几件是次品；`s.see.last` 是最近查的那一件是不是次品（1 是，0 不是；还没查过是 NaN）。",
+      "",
+      "**你的规则报的数**：1 是收下，2 是退掉，两样都结束这一局；报别的（包括不是数）是再查一件。第 41 个回合报 1 是收下，报别的都算退掉。",
+      "",
+      "**计分**：收下得 600 − 5000 × q，退掉得 0，每查一件扣 1。一局就是一批货。"
+    ],
+    "en": [
+      "A lot of 1000 parts is at the door and it is your call whether to take it. The share of defective parts in the lot, q, is unknown to you: every episode draws a new one, uniformly between 0 and 0.2. If you accept, every good part earns 0.6 and every defective part costs 4.4, so the lot scores 600 − 5000 × q (worth it only when q is below 0.12: q = 0 scores 600, q = 0.2 loses 400); rejecting scores 0.",
+      "",
+      "If you are unsure you can inspect first: inspecting one part costs 1, and you learn at once whether that part is defective. Each part is defective with probability q, independently. You can inspect at most 40 parts. An episode has at most 41 rounds: in each of the first 40 you may accept, reject, or inspect one more part; in the 41st round you can no longer inspect, only accept or reject.",
+      "",
+      "**What your rule sees**: `s.see.n` is how many parts have been inspected; `s.see.bad` is how many of them were defective; `s.see.last` is whether the most recently inspected part was defective (1 yes, 0 no; NaN before any inspection).",
+      "",
+      "**What your rule returns**: 1 accepts, 2 rejects, and either ends the episode; anything else (including something that is not a number) inspects one more part. In the 41st round, 1 accepts and anything else counts as a rejection.",
+      "",
+      "**Score**: 600 − 5000 × q for accepting, 0 for rejecting, minus 1 per inspected part. One episode is one lot."
+    ]
+  },
+  "note": {
+    "zh": [
+      "看都不看就收，平均得 100 分（q 平均 0.1）。要是能白白知道 q，只收 q 低于 0.12 的货，平均得 180 分。所以抽查这件事平均最多值 80 分，还要扣掉查验的钱。每查一件，关于 q 的判断就准一点，可是第一件和第三十件带来的消息不一样多：早早就看到两件次品，和查了三十件才看到两件，该下的结论不同，该不该再查也不同。"
+    ],
+    "en": [
+      "Accepting without looking scores 100 on average (q averages 0.1). If q were known for free and only lots with q below 0.12 were accepted, the average would be 180. So inspection is worth at most 80 on average, before paying for it. Every inspected part sharpens your estimate of q, but the first part and the thirtieth do not carry the same news: two defects seen early and two defects after thirty inspections call for different conclusions, and for different decisions about whether to keep looking."
+    ]
+  },
+  "T": 41,
+  "p": {
+    "gain": 600,
+    "slope": 5000,
+    "qhi": 0.2,
+    "cost": 1
+  },
+  "code": {
+    "zh": [
+      "// 发牌：抽一个次品率 q（0 到 qhi 之间均匀），再把 T − 1 件待查的零件各自是不是次品先定好，藏起来。收下这批货值 gain − slope × q。",
+      "function deal(T, rng, p) {",
+      "  var q = rng.uniform(0, p.qhi), bad = [];",
+      "  for (var t = 0; t < T - 1; t++) bad.push(rng.u() < q ? 1 : 0);",
+      "  return { bad: bad, value: p.gain - p.slope * q, cost: p.cost, n: 0, k: 0, last: NaN };",
+      "}",
+      "// 亮牌：查了几件、其中几件次品、最近一件是不是次品。",
+      "function show(G, t) {",
+      "  return { n: G.n, bad: G.k, last: G.last };",
+      "}",
+      "// 判分：报 1 收下（得这批货的价值），报 2 退掉（得 0），都结束这一局。报别的就再查一件，扣查验费；最后一个回合不能再查，报 1 以外的都算退掉。",
+      "function referee(G, t, a) {",
+      "  if (a === 1) { G.over = true; return G.value; }",
+      "  if (a === 2 || t >= G.bad.length) { G.over = true; return 0; }",
+      "  G.n++; G.k += G.bad[t]; G.last = G.bad[t];",
+      "  return -G.cost;",
+      "}"
+    ],
+    "en": [
+      "// Deal: draw the defect rate q (uniform between 0 and qhi), then fix in advance whether each of the T − 1 inspectable parts is defective. Accepting the lot is worth gain − slope × q.",
+      "function deal(T, rng, p) {",
+      "  var q = rng.uniform(0, p.qhi), bad = [];",
+      "  for (var t = 0; t < T - 1; t++) bad.push(rng.u() < q ? 1 : 0);",
+      "  return { bad: bad, value: p.gain - p.slope * q, cost: p.cost, n: 0, k: 0, last: NaN };",
+      "}",
+      "// Show: how many parts were inspected, how many were defective, and whether the latest one was.",
+      "function show(G, t) {",
+      "  return { n: G.n, bad: G.k, last: G.last };",
+      "}",
+      "// Referee: 1 accepts (scores the lot's value), 2 rejects (scores 0); both end the episode. Anything else inspects one more part and pays the fee; in the last round no inspection is possible and anything but 1 is a rejection.",
+      "function referee(G, t, a) {",
+      "  if (a === 1) { G.over = true; return G.value; }",
+      "  if (a === 2 || t >= G.bad.length) { G.over = true; return 0; }",
+      "  G.n++; G.k += G.bad[t]; G.last = G.bad[t];",
+      "  return -G.cost;",
+      "}"
+    ]
+  },
+  "sets": {
+    "pub": 10,
+    "fin": 10,
+    "K": 1500,
+    "seed": 20261024
+  },
+  "higher": true,
+  "digits": 1,
+  "refs": [
+    {
+      "id": "blind",
+      "name": {
+        "zh": "看都不看就收",
+        "en": "Accept without looking"
+      },
+      "summary": {
+        "zh": "第一个回合就收下。拿来当基准。",
+        "en": "Accepts in the first round. The benchmark."
+      },
+      "p": {},
+      "code": "function decide(s, p) {\n  return 1;\n}"
+    },
+    {
+      "id": "ten",
+      "name": {
+        "zh": "查 10 件，次品不超过 1 件就收",
+        "en": "Inspect 10, accept at most 1 defect"
+      },
+      "summary": {
+        "zh": "先查 10 件，再一次定夺：次品不超过 1 件就收，否则退。",
+        "en": "Inspects 10 parts, then decides once: accept if at most 1 was defective, else reject."
+      },
+      "p": {
+        "n": 10,
+        "allow": 1
+      },
+      "code": "function decide(s, p) {\n  if (s.see.n < p.n) return 0;\n  return s.see.bad <= p.allow ? 1 : 2;\n}"
+    },
+    {
+      "id": "twenty",
+      "name": {
+        "zh": "查 20 件，次品不超过 2 件就收",
+        "en": "Inspect 20, accept at most 2 defects"
+      },
+      "summary": {
+        "zh": "查得多一倍，判断准一些，查验费也多付 10 分。",
+        "en": "Twice as many inspections: a sharper verdict, and 10 more spent on inspecting."
+      },
+      "p": {
+        "n": 20,
+        "allow": 2
+      },
+      "code": "function decide(s, p) {\n  if (s.see.n < p.n) return 0;\n  return s.see.bad <= p.allow ? 1 : 2;\n}"
+    }
+  ],
+  "starter": {
+    "p": {
+      "n": 10,
+      "allow": 1
+    },
+    "code": {
+      "zh": [
+        "// 起始代码：先查 p.n 件，次品不超过 p.allow 件就收，否则退。把它改成你的办法。",
+        "// s.see.n：已经查了几件。s.see.bad：其中几件次品。s.see.last：最近一件是不是次品（还没查过是 NaN）。",
+        "// 报 1 收、2 退、别的再查一件。题目的参数在 s.g 里：收下值 s.g.gain − s.g.slope × q，q 在 0 到 s.g.qhi 之间，查一件花 s.g.cost。",
+        "function decide(s, p, st) {",
+        "  if (s.see.n < p.n) return 0;",
+        "  return s.see.bad <= p.allow ? 1 : 2;",
+        "}"
+      ],
+      "en": [
+        "// Starter code: inspects p.n parts, then accepts if at most p.allow were defective and rejects otherwise. Change it into your own method.",
+        "// s.see.n: parts inspected so far. s.see.bad: how many were defective. s.see.last: whether the latest one was (NaN before any inspection).",
+        "// Return 1 to accept, 2 to reject, anything else to inspect one more. The parameters are in s.g: accepting is worth s.g.gain - s.g.slope * q, q lies between 0 and s.g.qhi, one inspection costs s.g.cost.",
+        "function decide(s, p, st) {",
+        "  if (s.see.n < p.n) return 0;",
+        "  return s.see.bad <= p.allow ? 1 : 2;",
+        "}"
+      ]
+    }
+  }
+}

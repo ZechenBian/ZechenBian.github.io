@@ -1,0 +1,187 @@
+{
+  "v": 1,
+  "day": "2026-10-25",
+  "id": "queue-door",
+  "title": {
+    "zh": "放不放进来",
+    "en": "Let them in or not"
+  },
+  "summary": {
+    "zh": "一个窗口，一条队。来一个人收 12 分，队里每留一个人每回合扣 1 分。来人多快、办事多快都不知道。",
+    "en": "One counter, one line. Each admitted customer pays 12; each person left in line costs 1 per round. How fast they arrive and how fast they are served, you do not know."
+  },
+  "about": {
+    "zh": [
+      "你管一个只有一个窗口的服务点，一共 200 个回合。每个回合先看有没有人来：来一个人的概率是 λ，最多来一个。来了人由你决定放不放进来：放进来的人当场付 12 分，然后排到队尾；不放，这个人走掉，不会再回来。接着窗口办事：队里有人的话，排在最前面的那个人在这一回合办完的概率是 μ，办完就走。回合末，队里（连正在办的那个在内）每留着一个人扣 1 分。",
+      "",
+      "λ 和 μ 你都不知道：每一局各换一个，λ 在 0.3 到 0.9 之间均匀地抽，μ 在 0.4 到 0.8 之间均匀地抽，一局之内不变。第 200 个回合结束时还留在队里的人不再扣分。",
+      "",
+      "**你的规则看到的**：`s.see.n` 是这一回合开始时队里有几个人（连正在办的那个在内，不算这一回合来的人）；`s.see.arr` 是这一回合有没有人来（1 有，0 没有）。没有人来的回合，你报什么都没有影响。",
+      "",
+      "**你的规则报的数**：报 1 是放进来；报别的，或者报的不是数，都是不放。",
+      "",
+      "**计分**：每个回合的得分 = 放进来的人付的 12 分（没放或者没人来就是 0）− 回合末队里的人数。一局是 200 个回合加起来。"
+    ],
+    "en": [
+      "You run a service point with a single counter, for 200 rounds. Each round starts with a possible arrival: one customer arrives with probability λ, never more than one. If someone arrives, you decide whether to let them in: an admitted customer pays 12 on the spot and joins the back of the line; a customer turned away leaves and never comes back. Then the counter works: if the line is not empty, the person at the front finishes this round with probability μ and leaves. At the end of the round, every person still in line (including the one being served) costs you 1.",
+      "",
+      "You know neither λ nor μ: every episode draws new ones, λ uniformly between 0.3 and 0.9, μ uniformly between 0.4 and 0.8, both fixed within an episode. Whoever is still in line when round 200 ends costs nothing more.",
+      "",
+      "**What your rule sees**: `s.see.n` is how many people are in line at the start of the round (including the one being served, not counting this round's arrival); `s.see.arr` is whether someone arrives this round (1 yes, 0 no). In a round with no arrival, your answer makes no difference.",
+      "",
+      "**What your rule returns**: 1 admits the customer; anything else, or something that is not a number, turns them away.",
+      "",
+      "**Score**: each round scores the 12 paid by an admitted customer (0 if nobody arrived or you turned them away) minus the number of people in line at the end of the round. An episode is the sum over the 200 rounds."
+    ]
+  },
+  "note": {
+    "zh": [
+      "要是知道 λ 和 μ，可以算出每个时刻最好的办法都是一条门槛：队里的人数不超过某个数才放。门槛随 λ 和 μ 变：来人越多、办事越慢，门槛越低，因为现在放进来的人不光自己要等，还会让后面来的人等得更久，或者让你不得不把后面更划算的时候来的人拒之门外。这道题里 λ 可以从每回合有没有人来直接数出来，μ 要从队伍变短的次数里估。另外，快到第 200 个回合时，放进来的人等不了多久，门槛可以放宽。"
+    ],
+    "en": [
+      "If λ and μ were known, one could compute that the best policy at every moment is a threshold: admit only when the line is no longer than some number. The threshold depends on λ and μ: the more arrivals and the slower the service, the lower it is, because a customer admitted now not only waits, but makes everyone who comes later wait longer, or forces you to turn away people arriving at better moments. Here λ can be counted directly from the arrivals each round, while μ has to be estimated from how often the line gets shorter. And near round 200 an admitted customer cannot wait for long, so the threshold can be relaxed."
+    ]
+  },
+  "T": 200,
+  "p": {
+    "reward": 12,
+    "hold": 1,
+    "llo": 0.3,
+    "lhi": 0.9,
+    "mlo": 0.4,
+    "mhi": 0.8
+  },
+  "code": {
+    "zh": [
+      "// 发牌：抽一个 λ 和一个 μ，再把每个回合来不来人、窗口办不办得完都先定好，藏起来。",
+      "function deal(T, rng, p) {",
+      "  var lam = rng.uniform(p.llo, p.lhi), mu = rng.uniform(p.mlo, p.mhi), arr = [], svc = [];",
+      "  for (var t = 0; t < T; t++) { arr.push(rng.u() < lam ? 1 : 0); svc.push(rng.u() < mu ? 1 : 0); }",
+      "  return { arr: arr, svc: svc, n: 0, reward: p.reward, hold: p.hold };",
+      "}",
+      "// 亮牌：回合开始时队里有几个人，这一回合有没有人来。",
+      "function show(G, t) {",
+      "  return { n: G.n, arr: G.arr[t] };",
+      "}",
+      "// 判分：来了人而且报 1，就放进来收钱；然后队里有人的话按 svc 办完一个；回合末每留一个人扣 hold。",
+      "function referee(G, t, a) {",
+      "  var gain = 0;",
+      "  if (G.arr[t] === 1 && a === 1) { G.n++; gain += G.reward; }",
+      "  if (G.n > 0 && G.svc[t] === 1) G.n--;",
+      "  return gain - G.hold * G.n;",
+      "}"
+    ],
+    "en": [
+      "// Deal: draw λ and μ, then fix in advance for every round whether a customer arrives and whether the counter finishes one. All hidden.",
+      "function deal(T, rng, p) {",
+      "  var lam = rng.uniform(p.llo, p.lhi), mu = rng.uniform(p.mlo, p.mhi), arr = [], svc = [];",
+      "  for (var t = 0; t < T; t++) { arr.push(rng.u() < lam ? 1 : 0); svc.push(rng.u() < mu ? 1 : 0); }",
+      "  return { arr: arr, svc: svc, n: 0, reward: p.reward, hold: p.hold };",
+      "}",
+      "// Show: how many are in line at the start of the round, and whether someone arrives this round.",
+      "function show(G, t) {",
+      "  return { n: G.n, arr: G.arr[t] };",
+      "}",
+      "// Referee: if someone arrives and the answer is 1, admit them and collect the reward; then, if the line is not empty, one finishes according to svc; at the end of the round every person left costs hold.",
+      "function referee(G, t, a) {",
+      "  var gain = 0;",
+      "  if (G.arr[t] === 1 && a === 1) { G.n++; gain += G.reward; }",
+      "  if (G.n > 0 && G.svc[t] === 1) G.n--;",
+      "  return gain - G.hold * G.n;",
+      "}"
+    ]
+  },
+  "sets": {
+    "pub": 10,
+    "fin": 10,
+    "K": 400,
+    "seed": 20261025
+  },
+  "higher": true,
+  "digits": 1,
+  "refs": [
+    {
+      "id": "cap4",
+      "name": {
+        "zh": "队里不超过 4 个人才放",
+        "en": "Admit when at most 4 in line"
+      },
+      "summary": {
+        "zh": "这一回合开始时队里的人数不超过 4 才放。拿来当基准。（谁来都放的话，队伍越排越长，平均下来是负分。）",
+        "en": "Admits only when at most 4 people are in line at the start of the round. The benchmark. (Admitting everyone lets the line grow without bound and scores negative on average.)"
+      },
+      "p": {
+        "cap": 4
+      },
+      "code": "function decide(s, p) {\n  return s.see.n <= p.cap ? 1 : 0;\n}"
+    },
+    {
+      "id": "cap2",
+      "name": {
+        "zh": "队里不超过 2 个人才放",
+        "en": "Admit when at most 2 in line"
+      },
+      "summary": {
+        "zh": "门槛压到 2：不管 λ、μ 是多少，队里的人数不超过 2 才放。",
+        "en": "A tighter cap of 2, whatever λ and μ are: admits only when at most 2 people are in line."
+      },
+      "p": {
+        "cap": 2
+      },
+      "code": "function decide(s, p) {\n  return s.see.n <= p.cap ? 1 : 0;\n}"
+    },
+    {
+      "id": "cap2late",
+      "name": {
+        "zh": "不超过 2 个人才放，最后 10 回合来者不拒",
+        "en": "At most 2, then take all in the last 10"
+      },
+      "summary": {
+        "zh": "和上一条一样，只是最后 10 个回合谁来都放：反正等不了多久。",
+        "en": "Same as above, except the last 10 rounds admit everyone: they will not have to wait long."
+      },
+      "p": {
+        "cap": 2,
+        "late": 10
+      },
+      "code": "function decide(s, p) {\n  if (s.T - s.t <= p.late) return 1;\n  return s.see.n <= p.cap ? 1 : 0;\n}"
+    }
+  ],
+  "starter": {
+    "p": {
+      "cap": 2
+    },
+    "code": {
+      "zh": [
+        "// 起始代码：队里不超过 p.cap 个人才放。把它改成你的办法。",
+        "// s.see.n：回合开始时队里的人数。s.see.arr：这一回合有没有人来（1 有，0 没有）。s.t 是第几回合（从 0 起），s.T 是一共几回合。",
+        "// st 是你自己的记事本，一局之内一直在：这里替你数着来了几个人（st.arr）和队伍变短了几次（st.done），还没有用上。题目的参数在 s.g 里：s.g.reward、s.g.hold，λ 的范围 s.g.llo 到 s.g.lhi，μ 的范围 s.g.mlo 到 s.g.mhi。",
+        "function init(p) {",
+        "  return { arr: 0, done: 0, prev: 0, took: 0 };",
+        "}",
+        "function decide(s, p, st) {",
+        "  if (s.see.n < st.prev + st.took) st.done++;",
+        "  st.arr += s.see.arr;",
+        "  st.took = s.see.arr === 1 && s.see.n <= p.cap ? 1 : 0;",
+        "  st.prev = s.see.n;",
+        "  return st.took;",
+        "}"
+      ],
+      "en": [
+        "// Starter code: admits when at most p.cap people are in line. Change it into your own method.",
+        "// s.see.n: people in line at the start of the round. s.see.arr: whether someone arrives this round (1 yes, 0 no). s.t is the round (from 0), s.T the number of rounds.",
+        "// st is your own notebook for the whole episode: it already counts arrivals (st.arr) and the times the line got shorter (st.done), unused so far. The parameters are in s.g: s.g.reward, s.g.hold, λ between s.g.llo and s.g.lhi, μ between s.g.mlo and s.g.mhi.",
+        "function init(p) {",
+        "  return { arr: 0, done: 0, prev: 0, took: 0 };",
+        "}",
+        "function decide(s, p, st) {",
+        "  if (s.see.n < st.prev + st.took) st.done++;",
+        "  st.arr += s.see.arr;",
+        "  st.took = s.see.arr === 1 && s.see.n <= p.cap ? 1 : 0;",
+        "  st.prev = s.see.n;",
+        "  return st.took;",
+        "}"
+      ]
+    }
+  }
+}

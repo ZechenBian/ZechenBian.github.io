@@ -1,0 +1,188 @@
+{
+  "v": 1,
+  "day": "2026-10-28",
+  "id": "lost-key",
+  "title": {
+    "zh": "钥匙丢在哪儿了",
+    "en": "Where did the key go"
+  },
+  "summary": {
+    "zh": "五个地方，各有一个可能性和一个“在那儿也未必翻得到”的检出率。翻过没翻到，该换地方还是再翻一遍？",
+    "en": "Five places, each with a probability of holding the key and a chance of missing it even when it is there. After a fruitless look, move on or look again?"
+  },
+  "about": {
+    "zh": [
+      "钥匙丢在五个地方之一。每一局开始时，你拿到五个地方各自的可能性 π（五个数加起来是 1，是在“所有可能的分法”里均匀抽的一组），和五个地方各自的检出率 d（各自在 0.1 到 0.9 之间均匀地抽）。钥匙真正在哪儿，按 π 抽定，你看不到。",
+      "",
+      "每一回合你翻一个地方。钥匙在那儿的话，这一次翻到它的概率是那个地方的 d，每一次独立；钥匙不在那儿，自然翻不到。最多翻 30 次。",
+      "",
+      "**你的规则看到的**：`s.see.p` 是五个地方的可能性 π（数组，`s.see.p[0]` 是第 1 个地方），`s.see.d` 是五个地方的检出率。整局不变。翻过哪里、没翻到，要自己记在 `st` 里（翻到了这一局就结束了）。",
+      "",
+      "**你的规则报的数**：1 到 5，翻第几个地方。报别的，或者报的不是数，都算翻第 1 个地方。",
+      "",
+      "**计分**：第 k 次翻到钥匙，得 60 − k 分（第 1 次就翻到得 59 分，第 30 次翻到得 30 分）；30 次都没翻到，得 0 分。"
+    ],
+    "en": [
+      "The key is in one of five places. At the start of every episode you are given each place's probability π of holding it (five numbers adding up to 1, drawn uniformly from all possible splits) and each place's detection rate d (each drawn uniformly between 0.1 and 0.9). Where the key really is, drawn according to π, you cannot see.",
+      "",
+      "Each round you look in one place. If the key is there, this look finds it with probability equal to that place's d, independently each time; if it is not there, you find nothing. You have at most 30 looks.",
+      "",
+      "**What your rule sees**: `s.see.p` is the array of the five probabilities π (`s.see.p[0]` is place 1), `s.see.d` the array of the five detection rates. Both stay the same for the whole episode. Keep track yourself in `st` of where you have looked without success (a successful look ends the episode).",
+      "",
+      "**What your rule returns**: 1 to 5, the place to look in. Anything else, or something that is not a number, counts as place 1.",
+      "",
+      "**Score**: finding the key on the k-th look scores 60 − k (59 for the first look, 30 for the 30th); 30 fruitless looks score 0."
+    ]
+  },
+  "note": {
+    "zh": [
+      "翻了一个地方没翻到，钥匙在那儿的可能性就打一个折扣（乘上 1 − d 再重新归一），别的地方的可能性相应抬高。这道题已经有现成的理论：翻的次数要平均最少，每一次都该翻“可能性 × 检出率”最大的那个地方。只按可能性翻、不管检出率，会在一个难翻的地方耗太多次。"
+    ],
+    "en": [
+      "A fruitless look discounts that place's probability (multiply by 1 − d, then renormalise) and raises the others accordingly. The theory here is settled: to minimise the expected number of looks, each look should go to the place where probability × detection rate is largest. Following probability alone, ignoring detection rates, wastes looks in a place that is hard to search."
+    ]
+  },
+  "T": 30,
+  "p": {
+    "n": 5,
+    "dlo": 0.1,
+    "dhi": 0.9,
+    "prize": 60
+  },
+  "code": {
+    "zh": [
+      "// 发牌：抽五个地方的可能性（五个指数随机数归一，就是在所有分法里均匀抽）和检出率，按可能性抽钥匙在哪儿，再把每一次翻的骰子先定好，藏起来。",
+      "function deal(T, rng, p) {",
+      "  var w = [], d = [], sum = 0, i, t, u = [];",
+      "  for (i = 0; i < p.n; i++) { w.push(rng.exp(1)); sum += w[i]; d.push(rng.uniform(p.dlo, p.dhi)); }",
+      "  for (i = 0; i < p.n; i++) w[i] /= sum;",
+      "  var x = rng.u(), loc = 0, acc = w[0];",
+      "  while (loc < p.n - 1 && x >= acc) { loc++; acc += w[loc]; }",
+      "  for (t = 0; t < T; t++) u.push(rng.u());",
+      "  return { p: w, d: d, loc: loc, u: u, prize: p.prize };",
+      "}",
+      "// 亮牌：五个地方的可能性和检出率。",
+      "function show(G, t) {",
+      "  return { p: G.p, d: G.d };",
+      "}",
+      "// 判分：报 1 到 5 翻那个地方（别的算 1）。钥匙在那儿而且骰子小于检出率，就翻到了，得 prize − (t + 1)，这一局结束。",
+      "function referee(G, t, a) {",
+      "  var i = a >= 1 && a <= G.p.length && a === Math.floor(a) ? a - 1 : 0;",
+      "  if (i === G.loc && G.u[t] < G.d[i]) { G.over = true; return G.prize - (t + 1); }",
+      "  return 0;",
+      "}"
+    ],
+    "en": [
+      "// Deal: draw the five probabilities (five exponential numbers normalised, i.e. uniform over all splits) and detection rates, draw where the key is according to the probabilities, and fix every look's die in advance. All hidden.",
+      "function deal(T, rng, p) {",
+      "  var w = [], d = [], sum = 0, i, t, u = [];",
+      "  for (i = 0; i < p.n; i++) { w.push(rng.exp(1)); sum += w[i]; d.push(rng.uniform(p.dlo, p.dhi)); }",
+      "  for (i = 0; i < p.n; i++) w[i] /= sum;",
+      "  var x = rng.u(), loc = 0, acc = w[0];",
+      "  while (loc < p.n - 1 && x >= acc) { loc++; acc += w[loc]; }",
+      "  for (t = 0; t < T; t++) u.push(rng.u());",
+      "  return { p: w, d: d, loc: loc, u: u, prize: p.prize };",
+      "}",
+      "// Show: the five probabilities and detection rates.",
+      "function show(G, t) {",
+      "  return { p: G.p, d: G.d };",
+      "}",
+      "// Referee: 1 to 5 picks the place (anything else is 1). If the key is there and the die is below the detection rate, it is found: score prize − (t + 1) and the episode ends.",
+      "function referee(G, t, a) {",
+      "  var i = a >= 1 && a <= G.p.length && a === Math.floor(a) ? a - 1 : 0;",
+      "  if (i === G.loc && G.u[t] < G.d[i]) { G.over = true; return G.prize - (t + 1); }",
+      "  return 0;",
+      "}"
+    ]
+  },
+  "sets": {
+    "pub": 10,
+    "fin": 10,
+    "K": 2000,
+    "seed": 20261028
+  },
+  "higher": true,
+  "digits": 2,
+  "refs": [
+    {
+      "id": "top",
+      "name": {
+        "zh": "一直翻可能性最大的地方",
+        "en": "Always the likeliest place"
+      },
+      "summary": {
+        "zh": "开局可能性最大的那个地方，翻不到就再翻，一直翻它。拿来当基准。",
+        "en": "Looks in the place with the largest initial probability, again and again. The benchmark."
+      },
+      "p": {},
+      "code": "function decide(s, p) {\n  var best = 0;\n  for (var i = 1; i < s.see.p.length; i++) if (s.see.p[i] > s.see.p[best]) best = i;\n  return best + 1;\n}"
+    },
+    {
+      "id": "rounds",
+      "name": {
+        "zh": "按可能性从大到小轮着翻",
+        "en": "Cycle through, likeliest first"
+      },
+      "summary": {
+        "zh": "把五个地方按可能性从大到小排好，依次各翻一遍，翻完一轮再来一轮。",
+        "en": "Orders the five places by probability and visits them in turn, round after round."
+      },
+      "p": {},
+      "code": "function init(p) {\n  return { order: null };\n}\nfunction decide(s, p, st) {\n  if (!st.order) {\n    st.order = [0, 1, 2, 3, 4];\n    st.order.sort(function (a, b) { return s.see.p[b] - s.see.p[a]; });\n  }\n  return st.order[s.t % st.order.length] + 1;\n}"
+    },
+    {
+      "id": "halve",
+      "name": {
+        "zh": "翻过没翻到，可能性减半",
+        "en": "A miss halves the probability"
+      },
+      "summary": {
+        "zh": "每翻一次没翻到，就把那个地方的可能性乘上 0.5，再翻眼下可能性最大的地方。打的折扣和检出率没有关系。",
+        "en": "After every fruitless look, multiplies that place's probability by 0.5, then looks where it is now largest. The discount takes no notice of the detection rates."
+      },
+      "p": {
+        "keep": 0.5
+      },
+      "code": "function init(p) {\n  return { w: null, last: -1 };\n}\nfunction decide(s, p, st) {\n  if (!st.w) st.w = s.see.p.slice();\n  if (st.last >= 0) st.w[st.last] *= p.keep;\n  var best = 0;\n  for (var i = 1; i < st.w.length; i++) if (st.w[i] > st.w[best]) best = i;\n  st.last = best;\n  return best + 1;\n}"
+    }
+  ],
+  "starter": {
+    "p": {
+      "keep": 0.5
+    },
+    "code": {
+      "zh": [
+        "// 起始代码：每翻一次没翻到，就把那个地方的可能性乘上 p.keep，再翻眼下可能性最大的地方。把它改成你的办法。",
+        "// s.see.p：五个地方的可能性（数组，下标 0 到 4）。s.see.d：五个地方的检出率。报 1 到 5。",
+        "// st 是你自己的记事本，一局之内一直在：st.w 是打过折扣的可能性（没有归一，比大小够用），st.last 是上一次翻的地方的下标。",
+        "function init(p) {",
+        "  return { w: null, last: -1 };",
+        "}",
+        "function decide(s, p, st) {",
+        "  if (!st.w) st.w = s.see.p.slice();",
+        "  if (st.last >= 0) st.w[st.last] *= p.keep;",
+        "  var best = 0;",
+        "  for (var i = 1; i < st.w.length; i++) if (st.w[i] > st.w[best]) best = i;",
+        "  st.last = best;",
+        "  return best + 1;",
+        "}"
+      ],
+      "en": [
+        "// Starter code: after every fruitless look, multiplies that place's probability by p.keep, then looks in the currently likeliest place. Change it into your own method.",
+        "// s.see.p: the five probabilities (array, indices 0 to 4). s.see.d: the five detection rates. Return 1 to 5.",
+        "// st is your own notebook for the whole episode: st.w holds the discounted probabilities (not normalised, which is enough for comparing), st.last the index of the last place searched.",
+        "function init(p) {",
+        "  return { w: null, last: -1 };",
+        "}",
+        "function decide(s, p, st) {",
+        "  if (!st.w) st.w = s.see.p.slice();",
+        "  if (st.last >= 0) st.w[st.last] *= p.keep;",
+        "  var best = 0;",
+        "  for (var i = 1; i < st.w.length; i++) if (st.w[i] > st.w[best]) best = i;",
+        "  st.last = best;",
+        "  return best + 1;",
+        "}"
+      ]
+    }
+  }
+}

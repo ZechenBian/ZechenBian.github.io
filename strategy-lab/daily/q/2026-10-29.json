@@ -1,0 +1,176 @@
+{
+  "v": 1,
+  "day": "2026-10-29",
+  "id": "stake-size",
+  "title": {
+    "zh": "每一把押多少",
+    "en": "How much to stake each round"
+  },
+  "summary": {
+    "zh": "一枚偏心的硬币，偏多少不知道，甚至可能偏向对你不利的一面。每一把押本钱的几成，才能让本钱长得最快？",
+    "en": "A biased coin, bias unknown, possibly even against you. What share of your bankroll should ride on each toss to grow it fastest?"
+  },
+  "about": {
+    "zh": [
+      "一枚硬币，正面朝上的概率是 p。p 是多少你不知道：每一局换一个，在 0.4 到 0.75 之间均匀地抽，一局之内不变。一局抛 150 把，每一把都押正面：押本钱的一个比例 f，正面朝上，押的钱翻倍（本钱变成 1 + f 倍）；反面朝上，押的钱没了（本钱变成 1 − f 倍）。不押也可以，硬币照样抛，结果你照样看得到。",
+      "",
+      "**你的规则看到的**：`s.see` 是上一把的结果（1 正面，0 反面，第一把是 NaN）。到现在为止正面出过几次，要自己数。",
+      "",
+      "**你的规则报的数**：这一把押本钱的比例 f。最多算 0.95，报多了按 0.95 算；负数或者不是数算 0（不押）。",
+      "",
+      "**计分**：一局结束时本钱是起初的多少倍，取自然对数。也就是每一把得 ln(1 + f)（正面）或者 ln(1 − f)（反面），150 把加起来。分数是 0 就是不赚不赔，是 ln 2 ≈ 0.693 就是翻了一倍。"
+    ],
+    "en": [
+      "A coin comes up heads with probability p. You do not know p: every episode draws a new one, uniformly between 0.4 and 0.75, fixed within the episode. An episode is 150 tosses, and you always back heads: you stake a fraction f of your bankroll; on heads the stake doubles (the bankroll becomes 1 + f times what it was), on tails the stake is lost (the bankroll becomes 1 − f times). You may stake nothing; the coin is tossed anyway and you still see the result.",
+      "",
+      "**What your rule sees**: `s.see` is the result of the previous toss (1 heads, 0 tails, NaN before the first toss). Count the heads so far yourself.",
+      "",
+      "**What your rule returns**: the fraction f of the bankroll to stake on this toss. At most 0.95 counts; a negative number or something that is not a number counts as 0 (no stake).",
+      "",
+      "**Score**: the natural logarithm of the bankroll at the end of the episode as a multiple of the starting bankroll. That is, each toss scores ln(1 + f) on heads or ln(1 − f) on tails, summed over the 150 tosses. A score of 0 means you broke even; ln 2 ≈ 0.693 means you doubled."
+    ]
+  },
+  "note": {
+    "zh": [
+      "要是知道 p，让本钱的对数增长最快的押法是每一把押 2p − 1（p 不到一半就不押，这个结论叫凯利公式）：p 是 0.75 时每把押四分之一，平均每把增长 0.131，150 把下来是 19.6；p 是 0.6 时每把押两成，150 把下来是 3.0。不知道 p 就得一边抛一边估，而估得偏高、押得过头，代价比押得保守大得多：押的比例超过 2 × (2p − 1)，长期下来本钱反而缩水。所以要想的是：早期该押多少，估出来的 p 该打多少折扣，一个事先就知道的“p 在 0.4 到 0.75 之间”能帮多少忙。"
+    ],
+    "en": [
+      "If p were known, the stake that maximises the growth rate of the log bankroll is 2p − 1 on every toss (nothing when p is below one half; this is the Kelly criterion): at p = 0.75 you stake a quarter and grow by 0.131 per toss on average, 19.6 over 150 tosses; at p = 0.6 you stake a fifth, 3.0 over 150 tosses. Without knowing p you estimate it as you go, and overestimating it, hence overstaking, costs far more than staking too little: beyond a stake of 2 × (2p − 1), the bankroll shrinks in the long run. So the questions are how much to stake early on, how much to discount the estimate, and how much the prior knowledge that p lies between 0.4 and 0.75 is worth."
+    ]
+  },
+  "T": 150,
+  "p": {
+    "plo": 0.4,
+    "phi": 0.75,
+    "fmax": 0.95
+  },
+  "code": {
+    "zh": [
+      "// 发牌：抽一个 p，再把 T 把的正反面先定好，藏起来。",
+      "function deal(T, rng, p) {",
+      "  var q = rng.uniform(p.plo, p.phi), heads = [];",
+      "  for (var t = 0; t < T; t++) heads.push(rng.u() < q ? 1 : 0);",
+      "  return { heads: heads, last: NaN, fmax: p.fmax };",
+      "}",
+      "// 亮牌：上一把的结果。",
+      "function show(G, t) {",
+      "  return G.last;",
+      "}",
+      "// 判分：押的比例限制在 0 到 fmax；正面得 ln(1 + f)，反面得 ln(1 − f)。",
+      "function referee(G, t, a) {",
+      "  var f = a >= 0 ? Math.min(a, G.fmax) : 0;",
+      "  G.last = G.heads[t];",
+      "  return G.last ? Math.log(1 + f) : Math.log(1 - f);",
+      "}"
+    ],
+    "en": [
+      "// Deal: draw p, then fix the T tosses in advance. All hidden.",
+      "function deal(T, rng, p) {",
+      "  var q = rng.uniform(p.plo, p.phi), heads = [];",
+      "  for (var t = 0; t < T; t++) heads.push(rng.u() < q ? 1 : 0);",
+      "  return { heads: heads, last: NaN, fmax: p.fmax };",
+      "}",
+      "// Show: the previous toss.",
+      "function show(G, t) {",
+      "  return G.last;",
+      "}",
+      "// Referee: the stake is clipped to 0 to fmax; heads scores ln(1 + f), tails ln(1 - f).",
+      "function referee(G, t, a) {",
+      "  var f = a >= 0 ? Math.min(a, G.fmax) : 0;",
+      "  G.last = G.heads[t];",
+      "  return G.last ? Math.log(1 + f) : Math.log(1 - f);",
+      "}"
+    ]
+  },
+  "sets": {
+    "pub": 10,
+    "fin": 10,
+    "K": 500,
+    "seed": 20261029
+  },
+  "higher": true,
+  "digits": 3,
+  "refs": [
+    {
+      "id": "tenth",
+      "name": {
+        "zh": "每把押一成",
+        "en": "Always a tenth"
+      },
+      "summary": {
+        "zh": "不管硬币偏向哪边，每一把都押本钱的 10%。拿来当基准。",
+        "en": "Stakes 10% of the bankroll on every toss, whichever way the coin leans. The benchmark."
+      },
+      "p": {
+        "f": 0.1
+      },
+      "code": "function decide(s, p) {\n  return p.f;\n}"
+    },
+    {
+      "id": "watch",
+      "name": {
+        "zh": "先看 20 把，再按估出来的 p 押",
+        "en": "Watch 20, then stake by the estimate"
+      },
+      "summary": {
+        "zh": "前 20 把不押。之后把到现在正面的比例当作 p，押 2p − 1（不到 0 就不押）。",
+        "en": "Stakes nothing for 20 tosses. After that takes the share of heads so far as p and stakes 2p − 1 (nothing when that is negative)."
+      },
+      "p": {
+        "warm": 20,
+        "scale": 1
+      },
+      "code": "function init(p) {\n  return { h: 0 };\n}\nfunction decide(s, p, st) {\n  if (s.t > 0) st.h += s.see;\n  if (s.t < p.warm) return 0;\n  return Math.max(0, p.scale * (2 * st.h / s.t - 1));\n}"
+    },
+    {
+      "id": "half",
+      "name": {
+        "zh": "先看 20 把，再押估出来的一半",
+        "en": "Watch 20, then stake half of that"
+      },
+      "summary": {
+        "zh": "和上一条一样估 p，但只押 2p − 1 的一半：估高了的时候没那么伤。",
+        "en": "Estimates p the same way but stakes only half of 2p − 1: overestimates hurt less."
+      },
+      "p": {
+        "warm": 20,
+        "scale": 0.5
+      },
+      "code": "function init(p) {\n  return { h: 0 };\n}\nfunction decide(s, p, st) {\n  if (s.t > 0) st.h += s.see;\n  if (s.t < p.warm) return 0;\n  return Math.max(0, p.scale * (2 * st.h / s.t - 1));\n}"
+    }
+  ],
+  "starter": {
+    "p": {
+      "warm": 20,
+      "scale": 0.5
+    },
+    "code": {
+      "zh": [
+        "// 起始代码：前 p.warm 把不押，之后按到现在正面的比例估 p，押 p.scale × (2p − 1)。把它改成你的办法。",
+        "// s.see：上一把的结果（1 正面，0 反面，第一把 NaN）。s.t 是第几把（从 0 起），也就是到现在抛过几把。st.h 数着到现在出过几次正面。",
+        "// 题目的参数在 s.g 里：p 在 s.g.plo 到 s.g.phi 之间，押的比例最多 s.g.fmax。",
+        "function init(p) {",
+        "  return { h: 0 };",
+        "}",
+        "function decide(s, p, st) {",
+        "  if (s.t > 0) st.h += s.see;",
+        "  if (s.t < p.warm) return 0;",
+        "  return Math.max(0, p.scale * (2 * st.h / s.t - 1));",
+        "}"
+      ],
+      "en": [
+        "// Starter code: stakes nothing for p.warm tosses, then estimates p from the share of heads so far and stakes p.scale * (2p - 1). Change it into your own method.",
+        "// s.see: the previous toss (1 heads, 0 tails, NaN before the first). s.t is the toss number (from 0), i.e. how many tosses have been seen. st.h counts the heads so far.",
+        "// The parameters are in s.g: p lies between s.g.plo and s.g.phi, the stake is capped at s.g.fmax.",
+        "function init(p) {",
+        "  return { h: 0 };",
+        "}",
+        "function decide(s, p, st) {",
+        "  if (s.t > 0) st.h += s.see;",
+        "  if (s.t < p.warm) return 0;",
+        "  return Math.max(0, p.scale * (2 * st.h / s.t - 1));",
+        "}"
+      ]
+    }
+  }
+}
