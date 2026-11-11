@@ -1,8 +1,8 @@
 # Third-party notices · 第三方声明
 
-`index.html`、`en/index.html`、`ml/index.html` 和 `cases/index.html` 里内联了下面这个库的发行文件（样式、脚本和字体）。源码目录 `src/` 里没有第三方代码；机器学习实验室（`src/ml/`、`ml/index.html`）另外嵌了四份第三方的数据，数据分析案例（`src/cases/`、`cases/index.html`）嵌了三份，许可见文末“数据”一节。
+`index.html`、`en/index.html`、`ml/index.html`、`cases/index.html` 和 `cases-ask/index.html` 里内联了下面这个库的发行文件（样式、脚本和字体）。源码目录 `src/` 里没有第三方代码；机器学习实验室（`src/ml/`、`ml/index.html`）另外嵌了四份第三方的数据，数据分析案例（`src/cases/`、`cases/index.html`，以及框选提问的样本 `cases-ask/index.html`）嵌了三份，许可见文末“数据”一节。
 
-The built pages `index.html`, `en/index.html`, `ml/index.html` and `cases/index.html` inline the distribution files (stylesheet, script and fonts) of the library below. The source directory `src/` contains no third-party code; the Machine Learning Lab (`src/ml/`, `ml/index.html`) also embeds four third-party datasets and the data analysis case studies (`src/cases/`, `cases/index.html`) three, whose licences are listed under "Data" at the end.
+The built pages `index.html`, `en/index.html`, `ml/index.html`, `cases/index.html` and `cases-ask/index.html` inline the distribution files (stylesheet, script and fonts) of the library below. The source directory `src/` contains no third-party code; the Machine Learning Lab (`src/ml/`, `ml/index.html`) also embeds four third-party datasets and the data analysis case studies (`src/cases/`, `cases/index.html`, and the ask-anywhere sample `cases-ask/index.html`) three, whose licences are listed under "Data" at the end.
 
 ## KaTeX
 
@@ -60,9 +60,9 @@ The Machine Learning Lab (`src/ml/data-tabular.js`, `src/ml/data-image.js`, and 
 
 ### 数据分析案例 · Data analysis case studies
 
-数据分析案例（`src/cases/data-bike.js`、`src/cases/data-ames.js`、`src/cases/data-spx.js`，构建后在 `cases/index.html` 里）嵌了下面三份数据。为了嵌进页面，数值重新编码成了紧凑的字符串，数值本身不变；其他改动写在每一条后面。
+数据分析案例（`src/cases/data-bike.js`、`src/cases/data-ames.js`、`src/cases/data-spx.js`，构建后在 `cases/index.html` 和 `cases-ask/index.html` 里）嵌了下面三份数据。为了嵌进页面，数值重新编码成了紧凑的字符串，数值本身不变；其他改动写在每一条后面。
 
-The data analysis case studies (`src/cases/data-bike.js`, `src/cases/data-ames.js`, `src/cases/data-spx.js`, and after the build `cases/index.html`) embed the three datasets below. To embed them the values were re-encoded as compact strings, with the numbers unchanged; other changes are noted with each entry.
+The data analysis case studies (`src/cases/data-bike.js`, `src/cases/data-ames.js`, `src/cases/data-spx.js`, and after the build `cases/index.html` and `cases-ask/index.html`) embed the three datasets below. To embed them the values were re-encoded as compact strings, with the numbers unchanged; other changes are noted with each entry.
 
 - **Bike Sharing.** Fanaee-T, H. (2013). Bike Sharing [Dataset]. UCI Machine Learning Repository. https://doi.org/10.24432/C5W894 — used under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). The hourly file `hour.csv` (17,379 rows); the columns that follow from the date (`season`, `yr`, `mnth`, `weekday`, `workingday`) and the feels-like temperature `atemp` were dropped, and `cnt` is recomputed as `casual + registered`. 逐小时的 `hour.csv`（17379 行）；去掉了能由日期推出的几列和体感温度，`cnt` 按 `casual + registered` 重算。
 - **Ames Housing.** De Cock, D. (2011). Ames, Iowa: Alternative to the Boston Housing Data as an End of Semester Regression Project. *Journal of Statistics Education* 19(3). https://doi.org/10.1080/10691898.2011.11889627 — the records come from the Ames City Assessor's Office. The values were taken from `ames_raw` in the R package AmesHousing (Max Kuhn; the same 2,930 rows and 82 columns as the original file); 29 of the 82 columns are kept. The author published the data for teaching and states no licence. 原作者为教学公开了这份数据，没有声明许可；这里取自 R 包 AmesHousing 里与原文相同的 `ames_raw`，留了 82 列中的 29 列。
