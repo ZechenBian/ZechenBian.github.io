@@ -14,6 +14,8 @@
  *   isoflop     (week 8)  a fixed compute budget C = 6ND: find the model size with the lowest loss, and where GPT-3 sat
  *   elbo        (week 9)  choose an approximate posterior q: the evidence lower bound never exceeds log p(x), and
  *                         the gap closes exactly when q is the posterior
+ *   diffuse     (week 10) noise a one-dimensional density step by step; the best denoiser goes from flat to a
+ *                         staircase, and on a few training points it sends everything back to them
  *   gdquad      (week 4)  the stiff direction caps the step size, the soft direction then crawls; momentum helps
  *   softlookup  (week 7)  attention is a lookup made soft: sharp scores pick one value, flat scores average all of them
  * A widget is a function (host) -> { destroy }. Nothing here is saved; these are sketches, the experiments are the measurements. */
@@ -701,6 +703,72 @@
     return { destroy: function () { un(); } };
   };
 
+  /* ================= week 10: adding noise, and the best possible denoiser ================= */
+  DL.DDPM = { T: 1000, b0: 1e-4, b1: 0.02 };
+  DL.abarTable = function () {
+    var D = DL.DDPM, a = 1, out = [1];
+    for (var t = 1; t <= D.T; t++) { a *= 1 - (D.b0 + (D.b1 - D.b0) * (t - 1) / (D.T - 1)); out.push(a); }
+    return out;
+  };
+  /** Data: equal mixture of N(mu_k, s^2). Returns the density of x_t at x and the optimal denoiser E[x_0 | x_t = x]. */
+  DL.diffMix = function (mus, s, ab, x) {
+    var v = ab * s * s + 1 - ab, ra = Math.sqrt(ab);
+    var lw = mus.map(function (m) { var d = x - ra * m; return -d * d / (2 * v); }), mx = Math.max.apply(null, lw), sum = 0, e = 0;
+    mus.forEach(function (m, k) { var w = Math.exp(lw[k] - mx); sum += w; e += w * (m + ra * s * s / v * (x - ra * m)); });
+    return { dens: sum * Math.exp(mx) / (mus.length * Math.sqrt(2 * Math.PI * v)), x0: e / sum };
+  };
+  DL.WIDGETS.diffuse = function (host) {
+    var AB = DL.abarTable(), t = 0, data = "bumps";
+    var DATA = { bumps: { mus: [-1.5, 1.5], s: 0.15 }, points: { mus: [-1.6, 0.2, 1.3], s: 0.02 } };
+    var cv = h("canvas", { class: "w-canvas", role: "img", "aria-label": "Above, the density of the noised data at step t; below, the best possible denoiser, the average clean point given a noisy one" });
+    var read = h("div", { class: "w-read" });
+    function draw() {
+      var P = pal(), c = fit(cv, 336), ctx = c.ctx, W = c.W, H = c.H, D = DATA[data], ab = AB[t];
+      var L = 34, R = W - 12, lo = -4, hi = 4, t1 = 26, b1 = 128, t2 = 158, b2 = H - 38, ylo = -4, yhi = 4;
+      function X(x) { return L + (R - L) * (x - lo) / (hi - lo); }
+      function Y2(y) { return b2 - (b2 - t2) * (Math.max(ylo, Math.min(yhi, y)) - ylo) / (yhi - ylo); }
+      ctx.fillStyle = P.surface; ctx.fillRect(0, 0, W, H);
+      var xs = [], ds = [], es = [], dmax = 0;
+      for (var i = 0; i <= 400; i++) { var x = lo + (hi - lo) * i / 400, r = DL.diffMix(D.mus, D.s, ab, x); xs.push(x); ds.push(r.dens); es.push(r.x0); dmax = Math.max(dmax, r.dens); }
+      ctx.strokeStyle = P.grid; ctx.lineWidth = 1; line(ctx, [[L, b1], [R, b1]]); line(ctx, [[L, Y2(0)], [R, Y2(0)]]); line(ctx, [[X(0), t2], [X(0), b2]]);
+      ctx.fillStyle = P.ink2; ctx.font = "11px " + P.font; ctx.textAlign = "center";
+      [-4, -2, 0, 2, 4].forEach(function (v) { ctx.fillText(String(v).replace("-", "−"), X(v), b2 + 14); });
+      ctx.textAlign = "right"; [-4, -2, 0, 2, 4].forEach(function (v) { ctx.fillText(String(v).replace("-", "−"), L - 6, Y2(v) + 4); });
+      // the data points, as faint guides
+      ctx.strokeStyle = P.grid; ctx.setLineDash([2, 4]); D.mus.forEach(function (m) { line(ctx, [[L, Y2(m)], [R, Y2(m)]]); }); ctx.setLineDash([]);
+      ctx.fillStyle = P.accent; ctx.globalAlpha = 0.25; ctx.beginPath(); ctx.moveTo(X(lo), b1);
+      for (i = 0; i <= 400; i++) ctx.lineTo(X(xs[i]), b1 - (b1 - t1) * ds[i] / dmax);
+      ctx.lineTo(X(hi), b1); ctx.closePath(); ctx.fill(); ctx.globalAlpha = 1;
+      ctx.strokeStyle = P.accent; ctx.lineWidth = 2; line(ctx, xs.map(function (x, k) { return [X(x), b1 - (b1 - t1) * ds[k] / dmax]; }));
+      ctx.strokeStyle = P.ink2; ctx.lineWidth = 1; ctx.setLineDash([5, 4]); line(ctx, [[X(ylo), Y2(ylo)], [X(yhi), Y2(yhi)]]); ctx.setLineDash([]);
+      ctx.strokeStyle = P.ink; ctx.lineWidth = 2; line(ctx, xs.map(function (x, k) { return [X(x), Y2(es[k])]; }));
+      ctx.textAlign = "left"; ctx.fillStyle = P.accent; ctx.fillText("density of x_t (scaled to fit)", L + 4, 13);
+      ctx.fillStyle = P.ink; ctx.fillText(W < 420 ? "best denoiser E[x₀ | x_t]" : "best denoiser: E[x₀ | x_t], the average clean point", L + 4, t2 + 6);
+      ctx.fillStyle = P.ink2; ctx.textAlign = "right"; ctx.fillText("noisy value x_t", R, b2 + 30);
+      DL.clear(read);
+      DL.add(read, [h("span", {}, ["t ", h("b", { text: String(t) })]), h("span", {}, ["√ᾱ_t ", h("b", { text: Math.sqrt(ab).toFixed(3) })]),
+        h("span", {}, ["noise sd √(1 − ᾱ_t) ", h("b", { text: Math.sqrt(1 - ab).toFixed(3) })]), h("span", {}, ["signal-to-noise ᾱ/(1 − ᾱ) ", h("b", { text: t === 0 ? "∞" : sci(ab / (1 - ab)) })])]);
+      return { ab: ab, x0: es };
+    }
+    var st = slider("step t ", 0, 1000, 1, t, function (v) { return String(v); }, function (v) { t = v; draw(); });
+    var chips = [["bumps", "Data: two bumps"], ["points", "Data: three training points"]].map(function (s) {
+      return h("button", { class: "chip", "aria-pressed": String(s[0] === data), text: s[1], onclick: function () { data = s[0]; chips.forEach(function (b, j) { b.setAttribute("aria-pressed", String(["bumps", "points"][j] === data)); }); draw(); } });
+    });
+    var body = reveal("What you found", "- The density of $x_t$ is the data density shrunk by $\\sqrt{\\bar\\alpha_t}$ and blurred by a Gaussian of variance $1 - \\bar\\alpha_t$ (section 1). The two bumps merge into one at $t = 339$, where the shrunken distance between them falls to twice the blur; by $t = 1000$ only $0.6\\%$ of the signal is left and $x_t$ is standard noise.\n- At $t = 10$ the noise is smaller than the bumps and the best denoiser is close to the diagonal: there is little to undo. At $t = 150$ it is a staircase that sends every $x_t$ to the middle of the nearer bump. At $t = 1000$ it is flat at $0$, the mean of the data: a noisy value says nothing about where it came from. A diffusion model has to learn this function at every $t$ (section 4).\n- With three training points the staircase appears as soon as the noise exceeds their tiny width, and sends every $x$ to one of the three points. A network that learned the best denoiser exactly could only reproduce its training set; the first experiment shows it, and asks why trained networks do not.");
+    DL.add(host, [
+      h("div", { class: "w-h" }, [h("span", { class: "tag sim", text: "Sketch" }), h("b", { text: "Noise in, and the best way back" })]),
+      h("p", { class: "w-task", text: "One-dimensional data, noised by the schedule of the original diffusion paper: 1,000 steps, each adding a little Gaussian noise. Above: the density of the noisy value x_t at step t. Below: the best possible denoiser, the average of the clean x₀ given the noisy x_t, against the dashed diagonal where nothing is changed. Both are computed exactly." }),
+      h("ol", { class: "w-task", style: "margin:0;padding-left:24px" }, [
+        h("li", { text: "Slide t from 0 to 1000. Around which step does the top curve stop showing two bumps?" }),
+        h("li", { text: "Watch the black curve at t = 10, t = 150 and t = 1000. What does the best denoiser do to a noisy value in each case?" }),
+        h("li", { text: "Switch to three training points and go back to small t. Where does the best denoiser send every noisy value?" })
+      ]),
+      h("div", { class: "w-row" }, chips), cv, read, h("div", { class: "w-ctl" }, [st.el]), body
+    ]);
+    var un = watch(cv, draw); draw();
+    return { destroy: function () { un(); } };
+  };
+
   /* ================= week 7: a lookup made soft ================= */
   DL.softWeights = function (q, keys, beta) {
     var s = keys.map(function (k) { return beta * (q[0] * k[0] + q[1] * k[1]); }), m = Math.max.apply(null, s), e = s.map(function (v) { return Math.exp(v - m); }), z = e.reduce(function (a, b) { return a + b; }, 0);
@@ -878,6 +946,49 @@
       b += txt(f1(X(-1.55)), 116, 'ts e a', 'attacked,') + txt(f1(X(-1.55)), 132, 'ts e a', 'd = 1024');
       b += txt(f1(X(0) + 7), base - 12, 'ts', '42%');
       return svg("0 0 624 216", 520, "The attack shifts the score distribution left by epsilon times the square root of the dimension", b);
+    },
+    /* week 10, section 1: signal and noise along the schedule */
+    schedfig: function () {
+      var X0 = 60, X1 = 590, base = 170, top = 16, b = '', T = 1000, AB = DL.abarTable();
+      function X(t) { return X0 + (X1 - X0) * t / T; } function Y(v) { return base - (base - top) * v; }
+      function cosAB(t) { var s = 0.008, f = function (u) { var c = Math.cos((u / T + s) / (1 + s) * Math.PI / 2); return c * c; }; return f(t) / f(0); }
+      var sig = [], noi = [], cs = [];
+      for (var t = 0; t <= T; t += 5) { sig.push([X(t), Y(Math.sqrt(AB[t]))]); noi.push([X(t), Y(Math.sqrt(1 - AB[t]))]); cs.push([X(t), Y(Math.sqrt(cosAB(t)))]); }
+      b += '<line x1="' + X0 + '" y1="' + base + '" x2="' + X1 + '" y2="' + base + '" class="gr"/>' + '<line x1="' + X0 + '" y1="' + top + '" x2="' + X0 + '" y2="' + base + '" class="gr"/>';
+      [0, 250, 500, 750, 1000].forEach(function (v) { b += txt(f1(X(v)), base + 18, 'ts c', String(v)); });
+      [0, 0.5, 1].forEach(function (v) { b += txt(X0 - 8, f1(Y(v)) + 4, 'ts e', String(v)); });
+      b += poly(sig, 'ln s1') + poly(noi, 'ln s2') + poly(cs, 'ln s1 d');
+      b += txt(X1, base + 36, 'ts e', 'step t of T = 1000');
+      var ly = base + 58;
+      [[X0, 'ln s1', 'signal √ᾱ' + SB('t') + ', linear β'], [X0 + 190, 'ln s1 d', 'signal, cosine schedule'], [X0 + 370, 'ln s2', 'noise √(1 − ᾱ' + SB('t') + '), linear β']].forEach(function (g) {
+        b += '<line x1="' + g[0] + '" y1="' + ly + '" x2="' + (g[0] + 26) + '" y2="' + ly + '" class="' + g[1] + '"/>' + txt(g[0] + 32, ly + 4, 'ts', g[2]); });
+      return svg("0 0 620 " + (base + 70), 480, "The share of the signal falls from 1 to almost 0 over 1000 steps while the noise rises to 1; the cosine schedule keeps more signal in the middle steps", b);
+    },
+    /* week 10, section 3: a hierarchical VAE whose encoder is fixed */
+    chainfig: function () {
+      var b = '', xs = [40, 140, 290, 400, 550], lab = ['0', '1', 't−1', 't', 'T'], y = 92;
+      xs.forEach(function (x, i) { b += '<circle cx="' + x + '" cy="' + y + '" r="24" class="nd' + (i === 0 ? ' on' : '') + '"/>' + txt(x, y + 5, 'tx c', 'x' + SB(lab[i])); });
+      b += txt(215, y + 5, 'tx c', '⋯') + txt(475, y + 5, 'tx c', '⋯');
+      [[0, 1], [2, 3]].forEach(function (p) { var a = xs[p[0]], c = xs[p[1]];
+        b += '<path d="M' + (a + 17) + ',' + (y - 17) + ' C' + (a + 40) + ',' + (y - 52) + ' ' + (c - 40) + ',' + (y - 52) + ' ' + (c - 17) + ',' + (y - 17) + '" class="ln" marker-end="url(#ah-i)"/>';
+        b += '<path d="M' + (c - 17) + ',' + (y + 17) + ' C' + (c - 40) + ',' + (y + 52) + ' ' + (a + 40) + ',' + (y + 52) + ' ' + (a + 17) + ',' + (y + 17) + '" class="ln a" marker-end="url(#ah-a)"/>'; });
+      b += txt(345, 32, 'ts c', 'q(x' + SB('t') + ' | x' + SB('t−1') + ') = N(√α' + SB('t') + ' x' + SB('t−1') + ', β' + SB('t') + ' I): fixed, no parameters');
+      b += txt(345, 164, 'ts c a', 'p' + SB('θ') + '(x' + SB('t−1') + ' | x' + SB('t') + ') = N(μ' + SB('θ') + '(x' + SB('t') + ', t), σ' + SB('t') + '² I): learned');
+      b += txt(40, 138, 'ts c', 'data') + txt(550, 138, 'ts c', '≈ N(0, I)');
+      return svg("0 0 600 178", 480, "A chain from the data x zero to pure noise x T: forward arrows add noise and have no parameters, backward arrows are the learned denoising steps", b);
+    },
+    /* week 10, section 6: latent diffusion, the design of Stable Diffusion */
+    ldmfig: function () {
+      var b = '';
+      function box(x, y, w, t, cls) { return '<rect x="' + x + '" y="' + (y - 18) + '" width="' + w + '" height="36" rx="6" class="' + (cls || 'bx') + '"/>' + txt(x + w / 2, y + 5, 'tx c', t); }
+      b += box(8, 50, 104, 'image 512²×3') + '<line x1="112" y1="50" x2="136" y2="50" class="ln" marker-end="url(#ah-i)"/>' + box(138, 50, 82, 'encoder');
+      b += '<line x1="220" y1="50" x2="244" y2="50" class="ln" marker-end="url(#ah-i)"/>' + box(246, 50, 128, 'latent 64²×4', 'cell on');
+      b += '<line x1="374" y1="50" x2="398" y2="50" class="ln" marker-end="url(#ah-i)"/>' + box(400, 50, 82, 'decoder') + '<line x1="482" y1="50" x2="506" y2="50" class="ln" marker-end="url(#ah-i)"/>' + txt(548, 55, 'tx c', 'image');
+      b += box(246, 140, 210, 'U-Net denoiser ε' + SB('θ') + '(z' + SB('t') + ', t, c)') + '<path d="M296,122 L296,70" class="ln a" marker-end="url(#ah-a)"/>' + '<path d="M324,68 L324,120" class="ln" marker-end="url(#ah-i)"/>';
+      b += txt(288, 100, 'ts e a', 'T steps back') + txt(332, 100, 'ts', 'noise forward');
+      b += box(8, 140, 104, 'text prompt') + '<line x1="112" y1="140" x2="136" y2="140" class="ln" marker-end="url(#ah-i)"/>' + box(138, 140, 82, 'text enc.');
+      b += '<line x1="220" y1="140" x2="244" y2="140" class="ln" marker-end="url(#ah-i)"/>' + txt(351, 182, 'ts c', 'the text c enters through cross-attention (week 7)');
+      return svg("0 0 600 194", 480, "Latent diffusion: an autoencoder compresses the image to a small latent; diffusion runs in the latent space with a U-Net that reads the text through cross-attention; the decoder turns the final latent into an image", b);
     },
     /* week 9, section 2: a generative adversarial network */
     ganfig: function () {
@@ -1160,5 +1271,6 @@
   };
   function f1(v) { return Math.round(v * 10) / 10; }
   function poly(pts, cls) { return '<polyline points="' + pts.map(function (q) { return f1(q[0]) + ',' + f1(q[1]); }).join(' ') + '" class="' + cls + '"/>'; }
+  function SB(t) { return '<tspan baseline-shift="sub" font-size="75%">' + t + '</tspan>'; }
   function txt(x, y, cls, t) { return '<text x="' + x + '" y="' + y + '" class="' + cls + '">' + t + '</text>'; }
 })();

@@ -80,7 +80,7 @@ const json = (v) => JSON.stringify(v).replace(/</g, '\\u003c').split(LS).join('\
 const shared = (f) => read('..', 'strategy-lab', 'src', f);
 function scripts() {
   const notes = {}, scriptsPy = {};
-  for (const [id, f] of [['u1', 'u01.md'], ['u2', 'u02.md'], ['u3', 'u03.md'], ['u4', 'u04.md'], ['u5', 'u05.md'], ['u6', 'u06.md'], ['u7', 'u07.md'], ['u8', 'u08.md'], ['u9', 'u09.md']]) notes[id] = parseNotes(read('src', 'notes', f), f);
+  for (const [id, f] of [['u1', 'u01.md'], ['u2', 'u02.md'], ['u3', 'u03.md'], ['u4', 'u04.md'], ['u5', 'u05.md'], ['u6', 'u06.md'], ['u7', 'u07.md'], ['u8', 'u08.md'], ['u9', 'u09.md'], ['u10', 'u10.md']]) notes[id] = parseNotes(read('src', 'notes', f), f);
   for (const f of fs.readdirSync(path.join(__dirname, 'src', 'experiments')).filter((x) => x.endsWith('.py')).sort()) scriptsPy[f.replace(/\.py$/, '')] = read('src', 'experiments', f);
   const data = 'DL.NOTES = ' + json(notes) + ';\nDL.SCRIPTS = ' + json(scriptsPy) + ';\nDL.LABRT = ' + json(read('src', 'labrt.py')) + ';\nDL.STANDALONE = ' + json(read('src', 'standalone.py')) +
     ';\nDL.REF = ' + json(JSON.parse(read('src', 'reference.json'))) + ';\nDL.DATA = { tinyshakespeare: ' + json(read('data', 'tinyshakespeare.txt')) + ' };';

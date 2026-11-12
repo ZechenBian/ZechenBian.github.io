@@ -40,6 +40,11 @@ PRESETS = [   # (experiment, reference name, parameters that differ from the def
     ("u08_compute_optimal", "default", {}),
     ("u09_gan", "default", {}),
     ("u09_reparam", "default", {}),
+    ("u10_memorize", "default", {}),
+    ("u10_memorize", "five", {"points": 5, "steps": 20000}),
+    ("u10_ring", "default", {}),
+    ("u10_ring", "mean", {"sampler": "mean"}),
+    ("u10_ring", "ddim", {"sampler": "ddim"}),
 ]
 
 

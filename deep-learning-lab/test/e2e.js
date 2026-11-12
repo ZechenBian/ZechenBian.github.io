@@ -431,6 +431,22 @@ async function shot(page, name) { if (shots) await page.screenshot({ path: path.
   }
   await weekRun('u9', 'u09_reparam', 2, /for the score function \(2\d\.\d+ times\)/, 'week 9: the engine compares the two gradient estimators (score function about 22 times the variance)');
   await weekRef('u9', 'u09_gan', 'Halve the distance', 2, /0\.693146 at θ = 1/, 'week 9: the reference run answers the JS question (ln 2 at both shifts)');
+  /* week 10 */
+  await weekNotes('u10', 6, 3);
+  {
+    const rd = async () => (await page.locator('.widget .w-read').innerText()).replace(/\s+/g, ' ');
+    const setT = async (v) => { await page.locator('.widget input[type=range]').evaluate((el, x) => { el.value = String(x); el.dispatchEvent(new Event('input')); }, v); await page.waitForTimeout(50); };
+    await setT(1000);
+    ok(/√ᾱ_t 0\.006/.test(await rd()), 'week 10 figure: after 1,000 steps of the linear schedule, 0.006 of the signal is left');
+    ok(await page.evaluate(() => {
+      const AB = DL.abarTable(), peaks = (t) => { let n = 0, prev = 0, up = true; for (let x = -4; x <= 4; x += 0.01) { const d = DL.diffMix([-1.5, 1.5], 0.15, AB[t], x).dens; if (up && d < prev) { n++; up = false; } if (d > prev) up = true; prev = d; } return n; };
+      let mass = 0; for (let x = -8; x <= 8; x += 0.001) mass += DL.diffMix([-1.6, 0.2, 1.3], 0.02, AB[200], x).dens * 0.001;
+      const ab = AB[300], v = ab * 0.25 + 1 - ab, lin = [-2, 0.5, 3].every((x) => Math.abs(DL.diffMix([0], 0.5, ab, x).x0 - Math.sqrt(ab) * 0.25 / v * x) < 1e-12);
+      return peaks(338) === 2 && peaks(339) === 1 && Math.abs(mass - 1) < 1e-6 && lin;
+    }), 'week 10 figure: the bumps merge at t = 339, the noised density integrates to 1, and for Gaussian data the best denoiser is the linear one of the check question');
+  }
+  await weekRun('u10', 'u10_ring', 1, /mean distance from the centre 0\.\d+, with a spread of 0\.0\d+/, 'week 10: the engine trains the ring model and samples it without the fresh noise (a thin circle inside the ring)');
+  await weekRef('u10', 'u10_memorize', 'Five points, trained longer', 1, /Five training points, 20,000 steps: \d+(\.\d)?% of the network's samples/, 'week 10: the reference run answers the five-point question (the network now copies its training points)');
   await page.goto(srv.url + '#u13'); await page.waitForTimeout(400);
   const fullW = await page.evaluate(() => { const w = DL.COURSE.units.filter((u) => u.status === 'full').map((u) => String(u.week)); return w.slice(0, -1).join(', ') + ' and ' + w[w.length - 1]; });
   ok(new RegExp('full units for weeks ' + fullW + '\\.').test(await page.locator('.sheet').innerText()) && /\b2, 3\b/.test(fullW), 'a planned week names the written weeks (' + fullW + ')');
@@ -449,11 +465,11 @@ async function shot(page, name) { if (shots) await page.screenshot({ path: path.
   /* ================= phone ================= */
   console.log('phone');
   ({ ctx, page, errors } = await open({ w: 390, h: 844, mobile: true }));
-  for (const r of ['home', 'u1', 'u1-train', 'u2', 'u2-train', 'u3', 'u3-train', 'u4', 'u5', 'u5-train', 'u6', 'u6-train', 'u8', 'u8-train', 'u9-train', 'u7', 'u7-train', 'u9', 'u9-sources', 'ledger']) {
+  for (const r of ['home', 'u1', 'u1-train', 'u2', 'u2-train', 'u3', 'u3-train', 'u4', 'u5', 'u5-train', 'u6', 'u6-train', 'u8', 'u8-train', 'u9-train', 'u7', 'u7-train', 'u9', 'u9-sources', 'u10', 'u10-train', 'ledger']) {
     await page.goto(srv.url + '#' + r); await page.waitForTimeout(500);
     ok(await noOverflow(page), 'phone: no horizontal overflow on #' + r);
   }
-  for (const u of ['u2', 'u3', 'u5', 'u6', 'u8', 'u9']) {
+  for (const u of ['u2', 'u3', 'u5', 'u6', 'u8', 'u9', 'u10']) {
     await page.goto(srv.url + '#' + u); await page.waitForTimeout(700);
     ok((await page.evaluate(() => { document.querySelectorAll('.sheet details').forEach((d) => { d.open = true; }); return [...document.querySelectorAll('.sheet .katex-display')].filter((el) => el.scrollWidth > el.clientWidth + 1).length; })) === 0, 'phone: every display formula of ' + u + ' fits the column, proofs included');
   }
