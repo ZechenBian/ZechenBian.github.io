@@ -16,6 +16,8 @@
  *                         the gap closes exactly when q is the posterior
  *   diffuse     (week 10) noise a one-dimensional density step by step; the best denoiser goes from flat to a
  *                         staircase, and on a few training points it sends everything back to them
+ *   bellman     (week 12) value iteration on a cliff with slip: each sweep shrinks the error by γ at least, and the
+ *                         best path moves away from the edge as the slip grows
  *   gdquad      (week 4)  the stiff direction caps the step size, the soft direction then crawls; momentum helps
  *   softlookup  (week 7)  attention is a lookup made soft: sharp scores pick one value, flat scores average all of them
  * A widget is a function (host) -> { destroy }. Nothing here is saved; these are sketches, the experiments are the measurements. */
@@ -769,6 +771,79 @@
     return { destroy: function () { un(); } };
   };
 
+  /* ================= week 12: Bellman's operator on a cliff ================= */
+  DL.CLIFF = { R: 4, C: 6 };
+  DL.cliffKind = function (r, c) { return r === 3 && c >= 1 && c <= 4 ? "cliff" : r === 3 && c === 5 ? "goal" : "free"; };
+  DL.cliffMoves = [[-1, 0], [0, 1], [1, 0], [0, -1]]; // up, right, down, left
+  /** One application of the Bellman optimality operator on the cliff grid: slip sends the move sideways, half each way. */
+  DL.bellman = function (V, gamma, slip) {
+    var R = DL.CLIFF.R, C = DL.CLIFF.C, out = [], act = [];
+    function step(r, c, d) { var nr = r + DL.cliffMoves[d][0], nc = c + DL.cliffMoves[d][1]; return nr < 0 || nr >= R || nc < 0 || nc >= C ? [r, c] : [nr, nc]; }
+    function q(r, c, a) {
+      var tot = 0;
+      [[a, 1 - slip], [(a + 1) % 4, slip / 2], [(a + 3) % 4, slip / 2]].forEach(function (m) {
+        if (!m[1]) return; var p = step(r, c, m[0]), k = DL.cliffKind(p[0], p[1]);
+        tot += m[1] * (k === "cliff" ? -1 : k === "goal" ? 1 : gamma * V[p[0] * C + p[1]]);
+      });
+      return tot;
+    }
+    for (var r = 0; r < R; r++) for (var c = 0; c < C; c++) {
+      var i = r * C + c; if (DL.cliffKind(r, c) !== "free") { out[i] = 0; act[i] = -1; continue; }
+      var best = -Infinity, ba = 0; for (var a = 0; a < 4; a++) { var v = q(r, c, a); if (v > best + 1e-12) { best = v; ba = a; } }
+      out[i] = best; act[i] = ba;
+    }
+    return { V: out, A: act };
+  };
+  DL.WIDGETS.bellman = function (host) {
+    var R = DL.CLIFF.R, C = DL.CLIFF.C, gamma = 0.9, slip = 0, V, A, k, d1, d0;
+    function reset() { V = []; A = []; for (var i = 0; i < R * C; i++) { V.push(0); A.push(-1); } k = 0; d1 = null; d0 = null; }
+    function sweep() { var r = DL.bellman(V, gamma, slip), d = 0; r.V.forEach(function (v, i) { d = Math.max(d, Math.abs(v - V[i])); }); V = r.V; A = r.A; k++; d0 = d1; d1 = d; return d; }
+    function settle() { reset(); for (var j = 0; j < 5000; j++) if (sweep() < 1e-12) break; }
+    var cv = h("canvas", { class: "w-canvas", role: "img", "aria-label": "A four by six grid: start at the bottom left, a cliff along the bottom, the goal at the bottom right. Each cell shows its value and the best action" });
+    var read = h("div", { class: "w-read" });
+    function draw() {
+      var P = pal(), W0 = Math.max(220, Math.floor(cv.clientWidth)), cell = Math.min(70, Math.floor((W0 - 16) / C)), c = fit(cv, R * cell + 16), ctx = c.ctx, W = c.W;
+      var x0 = Math.floor((W - C * cell) / 2), y0 = 8;
+      ctx.fillStyle = P.surface; ctx.fillRect(0, 0, W, c.H); ctx.textAlign = "center";
+      for (var r = 0; r < R; r++) for (var cc = 0; cc < C; cc++) {
+        var i = r * C + cc, kind = DL.cliffKind(r, cc), x = x0 + cc * cell, y = y0 + r * cell, v = V[i];
+        ctx.globalAlpha = kind === "free" ? Math.min(0.75, Math.abs(v) * 0.9) : 0.8;
+        ctx.fillStyle = kind === "cliff" || (kind === "free" && v < 0) ? P.crit : P.good; ctx.fillRect(x, y, cell, cell); ctx.globalAlpha = 1;
+        ctx.strokeStyle = P.grid; ctx.lineWidth = 1; ctx.strokeRect(x + 0.5, y + 0.5, cell - 1, cell - 1);
+        ctx.fillStyle = P.ink; ctx.font = (cell < 50 ? "10px " : "11px ") + P.font;
+        if (kind === "cliff") { ctx.fillText("cliff", x + cell / 2, y + cell / 2 - 2); ctx.fillText("−1", x + cell / 2, y + cell / 2 + 11); continue; }
+        if (kind === "goal") { ctx.fillText("goal", x + cell / 2, y + cell / 2 - 2); ctx.fillText("+1", x + cell / 2, y + cell / 2 + 11); continue; }
+        ctx.fillText(v.toFixed(2).replace("-", "−"), x + cell / 2, y + cell - 6);
+        if (r === 3 && cc === 0) { ctx.textAlign = "left"; ctx.fillStyle = P.ink2; ctx.fillText("start", x + 4, y + 12); ctx.textAlign = "center"; }
+        if (A[i] >= 0) { var m = DL.cliffMoves[A[i]], cx = x + cell / 2, cy = y + cell / 2 - 5, L = cell * 0.22; ctx.strokeStyle = P.ink; ctx.fillStyle = P.ink; ctx.lineWidth = 1.6; arrow(ctx, cx - m[1] * L, cy - m[0] * L, cx + m[1] * L, cy + m[0] * L, 6); }
+      }
+      DL.clear(read);
+      DL.add(read, [h("span", {}, ["sweeps ", h("b", { text: String(k) })]),
+        h("span", {}, ["largest change in the last sweep ", h("b", { text: d1 === null ? "–" : sci(d1) })]),
+        h("span", {}, ["÷ the one before ", h("b", { text: d0 ? (d1 / d0).toFixed(3) : "–" })]),
+        h("span", {}, ["value of the start ", h("b", { text: V[3 * C].toFixed(3).replace("-", "−") })])]);
+    }
+    var sg = slider("discount γ ", 0.5, 0.99, 0.01, gamma, function (v) { return v.toFixed(2); }, function (v) { gamma = v; settle(); draw(); });
+    var ss = slider("slip ", 0, 0.4, 0.01, slip, function (v) { return v.toFixed(2); }, function (v) { slip = v; settle(); draw(); });
+    var btns = h("div", { class: "w-row" }, [
+      h("button", { class: "btn quiet small", text: "Reset V to 0", onclick: function () { reset(); draw(); } }),
+      h("button", { class: "btn quiet small", text: "One sweep", onclick: function () { sweep(); draw(); } }),
+      h("button", { class: "btn quiet small", text: "Sweep until it settles", onclick: function () { settle(); draw(); } })]);
+    var body = reveal("What you found", "- Each sweep applies the Bellman optimality operator once, and the largest change shrinks by a factor of at most $\\gamma$ per sweep: the operator is a $\\gamma$-contraction in the largest-entry norm (section 2), so the values converge to one fixed point from any start, geometrically.\n- Without slip the best path runs along the edge of the cliff, the shortest way to the goal. With slip $0.2$ a step along the edge falls in with probability $0.1$, and the best path climbs one row higher and takes two more steps, which the discount makes cost a factor $\\gamma^2$.\n- At slip $0.3$ the arrow at the start points into the wall. Pushing left goes nowhere with probability $0.7$ and slips up or down otherwise; down is the wall too, so this action climbs away from the cliff without any chance of slipping into it. An optimal policy exploits every detail of the model it is given, which is one reason a learned model has to be good.");
+    DL.add(host, [
+      h("div", { class: "w-h" }, [h("span", { class: "tag sim", text: "Sketch" }), h("b", { text: "Value iteration on a cliff" })]),
+      h("p", { class: "w-task", text: "A walker starts at the bottom left and wants the goal at the bottom right (+1); the cells in between are a cliff (−1, and the walk ends). Each move goes where it was meant with probability 1 − slip and sideways otherwise; rewards are discounted by γ per step. Each cell shows its current value and the best move for those values. A sweep replaces every value by the best one-step lookahead." }),
+      h("ol", { class: "w-task", style: "margin:0;padding-left:24px" }, [
+        h("li", { text: "Press One sweep repeatedly from V = 0. By what factor does the largest change shrink from one sweep to the next? Compare it with γ." }),
+        h("li", { text: "With no slip, the best path hugs the cliff. Set the slip to 0.2: where does it go now, and what happens to the value of the start?" }),
+        h("li", { text: "At slip 0.3 the arrow at the start points into the wall. Why is that the best move?" })
+      ]),
+      cv, read, btns, h("div", { class: "w-ctl" }, [sg.el, ss.el]), body
+    ]);
+    reset(); var un = watch(cv, draw); draw();
+    return { destroy: function () { un(); } };
+  };
+
   /* ================= week 7: a lookup made soft ================= */
   DL.softWeights = function (q, keys, beta) {
     var s = keys.map(function (k) { return beta * (q[0] * k[0] + q[1] * k[1]); }), m = Math.max.apply(null, s), e = s.map(function (v) { return Math.exp(v - m); }), z = e.reduce(function (a, b) { return a + b; }, 0);
@@ -946,6 +1021,51 @@
       b += txt(f1(X(-1.55)), 116, 'ts e a', 'attacked,') + txt(f1(X(-1.55)), 132, 'ts e a', 'd = 1024');
       b += txt(f1(X(0) + 7), base - 12, 'ts', '42%');
       return svg("0 0 624 216", 520, "The attack shifts the score distribution left by epsilon times the square root of the dimension", b);
+    },
+    /* week 12, section 1: the agent and its environment */
+    mdploop: function () {
+      var b = '';
+      b += '<rect x="230" y="20" width="160" height="44" rx="8" class="bx"/>' + txt(310, 47, 'tx c', 'agent: policy π(a | s)');
+      b += '<rect x="230" y="140" width="160" height="44" rx="8" class="bx"/>' + txt(310, 160, 'tx c', 'environment:') + txt(310, 176, 'ts c', 'p(s′, r | s, a)');
+      b += '<path d="M390,42 C470,42 470,162 392,162" class="ln a" marker-end="url(#ah-a)"/>' + txt(472, 106, 'ts a', 'action A' + SB('t'));
+      b += '<path d="M230,170 C120,170 120,42 228,42" class="ln" marker-end="url(#ah-i)"/>' + '<path d="M230,154 C175,154 175,56 228,56" class="ln d" marker-end="url(#ah-i)"/>';
+      b += txt(108, 100, 'ts e', 'state S' + SB('t+1')) + txt(200, 108, 'ts', 'reward R' + SB('t+1'));
+      b += txt(310, 214, 'ts c', 'return G' + SB('t') + ' = R' + SB('t+1') + ' + γR' + SB('t+2') + ' + γ²R' + SB('t+3') + ' + ⋯');
+      return svg("0 0 620 226", 480, "The agent picks an action from its policy; the environment returns the next state and a reward; the return is the discounted sum of rewards", b);
+    },
+    /* week 12, section 4: what each method backs up */
+    backups: function () {
+      var b = '';
+      function st(x, y, cls) { return '<circle cx="' + x + '" cy="' + y + '" r="9" class="nd' + (cls || '') + '"/>'; }
+      function ac(x, y) { return '<circle cx="' + x + '" cy="' + y + '" r="4" style="fill:var(--ink);stroke:none"/>'; }
+      function ln(x1, y1, x2, y2, c) { return '<line x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '" class="ln' + (c || '') + '"/>'; }
+      // dynamic programming: all actions, all successors, one step
+      var X = 100; b += st(X, 30, ' on');
+      [-50, 0, 50].forEach(function (dx) { b += ln(X, 39, X + dx, 76) + ac(X + dx, 80); [-16, 16].forEach(function (e) { b += ln(X + dx, 84, X + dx + e, 118) + st(X + dx + e, 126); }); });
+      b += txt(X, 160, 'tx c', 'dynamic programming') + txt(X, 178, 'ts c', 'every action and successor,') + txt(X, 194, 'ts c', 'one step, needs the model');
+      // Monte Carlo: one sampled path to the end
+      X = 310; b += st(X, 30, ' on'); var y = 30;
+      for (var j = 0; j < 3; j++) { b += ln(X, y + 9, X, y + 21) + ac(X, y + 25) + ln(X, y + 29, X, y + 41); y += 50; b += st(X, y); }
+      b += '<rect x="' + (X - 9) + '" y="' + (y + 12) + '" width="18" height="10" class="cell on"/>';
+      b += txt(X + 20, y + 21, 'ts', 'end'); b += txt(X, 216, 'tx c', 'Monte Carlo') + txt(X, 234, 'ts c', 'one sampled episode, to the end');
+      // TD: one sampled step, then bootstrap
+      X = 520; b += st(X, 30, ' on') + ln(X, 39, X, 51) + ac(X, 55) + ln(X, 59, X, 71) + st(X, 80);
+      b += txt(X + 16, 84, 'ts', 'use V(s′)') + txt(X, 160, 'tx c', 'TD(0)') + txt(X, 178, 'ts c', 'one sampled step,') + txt(X, 194, 'ts c', 'then the current estimate');
+      return svg("0 0 620 246", 480, "Three backups: dynamic programming averages over all actions and successors for one step; Monte Carlo follows one sampled episode to its end; TD follows one sampled step and then uses the current estimate", b);
+    },
+    /* week 12, section 6: the AlphaZero loop */
+    azloop: function () {
+      var b = '';
+      function box(x, y, w, t1, t2) { return '<rect x="' + x + '" y="' + (y - 24) + '" width="' + w + '" height="48" rx="8" class="bx"/>' + txt(x + w / 2, y - 3, 'tx c', t1) + txt(x + w / 2, y + 14, 'ts c', t2); }
+      b += box(20, 60, 190, 'self-play', 'each move chosen by search');
+      b += box(410, 60, 190, 'tree search (MCTS)', 'guided by p and v');
+      b += box(215, 170, 190, 'network f' + SB('θ') + '(s) = (p, v)', 'move probabilities, value');
+      b += '<path d="M210,52 L408,52" class="ln" marker-end="url(#ah-i)"/>' + txt(310, 44, 'ts c', 'positions s');
+      b += '<path d="M408,70 L212,70" class="ln a" marker-end="url(#ah-a)"/>' + txt(310, 88, 'ts c a', 'search policy π');
+      b += '<path d="M115,86 C115,160 150,170 213,170" class="ln" marker-end="url(#ah-i)"/>' + txt(104, 132, 'ts e', 'train on (s, π, z):');
+      b += txt(104, 148, 'ts e', 'p → π, v → z');
+      b += '<path d="M405,170 C470,170 505,150 505,88" class="ln" marker-end="url(#ah-i)"/>' + txt(514, 134, 'ts', 'new θ');
+      return svg("0 0 620 206", 480, "AlphaZero: self-play games are played with a tree search guided by the network; the network is trained to predict the search's move probabilities and the game's outcome; the improved network guides the next search", b);
     },
     /* week 10, section 1: signal and noise along the schedule */
     schedfig: function () {

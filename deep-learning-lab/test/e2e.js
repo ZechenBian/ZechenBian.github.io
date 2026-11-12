@@ -447,6 +447,21 @@ async function shot(page, name) { if (shots) await page.screenshot({ path: path.
   }
   await weekRun('u10', 'u10_ring', 1, /mean distance from the centre 0\.\d+, with a spread of 0\.0\d+/, 'week 10: the engine trains the ring model and samples it without the fresh noise (a thin circle inside the ring)');
   await weekRef('u10', 'u10_memorize', 'Five points, trained longer', 1, /Five training points, 20,000 steps: \d+(\.\d)?% of the network's samples/, 'week 10: the reference run answers the five-point question (the network now copies its training points)');
+  /* week 12 */
+  await weekNotes('u12', 6, 3);
+  {
+    const rd = async () => (await page.locator('.widget .w-read').innerText()).replace(/\s+/g, ' ');
+    await page.click('.widget button:has-text("Sweep until it settles")'); await page.waitForTimeout(50);
+    ok(/value of the start 0\.531/.test(await rd()), 'week 12 figure: without slip the start is worth 0.9⁶ = 0.531 (seven steps along the cliff)');
+    await page.locator('.widget input[type=range]').nth(1).evaluate((el) => { el.value = '0.2'; el.dispatchEvent(new Event('input')); }); await page.waitForTimeout(50);
+    ok(/value of the start 0\.164/.test(await rd()), 'week 12 figure: with slip 0.2 the start is worth less (0.164)');
+    ok(await page.evaluate(() => { let rnd = 7; const u = () => { rnd = (rnd * 16807) % 2147483647; return rnd / 2147483647 * 4 - 2; }; let worst = 0;
+      for (const g of [0.5, 0.9, 0.99]) for (const sl of [0, 0.2, 0.4]) for (let n = 0; n < 30; n++) { const V = [], U = []; for (let i = 0; i < 24; i++) { V.push(u()); U.push(u()); }
+        const a = DL.bellman(V, g, sl).V, b = DL.bellman(U, g, sl).V; let num = 0, den = 0; for (let i = 0; i < 24; i++) { num = Math.max(num, Math.abs(a[i] - b[i])); if (DL.cliffKind(Math.floor(i / 6), i % 6) === 'free') den = Math.max(den, Math.abs(V[i] - U[i])); } worst = Math.max(worst, num / (g * den)); }
+      return worst <= 1 + 1e-12; }), 'week 12 figure: on random pairs of value functions, the Bellman operator never shrinks distances by less than γ (a γ-contraction)');
+  }
+  await weekRun('u12', 'u12_random_walk', 2, /RMS error after 100 episodes: 0\.0\d+ for TD\(0\) with α = 0\.05/, 'week 12: the engine compares Monte Carlo and TD on the random walk (TD lower)');
+  await weekRef('u12', 'u12_blackjack', 'The best possible policy', 1, /expected return: [−-]0\.0431/, 'week 12: the reference run answers the Blackjack question (optimal play loses about 0.043 per hand)');
   await page.goto(srv.url + '#u13'); await page.waitForTimeout(400);
   const fullW = await page.evaluate(() => { const w = DL.COURSE.units.filter((u) => u.status === 'full').map((u) => String(u.week)); return w.slice(0, -1).join(', ') + ' and ' + w[w.length - 1]; });
   ok(new RegExp('full units for weeks ' + fullW + '\\.').test(await page.locator('.sheet').innerText()) && /\b2, 3\b/.test(fullW), 'a planned week names the written weeks (' + fullW + ')');
@@ -465,11 +480,11 @@ async function shot(page, name) { if (shots) await page.screenshot({ path: path.
   /* ================= phone ================= */
   console.log('phone');
   ({ ctx, page, errors } = await open({ w: 390, h: 844, mobile: true }));
-  for (const r of ['home', 'u1', 'u1-train', 'u2', 'u2-train', 'u3', 'u3-train', 'u4', 'u5', 'u5-train', 'u6', 'u6-train', 'u8', 'u8-train', 'u9-train', 'u7', 'u7-train', 'u9', 'u9-sources', 'u10', 'u10-train', 'ledger']) {
+  for (const r of ['home', 'u1', 'u1-train', 'u2', 'u2-train', 'u3', 'u3-train', 'u4', 'u5', 'u5-train', 'u6', 'u6-train', 'u8', 'u8-train', 'u9-train', 'u7', 'u7-train', 'u9', 'u9-sources', 'u10', 'u10-train', 'u12', 'u12-train', 'ledger']) {
     await page.goto(srv.url + '#' + r); await page.waitForTimeout(500);
     ok(await noOverflow(page), 'phone: no horizontal overflow on #' + r);
   }
-  for (const u of ['u2', 'u3', 'u5', 'u6', 'u8', 'u9', 'u10']) {
+  for (const u of ['u2', 'u3', 'u5', 'u6', 'u8', 'u9', 'u10', 'u12']) {
     await page.goto(srv.url + '#' + u); await page.waitForTimeout(700);
     ok((await page.evaluate(() => { document.querySelectorAll('.sheet details').forEach((d) => { d.open = true; }); return [...document.querySelectorAll('.sheet .katex-display')].filter((el) => el.scrollWidth > el.clientWidth + 1).length; })) === 0, 'phone: every display formula of ' + u + ' fits the column, proofs included');
   }
