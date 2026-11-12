@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: partial-level-scope
+expected_outcome: |
+  按“部分”级别登记（scope 为第 3 节）并用 prompt --level partial --scope 抽取：第 3 节的 Def 3.1、Thm 3.2 和它们依赖的 Lem 1.4 进地图，第 2、4 节的结果不进；coverage 写明未读的页；分级页里 Cole 是“部分”并列出要读的页；不改主线和开放问题。
+context:
+  scaffold_script: place-files.sh

@@ -1,0 +1,54 @@
+{
+ "title": "Glimmers — theorem dependency map",
+ "scope": "Glimmers (a fictional kind of sheaf) and when they split.",
+ "version": "1.0",
+ "created": "2026-11-11",
+ "outline": [
+  {
+   "act": "I",
+   "question": "When does a glimmer split?",
+   "papers": [
+    "ASH31"
+   ]
+  }
+ ],
+ "papers": [
+  {
+   "key": "ASH31",
+   "title": "Fictional sheaves II",
+   "authors": "R. Ash",
+   "year": 2031,
+   "arxiv": "",
+   "source": "files: 2031-ash-fictional-sheaves-ii.txt",
+   "added": "2026-11-11",
+   "level": "full"
+  }
+ ],
+ "gaps": [
+  {
+   "id": "G1",
+   "title": "Glimmers on surfaces",
+   "statement": "Ash expects the splitting theorem on surfaces, 'probably after two twists' (p. 3).",
+   "type": "author-stated expectation",
+   "status": "open",
+   "sources": [
+    {
+     "paper": "ASH31",
+     "page": 3,
+     "note": "Future directions"
+    }
+   ],
+   "why": "It is the paper's own next step.",
+   "test": "$X=\\mathbb P^2$, $\\deg F=2$.",
+   "tools": "—"
+  }
+ ],
+ "changelog": [
+  {
+   "version": "1.0",
+   "date": "2031-01-01",
+   "summary": "Synthetic test corpus with one paper."
+  }
+ ],
+ "name": "Glimmers"
+}

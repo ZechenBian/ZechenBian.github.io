@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: add-paper-map-only
+expected_outcome: |
+  加论文只更新地图：登记、按级别抽取、rebib、merge、抽样核对、重建页面；不改 story.html 和 gaps；用户没说级别时按全读并说明；最后一句问要不要把新论文串进主线和开放问题。
+context:
+  scaffold_script: place-files.sh

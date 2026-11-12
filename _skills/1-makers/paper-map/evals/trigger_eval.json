@@ -1,0 +1,13 @@
+[
+  {"query": "这几篇 Coulomb branch 的论文帮我做一张跨文章的定理依赖地图", "should_trigger": true},
+  {"query": "这批文章之间谁依赖谁，整条线的主线是什么", "should_trigger": true},
+  {"query": "把这篇 PDF 加进 Teleman line 那个总结里", "should_trigger": true},
+  {"query": "这几篇论文里有什么可以做的题，帮我列出来", "should_trigger": true},
+  {"query": "这篇综述我只需要第三节，按分级加进语料", "should_trigger": true},
+  {"query": "这五篇论文我不是每篇都要全读，按我要做的那个问题给它们分级，告诉我每篇读哪几页", "should_trigger": true},
+  {"query": "总结一下这一篇论文说了什么", "should_trigger": false},
+  {"query": "核一下这几条参考文献是否真的存在", "should_trigger": false},
+  {"query": "收：把这篇 PDF 放进知识库", "should_trigger": false},
+  {"query": "这个交换图用 tikz-cd 怎么画", "should_trigger": false},
+  {"query": "给我做一个讲 Coulomb branch 的互动学习网页", "should_trigger": false}
+]

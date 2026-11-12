@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<!-- Copyright (c) 2026 Zechen Bian. All rights reserved. 版权所有，保留所有权利。
+     Not open source. See LICENSE at the repository root. 非开源，详见仓库根目录 LICENSE。 -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>__TITLE__</title>
+<style>__KATEXCSS__</style>
+<style>
+:root{
+  --bg:#fbfaf7; --panel:#ffffff; --ink:#1d1d1f; --muted:#6b6b70; --line:#e4e2dc; --soft:#f2f0ea;
+  --accent:#2f5d8a; --ok:#2e7d4f; --warn:#a4462c;
+  --font: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 var(--font)}
+header{padding:16px 22px 12px;border-bottom:1px solid var(--line);background:var(--panel);position:sticky;top:0;z-index:5}
+header h1{margin:0;font-size:18px;font-weight:650;letter-spacing:-.01em}
+header .sub{color:var(--muted);font-size:12.5px;margin-top:2px}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:10px}
+.controls label{font-size:12.5px;color:var(--muted)}
+select{font:inherit;font-size:13px;padding:5px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);max-width:min(520px,92vw)}
+.btn{border:1px solid var(--line);background:var(--panel);padding:5px 11px;border-radius:6px;font:inherit;font-size:12.5px;cursor:pointer;color:var(--ink)}
+.btn:hover{border-color:var(--ink)}
+.save{font-size:12px;color:var(--muted)}
+.save.ok{color:var(--ok)} .save.bad{color:var(--warn)}
+main{max-width:1060px;margin:0 auto;padding:18px 22px 60px}
+.how{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin-bottom:16px}
+.how summary{cursor:pointer;font-weight:600;font-size:13.5px}
+.how p,.how li{font-size:13px;color:#333}
+.how ul{margin:6px 0 4px 18px;padding:0}
+.purpose{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:16px}
+.purpose h2{margin:0 0 4px;font-size:15px}
+.purpose .why{font-size:13px;color:#333}
+table.sum{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}
+table.sum th{text-align:left;font-weight:600;color:var(--muted);font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--line);padding:6px 6px}
+table.sum td{padding:6px;border-bottom:1px solid var(--soft);vertical-align:top}
+table.sum td.n{white-space:nowrap;text-align:right;font-variant-numeric:tabular-nums}
+table.sum tr.total td{font-weight:650;border-top:1px solid var(--line)}
+.chip{display:inline-flex;align-items:center;font-size:11.5px;font-weight:650;padding:1px 7px;border-radius:999px;color:#fff;white-space:nowrap}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:14px 0}
+.card .top{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.card .ttl{font-weight:600;font-size:14.5px}
+.card .yr{color:var(--muted);font-size:12.5px}
+.act{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-left:auto}
+.seg button{border:none;background:var(--panel);padding:5px 10px;font:inherit;font-size:12.5px;cursor:pointer;color:var(--ink);border-right:1px solid var(--line)}
+.seg button:last-child{border-right:none}
+.seg button.on{background:var(--ink);color:#fff}
+.seg button .s{font-size:10px;opacity:.75;margin-left:3px}
+.sugg{font-size:12.5px;color:var(--muted);margin:6px 0 2px}
+.sugg b{color:var(--ink);font-weight:600}
+.strip{display:flex;flex-wrap:wrap;gap:2px;margin:10px 0 4px}
+.pg{width:11px;height:15px;border-radius:2px;background:#ecebe6;position:relative}
+.pg.r{outline:1.5px solid var(--ink);outline-offset:-1.5px}
+.readline{font-size:12.5px;color:#333;margin:2px 0 8px}
+.readline b{font-variant-numeric:tabular-nums}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--muted);margin:8px 0 0}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.legend i{display:inline-block;width:11px;height:15px;border-radius:2px}
+details.layer{border-top:1px solid var(--soft);padding:6px 0}
+details.layer>summary{cursor:pointer;font-size:13px;font-weight:600;list-style:none;display:flex;gap:8px;align-items:center}
+details.layer>summary::-webkit-details-marker{display:none}
+details.layer>summary::before{content:"▸";color:var(--muted);font-size:11px;transition:transform .15s}
+details.layer[open]>summary::before{transform:rotate(90deg)}
+details.layer>summary .cnt{color:var(--muted);font-weight:500}
+details.layer>summary .hint{color:var(--muted);font-weight:400;font-size:12px}
+.row{display:grid;grid-template-columns:28px 1fr;gap:6px;padding:7px 0;border-bottom:1px dashed var(--line)}
+.row:last-child{border-bottom:none}
+.pin{border:1px solid var(--line);background:var(--panel);border-radius:6px;width:26px;height:24px;cursor:pointer;font-size:13px;line-height:1;color:var(--muted)}
+.pin.on{color:#b8860b;border-color:#b8860b;background:#fff8e6}
+.pin:hover{border-color:var(--ink)}
+.nid{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.kind{font-size:11px;border:1px solid var(--line);border-radius:999px;padding:0 6px;color:var(--muted);margin-left:4px}
+.main{font-size:11px;border:1px solid var(--ink);border-radius:999px;padding:0 6px;margin-left:4px;font-weight:600}
+.st{font-size:13.5px;line-height:1.55;margin-top:2px;overflow-x:auto}
+.src{font-size:11.5px;color:var(--muted)}
+.ppages{font-size:12.5px;margin:6px 0;padding:6px 10px;background:#fff8e6;border-radius:6px}
+.empty{color:var(--muted);font-size:12.5px;padding:4px 0}
+.copybox{width:100%;font-family:var(--mono);font-size:11.5px;height:110px;margin-top:8px;display:none}
+@media (max-width:640px){ .seg{margin-left:0} .seg button{padding:5px 7px} }
+</style>
+</head>
+<body>
+<header>
+  <h1 id="h1"></h1>
+  <div class="sub" id="sub"></div>
+  <div class="controls">
+    <label for="purpose">Purpose</label>
+    <select id="purpose"></select>
+    <button class="btn" id="reset">Reset this purpose to suggestions</button>
+    <button class="btn" id="copy">Copy my choices</button>
+    <span class="save" id="save">Loading saved choices…</span>
+  </div>
+  <textarea class="copybox" id="copybox" readonly></textarea>
+</header>
+<main>
+<details class="how">
+<summary>How this page works</summary>
+<p>Each paper gets a <b>level</b> — how much of it this purpose needs:</p>
+<ul>
+<li><b>Full</b>: all of it.</li>
+<li><b>Partial</b>: the results this purpose uses, plus everything they rest on inside the paper (definitions and proofs), plus the first two pages.</li>
+<li><b>Statements</b>: only what you need to <em>read</em> those results — the results and the definitions their statements use, plus the first two pages; no proofs.</li>
+<li><b>Reference</b>: nothing to read; the paper is only cited.</li>
+</ul>
+<p>Inside each paper the results fall into four layers, computed from the dependency map: <b>core</b> (used by the purpose — linked from the story, cited across papers, or named by the open problem), <b>needed for the statements</b> (definitions the core statements use, transitively), <b>needed for the proofs</b> (everything else the core rests on), and <b>not needed</b>. Pin ★ any result to make it core; unpin a core result to drop it. The page strip shows every PDF page: dark = core, medium = statements, light = proofs; outlined = in your reading set.</p>
+<p>Suggested levels for the story are Claude's reading of what the story uses, with a reason under each paper; for an open problem, papers it names are suggested as Partial and the rest as Reference. Your choices are saved with this page (when saving is available) so that Claude can read them back when you ask for a new summary or add a paper.</p>
+</details>
+<section class="purpose" id="purposeBox"></section>
+<div id="cards"></div>
+</main>
+<script>__KATEXJS__</script>
+<script>__AUTORENDER__</script>
+<script>
+const D = __DATA__;
+const MACROS = {"\\Spec":"\\operatorname{Spec}","\\Bun":"\\operatorname{Bun}","\\Hom":"\\operatorname{Hom}","\\End":"\\operatorname{End}","\\Ind":"\\operatorname{Ind}","\\Coh":"\\operatorname{Coh}","\\QCoh":"\\operatorname{QCoh}"};
+function typeset(el){ try{ renderMathInElement(el,{delimiters:[{left:"$$",right:"$$",display:true},{left:"$",right:"$",display:false}],throwOnError:false,macros:MACROS}); }catch(e){} }
+const $ = id => document.getElementById(id);
+function el(tag, attrs, ...kids){ const e=document.createElement(tag); if(attrs) for(const k in attrs){ if(k==='text') e.textContent=attrs[k]; else if(k==='html') e.innerHTML=attrs[k]; else if(k.startsWith('on')) e.addEventListener(k.slice(2),attrs[k]); else e.setAttribute(k,attrs[k]); } for(const c of kids){ if(c==null) continue; e.appendChild(typeof c==='string'?document.createTextNode(c):c); } return e; }
+const LEVELS = [["full","Full"],["partial","Partial"],["statements","Statements"],["reference","Reference"]];
+const NODE = {}; D.nodes.forEach(n=>NODE[n.id]=n);
+const BYPAPER = {}; D.papers.forEach(p=>BYPAPER[p.key]=[]); D.nodes.forEach(n=>{ if(BYPAPER[n.p]) BYPAPER[n.p].push(n.id); });
+const DEFPAR = {}, ALLPAR = {};
+D.dep.forEach(([a,b,t])=>{ (ALLPAR[b]=ALLPAR[b]||[]).push(a); if(t==='d') (DEFPAR[b]=DEFPAR[b]||[]).push(a); });
+function closure(start, par){ const out=new Set(), st=[...start]; while(st.length){ const x=st.pop(); for(const p of (par[x]||[])){ if(!out.has(p)&&!start.has(p)){ out.add(p); st.push(p); } } } return out; }
+function hexA(hex, a){ const h=hex.replace('#',''); const r=parseInt(h.slice(0,2),16), g=parseInt(h.slice(2,4),16), b=parseInt(h.slice(4,6),16); return `rgba(${r},${g},${b},${a})`; }
+function ranges(ps){ const a=[...ps].sort((x,y)=>x-y); const out=[]; let s=null,p=null; for(const x of a){ if(s===null){s=p=x;} else if(x===p+1){p=x;} else {out.push(s===p?`${s}`:`${s}–${p}`); s=p=x;} } if(s!==null) out.push(s===p?`${s}`:`${s}–${p}`); return out.length? (out.length===1&&!out[0].includes('–')?'p. ':'pp. ')+out.join(', ') : '—'; }
+function nodePages(n){ const ps=[]; if(n.pf){ for(let q=n.pf;q<=(n.pt||n.pf);q++) ps.push(q);} return ps; }
+
+// ---- state -------------------------------------------------------------
+let choices = {levels:{}, pins:{}, unpins:{}};   // per purpose id
+let purposeId = D.purposes[0].id;
+const PURPOSE = {}; D.purposes.forEach(p=>PURPOSE[p.id]=p);
+function lvl(pid, key){ const c=(choices.levels[pid]||{})[key]; if(c) return c; const s=(PURPOSE[pid].suggest||{})[key]; return s? s.level : 'reference'; }
+function pins(pid){ return new Set(choices.pins[pid]||[]); }
+function unpins(pid){ return new Set(choices.unpins[pid]||[]); }
+function coreSet(pid, key){ const P=PURPOSE[pid]; const base=new Set((P.core||[]).filter(i=>NODE[i]&&NODE[i].p===key)); for(const i of pins(pid)) if(NODE[i]&&NODE[i].p===key) base.add(i); for(const i of unpins(pid)) base.delete(i); return base; }
+function layers(pid, key){
+  const core=coreSet(pid,key);
+  const defs=closure(core, DEFPAR); for(const i of core) defs.delete(i);
+  const allc=closure(core, ALLPAR); const proofs=new Set([...allc].filter(i=>!core.has(i)&&!defs.has(i)));
+  const rest=BYPAPER[key].filter(i=>!core.has(i)&&!defs.has(i)&&!proofs.has(i));
+  return {core,defs,proofs,rest};
+}
+function readSet(pid, key, L){
+  const paper=D.papers.find(p=>p.key===key); const lev=lvl(pid,key); const N=paper.pages||0; const rs=new Set();
+  const extra=((PURPOSE[pid].pages||{})[key]||[]).map(x=>x[0]);
+  if(lev==='full'){ for(let i=1;i<=N;i++) rs.add(i); return rs; }
+  if(lev==='reference') return rs;
+  [1,2].forEach(i=>{ if(i<=N) rs.add(i); }); extra.forEach(q=>rs.add(q));
+  const take = lev==='partial' ? [...L.core,...L.defs,...L.proofs] : [...L.core,...L.defs];
+  for(const i of take) nodePages(NODE[i]).forEach(q=>{ if(q<=N) rs.add(q); });
+  return rs;
+}
+
+// ---- saving ------------------------------------------------------------
+let db=null, docRef=null, saveTimer=null, writing=false, pending=false;
+function setSave(t, cls){ const s=$('save'); s.textContent=t; s.className='save'+(cls?' '+cls:''); }
+function lsGet(){ try{ return JSON.parse(localStorage.getItem('pm-levels:'+D.corpusKey)||'null'); }catch(e){ return null; } }
+function lsSet(){ try{ localStorage.setItem('pm-levels:'+D.corpusKey, JSON.stringify(choices)); return true; }catch(e){ return false; } }
+function payload(){ return {corpus:D.corpusKey, levels:choices.levels, pins:choices.pins, unpins:choices.unpins, purpose:purposeId, updated:new Date().toISOString()}; }
+async function flush(){
+  if(!docRef){ setSave(lsSet()? 'Saved in this browser only — use “Copy my choices” to send them to Claude' : 'Not saved — use “Copy my choices”', lsSet()?'':'bad'); return; }
+  if(writing){ pending=true; return; }
+  writing=true; setSave('Saving…');
+  try{ await docRef.set(payload()); setSave('Saved with this page — Claude can read your choices','ok'); lsSet(); }
+  catch(e){ setSave('Could not save with the page ('+(e&&e.code||'error')+'); kept in this browser','bad'); lsSet(); docRef = (e&&e.code==='invalid_argument')? null : docRef; }
+  writing=false; if(pending){ pending=false; flush(); }
+}
+function changed(){ clearTimeout(saveTimer); saveTimer=setTimeout(flush, 700); render(); }
+(async ()=>{
+  const local=lsGet(); if(local && local.levels){ choices={levels:local.levels||{},pins:local.pins||{},unpins:local.unpins||{}}; render(); }
+  let timer=setTimeout(()=>setSave('Saved choices could not be reached yet; working in this browser','bad'),10000);
+  try{
+    db = await (window.claude && window.claude.use ? window.claude.use('db') : null);
+    if(!db){ clearTimeout(timer); setSave(local? 'Using choices saved in this browser' : 'Saving with the page is not available here; use “Copy my choices”'); return; }
+    docRef = db.doc('choices/levels');
+    docRef.onSnapshot(snap=>{
+      if(!snap.metadata.fromCache){ clearTimeout(timer); }
+      if(snap.exists){ const d=snap.data()||{}; if(!snap.metadata.hasPendingWrites){ choices={levels:d.levels||{},pins:d.pins||{},unpins:d.unpins||{}}; render(); } setSave('Saved with this page — Claude can read your choices','ok'); }
+      else if(!snap.metadata.fromCache){ setSave('No choices saved yet — the suggestions are shown'); }
+    }, err=>{ clearTimeout(timer); setSave('Saving with the page stopped ('+(err&&err.code||'error')+'); kept in this browser','bad'); docRef=null; });
+  }catch(e){ clearTimeout(timer); setSave('Saving with the page is not available here; use “Copy my choices”'); }
+})();
+
+// ---- rendering ----------------------------------------------------------
+function nodeRow(pid, id, isCore){
+  const n=NODE[id];
+  const pinned=pins(pid).has(id), base=(PURPOSE[pid].core||[]).includes(id);
+  const btn=el('button',{class:'pin'+(isCore?' on':''), title: isCore? 'Core for this purpose — click to drop it' : 'Click to make this result core', text: isCore?'★':'☆'});
+  btn.addEventListener('click',()=>{
+    const P=new Set(choices.pins[pid]||[]), U=new Set(choices.unpins[pid]||[]);
+    if(isCore){ if(pinned) P.delete(id); else U.add(id); } else { if(base) U.delete(id); else P.add(id); }
+    choices.pins[pid]=[...P]; choices.unpins[pid]=[...U]; changed();
+  });
+  const head=el('div',null, el('span',{class:'nid',text:id}), el('span',{class:'kind',text:n.k}), n.m? el('span',{class:'main',text:'main'}) : null, el('span',{class:'src',text:'  '+n.loc+' · '+n.s}));
+  return el('div',{class:'row'}, btn, el('div',null, head, el('div',{class:'st',text:n.t})));
+}
+function layer(pid, title, hint, ids, isCore, open){
+  const d=el('details',{class:'layer'}); if(open) d.open=true;
+  d.appendChild(el('summary',null, el('span',{text:title}), el('span',{class:'cnt',text:'('+ids.length+')'}), el('span',{class:'hint',text:hint})));
+  const box=el('div'); d.appendChild(box);
+  let done=false; const fill=()=>{ if(done) return; done=true; if(!ids.length){ box.appendChild(el('div',{class:'empty',text:'None.'})); return; } ids.sort((a,b)=>(NODE[a].pf||0)-(NODE[b].pf||0)).forEach(i=>box.appendChild(nodeRow(pid,i,isCore))); typeset(box); };
+  if(open) fill(); d.addEventListener('toggle',()=>{ if(d.open) fill(); });
+  return d;
+}
+function render(){
+  const pid=purposeId, P=PURPOSE[pid];
+  // purpose box + summary table
+  const pb=$('purposeBox'); pb.innerHTML='';
+  pb.appendChild(el('h2',{text:P.title}));
+  if(P.why) pb.appendChild(el('div',{class:'why',text:P.why}));
+  const tbl=el('table',{class:'sum'}); tbl.appendChild(el('tr',null, el('th',{text:'Paper'}), el('th',{text:'Level'}), el('th',{text:'Pages to read'}), el('th',{class:'n',text:'Pages'})));
+  let tot=0, all=0;
+  const LS={}; D.papers.forEach(p=>{ LS[p.key]=layers(pid,p.key); });
+  D.order.forEach(k=>{ const p=D.papers.find(x=>x.key===k); const rs=readSet(pid,k,LS[k]); tot+=rs.size; all+=p.pages||0;
+    tbl.appendChild(el('tr',null, el('td',null, el('span',{class:'chip',style:'background:'+p.color,text:p.key}), ' '+p.short), el('td',{text:(LEVELS.find(x=>x[0]===lvl(pid,k))||['', ''])[1]}), el('td',{text:ranges(rs)}), el('td',{class:'n',text:rs.size+' / '+(p.pages||'?')}))); });
+  tbl.appendChild(el('tr',{class:'total'}, el('td',{text:'All papers'}), el('td'), el('td'), el('td',{class:'n',text:tot+' / '+all})));
+  pb.appendChild(tbl);
+  pb.appendChild(el('div',{class:'legend'}, el('span',null, el('i',{style:'background:#555'}),'core'), el('span',null, el('i',{style:'background:#999'}),'needed for the statements'), el('span',null, el('i',{style:'background:#ccc'}),'needed for the proofs'), el('span',null, el('i',{style:'background:#ecebe6;outline:1.5px solid #1d1d1f;outline-offset:-1.5px'}),'in your reading set')));
+  typeset(pb);
+  // cards
+  const cards=$('cards'); cards.innerHTML='';
+  let lastAct=null;
+  D.order.forEach(k=>{
+    const p=D.papers.find(x=>x.key===k), L=LS[k], lev=lvl(pid,k), sug=(P.suggest||{})[k];
+    if(D.actOf[k]!==lastAct){ lastAct=D.actOf[k]; cards.appendChild(el('div',{class:'act',text:lastAct})); }
+    const c=el('div',{class:'card'});
+    const seg=el('div',{class:'seg'});
+    LEVELS.forEach(([v,lab])=>{ const b=el('button',{class: v===lev?'on':''}, lab, sug&&sug.level===v? el('span',{class:'s',text:'suggested'}) : null); b.addEventListener('click',()=>{ choices.levels[pid]=choices.levels[pid]||{}; choices.levels[pid][k]=v; changed(); }); seg.appendChild(b); });
+    c.appendChild(el('div',{class:'top'}, el('span',{class:'chip',style:'background:'+p.color,text:p.key}), el('span',{class:'ttl',text:p.title}), el('span',{class:'yr',text:p.authors+' · '+p.year}), seg));
+    if(sug && sug.why) c.appendChild(el('div',{class:'sugg'}, el('b',{text:'Why “'+(LEVELS.find(x=>x[0]===sug.level)||['',''])[1]+'” is suggested: '}), sug.why));
+    // strip
+    const rs=readSet(pid,k,L); const N=p.pages||0; const tier={};
+    const mark=(ids,t)=>{ for(const i of ids) nodePages(NODE[i]).forEach(q=>{ if(!tier[q]||tier[q]>t) tier[q]=t; }); };
+    mark(L.proofs,3); mark(L.defs,2); mark(L.core,1); ((P.pages||{})[k]||[]).forEach(x=>{ tier[x[0]]=1; });
+    const strip=el('div',{class:'strip'});
+    for(let q=1;q<=N;q++){ const t=tier[q]; const bg = t===1? p.color : t===2? hexA(p.color,.5) : t===3? hexA(p.color,.22) : '#ecebe6';
+      strip.appendChild(el('div',{class:'pg'+(rs.has(q)?' r':''), style:'background:'+bg, title:'p. '+q+(t===1?' · core':t===2?' · needed for the statements':t===3?' · needed for the proofs':'')+(rs.has(q)?' · in your reading set':'')})); }
+    c.appendChild(strip);
+    c.appendChild(el('div',{class:'readline'}, 'Read: ', el('b',{text:ranges(rs)}), ' · '+rs.size+' of '+N+' pages'));
+    const pp=(P.pages||{})[k]||[]; if(pp.length) c.appendChild(el('div',{class:'ppages',text:'The purpose points to: '+pp.map(x=>'p. '+x[0]+(x[1]?' ('+x[1]+')':'')).join('; ')}));
+    c.appendChild(layer(pid,'Core','  used by this purpose',[...L.core],true, lev!=='reference'));
+    c.appendChild(layer(pid,'Needed for the statements','  definitions the core statements use',[...L.defs],false,false));
+    c.appendChild(layer(pid,'Needed for the proofs','  everything else the core rests on',[...L.proofs],false,false));
+    c.appendChild(layer(pid,'Not needed for this purpose','  pin ☆ to make one core',[...L.rest],false,false));
+    cards.appendChild(c);
+  });
+}
+// controls
+$('h1').textContent=D.title; $('sub').textContent=D.sub;
+D.purposes.forEach(p=>$('purpose').appendChild(el('option',{value:p.id,text:p.label})));
+$('purpose').addEventListener('change',e=>{ purposeId=e.target.value; render(); window.scrollTo(0,0); });
+$('reset').addEventListener('click',()=>{ delete choices.levels[purposeId]; delete choices.pins[purposeId]; delete choices.unpins[purposeId]; changed(); });
+$('copy').addEventListener('click',async()=>{ const t=JSON.stringify(payload(),null,1); const box=$('copybox'); box.value=t; box.style.display='block'; box.select(); try{ await navigator.clipboard.writeText(t); setSave('Copied — paste it to Claude','ok'); }catch(e){ setSave('Select the text below and copy it'); } });
+render();
+</script>
+</body>
+</html>

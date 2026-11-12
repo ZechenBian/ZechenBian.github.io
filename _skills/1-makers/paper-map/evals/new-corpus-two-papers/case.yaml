@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: new-corpus-two-papers
+expected_outcome: |
+  用 pm.py 新建语料；地图里有 Bell Thm 2.1 → Ash Thm 1.3 的跨文依赖边，证据带页码；[A2, Example 4.2] 不连边、列为未解析；参考文献里的第一部 [A1] 不被匹配成语料里的第二部；做了独立核对抽样；主线从地图出发、以四问为纲；开放问题卡带作者原话和页码、最小试验例、带日期的轻检索；另建分级页；主页面发布为多文件 artifact（corpus/、tools/，不含原文）。
+context:
+  scaffold_script: place-files.sh
