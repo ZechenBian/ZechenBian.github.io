@@ -457,6 +457,49 @@
           judge: function (r) { var v = r.exp_kaplan_way; return !isNum(v) ? null : v < 0.55 ? 0 : v <= 0.65 ? 1 : 2; },
           happened: function (r) { return "Exponent of the best non-embedding parameter count against compute: " + num(r.exp_kaplan_way, 3) + ". Counting all parameters at the same small budgets: " + num(r.exp_small_total, 3) + "."; },
           why: "In a small model the embedding matrix, 50,257 rows of width $d$, is a large share of all parameters (last column of the second table). As budgets grow, the best model's non-embedding part grows from almost nothing, so its count rises faster than the total. A fit in non-embedding parameters at small scale therefore finds a steep exponent even when the truth, in total parameters, says to split compute evenly. Pearce and Song (2024) argued that this accounts for much of the gap between Kaplan's 0.73 and Chinchilla's 0.5; other explanations, such as learning-rate schedules and optimizer tuning, are in section 5." }]
+    },
+    /* ------------------------------ week 9 ------------------------------ */
+    { id: "u09_gan", unit: "u9", lib: "numpy", budget: 60, time: "about 5 seconds",
+      title: "What a GAN minimizes, and a GAN on eight Gaussians",
+      data: { kind: "simulated", text: "Part 1 is exact: two Gaussians, integrated numerically. Part 2 draws its data in the script from the seed: points from eight Gaussians of standard deviation 0.05 on a circle of radius 2. There are no other data." },
+      desc: "Part 1 computes the Jensen–Shannon divergence between data $N(0, 0.1^2)$ and a generator $N(\\theta, 0.1^2)$ as the shift $\\theta$ grows: with the optimal discriminator, this is what the generator minimizes (section 2). Part 2 trains a generator and a discriminator, ReLU networks with two hidden layers of 64 units and gradients written out by hand, on a ring of eight Gaussians with the non-saturating loss, and shows the generator's samples as training proceeds.",
+      params: [{ k: "steps", label: "training steps", type: "int", def: 3000, min: 100, max: 10000 }],
+      chart: { panels: [{ label: "losses (nats)", keys: ["d_loss", "g_loss"] }], names: { d_loss: "discriminator", g_loss: "generator (non-saturating)" } },
+      tiles: [{ k: "js_01", label: "JS at θ = 0.1", d: 4 }, { k: "js_1", label: "JS at θ = 1", d: 6 }, { k: "js_2", label: "JS at θ = 2", d: 6 }, { k: "modes_covered", label: "modes covered (of 8)" }, { k: "near_mode", label: "samples near a mode", f: "pct" }],
+      presets: [
+        { id: "js", name: "Halve the distance", set: {}, ref: "u09_gan/default",
+          q: "Data N(0, 0.1²), generator N(θ, 0.1²). Moving the generator from θ = 2 to θ = 1 halves its distance to the data. How much does the Jensen–Shannon divergence between them fall?",
+          opts: ["By about half: it measures how far apart they are", "A little: by 1% to 30%", "By less than 0.1%: it does not notice"],
+          judge: function (r) { var v = r.js_change_1_2; return !isNum(v) ? null : Math.abs(v) < 0.001 ? 2 : v < 0.3 ? 1 : 0; },
+          happened: function (r) { return "JS divergence: " + num(r.js_2, 6) + " at θ = 2, " + num(r.js_1, 6) + " at θ = 1, against its maximum ln 2 = 0.6931. Only at θ = 0.1, where the two densities overlap, is it clearly smaller: " + num(r.js_01, 4) + "."; },
+          why: "When two densities barely overlap, $m = \\frac12(p + q)$ is essentially $\\frac12 p$ where $p$ lives and $\\frac12 q$ where $q$ lives, so both KL terms of the JS divergence equal $\\ln 2$, whatever the distance between them (proposition in section 2). A generator far from the data therefore gets no signal from the divergence about which way to move: with a well-trained discriminator its gradient vanishes. Image distributions sit near low-dimensional sets in pixel space, so early in training the generator's and the data's supports hardly overlap. The Wasserstein distance, here simply $\\lvert\\theta\\rvert$, keeps decreasing as the distributions approach; that is the motivation for the WGAN (section 2)." },
+        { id: "modes", name: "How many modes?", set: {}, ref: "u09_gan/default",
+          q: "The generator turns 2-dimensional Gaussian noise into points. After 3,000 steps against the discriminator, how many of the eight modes do its samples cover (at least 1% of samples within 0.15 of the mode)?",
+          opts: ["1 to 3: it collapses onto a few", "4 to 6", "7 or 8"],
+          judge: function (r) { var v = r.modes_covered; return !isNum(v) ? null : v <= 3 ? 0 : v <= 6 ? 1 : 2; },
+          happened: function (r) { return "Modes covered: " + num(r.modes_covered) + " of 8; " + pct(r.near_mode) + " of the samples lie within 0.15 of some mode."; },
+          why: "Mode collapse, a generator that puts all its mass on a few modes, is the classic failure on this dataset (section 2), and it is reported with other architectures and settings. With these small networks, Adam with momentum 0.5 and the non-saturating loss, the generator here reliably ends up covering the ring, whatever the seed, though a sizeable share of its samples still falls between modes; the scatter shows how its samples spread over the ring during training. Nothing in the game guarantees coverage: the generator is rewarded for samples the discriminator finds real, not for diversity, which is why later GANs added explicit pressure towards diversity and why likelihood-based models (sections 3 and 5) do not have this failure." }]
+    },
+    { id: "u09_reparam", unit: "u9", lib: "numpy", budget: 60, time: "about a second",
+      title: "Two unbiased gradients, and the gap in the ELBO",
+      data: { kind: "simulated", text: "Part 1 draws Gaussian samples in the script from the seed. Part 2 is exact: a one-dimensional latent-variable model whose likelihood and posterior are known in closed form. There are no other data." },
+      desc: "Part 1 estimates one gradient, $\\partial_{\\mu_1}\\mathbb{E}_{z\\sim N(\\mu, I)}\\sum_i(z_i - 2)^2$ at $\\mu = 0$, by the reparametrization trick, by the score-function estimator and by the score function with the best constant baseline, all unbiased, and compares their variances in dimensions 1 and 50 (section 4). Part 2 computes the evidence lower bound for several approximate posteriors in a model where $\\log p(x)$ is known exactly (section 3).",
+      params: [{ k: "draws", label: "draws", type: "int", def: 200000, min: 1000, max: 1000000 }],
+      chart: null,
+      tiles: [{ k: "ratio_1", label: "1 dimension: score / reparam. variance", d: 1 }, { k: "ratio_base_1", label: "with baseline", d: 1 }, { k: "ratio_base_50", label: "50 dimensions, with baseline", d: 0 }, { k: "gap_prior", label: "ELBO gap with q = prior", d: 4 }],
+      presets: [
+        { id: "one", name: "One dimension", set: {}, ref: "u09_reparam/default",
+          q: "In one dimension, how does the variance of the score-function estimator compare with that of the reparametrization estimator? Both are unbiased.",
+          opts: ["About the same", "2 to 10 times larger", "More than 10 times larger"],
+          judge: function (r) { var v = r.ratio_1; return !isNum(v) ? null : v < 2 ? 0 : v <= 10 ? 1 : 2; },
+          happened: function (r) { return "Variance per draw: " + num(r.var_rep_1, 3) + " for reparametrization, " + num(r.var_sf_1, 3) + " for the score function (" + num(r.ratio_1, 3) + " times), " + num(r.var_base_1, 3) + " with the baseline."; },
+          why: "The reparametrization estimator differentiates $f$ at the sampled point, $2(z - 2)$, so it uses the slope of $f$. The score function only uses the value $f(z)$, weighted by $z - \\mu$, and learns the slope by correlating values with directions over many draws; its variance includes the large spread of $f$ itself. Here both variances can be computed exactly: 4 against 87, and 42 with the baseline (proposition in section 4). A baseline removes the part of the variance due to the mean of $f$, not the part due to its spread." },
+        { id: "fifty", name: "Fifty dimensions", set: {}, ref: "u09_reparam/default",
+          q: "Now z has 50 coordinates and f sums (z_i − 2)² over all of them; still the derivative in the first coordinate. With the best constant baseline subtracted, the score-function estimator's variance is…",
+          opts: ["about what it was in one dimension, about 10 times reparametrization's", "30 to 100 times reparametrization's", "more than 100 times reparametrization's"],
+          judge: function (r) { var v = r.ratio_base_50; return !isNum(v) ? null : v < 30 ? 0 : v <= 100 ? 1 : 2; },
+          happened: function (r) { return "Variance per draw in 50 dimensions: " + num(r.var_rep_50, 3) + " for reparametrization, " + num(r.var_base_50, 3) + " for the score function with the baseline (" + num(r.ratio_base_50, 3) + " times); without it, " + num(r.ratio_50, 3) + " times."; },
+          why: "The reparametrization estimator for $\\mu_1$ only looks at $z_1$: its variance does not depend on the dimension. The score-function estimator multiplies the whole $f(z)$ by $z_1 - \\mu_1$, and the other 49 coordinates add 49 independent fluctuations to $f$ that carry no information about $\\mu_1$; its variance grows linearly with the dimension even with the baseline. A VAE's latent space has tens to hundreds of dimensions and each of the encoder's outputs needs a gradient, which is why the reparametrization trick made VAEs trainable (section 4). Where $f$ cannot be differentiated, as with discrete choices or a reward from the world, the score function is all there is: week 13's policy gradient is exactly this estimator." }]
     }
   ];
 

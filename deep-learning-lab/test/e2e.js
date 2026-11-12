@@ -420,6 +420,17 @@ async function shot(page, name) { if (shots) await page.screenshot({ path: path.
   }
   await weekRun('u8', 'u08_compute_optimal', 1, /grows by 3\.256/, 'week 8: the engine computes the compute-optimal split (ten times the compute, 3.256 times the parameters)');
   await weekRef('u8', 'u08_bpe', 'Three times as many', 1, /a cut of 1[67]/, 'week 8: the reference run answers the BPE question (about a sixth fewer tokens)');
+  /* week 9 */
+  await weekNotes('u9', 5, 2);
+  {
+    const rd = async () => (await page.locator('.widget .w-read').innerText()).replace(/\s+/g, ' ');
+    ok(/gap 1\.9507/.test(await rd()) && !/✓/.test(await rd()), 'week 9 figure: with q the prior, the ELBO is 1.9507 below log p(x)');
+    await page.click('.widget summary:has-text("What you found")'); await page.click('.widget button:has-text("Set q to the posterior")'); await page.waitForTimeout(100);
+    ok(/✓ the bound is tight/.test(await rd()), 'week 9 figure: with q the posterior, the bound is tight');
+    ok(await page.evaluate(() => { let worst = -Infinity; for (let m = -3; m <= 3; m += 0.1) for (let v = 0.02; v <= 3; v += 0.02) for (const x of [-2, 0, 1.5]) { const r = DL.elboToy(x, 0.5, m, v); worst = Math.max(worst, r.elbo - r.logp, Math.abs(r.logp - r.elbo - r.kl)); } return worst < 1e-12; }), 'week 9 figure: on a grid of q and x, the ELBO never exceeds log p(x) and the gap equals the KL divergence');
+  }
+  await weekRun('u9', 'u09_reparam', 2, /for the score function \(2\d\.\d+ times\)/, 'week 9: the engine compares the two gradient estimators (score function about 22 times the variance)');
+  await weekRef('u9', 'u09_gan', 'Halve the distance', 2, /0\.693146 at θ = 1/, 'week 9: the reference run answers the JS question (ln 2 at both shifts)');
   await page.goto(srv.url + '#u13'); await page.waitForTimeout(400);
   const fullW = await page.evaluate(() => { const w = DL.COURSE.units.filter((u) => u.status === 'full').map((u) => String(u.week)); return w.slice(0, -1).join(', ') + ' and ' + w[w.length - 1]; });
   ok(new RegExp('full units for weeks ' + fullW + '\\.').test(await page.locator('.sheet').innerText()) && /\b2, 3\b/.test(fullW), 'a planned week names the written weeks (' + fullW + ')');
@@ -438,11 +449,11 @@ async function shot(page, name) { if (shots) await page.screenshot({ path: path.
   /* ================= phone ================= */
   console.log('phone');
   ({ ctx, page, errors } = await open({ w: 390, h: 844, mobile: true }));
-  for (const r of ['home', 'u1', 'u1-train', 'u2', 'u2-train', 'u3', 'u3-train', 'u4', 'u5', 'u5-train', 'u6', 'u6-train', 'u8', 'u8-train', 'u7', 'u7-train', 'u9', 'u9-sources', 'ledger']) {
+  for (const r of ['home', 'u1', 'u1-train', 'u2', 'u2-train', 'u3', 'u3-train', 'u4', 'u5', 'u5-train', 'u6', 'u6-train', 'u8', 'u8-train', 'u9-train', 'u7', 'u7-train', 'u9', 'u9-sources', 'ledger']) {
     await page.goto(srv.url + '#' + r); await page.waitForTimeout(500);
     ok(await noOverflow(page), 'phone: no horizontal overflow on #' + r);
   }
-  for (const u of ['u2', 'u3', 'u5', 'u6', 'u8']) {
+  for (const u of ['u2', 'u3', 'u5', 'u6', 'u8', 'u9']) {
     await page.goto(srv.url + '#' + u); await page.waitForTimeout(700);
     ok((await page.evaluate(() => { document.querySelectorAll('.sheet details').forEach((d) => { d.open = true; }); return [...document.querySelectorAll('.sheet .katex-display')].filter((el) => el.scrollWidth > el.clientWidth + 1).length; })) === 0, 'phone: every display formula of ' + u + ' fits the column, proofs included');
   }

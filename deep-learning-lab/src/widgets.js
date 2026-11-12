@@ -12,6 +12,8 @@
  *   bptt        (week 6)  feed one number back into itself 60 times: the gradient through time shrinks or saturates
  *                         for almost every weight; an additive path keeps it
  *   isoflop     (week 8)  a fixed compute budget C = 6ND: find the model size with the lowest loss, and where GPT-3 sat
+ *   elbo        (week 9)  choose an approximate posterior q: the evidence lower bound never exceeds log p(x), and
+ *                         the gap closes exactly when q is the posterior
  *   gdquad      (week 4)  the stiff direction caps the step size, the soft direction then crawls; momentum helps
  *   softlookup  (week 7)  attention is a lookup made soft: sharp scores pick one value, flat scores average all of them
  * A widget is a function (host) -> { destroy }. Nothing here is saved; these are sketches, the experiments are the measurements. */
@@ -643,6 +645,62 @@
     return { destroy: function () { un(); } };
   };
 
+  /* ================= week 9: the evidence lower bound in a model where everything is known ================= */
+  DL.elboToy = function (x, s2, m, v) {
+    var lp = -0.5 * Math.log(2 * Math.PI * (1 + s2)) - x * x / (2 * (1 + s2)), pm = x / (1 + s2), pv = s2 / (1 + s2);
+    var el = -0.5 * Math.log(2 * Math.PI * s2) - ((x - m) * (x - m) + v) / (2 * s2) - 0.5 * Math.log(2 * Math.PI) - (m * m + v) / 2 + 0.5 * Math.log(2 * Math.PI * Math.E * v);
+    var kl = 0.5 * (v / pv + (m - pm) * (m - pm) / pv - 1 + Math.log(pv / v));
+    return { logp: lp, elbo: el, kl: kl, pm: pm, pv: pv };
+  };
+  DL.WIDGETS.elbo = function (host) {
+    var x = 1.5, s2 = 0.5, m = 0, v = 1;
+    var cv = h("canvas", { class: "w-canvas", role: "img", "aria-label": "The posterior density of z and your approximation q, with bars for log p(x) and the evidence lower bound" });
+    var read = h("div", { class: "w-read" });
+    function N(z, mu, var_) { return Math.exp(-(z - mu) * (z - mu) / (2 * var_)) / Math.sqrt(2 * Math.PI * var_); }
+    function draw() {
+      var P = pal(), c = fit(cv, 240), ctx = c.ctx, W = c.W, H = c.H, r = DL.elboToy(x, s2, m, v);
+      var bw = W < 420 ? 26 : 40, bg = W < 420 ? 14 : 24, split = W - (2 * bw + bg + 36), L = 14, R = split - 14, top = 16, bot = H - 26, lo = -3, hi = 4;
+      function X(z) { return L + (R - L) * (z - lo) / (hi - lo); } function Y(d) { return bot - (bot - top) * d / 1.3; }
+      ctx.fillStyle = P.surface; ctx.fillRect(0, 0, W, H);
+      ctx.strokeStyle = P.grid; ctx.lineWidth = 1; line(ctx, [[L, bot], [R, bot]]);
+      ctx.fillStyle = P.ink2; ctx.font = "11px " + P.font; ctx.textAlign = "center";
+      [-2, 0, 2, 4].forEach(function (t) { ctx.fillText(String(t).replace("-", "−"), X(t), bot + 14); });
+      function curve(f, col, wdt, dash) { var pts = []; for (var i = 0; i <= 200; i++) { var z = lo + (hi - lo) * i / 200; pts.push([X(z), Y(f(z))]); } ctx.strokeStyle = col; ctx.lineWidth = wdt; ctx.setLineDash(dash || []); line(ctx, pts); ctx.setLineDash([]); }
+      curve(function (z) { return N(z, r.pm, r.pv); }, P.ink, 2);
+      curve(function (z) { return N(z, m, v); }, P.accent, 2, [6, 4]);
+      ctx.textAlign = "left"; ctx.fillStyle = P.ink; ctx.fillText("posterior p(z | x)", L + 4, top + 10); ctx.fillStyle = P.accent; ctx.fillText("your q(z)", L + 4, top + 26);
+      // bars: log p(x) and the ELBO, on a common scale
+      var bx = split + 20, lo2 = -6, hi2 = 0;
+      function YB(v2) { return top + (bot - top) * (hi2 - Math.max(lo2, v2)) / (hi2 - lo2); }
+      [[r.logp, P.ink, "log p(x)"], [r.elbo, P.accent, "ELBO"]].forEach(function (b, k) {
+        var xx = bx + k * (bw + bg); ctx.fillStyle = b[1]; ctx.globalAlpha = 0.8; ctx.fillRect(xx, top, bw, YB(b[0]) - top); ctx.globalAlpha = 1;
+        ctx.fillStyle = P.ink2; ctx.textAlign = "center"; ctx.fillText(b[2], xx + bw / 2, bot + 14); ctx.fillText(b[0].toFixed(3), xx + bw / 2, Math.min(bot - 4, YB(b[0]) + 14));
+      });
+      ctx.textAlign = "left"; ctx.fillStyle = P.ink2; ctx.fillText("0", bx - 14, top + 4);
+      DL.clear(read);
+      DL.add(read, [h("span", {}, ["log p(x) ", h("b", { text: r.logp.toFixed(4) })]), h("span", {}, ["ELBO ", h("b", { text: r.elbo.toFixed(4) })]),
+        h("span", {}, ["gap ", h("b", { text: (r.logp - r.elbo).toFixed(4) })]), r.logp - r.elbo < 5e-4 ? h("span", {}, [h("b", { text: "✓ the bound is tight" })]) : null]);
+      return r;
+    }
+    var sm = slider("mean of q ", -2, 3, 0.01, m, function (t) { return t.toFixed(2); }, function (t) { m = t; draw(); });
+    var sv = slider("variance of q ", 0.05, 2, 0.01, v, function (t) { return t.toFixed(2); }, function (t) { v = t; draw(); });
+    var sx = slider("observation x ", -3, 3, 0.05, x, function (t) { return t.toFixed(2); }, function (t) { x = t; draw(); });
+    var body = reveal("What you found", "- The lower bar never rises above the upper one: for every $q$, the **evidence lower bound** satisfies $\\mathrm{ELBO}(q) \\le \\log p(x)$.\n- The gap closes exactly when $q$ is the posterior: here mean $x/1.5$ and variance $1/3$. In fact the gap *is* $\\mathrm{KL}(q\\,\\|\\,p(z\\mid x))$ (section 3), so maximizing the ELBO over $q$ is variational inference, and maximizing it over the model's parameters at the same time is how a VAE is trained.\n- Changing $x$ moves the posterior. A VAE's *encoder* is a network that outputs a good $q$ for each $x$ in one pass, instead of optimizing $q$ afresh for every data point.");
+    body.appendChild(h("div", { class: "w-row" }, [h("button", { class: "btn quiet small", text: "Set q to the posterior", onclick: function () { var r = DL.elboToy(x, s2, m, v); m = r.pm; v = r.pv; sm.set(m); sv.set(v); draw(); } })]));
+    DL.add(host, [
+      h("div", { class: "w-h" }, [h("span", { class: "tag sim", text: "Sketch" }), h("b", { text: "A lower bound you can see" })]),
+      h("p", { class: "w-task", text: "A tiny latent-variable model: a hidden z ~ N(0, 1) and an observation x ~ N(z, 0.5). Given x, the posterior over z (black) is known exactly here. Pick an approximation q = N(mean, variance) (orange). The bars compare the true log-likelihood log p(x) with a quantity, the ELBO, that only needs q and samples from it." }),
+      h("ol", { class: "w-task", style: "margin:0;padding-left:24px" }, [
+        h("li", { text: "Move the mean and variance of q. Can you make the orange bar longer than the black one, that is, push the ELBO above log p(x)?" }),
+        h("li", { text: "Find the q that brings the two bars together. What is it?" }),
+        h("li", { text: "Change the observation x. What has to change in q?" })
+      ]),
+      cv, read, h("div", { class: "w-ctl" }, [sm.el, sv.el, sx.el]), body
+    ]);
+    var un = watch(cv, draw); draw();
+    return { destroy: function () { un(); } };
+  };
+
   /* ================= week 7: a lookup made soft ================= */
   DL.softWeights = function (q, keys, beta) {
     var s = keys.map(function (k) { return beta * (q[0] * k[0] + q[1] * k[1]); }), m = Math.max.apply(null, s), e = s.map(function (v) { return Math.exp(v - m); }), z = e.reduce(function (a, b) { return a + b; }, 0);
@@ -820,6 +878,28 @@
       b += txt(f1(X(-1.55)), 116, 'ts e a', 'attacked,') + txt(f1(X(-1.55)), 132, 'ts e a', 'd = 1024');
       b += txt(f1(X(0) + 7), base - 12, 'ts', '42%');
       return svg("0 0 624 216", 520, "The attack shifts the score distribution left by epsilon times the square root of the dimension", b);
+    },
+    /* week 9, section 2: a generative adversarial network */
+    ganfig: function () {
+      var b = '';
+      function box(x, y, w, t, cls) { return '<rect x="' + x + '" y="' + (y - 18) + '" width="' + w + '" height="36" rx="6" class="bx"/>' + txt(x + w / 2, y + 5, cls || 'tx c', t); }
+      b += txt(36, 109, 'tx c', 'z') + '<line x1="50" y1="105" x2="96" y2="105" class="ln" marker-end="url(#ah-i)"/>' + box(98, 105, 110, 'generator G') + '<line x1="208" y1="105" x2="266" y2="105" class="ln" marker-end="url(#ah-i)"/>' + txt(300, 109, 'ts c', 'G(z): fake');
+      b += txt(300, 39, 'ts c', 'x: real data') + '<line x1="334" y1="35" x2="398" y2="68" class="ln" marker-end="url(#ah-i)"/>' + '<line x1="334" y1="105" x2="398" y2="78" class="ln" marker-end="url(#ah-i)"/>';
+      b += box(400, 72, 130, 'discriminator D') + '<line x1="530" y1="72" x2="560" y2="72" class="ln" marker-end="url(#ah-i)"/>' + txt(586, 68, 'ts c', 'P(real)');
+      b += '<path d="M465,92 C465,150 153,150 153,125" class="ln a" marker-end="url(#ah-a)"/>' + txt(310, 160, 'ts c a', 'G is trained through D: make D call its samples real');
+      return svg("0 0 620 172", 480, "A generator maps noise to fake samples; a discriminator scores real and fake samples; the generator is trained through the discriminator", b);
+    },
+    /* week 9, section 3: a variational autoencoder */
+    vaefig: function () {
+      var b = '';
+      function box(x, y, w, t) { return '<rect x="' + x + '" y="' + (y - 18) + '" width="' + w + '" height="36" rx="6" class="bx"/>' + txt(x + w / 2, y + 5, 'tx c', t); }
+      b += txt(24, 64, 'tx c', 'x') + '<line x1="36" y1="60" x2="62" y2="60" class="ln" marker-end="url(#ah-i)"/>' + box(64, 60, 92, 'encoder');
+      b += '<line x1="156" y1="60" x2="186" y2="60" class="ln" marker-end="url(#ah-i)"/>' + txt(222, 64, 'tx c', 'μ(x), σ(x)');
+      b += '<line x1="258" y1="60" x2="300" y2="60" class="ln" marker-end="url(#ah-i)"/>' + '<rect x="302" y="42" width="128" height="36" rx="6" class="cell on"/>' + txt(366, 65, 'tx c', 'z = μ + σ ⊙ ε');
+      b += txt(366, 120, 'ts c', 'ε ~ N(0, I)') + '<line x1="366" y1="106" x2="366" y2="80" class="ln" marker-end="url(#ah-i)"/>';
+      b += '<line x1="430" y1="60" x2="460" y2="60" class="ln" marker-end="url(#ah-i)"/>' + box(462, 60, 92, 'decoder') + '<line x1="554" y1="60" x2="580" y2="60" class="ln" marker-end="url(#ah-i)"/>' + txt(598, 64, 'tx c', 'x̂');
+      b += txt(310, 150, 'ts c', 'loss = reconstruction error + KL(q(z | x) ‖ N(0, I)); ε enters from the side, so gradients reach μ, σ');
+      return svg("0 0 620 162", 500, "An encoder outputs a mean and a standard deviation; a sample is formed by adding scaled noise; a decoder reconstructs the input", b);
     },
     /* week 8, section 2: byte-pair encoding of one word */
     bpefig: function () {
