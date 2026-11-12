@@ -1,0 +1,84 @@
+{
+ "key": "ASH31",
+ "title": "Fictional sheaves II",
+ "source": "2031-ash-fictional-sheaves-ii.txt",
+ "version": "2031",
+ "nodes": [
+  {
+   "id": "ASH31:Def1.1",
+   "kind": "Definition",
+   "statement": "A glimmer on a curve $X$ is a pair $(F,s)$ with $s$ a section of $F$ vanishing at exactly $\\deg F$ points.",
+   "loc": "p. 1, Def 1.1",
+   "status": "proved here",
+   "main": false,
+   "idea_entry": false,
+   "intuition": ""
+  },
+  {
+   "id": "ASH31:Lem1.2",
+   "kind": "Lemma",
+   "statement": "If $(F,s)$ is a glimmer, $F(1)$ has a section $s'$ agreeing with $s$ off the zeros of $s$.",
+   "loc": "p. 1, Lem 1.2",
+   "status": "proved here",
+   "main": false,
+   "idea_entry": false,
+   "intuition": ""
+  },
+  {
+   "id": "ASH31:Thm1.3",
+   "kind": "Theorem",
+   "statement": "Every glimmer $(F,s)$ of degree $d\\ge1$ splits after one twist: $F(1)$ is a sum of line bundles.",
+   "loc": "p. 2, Thm 1.3",
+   "status": "proved here",
+   "main": true,
+   "idea_entry": true,
+   "intuition": "[Claude] The twist makes the section extend, so the sheaf is generated off finitely many points and Grothendieck's theorem applies."
+  }
+ ],
+ "edges": [
+  {
+   "from": "ASH31:Lem1.2",
+   "to": "ASH31:Thm1.3",
+   "type": "used in proof",
+   "evidence": "p. 2: 'By Lemma 1.2 the twisted section'"
+  },
+  {
+   "from": "ASH31:Def1.1",
+   "to": "ASH31:Thm1.3",
+   "type": "used in definition",
+   "evidence": "p. 2: 'by Definition 1.1 its zeros'"
+  }
+ ],
+ "cites": [
+  {
+   "from_node": "ASH31:Thm1.3",
+   "key": "G",
+   "target": "",
+   "page": 2,
+   "phrase": "Grothendieck's theorem on P^1 [G]",
+   "use": "used in proof"
+  }
+ ],
+ "bib": {
+  "A1": {
+   "batch": null,
+   "ref": "R. Ash: Fictional sheaves I. J. Fict. Geom. 1 (2029)."
+  },
+  "G": {
+   "batch": null,
+   "ref": "A. Grothendieck: Sur la classification des fibrés holomorphes sur la sphère de Riemann (1957)."
+  }
+ },
+ "doubtful": [],
+ "coverage": {
+  "counts": {
+   "Definition": 1,
+   "Lemma": 1,
+   "Theorem": 1
+  },
+  "pages_read": "1-3",
+  "pages_unread": [],
+  "garbled_pages": [],
+  "notes": "Synthetic test corpus."
+ }
+}
