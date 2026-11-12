@@ -18,6 +18,8 @@
  *                         staircase, and on a few training points it sends everything back to them
  *   bellman     (week 12) value iteration on a cliff with slip: each sweep shrinks the error by γ at least, and the
  *                         best path moves away from the edge as the slip grows
+ *   ppoclip     (week 13) PPO's clipped objective against the ratio r: flat once the policy has moved by ε in the
+ *                         sample's favour, unclipped in the other direction
  *   gdquad      (week 4)  the stiff direction caps the step size, the soft direction then crawls; momentum helps
  *   softlookup  (week 7)  attention is a lookup made soft: sharp scores pick one value, flat scores average all of them
  * A widget is a function (host) -> { destroy }. Nothing here is saved; these are sketches, the experiments are the measurements. */
@@ -844,6 +846,64 @@
     return { destroy: function () { un(); } };
   };
 
+  /* ================= week 13: PPO's clipped objective ================= */
+  /** The clipped surrogate for one sample: value and derivative in the ratio r. */
+  DL.ppoClip = function (r, A, eps) {
+    var c = Math.max(1 - eps, Math.min(1 + eps, r)), u = r * A, v = c * A;
+    return u <= v ? { L: u, dL: A, clipped: false } : { L: v, dL: 0, clipped: true };
+  };
+  DL.WIDGETS.ppoclip = function (host) {
+    var eps = 0.2, r = 1, A = 1;
+    var cv = h("canvas", { class: "w-canvas", role: "img", "aria-label": "The clipped objective of PPO and the unclipped one as functions of the probability ratio r, for a positive or negative advantage" });
+    var read = h("div", { class: "w-read" });
+    function draw() {
+      var P = pal(), c = fit(cv, 250), ctx = c.ctx, W = c.W, H = c.H, L = 40, R = W - 14, top = 14, bot = H - 30, lo = 0, hi = 2, ylo = -2.2, yhi = 2.2;
+      function X(v) { return L + (R - L) * (v - lo) / (hi - lo); } function Y(v) { return bot - (bot - top) * (v - ylo) / (yhi - ylo); }
+      ctx.fillStyle = P.surface; ctx.fillRect(0, 0, W, H);
+      // the region where the gradient is zero
+      var z0 = A > 0 ? 1 + eps : lo, z1 = A > 0 ? hi : 1 - eps;
+      ctx.fillStyle = P.neutral; ctx.globalAlpha = 0.15; ctx.fillRect(X(z0), top, X(z1) - X(z0), bot - top); ctx.globalAlpha = 1;
+      ctx.strokeStyle = P.grid; ctx.lineWidth = 1; line(ctx, [[L, Y(0)], [R, Y(0)]]); line(ctx, [[X(1), top], [X(1), bot]]);
+      ctx.setLineDash([2, 3]); line(ctx, [[X(1 - eps), top], [X(1 - eps), bot]]); line(ctx, [[X(1 + eps), top], [X(1 + eps), bot]]); ctx.setLineDash([]);
+      ctx.fillStyle = P.ink2; ctx.font = "11px " + P.font; ctx.textAlign = "center";
+      [0, 0.5, 1, 1.5, 2].forEach(function (v) { ctx.fillText(String(v), X(v), bot + 14); });
+      ctx.fillText("1 − ε", X(1 - eps), top + 10); ctx.fillText("1 + ε", X(1 + eps), top + 10);
+      ctx.textAlign = "right"; [-2, -1, 0, 1, 2].forEach(function (v) { ctx.fillText(String(v).replace("-", "−"), L - 6, Y(v) + 4); });
+      ctx.fillText("probability ratio r = π_new(a | s) / π_old(a | s)", R, bot + 28);
+      var pts = [], cl = [];
+      for (var i = 0; i <= 200; i++) { var x = lo + (hi - lo) * i / 200; pts.push([X(x), Y(x * A)]); cl.push([X(x), Y(DL.ppoClip(x, A, eps).L)]); }
+      ctx.strokeStyle = P.ink2; ctx.lineWidth = 1.5; ctx.setLineDash([6, 4]); line(ctx, pts); ctx.setLineDash([]);
+      ctx.strokeStyle = P.accent; ctx.lineWidth = 2.5; line(ctx, cl);
+      var o = DL.ppoClip(r, A, eps);
+      ctx.fillStyle = P.accent; ctx.beginPath(); ctx.arc(X(r), Y(o.L), 5, 0, 6.2832); ctx.fill();
+      ctx.textAlign = "left"; ctx.fillStyle = P.accent; ctx.fillText(W < 420 ? "clipped (PPO)" : "clipped: min(r A, clip(r) A)", L + 6, A > 0 ? top + 26 : bot - 22);
+      ctx.fillStyle = P.ink2; ctx.fillText(W < 420 ? "unclipped r A" : "unclipped: r A", L + 6, A > 0 ? top + 42 : bot - 8);
+      DL.clear(read);
+      DL.add(read, [h("span", {}, ["advantage A ", h("b", { text: A > 0 ? "+1" : "−1" })]), h("span", {}, ["r ", h("b", { text: r.toFixed(2) })]),
+        h("span", {}, ["objective ", h("b", { text: o.L.toFixed(3).replace("-", "−") })]),
+        h("span", {}, ["gradient in r ", h("b", { text: o.dL === 0 ? "0: this sample is ignored" : (o.dL > 0 ? "+1: raise r" : "−1: lower r") })])]);
+      return o;
+    }
+    var se = slider("clip range ε ", 0.05, 0.5, 0.01, eps, function (v) { return v.toFixed(2); }, function (v) { eps = v; draw(); });
+    var sr = slider("ratio r ", 0, 2, 0.01, r, function (v) { return v.toFixed(2); }, function (v) { r = v; draw(); });
+    var chips = [[1, "A > 0: better than expected"], [-1, "A < 0: worse than expected"]].map(function (s) {
+      return h("button", { class: "chip", "aria-pressed": String(s[0] === A), text: s[1], onclick: function () { A = s[0]; chips.forEach(function (b, j) { b.setAttribute("aria-pressed", String([1, -1][j] === A)); }); draw(); } });
+    });
+    var body = reveal("What you found", "- With $A > 0$ the objective rises with $r$ until $r = 1 + \\varepsilon$ and is flat after: once the new policy makes the good action $1 + \\varepsilon$ times as likely as the old one did, this sample stops pushing. With $A < 0$ it stops pushing once $r < 1 - \\varepsilon$.\n- In the other direction nothing is clipped. If an update has made a good action *less* likely ($A > 0$, $r < 1 - \\varepsilon$), the min picks the unclipped term $rA$ and the gradient still pulls it back. The clipped objective is never above the unclipped one: it is a pessimistic version of it.\n- Together: a batch of samples can be reused for several epochs of gradient steps, and each sample's pull switches off when the policy has moved far enough in its favour. That is a cheap stand-in for TRPO's trust region (section 4), and the reason PPO can take several steps per batch where the plain policy gradient takes one.");
+    DL.add(host, [
+      h("div", { class: "w-h" }, [h("span", { class: "tag sim", text: "Sketch" }), h("b", { text: "How PPO's clip works" })]),
+      h("p", { class: "w-task", text: "One sample: a state, the action taken there, and its advantage A, how much better than expected that action turned out. The policy-gradient surrogate is r·A, where r is how much more likely the new policy makes the action than the policy that collected the data. PPO maximizes the clipped version instead. The shaded band is where the clipped objective is flat." }),
+      h("ol", { class: "w-task", style: "margin:0;padding-left:24px" }, [
+        h("li", { text: "With A > 0, move r up from 1. From which r on does the objective stop rewarding a larger r?" }),
+        h("li", { text: "Move r below 1 − ε with A > 0. Is that sample ignored too? Then switch to A < 0 and compare." }),
+        h("li", { text: "Is the clipped objective ever above the unclipped one?" })
+      ]),
+      h("div", { class: "w-row" }, chips), cv, read, h("div", { class: "w-ctl" }, [se.el, sr.el]), body
+    ]);
+    var un = watch(cv, draw); draw();
+    return { destroy: function () { un(); } };
+  };
+
   /* ================= week 7: a lookup made soft ================= */
   DL.softWeights = function (q, keys, beta) {
     var s = keys.map(function (k) { return beta * (q[0] * k[0] + q[1] * k[1]); }), m = Math.max.apply(null, s), e = s.map(function (v) { return Math.exp(v - m); }), z = e.reduce(function (a, b) { return a + b; }, 0);
@@ -1021,6 +1081,42 @@
       b += txt(f1(X(-1.55)), 116, 'ts e a', 'attacked,') + txt(f1(X(-1.55)), 132, 'ts e a', 'd = 1024');
       b += txt(f1(X(0) + 7), base - 12, 'ts', '42%');
       return svg("0 0 624 216", 520, "The attack shifts the score distribution left by epsilon times the square root of the dimension", b);
+    },
+    /* week 13, section 5: policy gradient in rock, paper, scissors circles the equilibrium */
+    rpscycle: function () {
+      var b = '', A = [[0, -1, 1], [1, 0, -1], [-1, 1, 0]], x = [0.4, 0, 0], y = [0, 0, 0], lr = 0.1, pts = [], avg = [0, 0, 0], N = 5000;
+      function sm(z) { var m = Math.max(z[0], z[1], z[2]), e = z.map(function (v) { return Math.exp(v - m); }), s = e[0] + e[1] + e[2]; return e.map(function (v) { return v / s; }); }
+      // the simplex: rock at the bottom left, paper at the top, scissors at the bottom right
+      var P0 = [110, 250], P1 = [270, 26], P2 = [430, 250];
+      function at(p) { return [p[0] * P0[0] + p[1] * P1[0] + p[2] * P2[0], p[0] * P0[1] + p[1] * P1[1] + p[2] * P2[1]]; }
+      for (var t = 0; t < N; t++) {
+        var p = sm(x), q = sm(y), u = [0, 1, 2].map(function (i) { return A[i][0] * q[0] + A[i][1] * q[1] + A[i][2] * q[2]; }), w = [0, 1, 2].map(function (j) { return -(p[0] * A[0][j] + p[1] * A[1][j] + p[2] * A[2][j]); });
+        var pu = p[0] * u[0] + p[1] * u[1] + p[2] * u[2], qw = q[0] * w[0] + q[1] * w[1] + q[2] * w[2];
+        x = x.map(function (v, i) { return v + lr * p[i] * (u[i] - pu); }); y = y.map(function (v, i) { return v + lr * q[i] * (w[i] - qw); });
+        avg = avg.map(function (v, i) { return v + p[i] / N; });
+        if (t % 5 === 0) pts.push(at(p));
+      }
+      b += '<polygon points="' + [P0, P1, P2].map(function (q) { return q[0] + ',' + q[1]; }).join(' ') + '" class="ar"/>' + '<polygon points="' + [P0, P1, P2].map(function (q) { return q[0] + ',' + q[1]; }).join(' ') + '" class="ln" style="fill:none"/>';
+      b += txt(P0[0] - 8, P0[1] + 18, 'tx c', 'rock') + txt(P1[0], P1[1] - 8, 'tx c', 'paper') + txt(P2[0] + 8, P2[1] + 18, 'tx c', 'scissors');
+      b += poly(pts, 'ln s1');
+      var s0 = pts[0], c = at([1 / 3, 1 / 3, 1 / 3]), a = at(avg);
+      b += '<circle cx="' + f1(s0[0]) + '" cy="' + f1(s0[1]) + '" r="4" style="fill:var(--ink)"/>' + txt(f1(s0[0]) - 10, f1(s0[1]) + 4, 'ts e', 'start');
+      b += '<circle cx="' + f1(c[0]) + '" cy="' + f1(c[1]) + '" r="5" class="nd on"/>' + txt(470, 120, 'ts', 'equilibrium (1/3 each),') + txt(470, 136, 'ts', 'and the average of the');
+      b += txt(470, 152, 'ts', 'policies, on top of it') + '<line x1="466" y1="130" x2="' + f1(c[0] + 8) + '" y2="' + f1(c[1] - 2) + '" class="ln d"/>';
+      return svg("0 0 620 276", 480, "Player 1's policy in the triangle of mixed strategies: under simultaneous policy gradient it circles the centre, the equilibrium, in loops that slowly widen; the average of its policies sits at the centre", b);
+    },
+    /* week 13, section 6: reinforcement learning with verifiable rewards */
+    rlvr: function () {
+      var b = '';
+      function box(x, y, w, t1, t2, cls) { return '<rect x="' + x + '" y="' + (y - 24) + '" width="' + w + '" height="48" rx="8" class="' + (cls || 'bx') + '"/>' + txt(x + w / 2, y - 3, 'tx c', t1) + txt(x + w / 2, y + 14, 'ts c', t2); }
+      b += box(4, 60, 146, 'a problem', 'with a checkable answer');
+      b += '<line x1="150" y1="60" x2="170" y2="60" class="ln" marker-end="url(#ah-i)"/>' + box(172, 60, 144, 'language model π' + SB('θ'), 'samples G answers', 'cell on');
+      b += '<line x1="316" y1="60" x2="336" y2="60" class="ln" marker-end="url(#ah-i)"/>' + box(338, 60, 140, 'checker', 'answer key, unit tests');
+      b += '<line x1="478" y1="60" x2="498" y2="60" class="ln" marker-end="url(#ah-i)"/>' + txt(552, 56, 'tx c', 'rewards') + txt(552, 72, 'ts c', 'r' + SB('1') + ', …, r' + SB('G'));
+      b += box(250, 160, 300, 'advantage of answer i: (r' + SB('i') + ' − mean r) / std r', 'compared within the group, no critic (GRPO)');
+      b += '<path d="M552,84 L552,134" class="ln" marker-end="url(#ah-i)"/>' + '<path d="M250,160 C210,160 240,120 240,88" class="ln a" marker-end="url(#ah-a)"/>';
+      b += txt(160, 130, 'ts e a', 'clipped update,') + txt(160, 146, 'ts e a', 'KL to the start');
+      return svg("0 0 620 196", 480, "Reinforcement learning with verifiable rewards: a model samples several answers to a problem, a checker scores them, each answer's advantage is its reward relative to the group, and the model is updated with a clipped objective", b);
     },
     /* week 12, section 1: the agent and its environment */
     mdploop: function () {

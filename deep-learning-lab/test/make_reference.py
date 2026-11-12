@@ -47,6 +47,9 @@ PRESETS = [   # (experiment, reference name, parameters that differ from the def
     ("u10_ring", "ddim", {"sampler": "ddim"}),
     ("u12_blackjack", "default", {}),
     ("u12_random_walk", "default", {}),
+    ("u13_ppo_blackjack", "default", {}),
+    ("u13_ppo_blackjack", "reinforce", {"method": "reinforce"}),
+    ("u13_rps", "default", {}),
 ]
 
 

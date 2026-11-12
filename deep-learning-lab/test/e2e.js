@@ -462,13 +462,31 @@ async function shot(page, name) { if (shots) await page.screenshot({ path: path.
   }
   await weekRun('u12', 'u12_random_walk', 2, /RMS error after 100 episodes: 0\.0\d+ for TD\(0\) with α = 0\.05/, 'week 12: the engine compares Monte Carlo and TD on the random walk (TD lower)');
   await weekRef('u12', 'u12_blackjack', 'The best possible policy', 1, /expected return: [−-]0\.0431/, 'week 12: the reference run answers the Blackjack question (optimal play loses about 0.043 per hand)');
-  await page.goto(srv.url + '#u13'); await page.waitForTimeout(400);
+  /* week 13 */
+  await weekNotes('u13', 6, 2);
+  {
+    const rd = async () => (await page.locator('.widget .w-read').innerText()).replace(/\s+/g, ' ');
+    const setR = async (v) => { await page.locator('.widget input[type=range]').nth(1).evaluate((el, x) => { el.value = String(x); el.dispatchEvent(new Event('input')); }, v); await page.waitForTimeout(50); };
+    ok(/gradient in r \+1: raise r/.test(await rd()), 'week 13 figure: at r = 1 a good action is pushed up');
+    await setR(1.5);
+    ok(/gradient in r 0: this sample is ignored/.test(await rd()), 'week 13 figure: past 1 + ε a good action stops pulling');
+    await page.click('.widget .chip:has-text("A < 0")'); await page.waitForTimeout(50);
+    ok(/gradient in r −1: lower r/.test(await rd()), 'week 13 figure: a bad action made more likely is still pushed down (not clipped)');
+    ok(await page.evaluate(() => { for (let k = 0; k < 2000; k++) { const r = 3 * Math.random(), A = 4 * Math.random() - 2, e = 0.05 + 0.5 * Math.random(), o = DL.ppoClip(r, A, e);
+      if (o.L > r * A + 1e-12) return false; if (r > 1 - e && r < 1 + e && Math.abs(o.L - r * A) > 1e-12) return false; } return true; }), 'week 13 figure: the clipped objective is never above r·A and equals it inside [1 − ε, 1 + ε]');
+  }
+  await weekRun('u13', 'u13_rps', 1, /current policy: 0\.141 at the start, 0\.\d+ after the last step/, 'week 13: the engine runs rock, paper, scissors (the current policy keeps circling)');
+  await weekRef('u13', 'u13_ppo_blackjack', 'Plain policy gradient', 1, /Plain policy gradient: [−-]0\.06\d+ per hand/, 'week 13: the reference run answers the plain policy-gradient question');
   const fullW = await page.evaluate(() => { const w = DL.COURSE.units.filter((u) => u.status === 'full').map((u) => String(u.week)); return w.slice(0, -1).join(', ') + ' and ' + w[w.length - 1]; });
-  ok(new RegExp('full units for weeks ' + fullW + '\\.').test(await page.locator('.sheet').innerText()) && /\b2, 3\b/.test(fullW), 'a planned week names the written weeks (' + fullW + ')');
   await page.goto(srv.url + '#'); await page.waitForTimeout(400);
-  ok(new RegExp('Weeks ' + fullW + ' are written out in full, with [a-z-]+ experiments between them').test(await page.locator('.col.home').innerText()), 'the overview counts the written weeks and the experiments');
-  await page.goto(srv.url + '#u13'); await page.waitForTimeout(400);
-  ok(/not written yet/.test(await page.locator('.sheet').innerText()) && (await page.locator('.sheet button:has-text("Ask the tutor")').count()) === 3, 'a planned week shows its syllabus and three questions');
+  ok(new RegExp('Weeks ' + fullW + ' are written out in full, with [a-z-]+ experiments between them').test(await page.locator('.col.home').innerText()) && /\b12 and 13\b/.test(fullW), 'the overview counts the written weeks (' + fullW + ') and the experiments');
+  /* every week is written now; the view for a week without notes stays for later syllabi, so look at it by taking week 13's notes away in the page */
+  await page.goto(srv.url + '#u12'); await page.waitForTimeout(400);
+  await page.evaluate(() => { const u = DL.unit('u13'); delete DL.NOTES.u13; u.status = 'planned'; u.asks = ['Derive the policy gradient theorem.', 'State the performance difference lemma.', 'Why must the policy be random in rock, paper, scissors?']; location.hash = '#u13'; });
+  await page.waitForTimeout(400);
+  const fullP = await page.evaluate(() => { const w = DL.COURSE.units.filter((u) => u.status === 'full').map((u) => String(u.week)); return w.slice(0, -1).join(', ') + ' and ' + w[w.length - 1]; });
+  ok(new RegExp('full units for weeks ' + fullP + '\\.').test(await page.locator('.sheet').innerText()) && /\b2, 3\b/.test(fullP), 'a week without notes names the written weeks (' + fullP + ')');
+  ok(/not written yet/.test(await page.locator('.sheet').innerText()) && (await page.locator('.sheet button:has-text("Ask the tutor")').count()) === 3, 'a week without notes shows its syllabus and three questions');
   await page.click('.sheet button:has-text("Ask the tutor") >> nth=0');
   await page.waitForFunction(() => /Canned answer/.test(document.querySelector('#m-body').innerText), null, { timeout: 8000 });
   ok(/has not written notes for this week/.test(await page.evaluate(() => window.__lastPrompt[0].content)), 'the tutor is told when a week has no notes');
@@ -480,11 +498,11 @@ async function shot(page, name) { if (shots) await page.screenshot({ path: path.
   /* ================= phone ================= */
   console.log('phone');
   ({ ctx, page, errors } = await open({ w: 390, h: 844, mobile: true }));
-  for (const r of ['home', 'u1', 'u1-train', 'u2', 'u2-train', 'u3', 'u3-train', 'u4', 'u5', 'u5-train', 'u6', 'u6-train', 'u8', 'u8-train', 'u9-train', 'u7', 'u7-train', 'u9', 'u9-sources', 'u10', 'u10-train', 'u12', 'u12-train', 'ledger']) {
+  for (const r of ['home', 'u1', 'u1-train', 'u2', 'u2-train', 'u3', 'u3-train', 'u4', 'u5', 'u5-train', 'u6', 'u6-train', 'u8', 'u8-train', 'u9-train', 'u7', 'u7-train', 'u9', 'u9-sources', 'u10', 'u10-train', 'u12', 'u12-train', 'u13', 'u13-train', 'ledger']) {
     await page.goto(srv.url + '#' + r); await page.waitForTimeout(500);
     ok(await noOverflow(page), 'phone: no horizontal overflow on #' + r);
   }
-  for (const u of ['u2', 'u3', 'u5', 'u6', 'u8', 'u9', 'u10', 'u12']) {
+  for (const u of ['u2', 'u3', 'u5', 'u6', 'u8', 'u9', 'u10', 'u12', 'u13']) {
     await page.goto(srv.url + '#' + u); await page.waitForTimeout(700);
     ok((await page.evaluate(() => { document.querySelectorAll('.sheet details').forEach((d) => { d.open = true; }); return [...document.querySelectorAll('.sheet .katex-display')].filter((el) => el.scrollWidth > el.clientWidth + 1).length; })) === 0, 'phone: every display formula of ' + u + ' fits the column, proofs included');
   }

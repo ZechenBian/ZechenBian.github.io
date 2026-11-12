@@ -118,7 +118,7 @@
           { t: "Mnih et al., Playing Atari with deep reinforcement learning (2013)", u: ax("1312.5602") },
           { t: "Silver et al., Mastering the game of Go with deep neural networks and tree search (Nature, 2016)", u: "https://doi.org/10.1038/nature16961" },
           { t: "Silver et al., Mastering chess and shogi by self-play with a general reinforcement learning algorithm (2017)", u: ax("1712.01815") }] },
-      { id: "u13", week: 13, date: "Dec 1", title: "Reinforcement learning II: policy optimization", status: "planned", sec: "§14",
+      { id: "u13", week: 13, date: "Dec 1", title: "Reinforcement learning II: policy optimization", status: "full", sec: "§14",
         blurb: "Differentiate the expected return directly: policy gradients, baselines, and the clipped objective behind PPO.",
         topics: ["Policy gradients", "Proximal policy optimization", "Case study: reasoning models (DeepSeek-R1, AlphaGeometry, AlphaCode)"],
         refs: [{ t: "Schulman et al., Proximal policy optimization algorithms (2017)", u: ax("1707.06347") }, { t: "Denny Zhou's talk on reasoning in large language models (video and slides)" }],
@@ -127,9 +127,7 @@
           { t: "Li et al., Competition-level code generation with AlphaCode (2022)", u: ax("2203.07814") },
           { t: "Trinh et al., Solving olympiad geometry without human demonstrations (Nature, 2024)", u: "https://doi.org/10.1038/s41586-023-06747-5" },
           { t: "Chervonyi et al., Gold-medalist performance in solving olympiad geometry with AlphaGeometry2 (2025)", u: ax("2502.03544") },
-          { t: "DeepSeek-AI, DeepSeek-R1: Incentivizing reasoning capability in LLMs via reinforcement learning (2025)", u: ax("2501.12948") }],
-        asks: ["Derive the policy gradient theorem with the log-derivative trick and show that subtracting a baseline keeps it unbiased.", "State the performance difference lemma and explain how PPO's clipped objective approximates a trust region.", "Why is a stochastic policy necessary in rock–paper–scissors, and what does that say about value-based methods?"],
-        task: "The course's Colab task: PPO for Blackjack. The game is simulated, so it runs here without any data." }
+          { t: "DeepSeek-AI, DeepSeek-R1: Incentivizing reasoning capability in LLMs via reinforcement learning (2025)", u: ax("2501.12948") }] }
     ]
   };
   DL.unit = function (id) { for (var i = 0; i < DL.COURSE.units.length; i++) if (DL.COURSE.units[i].id === id) return DL.COURSE.units[i]; return null; };
